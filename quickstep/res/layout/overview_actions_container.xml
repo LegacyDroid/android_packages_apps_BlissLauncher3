@@ -33,6 +33,7 @@
             android:layout_height="wrap_content"
             android:drawableStart="@drawable/ic_screenshot"
             android:text="@string/action_screenshot"
+            android:visibility="gone"
             android:theme="@style/ThemeControlHighlightWorkspaceColor" />
 
         <Button
