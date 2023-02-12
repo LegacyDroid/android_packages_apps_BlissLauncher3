@@ -66,6 +66,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 
+import foundation.e.bliss.LauncherAppMonitor;
+
 /**
  * Utility class to cache properties of default display to avoid a system RPC on every call.
  */
@@ -332,7 +334,10 @@ public class DisplayController implements ComponentCallbacks, SafeCloseable {
         if (change != 0) {
             mInfo = newInfo;
             final int flags = change;
-            MAIN_EXECUTOR.execute(() -> notifyChange(displayInfoContext, flags));
+            MAIN_EXECUTOR.execute(() -> {
+                LauncherAppMonitor.getInstance(mContext).onUIConfigChanged();
+                notifyChange(displayInfoContext, flags); }
+            );
         }
     }
 

@@ -288,6 +288,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import foundation.e.bliss.LauncherAppMonitor;
+
 /**
  * Default launcher application.
  */
@@ -424,6 +426,8 @@ public class Launcher extends StatefulActivity<LauncherState>
     private final SettingsCache.OnChangeListener mNaturalScrollingChangedListener =
             enabled -> mIsNaturalScrollingEnabled = enabled;
 
+    private LauncherAppMonitor mAppMonitor;
+
     public static Launcher getLauncher(Context context) {
         return fromContext(context);
     }
@@ -511,6 +515,9 @@ public class Launcher extends StatefulActivity<LauncherState>
             });
         }
 
+        mAppMonitor = LauncherAppMonitor.getInstance(this);
+        mAppMonitor.onLauncherPreCreate(this);
+
         super.onCreate(savedInstanceState);
 
         LauncherAppState app = LauncherAppState.getInstance(this);
@@ -594,6 +601,7 @@ public class Launcher extends StatefulActivity<LauncherState>
                 .addPluginListener(this, LauncherOverlayPlugin.class);
 
         mRotationHelper.initialize();
+        mAppMonitor.onLauncherCreated();
         TraceHelper.INSTANCE.endSection();
 
         getWindow().setSoftInputMode(LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
@@ -1111,11 +1119,13 @@ public class Launcher extends StatefulActivity<LauncherState>
         FloatingIconView.resetIconLoadResult();
         AccessibilityManagerCompat.sendTestProtocolEventToTest(
                 this, LAUNCHER_ACTIVITY_STOPPED_MESSAGE);
+        mAppMonitor.onLauncherStop();
     }
 
     @Override
     protected void onStart() {
         TraceHelper.INSTANCE.beginSection(ON_START_EVT);
+        mAppMonitor.onLauncherStart();
         super.onStart();
         if (!mDeferOverlayCallbacks) {
             mOverlayManager.onActivityStarted();
@@ -1310,6 +1320,7 @@ public class Launcher extends StatefulActivity<LauncherState>
     @Override
     protected void onResume() {
         TraceHelper.INSTANCE.beginSection(ON_RESUME_EVT);
+        mAppMonitor.onLauncherPreResume();
         super.onResume();
 
         if (mDeferOverlayCallbacks) {
@@ -1319,6 +1330,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         }
 
         DragView.removeAllViews(this);
+        mAppMonitor.onLauncherResumed();
         TraceHelper.INSTANCE.endSection();
     }
 
@@ -1327,6 +1339,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         // Ensure that items added to Launcher are queued until Launcher returns
         ItemInstallQueue.INSTANCE.get(this).pauseModelPush(FLAG_ACTIVITY_PAUSED);
 
+        mAppMonitor.onLauncherPrePause();
         super.onPause();
         mDragController.cancelDrag();
         mLastTouchUpTime = -1;
@@ -1336,6 +1349,7 @@ public class Launcher extends StatefulActivity<LauncherState>
             mOverlayManager.onActivityPaused();
         }
         mAppWidgetHolder.setActivityResumed(false);
+        mAppMonitor.onLauncherPaused();
     }
 
     /**
@@ -1654,6 +1668,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         boolean internalStateHandled = ACTIVITY_TRACKER.handleNewIntent(this);
 
         if (isActionMain) {
+            mAppMonitor.onReceiveHomeIntent();
             if (!internalStateHandled) {
                 // In all these cases, only animate if we're already on home
                 AbstractFloatingView.closeAllOpenViewsExcept(
@@ -1824,6 +1839,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         getRootView().getViewTreeObserver().removeOnPreDrawListener(mOnInitialBindListener);
         mOverlayManager.onActivityDestroyed();
         PillColorProvider.getInstance(mWorkspace.getContext()).unregisterObserver();
+        mAppMonitor.onLauncherDestroy(this);
     }
 
     public LauncherAccessibilityDelegate getAccessibilityDelegate() {
@@ -2434,6 +2450,7 @@ public class Launcher extends StatefulActivity<LauncherState>
      */
     public void finishBindingItems(IntSet pagesBoundFirst) {
         mModelCallbacks.finishBindingItems(pagesBoundFirst);
+        mAppMonitor.onLauncherWorkspaceBindingFinish();
     }
 
     private boolean canAnimatePageChange() {
@@ -2606,6 +2623,7 @@ public class Launcher extends StatefulActivity<LauncherState>
     public void bindAllApplications(AppInfo[] apps, int flags,
             Map<PackageUserKey, Integer> packageUserKeytoUidMap) {
         mModelCallbacks.bindAllApplications(apps, flags, packageUserKeytoUidMap);
+        mAppMonitor.onLauncherAllAppBindingFinish(apps);
         Trace.endAsyncSection(DISPLAY_ALL_APPS_TRACE_METHOD_NAME,
                 DISPLAY_ALL_APPS_TRACE_COOKIE);
     }
@@ -2754,6 +2772,7 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         mModel.dumpState(prefix, fd, writer, args);
         mOverlayManager.dump(prefix, writer);
+        mAppMonitor.dump(prefix, fd, writer, args);
         ACTIVITY_TRACKER.dump(prefix, writer);
         MSDLPlayerWrapper.INSTANCE.get(getApplicationContext()).dump(prefix, writer);
     }
