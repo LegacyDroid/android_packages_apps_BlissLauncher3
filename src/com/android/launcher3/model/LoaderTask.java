@@ -123,6 +123,8 @@ import java.util.concurrent.CancellationException;
 
 import javax.inject.Named;
 
+import foundation.e.bliss.LauncherAppMonitor;
+
 /**
  * Runnable for the thread that loads the contents of the launcher:
  *   - workspace icons
@@ -313,6 +315,9 @@ public class LoaderTask implements Runnable {
             } finally {
                 Trace.endSection();
             }
+
+            LauncherAppMonitor.getInstance(mContext)
+                    .onLoadAllAppsEnd(new ArrayList<>(mBgAllAppsList.data));
             logASplit("loadAllApps finished");
 
             verifyNotStopped();

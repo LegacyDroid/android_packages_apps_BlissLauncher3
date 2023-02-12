@@ -137,6 +137,11 @@ android {
     }
 
     sourceSets {
+        bliss {
+            java.srcDirs = ['bliss/src']
+            manifest.srcFile "bliss/AndroidManifest.xml"
+        }
+
         blissWithQuickstep {
             manifest.srcFile "quickstep/AndroidManifest-launcher.xml"
         }
