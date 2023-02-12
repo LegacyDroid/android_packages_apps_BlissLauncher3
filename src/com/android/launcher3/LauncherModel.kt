@@ -55,6 +55,7 @@ import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.util.Preconditions
+import foundation.e.bliss.LauncherAppMonitor
 import java.io.FileDescriptor
 import java.io.PrintWriter
 import java.util.concurrent.CancellationException
@@ -170,6 +171,7 @@ constructor(
 
     fun reloadStringCache() {
         enqueueModelUpdateTask(ReloadStringCacheTask(this.modelDelegate))
+        LauncherAppMonitor.getInstance(context).onReceive()
     }
 
     /**
@@ -216,6 +218,8 @@ constructor(
                 )
             }
         }
+
+        LauncherAppMonitor.getInstance(context).onReceive()
     }
 
     /**
