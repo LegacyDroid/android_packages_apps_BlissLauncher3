@@ -373,7 +373,10 @@ android_library {
         "launcher_compose_defaults",
     ],
     srcs: [],
-    resource_dirs: ["res"],
+    resource_dirs: [
+        "bliss/res",
+        "res",
+    ],
     static_libs: [
         "LauncherPluginLib",
         "launcher_quickstep_log_protos_lite",

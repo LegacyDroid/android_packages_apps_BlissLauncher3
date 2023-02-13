@@ -140,6 +140,7 @@ android {
         bliss {
             java.srcDirs = ['bliss/src']
             manifest.srcFile "bliss/AndroidManifest.xml"
+            res.srcDirs = ['bliss/res']
         }
 
         blissWithQuickstep {
