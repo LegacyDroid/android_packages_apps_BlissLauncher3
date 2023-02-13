@@ -26,6 +26,8 @@ import com.android.launcher3.model.data.ItemInfo;
 import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 
+import foundation.e.bliss.multimode.MultiModeController;
+
 /**
  * Settings related utilities.
  */
@@ -149,17 +151,35 @@ public class LauncherSettings {
          */
         public static final String ICON = "icon";
 
-        public static final String TABLE_NAME = "favorites";
+        public static final String TABLE_NAME = getFavoritesTableName();
+        public static final String E_TABLE_NAME = "favorites";
+        public static final String E_TABLE_NAME_ALL = "favorites_all";
+
+        public static String getFavoritesTableName() {
+            return MultiModeController.isSingleLayerMode() ? E_TABLE_NAME_ALL : E_TABLE_NAME;
+        }
 
         /**
          * Backup table created when user hotseat is moved to workspace for hybrid hotseat
          */
-        public static final String HYBRID_HOTSEAT_BACKUP_TABLE = "hotseat_restore_backup";
+        public static final String HYBRID_HOTSEAT_BACKUP_TABLE = getHotseatBackupTableName();
+        public static final String E_HYBRID_HOTSEAT_BACKUP_TABLE = "hotseat_restore_backup";
+        public static final String E_HYBRID_HOTSEAT_BACKUP_TABLE_ALL = "hotseat_restore_backup_all";
+
+        public static String getHotseatBackupTableName() {
+            return MultiModeController.isSingleLayerMode() ? E_HYBRID_HOTSEAT_BACKUP_TABLE_ALL : E_HYBRID_HOTSEAT_BACKUP_TABLE;
+        }
 
         /**
          * Temporary table used specifically for multi-db grid migrations
          */
-        public static final String TMP_TABLE = "favorites_tmp";
+        public static final String TMP_TABLE = getTempTableName();
+        public static final String E_TMP_TABLE = "favorites_tmp";
+        public static final String E_TMP_TABLE_ALL = "favorites_tmp_all";
+
+        public static String getTempTableName() {
+            return MultiModeController.isSingleLayerMode() ? E_TMP_TABLE_ALL : E_TMP_TABLE;
+        }
 
         /**
          * The container holding the favorite
@@ -297,12 +317,13 @@ public class LauncherSettings {
         public static final String APPWIDGET_SOURCE = "appWidgetSource";
 
         public static void addTableToDb(SQLiteDatabase db, long myProfileId, boolean optional) {
-            addTableToDb(db, myProfileId, optional, TABLE_NAME);
+            addTableToDb(db, myProfileId, optional, E_TABLE_NAME);
+            addTableToDb(db, myProfileId, optional, E_TABLE_NAME_ALL);
         }
 
         public static void addTableToDb(SQLiteDatabase db, long myProfileId, boolean optional,
                 String tableName) {
-            db.execSQL("CREATE TABLE " + (optional ? " IF NOT EXISTS " : "") + tableName + " ("
+            db.execSQL("CREATE TABLE IF NOT EXISTS " + tableName + " ("
                     + getJoinedColumnsToTypes(myProfileId) + ");");
         }
 

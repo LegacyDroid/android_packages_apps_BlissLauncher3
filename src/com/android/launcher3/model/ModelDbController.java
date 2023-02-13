@@ -87,6 +87,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.StringReader;
 
+import foundation.e.bliss.multimode.MultiModeController;
+
 /**
  * Utility class which maintains an instance of Launcher database and provides utility methods
  * around it.
@@ -94,8 +96,15 @@ import java.io.StringReader;
 public class ModelDbController {
     private static final String TAG = "LauncherProvider";
 
-    private static final String EMPTY_DATABASE_CREATED = "EMPTY_DATABASE_CREATED";
+    private static final String EMPTY_DATABASE_CREATED = getEmptyDatabaseCreated();
+    private static final String E_EMPTY_DATABASE_CREATED = "EMPTY_DATABASE_CREATED";
+    private static final String E_EMPTY_DATABASE_CREATED_ALL = "EMPTY_DATABASE_CREATED_ALL";
+
     public static final String EXTRA_DB_NAME = "db_name";
+
+    private static String getEmptyDatabaseCreated() {
+        return MultiModeController.isSingleLayerMode() ? E_EMPTY_DATABASE_CREATED_ALL : E_EMPTY_DATABASE_CREATED;
+    }
 
     protected DatabaseHelper mOpenHelper;
 

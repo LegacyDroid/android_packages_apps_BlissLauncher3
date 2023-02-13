@@ -80,6 +80,7 @@ import com.android.launcher3.util.Preconditions;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CancellationException;
@@ -137,7 +138,7 @@ public class LauncherModel implements InstallSessionTracker.Callback {
      * on this object when accessing any data from this model.
      */
     @NonNull
-    private final BgDataModel mBgDataModel = new BgDataModel();
+    public final BgDataModel mBgDataModel = new BgDataModel();
 
     @NonNull
     private final ModelDelegate mModelDelegate;
@@ -188,6 +189,27 @@ public class LauncherModel implements InstallSessionTracker.Callback {
             cb.preAddApps();
         }
         enqueueModelUpdateTask(new AddWorkspaceItemsTask(itemList));
+    }
+
+    /**
+     * Adds the provided items to the workspace.
+     */
+    public void addAndBindAddedWorkspaceItems(List<Pair<ItemInfo, Object>> itemList,
+                                              boolean animated, boolean ignoreLoaded) {
+        for (Callbacks cb : getCallbacks()) {
+            cb.preAddApps();
+        }
+        if (ignoreLoaded) {
+            itemList.sort(Comparator.comparing(item -> {
+                assert item.first.title != null;
+                return item.first.title.toString().toLowerCase();
+            }));
+        }
+        enqueueModelUpdateTask(new AddWorkspaceItemsTask(itemList));
+        AddWorkspaceItemsTask addWorkspaceItemsTask =
+                new AddWorkspaceItemsTask(itemList, ignoreLoaded);
+        addWorkspaceItemsTask.setEnableAnimated(animated);
+        enqueueModelUpdateTask(addWorkspaceItemsTask);
     }
 
     @NonNull
@@ -595,7 +617,7 @@ public class LauncherModel implements InstallSessionTracker.Callback {
             return;
         }
         MODEL_EXECUTOR.execute(() -> {
-            if (!isModelLoaded()) {
+            if (!isModelLoaded() && !task.isIgnoreLoaded()) {
                 // Loader has not yet run.
                 return;
             }
@@ -618,6 +640,14 @@ public class LauncherModel implements InstallSessionTracker.Callback {
 
         void execute(@NonNull ModelTaskController taskController,
                 @NonNull BgDataModel dataModel, @NonNull AllAppsList apps);
+
+        default void setIgnoreLoaded(boolean ignore) {
+            // No-op default implementation
+        }
+
+        default boolean isIgnoreLoaded() {
+            return false;
+        }
     }
 
     public void updateAndBindWorkspaceItem(@NonNull final WorkspaceItemInfo si,
