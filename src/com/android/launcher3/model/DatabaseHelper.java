@@ -150,7 +150,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
         UserCache um = UserCache.INSTANCE.get(mContext);
         for (UserHandle user : um.getUserProfiles()) {
             long serial = um.getSerialNumberForUser(user);
-            String sql = "update favorites set intent = replace(intent, "
+            String sql = "update " + Favorites.TABLE_NAME + " set intent = replace(intent, "
                     + "';l.profile=" + serial + ";', ';') where itemType = 0;";
             db.execSQL(sql);
         }
@@ -170,7 +170,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
             case 13: {
                 try (SQLiteTransaction t = new SQLiteTransaction(db)) {
                     // Insert new column for holding widget provider name
-                    db.execSQL("ALTER TABLE favorites ADD COLUMN appWidgetProvider TEXT;");
+                    db.execSQL("ALTER TABLE " + Favorites.TABLE_NAME + " ADD COLUMN appWidgetProvider TEXT;");
                     t.commit();
                 } catch (SQLException ex) {
                     Log.e(TAG, ex.getMessage(), ex);
@@ -374,7 +374,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
                      "itemType=" + Favorites.ITEM_TYPE_SHORTCUT
                              + " AND profileId=" + getDefaultUserSerial(),
                      null, null, null, null);
-             SQLiteStatement updateStmt = db.compileStatement("UPDATE favorites SET itemType="
+             SQLiteStatement updateStmt = db.compileStatement("UPDATE " + Favorites.TABLE_NAME + " SET itemType="
                      + Favorites.ITEM_TYPE_APPLICATION + " WHERE _id=?")
         ) {
             final int idIndex = c.getColumnIndexOrThrow(Favorites._ID);
@@ -409,17 +409,17 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
         try (SQLiteTransaction t = new SQLiteTransaction(db)) {
             if (addRankColumn) {
                 // Insert new column for holding rank
-                db.execSQL("ALTER TABLE favorites ADD COLUMN rank INTEGER NOT NULL DEFAULT 0;");
+                db.execSQL("ALTER TABLE " + Favorites.TABLE_NAME + " ADD COLUMN rank INTEGER NOT NULL DEFAULT 0;");
             }
 
             // Get a map for folder ID to folder width
             Cursor c = db.rawQuery("SELECT container, MAX(cellX) FROM favorites"
-                            + " WHERE container IN (SELECT _id FROM favorites WHERE itemType = ?)"
+                            + " WHERE container IN (SELECT _id FROM " + Favorites.TABLE_NAME + " WHERE itemType = ?)"
                             + " GROUP BY container;",
                     new String[]{Integer.toString(Favorites.ITEM_TYPE_FOLDER)});
 
             while (c.moveToNext()) {
-                db.execSQL("UPDATE favorites SET rank=cellX+(cellY*?) WHERE "
+                db.execSQL("UPDATE " + Favorites.TABLE_NAME + " SET rank=cellX+(cellY*?) WHERE "
                                 + "container=? AND cellX IS NOT NULL AND cellY IS NOT NULL;",
                         new Object[]{c.getLong(1) + 1, c.getLong(0)});
             }
@@ -436,7 +436,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
 
     private boolean addIntegerColumn(SQLiteDatabase db, String columnName, long defaultValue) {
         try (SQLiteTransaction t = new SQLiteTransaction(db)) {
-            db.execSQL("ALTER TABLE favorites ADD COLUMN "
+            db.execSQL("ALTER TABLE " + Favorites.TABLE_NAME + " ADD COLUMN "
                     + columnName + " INTEGER NOT NULL DEFAULT " + defaultValue + ";");
             t.commit();
         } catch (SQLException ex) {

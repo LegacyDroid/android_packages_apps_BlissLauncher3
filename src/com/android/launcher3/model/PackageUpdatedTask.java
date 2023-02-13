@@ -36,7 +36,7 @@ import androidx.annotation.NonNull;
 
 import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherAppState;
-import com.android.launcher3.LauncherModel.ModelUpdateTask;
+import com.android.launcher3.ModelUpdateTask;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.config.FeatureFlags;

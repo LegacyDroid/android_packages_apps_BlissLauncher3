@@ -29,7 +29,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
-import com.android.launcher3.LauncherModel.ModelUpdateTask;
+import com.android.launcher3.ModelUpdateTask;
 import com.android.launcher3.R;
 import com.android.launcher3.model.BgDataModel.FixedContainerItems;
 import com.android.launcher3.model.QuickstepModelDelegate.PredictorState;

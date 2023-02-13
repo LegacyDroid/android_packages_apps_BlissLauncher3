@@ -83,7 +83,7 @@ class LauncherModel(
      * All the static data should be accessed on the background thread, A lock should be acquired on
      * this object when accessing any data from this model.
      */
-    private val mBgDataModel = BgDataModel()
+    val mBgDataModel = BgDataModel()
 
     val modelDelegate: ModelDelegate =
         ModelDelegate.newInstance(
@@ -135,6 +135,28 @@ class LauncherModel(
     fun addAndBindAddedWorkspaceItems(itemList: List<Pair<ItemInfo?, Any?>?>) {
         callbacks.forEach { it.preAddApps() }
         enqueueModelUpdateTask(AddWorkspaceItemsTask(itemList))
+    }
+
+    /**
+     * Adds the provided items to the workspace.
+     */
+    fun addAndBindAddedWorkspaceItems(
+        itemList: List<Pair<ItemInfo?, Any?>?>,
+        animated: Boolean, ignoreLoaded: Boolean
+    ) {
+        callbacks.forEach { it.preAddApps() }
+        val sortedItemList = if (ignoreLoaded) {
+            itemList
+                .filterNotNull()
+                .sortedBy { it.first?.title?.toString()?.lowercase() ?: "" }
+        } else {
+            itemList
+        }
+        enqueueModelUpdateTask(AddWorkspaceItemsTask(sortedItemList))
+        val addWorkspaceItemsTask =
+            AddWorkspaceItemsTask(sortedItemList, ignoreLoaded)
+        addWorkspaceItemsTask.setEnableAnimated(animated)
+        enqueueModelUpdateTask(addWorkspaceItemsTask)
     }
 
     fun getWriter(
@@ -443,7 +465,7 @@ class LauncherModel(
             return
         }
         MODEL_EXECUTOR.execute {
-            if (!isModelLoaded()) {
+            if (!isModelLoaded() && !task.isIgnoreLoaded) {
                 // Loader has not yet run.
                 return@execute
             }
@@ -461,10 +483,6 @@ class LauncherModel(
      */
     fun interface CallbackTask {
         fun execute(callbacks: BgDataModel.Callbacks)
-    }
-
-    fun interface ModelUpdateTask {
-        fun execute(taskController: ModelTaskController, dataModel: BgDataModel, apps: AllAppsList)
     }
 
     fun updateAndBindWorkspaceItem(si: WorkspaceItemInfo, info: ShortcutInfo) {

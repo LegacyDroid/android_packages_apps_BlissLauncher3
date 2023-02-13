@@ -21,7 +21,7 @@ import android.content.pm.PackageInstaller.SessionInfo
 import android.content.pm.ShortcutInfo
 import android.os.UserHandle
 import android.text.TextUtils
-import com.android.launcher3.LauncherModel.ModelUpdateTask
+import com.android.launcher3.ModelUpdateTask
 import com.android.launcher3.config.FeatureFlags
 import com.android.launcher3.logging.FileLog
 import com.android.launcher3.model.PackageUpdatedTask.OP_ADD
