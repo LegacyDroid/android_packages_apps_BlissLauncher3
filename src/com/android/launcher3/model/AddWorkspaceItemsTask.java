@@ -61,6 +61,17 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
     @NonNull
     private final WorkspaceItemSpaceFinder mItemSpaceFinder;
 
+    private boolean mAnimated = true;
+
+    public AddWorkspaceItemsTask(List<Pair<ItemInfo, Object>> itemList, boolean ignoreLoaded) {
+        this(itemList);
+//        mIgnoreLoaded = ignoreLoaded;
+    }
+
+    public void setEnableAnimated(boolean animated) {
+        mAnimated = animated;
+    }
+
     /**
      * @param itemList items to add on the workspace
      */
@@ -104,6 +115,7 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
 
                     // b/139663018 Short-circuit this logic if the icon is a system app
                     if (PackageManagerHelper.isSystemApp(context,
+//                            Objects.requireNonNull(item.getIntent())) && !mIgnoreLoaded) {
                             Objects.requireNonNull(item.getIntent()))) {
                         continue;
                     }

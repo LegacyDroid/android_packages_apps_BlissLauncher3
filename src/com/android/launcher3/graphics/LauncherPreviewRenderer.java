@@ -106,6 +106,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import foundation.e.bliss.LauncherAppMonitor;
+
 /**
  * Utility class for generating the preview of Launcher for a given InvariantDeviceProfile.
  * Steps:
@@ -128,6 +130,7 @@ public class LauncherPreviewRenderer extends ContextWrapper
             putObject(InvariantDeviceProfile.INSTANCE, idp);
             putObject(LauncherAppState.INSTANCE,
                     new LauncherAppState(this, null /* iconCacheFileName */));
+            putObject(LauncherAppMonitor.INSTANCE, new LauncherAppMonitor(this));
         }
     }
 
