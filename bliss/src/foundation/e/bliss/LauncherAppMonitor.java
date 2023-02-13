@@ -46,6 +46,8 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import foundation.e.bliss.multimode.MultiModeController;
+
 public class LauncherAppMonitor extends LauncherApps.Callback
         implements
             SharedPreferences.OnSharedPreferenceChangeListener,
@@ -60,6 +62,8 @@ public class LauncherAppMonitor extends LauncherApps.Callback
     private final ArrayList<WeakReference<LauncherAppMonitorCallback>> mCallbacks = new ArrayList<>();
 
     private Launcher mLauncher;
+
+    private MultiModeController mMultiModeController = null;
 
     public static LauncherAppMonitor getInstance(Context context) {
         return INSTANCE.get(context.getApplicationContext());
@@ -100,8 +104,14 @@ public class LauncherAppMonitor extends LauncherApps.Callback
         }
     }
 
-    private LauncherAppMonitor(Context context) {
+    public MultiModeController getMultiModeController() {
+        return mMultiModeController;
+    }
+
+    public LauncherAppMonitor(Context context) {
+        context.getSystemService(LauncherApps.class).registerCallback(this);
         LauncherPrefs.getPrefs(context).registerOnSharedPreferenceChangeListener(this);
+        mMultiModeController = new MultiModeController(context, this);
     }
 
     @Override
