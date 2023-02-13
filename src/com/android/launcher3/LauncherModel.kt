@@ -83,7 +83,7 @@ constructor(
     lifecycle: DaggerSingletonTracker,
     val modelDelegate: ModelDelegate,
     private val mBgAllAppsList: AllAppsList,
-    private val mBgDataModel: BgDataModel,
+    val mBgDataModel: BgDataModel,
     private val loaderFactory: LoaderTaskFactory,
     private val binderFactory: BaseLauncherBinderFactory,
     private val spaceFinderFactory: Provider<WorkspaceItemSpaceFinder>,
@@ -138,6 +138,28 @@ constructor(
     fun addAndBindAddedWorkspaceItems(itemList: List<Pair<ItemInfo?, Any?>?>) {
         callbacks.forEach { it.preAddApps() }
         enqueueModelUpdateTask(AddWorkspaceItemsTask(itemList, spaceFinderFactory.get()))
+    }
+
+    /**
+     * Adds the provided items to the workspace.
+     */
+    fun addAndBindAddedWorkspaceItems(
+        itemList: List<Pair<ItemInfo?, Any?>?>,
+        animated: Boolean, ignoreLoaded: Boolean
+    ) {
+        callbacks.forEach { it.preAddApps() }
+        val sortedItemList = if (ignoreLoaded) {
+            itemList
+                .filterNotNull()
+                .sortedBy { it.first?.title?.toString()?.lowercase() ?: "" }
+        } else {
+            itemList
+        }
+        addAndBindAddedWorkspaceItems(sortedItemList)
+        val addWorkspaceItemsTask =
+            AddWorkspaceItemsTask(sortedItemList, ignoreLoaded, spaceFinderFactory.get())
+        addWorkspaceItemsTask.setEnableAnimated(animated)
+        enqueueModelUpdateTask(addWorkspaceItemsTask)
     }
 
     fun getWriter(
@@ -423,7 +445,7 @@ constructor(
             return
         }
         MODEL_EXECUTOR.execute {
-            if (!isModelLoaded()) {
+            if (!isModelLoaded() && !task.isIgnoreLoaded) {
                 // Loader has not yet run.
                 return@execute
             }
@@ -437,10 +459,6 @@ constructor(
      */
     fun interface CallbackTask {
         fun execute(callbacks: BgDataModel.Callbacks)
-    }
-
-    fun interface ModelUpdateTask {
-        fun execute(taskController: ModelTaskController, dataModel: BgDataModel, apps: AllAppsList)
     }
 
     fun updateAndBindWorkspaceItem(si: WorkspaceItemInfo, info: ShortcutInfo) {

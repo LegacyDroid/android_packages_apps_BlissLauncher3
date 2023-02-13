@@ -133,6 +133,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import foundation.e.bliss.LauncherAppMonitor;
+
 /**
  * Utility class for generating the preview of Launcher for a given InvariantDeviceProfile.
  * Steps:
@@ -188,6 +190,8 @@ public class LauncherPreviewRenderer extends BaseContext
                 // Use null the DB file so that we use a new in-memory DB
                 InvariantDeviceProfile.INSTANCE.get(this).dbFile = null;
             }
+
+            LauncherAppMonitor.getInstance(this);
         }
 
         private void emptyDbDir() {

@@ -32,7 +32,7 @@ import android.os.UserHandle;
 import androidx.annotation.NonNull;
 
 import com.android.launcher3.ConstantItem;
-import com.android.launcher3.LauncherModel.ModelUpdateTask;
+import com.android.launcher3.ModelUpdateTask;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.model.BgDataModel.FixedContainerItems;

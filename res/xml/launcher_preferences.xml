@@ -58,4 +58,10 @@
         launcher:logIdOn="615"
         launcher:logIdOff="616" />
 
+    <SwitchPreferenceCompat
+        android:defaultValue="@bool/default_single_mode"
+        android:key="pref_single_layer"
+        android:persistent="true"
+        android:title="Enable single layer mode" />
+
 </androidx.preference.PreferenceScreen>
