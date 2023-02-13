@@ -17,8 +17,8 @@
 package com.android.launcher3.model;
 
 import static com.android.launcher3.Flags.enableSmartspaceRemovalToggle;
-import static com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME;
-import static com.android.launcher3.LauncherSettings.Favorites.TMP_TABLE;
+import static com.android.launcher3.LauncherSettings.Favorites.getFavoritesTableName;
+import static com.android.launcher3.LauncherSettings.Favorites.getTempTableName;
 import static com.android.launcher3.Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET;
 import static com.android.launcher3.model.LoaderTask.SMARTSPACE_ON_HOME_SCREEN;
 import static com.android.launcher3.provider.LauncherDbUtils.copyTable;
@@ -105,10 +105,10 @@ public class GridSizeMigrationUtil {
 
     /**
      * When migrating the grid, we copy the table
-     * {@link LauncherSettings.Favorites#TABLE_NAME} from {@code source} into
+     * {@link LauncherSettings.Favorites#getFavoritesTableName()} from {@code source} into
      * {@link LauncherSettings.Favorites#TMP_TABLE}, run the grid size migration algorithm
      * to migrate the later to the former, and load the workspace from the default
-     * {@link LauncherSettings.Favorites#TABLE_NAME}.
+     * {@link LauncherSettings.Favorites#getFavoritesTableName()}.
      *
      * @return false if the migration failed.
      */
@@ -135,21 +135,21 @@ public class GridSizeMigrationUtil {
             Log.i("b/360462379", "Grid migration fix entry point.");
             // Only use this strategy when comparing the previous grid to the new grid and the
             // columns are the same and the destination has more rows
-            copyTable(source, TABLE_NAME, target.getWritableDatabase(), TABLE_NAME, context);
+            copyTable(source, getFavoritesTableName(), target.getWritableDatabase(), getFavoritesTableName(), context);
             destDeviceState.writeToPrefs(context);
             return true;
         }
-        copyTable(source, TABLE_NAME, target.getWritableDatabase(), TMP_TABLE, context);
+        copyTable(source, getFavoritesTableName(), target.getWritableDatabase(), getTempTableName(), context);
 
         long migrationStartTime = System.currentTimeMillis();
         try (SQLiteTransaction t = new SQLiteTransaction(target.getWritableDatabase())) {
-            DbReader srcReader = new DbReader(t.getDb(), TMP_TABLE, context);
-            DbReader destReader = new DbReader(t.getDb(), TABLE_NAME, context);
+            DbReader srcReader = new DbReader(t.getDb(), getTempTableName(), context);
+            DbReader destReader = new DbReader(t.getDb(), getFavoritesTableName(), context);
 
             Point targetSize = new Point(destDeviceState.getColumns(), destDeviceState.getRows());
             migrate(target, srcReader, destReader, destDeviceState.getNumHotseat(),
                     targetSize, srcDeviceState, destDeviceState);
-            dropTable(t.getDb(), TMP_TABLE);
+            dropTable(t.getDb(), getTempTableName());
             t.commit();
             return true;
         } catch (Exception e) {
@@ -349,13 +349,14 @@ public class GridSizeMigrationUtil {
             final int screenId, final int trgX, final int trgY,
             @NonNull final List<DbEntry> sortedItemsToPlace, List<Integer> idsInUse) {
         final GridOccupancy occupied = new GridOccupancy(trgX, trgY);
-        final Point trg = new Point(trgX, trgY);
-        final Point next = new Point(0, screenId == 0
+        final int adjScreenId = screenId == 0
                 && (FeatureFlags.QSB_ON_FIRST_SCREEN
                 && (!enableSmartspaceRemovalToggle() || LauncherPrefs.getPrefs(destReader.mContext)
                 .getBoolean(SMARTSPACE_ON_HOME_SCREEN, true))
                 && !SHOULD_SHOW_FIRST_PAGE_WIDGET)
-                ? 1 /* smartspace */ : 0);
+                ? 1 : screenId;
+        final Point trg = new Point(trgX, trgY);
+        final Point next = new Point(0, 0);
         List<DbEntry> existedEntries = destReader.mWorkspaceEntriesByScreenId.get(screenId);
         if (existedEntries != null) {
             for (DbEntry entry : existedEntries) {
@@ -369,7 +370,7 @@ public class GridSizeMigrationUtil {
                 iterator.remove();
                 continue;
             }
-            if (findPlacementForEntry(entry, next, trg, occupied, screenId)) {
+            if (findPlacementForEntry(entry, next, trg, occupied, adjScreenId)) {
                 insertEntryInDb(
                         helper, entry, srcReader.mTableName, destReader.mTableName, idsInUse);
                 iterator.remove();
