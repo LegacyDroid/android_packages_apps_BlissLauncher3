@@ -28,7 +28,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
 import com.android.launcher3.LauncherAppState;
-import com.android.launcher3.LauncherModel.ModelUpdateTask;
+import com.android.launcher3.ModelUpdateTask;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.model.AllAppsList;
