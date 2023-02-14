@@ -82,6 +82,8 @@ import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
+import foundation.e.bliss.db.BlissDbUtils;
+
 /**
  * All the data stored in-memory and managed by the LauncherModel
  *
@@ -253,14 +255,12 @@ public class BgDataModel {
                         mapping(ShortcutInfo::getId, Collectors.toSet())));
 
         // Collect all model shortcuts
-        Stream.Builder<WorkspaceItemInfo> itemStream = Stream.builder();
-        forAllWorkspaceItemInfos(user, itemStream::accept);
+        Stream.Builder<ShortcutKey> itemStream = Stream.builder();
+        BlissDbUtils.queryDeepShortcutsFromDb(context).forEach(itemStream);
         // Map of packageName to shortcutIds that are currently in our model
         Map<String, Set<String>> modelMap = Stream.concat(
                     // Model shortcuts
-                    itemStream.build()
-                        .filter(wi -> wi.itemType == ITEM_TYPE_DEEP_SHORTCUT)
-                        .map(ShortcutKey::fromItemInfo),
+                    itemStream.build(),
                     // Pending shortcuts
                     ItemInstallQueue.INSTANCE.get(context).getPendingShortcuts(user))
                 .collect(groupingBy(ShortcutKey::getPackageName,
