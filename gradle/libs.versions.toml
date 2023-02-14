@@ -19,6 +19,7 @@ google-protobuf = "0.9.4"
 google-protobuf-javalite = "4.30.0"
 hoko-blur = "1.5.3"
 reactivex-rxkotlin3 = "3.0.1"
+spotless = "6.13.0"
 square-retrofit = "2.11.0"
 square-okhttp = "4.12.0"
 square-gson = "2.11.0"
@@ -42,6 +43,7 @@ androidx-window = { module = "androidx.window:window", version.ref = "window" }
 androidx-core-animation = { module = "androidx.core:core-animation", version.ref = "core-animation" }
 
 airbnb-lottie = { module = "com.airbnb.android:lottie", version.ref = "airbnb-lottie" }
+build-spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
 e-telemetry = { module = "foundation.e.lib:telemetry", version.ref = "e-telemetry" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 elib = { module = "foundation.e:elib", version.ref = "elib" }
