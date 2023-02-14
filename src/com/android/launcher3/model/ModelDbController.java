@@ -24,6 +24,7 @@ import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR;
 import static com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME;
 import static com.android.launcher3.LauncherSettings.Favorites.addTableToDb;
+import static com.android.launcher3.provider.LauncherDbUtils.copyTable;
 import static com.android.launcher3.provider.LauncherDbUtils.tableExists;
 
 import android.content.ContentValues;
@@ -640,6 +641,8 @@ public class ModelDbController {
                     mOpenHelper.loadFavorites(mOpenHelper.getWritableDatabase(),
                             getDefaultLayoutParser(widgetHolder));
                 }
+                copyTable(mOpenHelper.getReadableDatabase(), Favorites.E_TABLE_NAME_ALL,
+                        mOpenHelper.getWritableDatabase(), Favorites.E_TABLE_NAME, mContext);
                 clearFlagEmptyDbCreated();
             } finally {
                 widgetHolder.destroy();
