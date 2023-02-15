@@ -652,7 +652,6 @@ public class TouchInteractionService extends Service {
                 + " instance=" + System.identityHashCode(this));
         // Initialize anything here that is needed in direct boot mode.
         // Everything else should be initialized in onUserUnlocked() below.
-        LauncherAppMonitor.getInstance(this);
         mMainChoreographer = Choreographer.getInstance();
         mDeviceState = new RecentsAnimationDeviceState(this, true);
         mRotationTouchHelper = mDeviceState.getRotationTouchHelper();
@@ -725,6 +724,7 @@ public class TouchInteractionService extends Service {
     public void onUserUnlocked() {
         Log.d(TAG, "onUserUnlocked: userId=" + getUserId()
                 + " instance=" + System.identityHashCode(this));
+        LauncherAppMonitor.getInstance(this);
         mTaskAnimationManager = new TaskAnimationManager(this, mRecentsWindowManager);
         mOverviewComponentObserver = OverviewComponentObserver.INSTANCE.get(this);
         mOverviewCommandHelper = new OverviewCommandHelper(this,
