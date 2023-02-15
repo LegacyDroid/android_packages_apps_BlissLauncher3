@@ -1,0 +1,44 @@
+/*
+ * Copyright (C) 2025 MURENA SAS
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+package foundation.e.bliss.widgets
+
+import android.annotation.SuppressLint
+import android.appwidget.AppWidgetHost
+import android.appwidget.AppWidgetHostView
+import android.appwidget.AppWidgetProviderInfo
+import android.content.Context
+import com.android.launcher3.widget.LauncherAppWidgetHostView
+
+class BlissAppWidgetHost(val context: Context) : AppWidgetHost(context, WIDGET_HOST_ID) {
+    fun createView(widgetId: Int, widgetInfo: AppWidgetProviderInfo): AppWidgetHostView {
+        return createView(context, widgetId, widgetInfo).apply { setPaddingRelative(8, 24, 8, 24) }
+    }
+
+    @SuppressLint("NewApi")
+    override fun onCreateView(
+        context: Context?,
+        appWidgetId: Int,
+        appWidget: AppWidgetProviderInfo?
+    ) = LauncherAppWidgetHostView(context)
+
+    companion object {
+        const val TAG = "BlissAppWidgetHost"
+        const val WIDGET_HOST_ID = 1040
+        const val REQUEST_CONFIGURE_APPWIDGET = 1041
+    }
+}

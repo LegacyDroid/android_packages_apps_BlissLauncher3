@@ -15,7 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
-package foundation.e.bliss.db
+package foundation.e.bliss.utils
 
 import android.content.Context
 import android.content.Intent
