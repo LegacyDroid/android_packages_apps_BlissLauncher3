@@ -82,7 +82,7 @@ import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
-import foundation.e.bliss.db.BlissDbUtils;
+import foundation.e.bliss.utils.BlissDbUtils;
 
 /**
  * All the data stored in-memory and managed by the LauncherModel

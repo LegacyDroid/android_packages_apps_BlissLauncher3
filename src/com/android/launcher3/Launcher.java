@@ -2303,7 +2303,7 @@ public class Launcher extends StatefulActivity<LauncherState>
                     Object tag = occupiedView == null ? null : occupiedView.getTag();
                     String desc = "Collision while binding workspace item: " + item
                             + ". Collides with " + tag;
-                    if (FeatureFlags.IS_STUDIO_BUILD) {
+                    if (FeatureFlags.IS_STUDIO_BUILD && tag != null) {
                         throw (new RuntimeException(desc));
                     } else {
                         getModelWriter().deleteItemFromDatabase(item, desc);
@@ -2456,6 +2456,10 @@ public class Launcher extends StatefulActivity<LauncherState>
                 && info.itemType == ITEM_TYPE_APPLICATION
                 && info.user.equals(user)
                 && TextUtils.equals(info.getTargetPackage(), packageName);
+
+        if (mWorkspace.getDestinationPage() == 0) {
+            return null;
+        }
 
         // Look for the item inside the folder at the current page
         Folder folder = Folder.getOpen(this);
