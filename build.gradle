@@ -244,12 +244,17 @@ dependencies {
     implementation libs.androidx.preference
     implementation libs.androidx.slice.view
     implementation libs.androidx.window
+    implementation libs.converter.gson
     implementation libs.dagger
     implementation libs.elib
     implementation libs.google.protobuf.javalite
     implementation libs.google.material
     implementation libs.kotlinx.coroutines.core
+    implementation libs.kotlinx.coroutines.rx2
+    implementation libs.logging.interceptor
+    implementation libs.okhttp
     implementation libs.okio
+    implementation libs.retrofit
 
     ksp libs.dagger.compiler
 

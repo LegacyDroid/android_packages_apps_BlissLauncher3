@@ -75,6 +75,8 @@
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/derived_app_name"
+        android:usesCleartextTraffic="true"
+        android:allowClearUserData="true"
         android:largeHeap="@bool/config_largeHeap"
         android:restoreAnyVersion="true"
         android:supportsRtl="true" >

@@ -214,6 +214,10 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
             currentScroll = totalScroll - currentScroll;
         }
 
+        if (currentScroll == 0) {
+            return;
+        }
+
         mTotalScroll = totalScroll;
 
         if (enableLauncherVisualRefresh()) {
