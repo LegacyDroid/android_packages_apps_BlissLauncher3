@@ -42,6 +42,7 @@ import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.util.DisplayMetrics;
 import android.util.SparseArray;
 import android.view.Surface;
@@ -71,12 +72,15 @@ import com.android.launcher3.util.DisplayController.Info;
 import com.android.launcher3.util.IconSizeSteps;
 import com.android.launcher3.util.ResourceHelper;
 import com.android.launcher3.util.SettingsCache;
+import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.util.window.WindowManagerProxy;
 
 import java.io.PrintWriter;
 import java.util.Locale;
 import java.util.function.Consumer;
+
+import foundation.e.bliss.multimode.MultiModeController;
 
 @SuppressLint("NewApi")
 public class DeviceProfile {
@@ -851,9 +855,18 @@ public class DeviceProfile {
 
         dimensionOverrideProvider.accept(this);
 
+        // Check if notification dots should show the notification count
+        boolean showNotificationCount = MultiModeController.isNotifCountEnabled();
+
+        // Load the default font to use on notification dots
+        Typeface typeface = null;
+        if (showNotificationCount) {
+            typeface = Typeface.create(Themes.getDefaultBodyFont(context), Typeface.NORMAL);
+        }
+
         // This is done last, after iconSizePx is calculated above.
-        mDotRendererWorkSpace = createDotRenderer(themeManager, iconSizePx, dotRendererCache);
-        mDotRendererAllApps = createDotRenderer(themeManager, allAppsIconSizePx, dotRendererCache);
+        mDotRendererWorkSpace = createDotRenderer(themeManager, iconSizePx, dotRendererCache, showNotificationCount, typeface, isTablet);
+        mDotRendererAllApps = createDotRenderer(themeManager, allAppsIconSizePx, dotRendererCache, showNotificationCount, typeface, isTablet);
     }
 
     /**
@@ -875,13 +888,14 @@ public class DeviceProfile {
     }
 
     private static DotRenderer createDotRenderer(
-            @NonNull ThemeManager themeManager, int size, @NonNull SparseArray<DotRenderer> cache) {
+            @NonNull ThemeManager themeManager, int size, @NonNull SparseArray<DotRenderer> cache,
+            boolean showNotificationCount, Typeface typeface, boolean isTablet) {
         DotRenderer renderer = cache.get(size);
         if (renderer == null) {
             renderer = new DotRenderer(
                     size,
                     themeManager.getIconShape().getPath(DEFAULT_DOT_SIZE),
-                    DEFAULT_DOT_SIZE);
+                    DEFAULT_DOT_SIZE, showNotificationCount, typeface, isTablet);
             cache.put(size, renderer);
         }
         return renderer;
