@@ -108,5 +108,11 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
                     resources!!.getBoolean(R.bool.default_single_mode)
                 )
             }
+
+        @JvmStatic
+        val isNotifCountEnabled: Boolean
+            get() {
+                return sharedPreferences!!.getBoolean(BlissPrefs.PREF_NOTIF_COUNT, true)
+            }
     }
 }
