@@ -22,7 +22,6 @@ import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
-import com.android.launcher3.widget.LauncherAppWidgetHostView
 
 class BlissAppWidgetHost(val context: Context) : AppWidgetHost(context, WIDGET_HOST_ID) {
     fun createView(widgetId: Int, widgetInfo: AppWidgetProviderInfo): AppWidgetHostView {
@@ -34,7 +33,10 @@ class BlissAppWidgetHost(val context: Context) : AppWidgetHost(context, WIDGET_H
         context: Context?,
         appWidgetId: Int,
         appWidget: AppWidgetProviderInfo?
-    ) = LauncherAppWidgetHostView(context)
+    ): AppWidgetHostView {
+        val blur = DefaultWidgets.widgets.contains(appWidget?.provider)
+        return RoundedWidgetView(context, blur)
+    }
 
     companion object {
         const val TAG = "BlissAppWidgetHost"
