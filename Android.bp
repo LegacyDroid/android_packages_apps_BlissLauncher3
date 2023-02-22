@@ -377,6 +377,9 @@ android_library {
         "bliss/res",
         "res",
     ],
+    kotlin_plugins: [
+        "kotlin-serialize-compiler-plugin",
+    ],
     static_libs: [
         "LauncherPluginLib",
         "launcher_quickstep_log_protos_lite",
@@ -402,6 +405,7 @@ android_library {
         "androidx.lifecycle_lifecycle-runtime-ktx",
         "kotlinx_coroutines_android",
         "kotlinx_coroutines",
+        "kotlinx_serialization_json",
         "com_android_launcher3_flags_lib",
         "com_android_wm_shell_flags_lib",
         "dagger2",
@@ -409,6 +413,10 @@ android_library {
         "com_android_systemui_shared_flags_lib",
         "org.lineageos.platform",
         "elib",
+        "hoko-blur-1.5.5",
+        "logging-interceptor-5.3.0",
+        "okhttp-jvm-5.3.0",
+        "rxjava",
     ],
     manifest: "AndroidManifest-common.xml",
     sdk_version: "current",
@@ -609,6 +617,7 @@ android_app {
     platform_apis: true,
     min_sdk_version: "current",
     target_sdk_version: "current",
+    use_embedded_native_libs: true,
 
     privileged: true,
     system_ext_specific: true,
@@ -714,6 +723,7 @@ android_app {
     platform_apis: true,
     min_sdk_version: "current",
     target_sdk_version: "current",
+    use_embedded_native_libs: true,
 
     optimize: {
         proguard_flags_files: ["proguard.flags"],
