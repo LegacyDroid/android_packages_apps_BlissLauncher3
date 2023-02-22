@@ -108,6 +108,7 @@ import static com.android.launcher3.util.ItemInfoMatcher.forFolderMatch;
 import static com.android.launcher3.util.SettingsCache.TOUCHPAD_NATURAL_SCROLLING;
 import static com.android.launcher3.util.WallpaperThemeManager.setWallpaperDependentTheme;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
@@ -291,6 +292,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import foundation.e.bliss.LauncherAppMonitor;
+import foundation.e.bliss.blur.BlurBackgroundView;
+import foundation.e.bliss.blur.BlurWallpaperProvider;
+
 
 /**
  * Default launcher application.
@@ -429,6 +433,8 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     private LauncherAppMonitor mAppMonitor;
 
+    public BlurBackgroundView mBlurLayer;
+
     public static Launcher getLauncher(Context context) {
         return fromContext(context);
     }
@@ -527,6 +533,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         LauncherAppState app = LauncherAppState.getInstance(this);
         mModel = app.getModel();
 
+        BlurWallpaperProvider.Companion.getInstance(this);
         mRotationHelper = new RotationHelper(this);
         InvariantDeviceProfile idp = app.getInvariantDeviceProfile();
         initDeviceProfile(idp);
@@ -608,6 +615,8 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         mRotationHelper.initialize();
         mAppMonitor.onLauncherCreated();
+        mBlurLayer = findViewById(R.id.blur_layer);
+        mBlurLayer.setAlpha(0f);
         TraceHelper.INSTANCE.endSection();
 
         getWindow().setSoftInputMode(LayoutParams.SOFT_INPUT_ADJUST_NOTHING);

@@ -4,6 +4,7 @@ airbnb-lottie = "6.7.1"
 androidx-core = "1.17.0"
 androidx-preference = "1.2.1"
 androidx-slice-view = "1.0.0"
+blur = "1.5.5"
 core-animation = "1.0.0"
 dagger = "2.57.2"
 elib = "0.0.1-alpha11"
@@ -40,6 +41,7 @@ androidx-graphics-shapes = { module = "androidx.graphics:graphics-shapes", versi
 androidx-preference = { module = "androidx.preference:preference-ktx", version.ref = "androidx-preference" }
 androidx-slice-view = { module = "androidx.slice:slice-view", version.ref = "androidx-slice-view" }
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
+blur = { module = "io.github.hokofly:hoko-blur", version.ref = "blur" }
 build-spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 dagger = { module = "com.google.dagger:dagger", version.ref = "dagger" }

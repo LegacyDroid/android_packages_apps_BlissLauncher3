@@ -1,0 +1,27 @@
+//
+// Copyright (C) 2025 MURENA SAS
+//
+
+// https://repo1.maven.org/maven2/io/github/hokofly/hoko-blur/1.5.5/hoko-blur-1.5.5.aar
+android_library_import {
+    name: "hoko-blur-1.5.5",
+    aars:  ["hoko-blur-1.5.5.aar"],
+    extract_jni: true,
+}
+
+// https://repo1.maven.org/maven2/com/squareup/okhttp3/okhttp-jvm/5.3.0/okhttp-jvm-5.3.0.jar
+java_import {
+    name: "okhttp-jvm-5.3.0",
+    jars: [
+        "squareup/okhttp-jvm-5.3.0.jar",
+    ],
+}
+
+// https://repo1.maven.org/maven2/com/squareup/okhttp3/logging-interceptor/5.3.0/logging-interceptor-5.3.0.jar
+java_import {
+    name: "logging-interceptor-5.3.0",
+    jars: [
+        "squareup/logging-interceptor-5.3.0.jar",
+    ],
+}
+

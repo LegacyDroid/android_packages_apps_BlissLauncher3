@@ -244,6 +244,7 @@ dependencies {
     implementation libs.androidx.preference
     implementation libs.androidx.slice.view
     implementation libs.androidx.window
+    implementation libs.blur
     implementation libs.converter.gson
     implementation libs.dagger
     implementation libs.elib
