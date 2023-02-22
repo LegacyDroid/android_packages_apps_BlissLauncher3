@@ -287,6 +287,8 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import foundation.e.bliss.LauncherAppMonitor;
+import foundation.e.bliss.blur.BlurBackgroundView;
+import foundation.e.bliss.blur.BlurWallpaperProvider;
 import foundation.e.bliss.multimode.MultiModeController;
 
 /**
@@ -413,6 +415,7 @@ public class Launcher extends StatefulActivity<LauncherState>
     private CellPosMapper mCellPosMapper = CellPosMapper.DEFAULT;
 
     private LauncherAppMonitor mAppMonitor;
+    public BlurBackgroundView mBlurLayer;
 
     private final CannedAnimationCoordinator mAnimationCoordinator =
             new CannedAnimationCoordinator(this);
@@ -520,6 +523,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         LauncherAppState app = LauncherAppState.getInstance(this);
         mModel = app.getModel();
 
+        BlurWallpaperProvider.Companion.getInstance(this);
         mRotationHelper = new RotationHelper(this);
         InvariantDeviceProfile idp = app.getInvariantDeviceProfile();
         initDeviceProfile(idp);
@@ -598,6 +602,9 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         mRotationHelper.initialize();
         mAppMonitor.onLauncherCreated();
+        mBlurLayer = findViewById(R.id.blur_layer);
+        mBlurLayer.setAlpha(0f);
+
         TraceHelper.INSTANCE.endSection();
 
         getWindow().setSoftInputMode(LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
