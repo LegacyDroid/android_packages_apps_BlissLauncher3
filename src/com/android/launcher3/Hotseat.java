@@ -23,6 +23,7 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -34,6 +35,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
 
 import com.android.launcher3.util.HorizontalInsettableView;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
@@ -45,10 +47,14 @@ import java.io.PrintWriter;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+import foundation.e.bliss.blur.BlurViewDelegate;
+import foundation.e.bliss.blur.BlurWallpaperProvider;
+import foundation.e.bliss.blur.OffsetParent;
+
 /**
  * View class that represents the bottom row of the home screen.
  */
-public class Hotseat extends CellLayout implements Insettable {
+public class Hotseat extends CellLayout implements Insettable, OffsetParent {
 
     public static final int ALPHA_CHANNEL_TASKBAR_ALIGNMENT = 0;
     public static final int ALPHA_CHANNEL_PREVIEW_RENDERER = 1;
@@ -64,6 +70,10 @@ public class Hotseat extends CellLayout implements Insettable {
     // Ratio of empty space, qsb should take up to appear visually centered.
     public static final float QSB_CENTER_FACTOR = .325f;
     private static final int BUBBLE_BAR_ADJUSTMENT_ANIMATION_DURATION_MS = 250;
+
+    private final OffsetParent.OffsetParentDelegate offsetParentDelegate =
+            new OffsetParent.OffsetParentDelegate();
+    public final BlurViewDelegate mBlurDelegate;
 
     @ViewDebug.ExportedProperty(category = "launcher")
     private boolean mHasVerticalHotseat;
@@ -85,6 +95,8 @@ public class Hotseat extends CellLayout implements Insettable {
     public Hotseat(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat, this, false);
+        mBlurDelegate = new BlurViewDelegate(this, BlurWallpaperProvider.Companion.getBlurConfigDock(), null);
+        setWillNotDraw(false);
         addView(mQsb);
         mIconsAlphaChannels = new MultiValueAlpha(getShortcutsAndWidgets(),
                 ALPHA_CHANNEL_CHANNELS_COUNT);
@@ -107,15 +119,6 @@ public class Hotseat extends CellLayout implements Insettable {
 
     boolean isHasVerticalHotseat() {
         return mHasVerticalHotseat;
-    }
-
-    public void setForcedTranslationY(float translationY){
-        super.setTranslationY(translationY);
-    }
-
-    @Override
-    public void setTranslationY(float translationY) {
-        // Thread.dumpStack();
     }
 
     public void resetLayout(boolean hasVerticalHotseat) {
@@ -352,4 +355,55 @@ public class Hotseat extends CellLayout implements Insettable {
         );
     }
 
+    @Override
+    protected void onDraw(Canvas canvas) {
+        if (mBlurDelegate != null) {
+            mBlurDelegate.draw(canvas);
+        }
+        super.onDraw(canvas);
+    }
+
+    public Workspace<?> getWorkspace() {
+        return mWorkspace;
+    }
+
+    public void setForcedTranslationY(float translationY){
+        super.setTranslationY(translationY);
+    }
+
+    @Override
+    public float getOffsetX() {
+        return getTranslationX();
+    }
+
+    @Override
+    public float getOffsetY() {
+        return getTranslationY();
+    }
+
+    @Override
+    public void setTranslationX(float translationX) {
+        super.setTranslationX(translationX);
+        offsetParentDelegate.notifyOffsetChanged();
+    }
+
+    @Override
+    public void setTranslationY(float translationY) {
+        offsetParentDelegate.notifyOffsetChanged();
+    }
+
+    @Override
+    public boolean getNeedWallpaperScroll() {
+        return true;
+    }
+
+    @Override
+    public void addOnOffsetChangeListener(@NonNull OnOffsetChangeListener listener) {
+        offsetParentDelegate.addOnOffsetChangeListener(listener);
+    }
+
+    @Override
+    public void removeOnOffsetChangeListener(@NonNull OnOffsetChangeListener listener) {
+        offsetParentDelegate.removeOnOffsetChangeListener(listener);
+    }
 }

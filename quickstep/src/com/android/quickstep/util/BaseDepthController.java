@@ -31,6 +31,8 @@ import com.android.launcher3.util.MultiPropertyFactory;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.systemui.shared.system.BlurUtils;
 
+import foundation.e.bliss.multimode.MultiModeController;
+
 /**
  * Utility class for applying depth effect
  */
@@ -132,7 +134,9 @@ public class BaseDepthController {
         float depth = mDepth;
         IBinder windowToken = mLauncher.getRootView().getWindowToken();
         if (windowToken != null) {
-            if (enableScalingRevealHomeAnimation()) {
+            if (MultiModeController.isSingleLayerMode()) {
+                mWallpaperManager.setWallpaperZoomOut(windowToken, 1);
+            } else if (enableScalingRevealHomeAnimation()) {
                 mWallpaperManager.setWallpaperZoomOut(windowToken, depth);
             } else {
                 // The API's full zoom-out is three times larger than the zoom-out we apply to the
