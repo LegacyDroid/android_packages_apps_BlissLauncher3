@@ -529,6 +529,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
                 } else {
                     setText(label);
                 }
+                setIncludeFontPadding(false);
+                setCompoundDrawablePadding(0);
             }
         }
         if (info.contentDescription != null) {
