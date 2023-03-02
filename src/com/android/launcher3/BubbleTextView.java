@@ -523,6 +523,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
                 mLastOriginalText = label;
                 mLastModifiedText = mLastOriginalText;
                 mBreakPointsIntArray = StringMatcherUtility.getListOfBreakpoints(label, MATCHER);
+                setIncludeFontPadding(false);
+                setCompoundDrawablePadding(0);
                 if (Flags.useNewIconForArchivedApps()
                         && info instanceof ItemInfoWithIcon infoWithIcon
                         && infoWithIcon.isInactiveArchive()) {
