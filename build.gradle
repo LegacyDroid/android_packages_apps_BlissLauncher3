@@ -169,6 +169,12 @@ android {
         buildConfig true
     }
 
+    tasks.withType(KotlinCompile).configureEach {
+        kotlinOptions {
+            freeCompilerArgs += ["-Xjvm-default=all"]
+        }
+    }
+
     lint {
         abortOnError true
         checkReleaseBuilds false
