@@ -63,6 +63,7 @@ import java.util.Map;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
+import foundation.e.bliss.folder.GridFolder;
 import foundation.e.bliss.multimode.MultiModeController;
 
 public class FolderPagedView extends PagedView<PageIndicatorDots> implements ClipPathView {
@@ -324,7 +325,15 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
     @SuppressLint("RtlHardcoded")
     public void arrangeChildren(List<View> list) {
         int itemCount = list.size();
+        boolean wobbling = false;
+        if (mFolder instanceof GridFolder) {
+            wobbling = ((GridFolder) mFolder).isFolderWobbling();
+        }
         ArrayList<CellLayout> pages = new ArrayList<>();
+
+        if (wobbling) {
+            ((GridFolder) mFolder).wobbleFolder(false);
+        }
         for (int i = 0; i < getChildCount(); i++) {
             CellLayout page = (CellLayout) getChildAt(i);
             page.removeAllViews();
@@ -379,12 +388,23 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
         setEnableOverscroll(getPageCount() > 1);
 
         // Update footer
-        mPageIndicator.setVisibility(getPageCount() > 1 ? View.VISIBLE : View.GONE);
+        boolean showIndicator;
+        if (mFolder instanceof GridFolder) {
+            showIndicator = true;
+        } else {
+            showIndicator = getPageCount() > 1;
+        }
+        mPageIndicator.setVisibility(showIndicator ? View.VISIBLE : View.GONE);
+
         // Set the gravity as LEFT or RIGHT instead of START, as START depends on the actual text.
         if(!MultiModeController.isSingleLayerMode()) {
             int horizontalGravity = getPageCount() > 1
                     ? (mIsRtl ? Gravity.RIGHT : Gravity.LEFT) : Gravity.CENTER_HORIZONTAL;
             mFolder.getFolderName().setGravity(horizontalGravity | Gravity.CENTER_VERTICAL);
+        }
+
+        if (wobbling) {
+            ((GridFolder) mFolder).wobbleFolder(true, true);
         }
     }
 
@@ -638,6 +658,7 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
             final CellLayout page = getPageAt(p);
             final View v = page.getChildAt(x, y);
             if (v != null) {
+                v.clearAnimation();
                 if (pageToAnimate != p) {
                     page.removeView(v);
                     addViewForRank(v, (WorkspaceItemInfo) v.getTag(), moveStart);
@@ -676,11 +697,18 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
         for (int i = startPos; i != endPos; i += direction) {
             int nextPos = i + direction;
             View v = page.getChildAt(nextPos % mGridCountX, nextPos / mGridCountX);
+            if (mFolder instanceof GridFolder && ((GridFolder) mFolder).isFolderWobbling() && v != null) {
+                v.clearAnimation();
+            }
             if (page.animateChildToPosition(v, i % mGridCountX, i / mGridCountX,
                     REORDER_ANIMATION_DURATION, delay, true, true)) {
                 delay += delayAmount;
                 delayAmount *= VIEW_REORDER_DELAY_FACTOR;
             }
+        }
+
+        if (mFolder instanceof GridFolder && ((GridFolder) mFolder).isFolderWobbling()) {
+            ((GridFolder) mFolder).wobbleFolder(true);
         }
     }
 
