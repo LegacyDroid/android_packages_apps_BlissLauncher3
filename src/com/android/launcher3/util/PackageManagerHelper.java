@@ -24,10 +24,13 @@ import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.LauncherApps;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Process;
@@ -148,6 +151,35 @@ public class PackageManagerHelper {
                 Toast.makeText(context, R.string.activity_not_found, Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "Unable to launch settings", e);
             }
+        }
+    }
+
+    public static boolean isSystemApp(@NonNull final Context context,
+                                      @NonNull final Intent intent) {
+        PackageManager pm = context.getPackageManager();
+        ComponentName cn = intent.getComponent();
+        String packageName = null;
+        if (cn == null) {
+            ResolveInfo info = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+            if ((info != null) && (info.activityInfo != null)) {
+                packageName = info.activityInfo.packageName;
+            }
+        } else {
+            packageName = cn.getPackageName();
+        }
+        if (packageName == null) {
+            packageName = intent.getPackage();
+        }
+        if (packageName != null) {
+            try {
+                PackageInfo info = pm.getPackageInfo(packageName, 0);
+                return (info != null) && (info.applicationInfo != null) &&
+                        ((info.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0);
+            } catch (NameNotFoundException e) {
+                return false;
+            }
+        } else {
+            return false;
         }
     }
 
