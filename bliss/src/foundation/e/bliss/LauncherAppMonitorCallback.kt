@@ -27,6 +27,7 @@ import com.android.launcher3.model.data.AppInfo
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
+@JvmDefaultWithCompatibility
 interface LauncherAppMonitorCallback {
     // Launcher activity Callbacks
     fun onLauncherPreCreate(launcher: Launcher?) {}

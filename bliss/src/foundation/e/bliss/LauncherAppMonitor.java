@@ -67,10 +67,12 @@ public class LauncherAppMonitor extends LauncherApps.Callback
     private final MultiModeController mMultiModeController;
     private GridFolderController mGridFolderController = null;
 
-    private static LauncherAppMonitor launcherAppInstance;
+    private static LauncherAppMonitor launcherAppInstance = null;
 
     public static LauncherAppMonitor getInstance(final Context context) {
-        launcherAppInstance = INSTANCE.get(context.getApplicationContext());
+        if (launcherAppInstance == null) {
+            launcherAppInstance = INSTANCE.get(context.getApplicationContext());
+        }
         return launcherAppInstance;
     }
 
