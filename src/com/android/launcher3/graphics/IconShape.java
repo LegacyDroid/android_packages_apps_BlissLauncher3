@@ -67,7 +67,7 @@ public final class IconShape {
     public static DaggerSingletonObject<IconShape> INSTANCE =
             new DaggerSingletonObject<>(LauncherBaseAppComponent::getIconShape);
 
-    private ShapeDelegate mDelegate = new Circle();
+    private static ShapeDelegate mDelegate = new Circle();
     private float mNormalizationScale = ICON_VISIBLE_AREA_FACTOR;
 
     @Inject
@@ -75,7 +75,7 @@ public final class IconShape {
         pickBestShape(context);
     }
 
-    public ShapeDelegate getShape() {
+    public static ShapeDelegate getShape() {
         return mDelegate;
     }
 

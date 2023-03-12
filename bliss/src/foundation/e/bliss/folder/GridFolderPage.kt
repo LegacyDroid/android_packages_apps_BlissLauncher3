@@ -15,28 +15,21 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
-package foundation.e.bliss.blur
+package foundation.e.bliss.folder
 
 import android.content.Context
-import android.graphics.Canvas
+import android.graphics.Path
 import android.util.AttributeSet
-import android.widget.FrameLayout
+import com.android.launcher3.views.ClipPathView
+import foundation.e.bliss.blur.BlurLayout
 
-open class BlurLayout @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
-    FrameLayout(context, attrs) {
+class GridFolderPage(context: Context, attrs: AttributeSet?) :
+    BlurLayout(context, attrs), ClipPathView {
 
-    private val delegate =
-        BlurViewDelegate(this.rootView, BlurWallpaperProvider.blurConfigWidget, attrs)
+    private var mClipPath: Path? = null
 
-    init {
-        this.setWillNotDraw(false)
-        clipToOutline = true
-
-        outlineProvider = delegate.outlineProvider
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        delegate.draw(canvas)
-        super.onDraw(canvas)
+    override fun setClipPath(clipPath: Path?) {
+        mClipPath = clipPath
+        invalidate()
     }
 }
