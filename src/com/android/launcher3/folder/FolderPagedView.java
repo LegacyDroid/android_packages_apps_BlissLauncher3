@@ -33,6 +33,7 @@ import android.view.View;
 import android.view.ViewDebug;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.BubbleTextView;
@@ -61,6 +62,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
+
+import foundation.e.bliss.multimode.MultiModeController;
 
 public class FolderPagedView extends PagedView<PageIndicatorDots> implements ClipPathView {
 
@@ -245,6 +248,12 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
         icon.setOnLongClickListener(mFolder);
         icon.setOnFocusChangeListener(mFocusIndicatorHelper);
 
+
+        if (MultiModeController.isSingleLayerMode()) {
+            icon.setTextColor(ContextCompat.getColor(getContext(),
+                    R.color.workspace_text_color_light));
+        }
+
         CellLayoutLayoutParams lp = (CellLayoutLayoutParams) icon.getLayoutParams();
         if (lp == null) {
             icon.setLayoutParams(new CellLayoutLayoutParams(
@@ -372,9 +381,11 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
 
         // Update footer
         mPageIndicator.setVisibility(getPageCount() > 1 ? View.VISIBLE : View.GONE);
-        // Set the gravity as LEFT or RIGHT instead of START, as START depends on the actual text.
-        mFolder.getFolderName().setGravity(getPageCount() > 1
-                ? (mIsRtl ? Gravity.RIGHT : Gravity.LEFT) : Gravity.CENTER_HORIZONTAL);
+        if(!MultiModeController.isSingleLayerMode()) {
+            // Set the gravity as LEFT or RIGHT instead of START, as START depends on the actual text.
+            mFolder.getFolderName().setGravity(getPageCount() > 1
+                    ? (mIsRtl ? Gravity.RIGHT : Gravity.LEFT) : Gravity.CENTER_HORIZONTAL);
+        }
     }
 
     public int getDesiredWidth() {
@@ -383,7 +394,7 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
     }
 
     public int getDesiredHeight()  {
-        return  getPageCount() > 0 ?
+        return getPageCount() > 0 ?
                 (getPageAt(0).getDesiredHeight() + getPaddingTop() + getPaddingBottom()) : 0;
     }
 
