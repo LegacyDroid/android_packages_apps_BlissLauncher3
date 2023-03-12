@@ -46,6 +46,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import foundation.e.bliss.folder.GridFolderController;
 import foundation.e.bliss.multimode.MultiModeController;
 
 public class LauncherAppMonitor extends LauncherApps.Callback
@@ -63,10 +64,18 @@ public class LauncherAppMonitor extends LauncherApps.Callback
 
     private Launcher mLauncher;
 
-    private MultiModeController mMultiModeController = null;
+    private final MultiModeController mMultiModeController;
+    private GridFolderController mGridFolderController = null;
 
-    public static LauncherAppMonitor getInstance(Context context) {
-        return INSTANCE.get(context.getApplicationContext());
+    private static LauncherAppMonitor launcherAppInstance;
+
+    public static LauncherAppMonitor getInstance(final Context context) {
+        launcherAppInstance = INSTANCE.get(context.getApplicationContext());
+        return launcherAppInstance;
+    }
+
+    public static LauncherAppMonitor getInstanceNoCreate() {
+        return launcherAppInstance;
     }
 
     // return null while launcher activity isn't running
@@ -108,6 +117,10 @@ public class LauncherAppMonitor extends LauncherApps.Callback
         return mMultiModeController;
     }
 
+    public GridFolderController getGridFolderController() {
+        return mGridFolderController;
+    }
+
     public LauncherAppMonitor(Context context) {
         context.getSystemService(LauncherApps.class).registerCallback(this);
         LauncherPrefs.getPrefs(context).registerOnSharedPreferenceChangeListener(this);
@@ -131,6 +144,9 @@ public class LauncherAppMonitor extends LauncherApps.Callback
 
     @Override
     public void onLauncherCreated() {
+        if (MultiModeController.isSingleLayerMode()) {
+            mGridFolderController = new GridFolderController(mLauncher, this);
+        }
         for (int i = 0; i < mCallbacks.size(); i++) {
             LauncherAppMonitorCallback cb = mCallbacks.get(i).get();
             if (cb != null) {

@@ -63,14 +63,14 @@ public final class IconShape implements SafeCloseable {
             new MainThreadInitializedObject<>(IconShape::new);
 
 
-    private ShapeDelegate mDelegate = new Circle();
+    private static ShapeDelegate mDelegate = new Circle();
     private float mNormalizationScale = ICON_VISIBLE_AREA_FACTOR;
 
     private IconShape(Context context) {
         pickBestShape(context);
     }
 
-    public ShapeDelegate getShape() {
+    public static ShapeDelegate getShape() {
         return mDelegate;
     }
 
