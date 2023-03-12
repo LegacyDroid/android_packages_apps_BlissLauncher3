@@ -45,6 +45,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import foundation.e.bliss.folder.GridFolderController;
 import foundation.e.bliss.multimode.MultiModeController;
 
 public class LauncherAppMonitor extends LauncherApps.Callback
@@ -61,7 +62,8 @@ public class LauncherAppMonitor extends LauncherApps.Callback
 
     private Launcher mLauncher;
 
-    private MultiModeController mMultiModeController = null;
+    private final MultiModeController mMultiModeController;
+    private GridFolderController mGridFolderController = null;
 
     public static LauncherAppMonitor getInstance(Context context) {
         return INSTANCE.get(context.getApplicationContext());
@@ -125,6 +127,9 @@ public class LauncherAppMonitor extends LauncherApps.Callback
 
     @Override
     public void onLauncherCreated() {
+        if (MultiModeController.isSingleLayerMode()) {
+            mGridFolderController = new GridFolderController(mLauncher, this);
+        }
         for (int i = 0; i < mCallbacks.size(); i++) {
             LauncherAppMonitorCallback cb = mCallbacks.get(i).get();
             if (cb != null) {
@@ -482,6 +487,10 @@ public class LauncherAppMonitor extends LauncherApps.Callback
 
     public MultiModeController getMultiModeController() {
         return mMultiModeController;
+    }
+
+    public GridFolderController getGridFolderController() {
+        return mGridFolderController;
     }
 
     @Override
