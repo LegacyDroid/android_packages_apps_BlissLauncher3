@@ -58,7 +58,7 @@ import kotlinx.coroutines.launch
 class BlissInput(context: Context, attrs: AttributeSet) :
     LinearLayout(context, attrs), SearchCallback<AdapterItem>, OnUpdateListener {
     private val mSearchAlgorithm = DefaultAppSearchAlgorithm(context, true)
-    private val appMonitor = LauncherAppMonitor.getInstance(context)
+    private val appMonitor = LauncherAppMonitor.INSTANCE.get(context)
     private val suggestionProvider by lazy { SearchSuggestionUtil().getSuggestionProvider(context) }
     private val suggestionAdapter by lazy { AutoCompleteAdapter(context) }
     private val idp by lazy { InvariantDeviceProfile.INSTANCE.get(context) }
