@@ -20,6 +20,7 @@ import static android.provider.BaseColumns._ID;
 import static com.android.launcher3.LauncherPrefs.DB_FILE;
 import static com.android.launcher3.LauncherPrefs.NO_DB_FILES_RESTORED;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER;
+import static com.android.launcher3.LauncherSettings.Favorites.E_TABLE_NAME;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR;
 import static com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME;
@@ -73,6 +74,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import foundation.e.bliss.multimode.MultiModeController;
+import foundation.e.bliss.utils.BlissDbUtils;
 
 /**
  * Utility class which maintains an instance of Launcher database and provides utility methods
@@ -224,7 +226,13 @@ public class ModelDbController {
 
         addModifiedTime(values);
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-        return db.update(TABLE_NAME, values, selection, selectionArgs);
+        int count = 0;
+        if (tableExists(db, TABLE_NAME)) {
+            count = db.update(TABLE_NAME, values, selection, selectionArgs);
+        } else if (tableExists(db, E_TABLE_NAME)) {
+            count = db.update(E_TABLE_NAME, values, selection, selectionArgs);
+        }
+        return count;
     }
 
     /**
@@ -615,6 +623,14 @@ public class ModelDbController {
      */
     @WorkerThread
     public synchronized void loadDefaultFavoritesIfNecessary() {
+        if (BlissDbUtils.migrateDataFromDb(mContext)) {
+            SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+            copyTable(db, Favorites.E_TABLE_NAME,
+                    db, Favorites.E_TABLE_NAME_ALL, mContext);
+            clearFlagEmptyDbCreated();
+            return;
+        }
+
         createDbIfNotExists();
 
         if (mPrefs.get(getEmptyDbCreatedKey())) {
