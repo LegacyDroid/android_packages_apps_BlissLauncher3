@@ -1449,6 +1449,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 getWindowInsetsController().hide(WindowInsetsCompat.Type.statusBars());
             } else if (prevPage == 0 && mCurrentPage == 1) {
                 getWindowInsetsController().show(WindowInsetsCompat.Type.statusBars());
+                mFirstPagePinnedItem.clearFocus();
             }
         }
     }
