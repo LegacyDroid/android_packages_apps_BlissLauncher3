@@ -27,7 +27,6 @@ import android.view.DragEvent
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.EditText
 import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -37,6 +36,8 @@ import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.android.launcher3.BubbleTextView
+import com.android.launcher3.ExtendedEditText
+import com.android.launcher3.ExtendedEditText.OnBackKeyListener
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.R
 import com.android.launcher3.allapps.AllAppsStore.OnUpdateListener
@@ -46,7 +47,7 @@ import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.search.SearchCallback
 import com.android.launcher3.testing.shared.ResourceUtils
 import foundation.e.bliss.LauncherAppMonitor
-import foundation.e.bliss.utils.toggleKeyboard
+import foundation.e.bliss.widgets.SwipeSearchContainer
 import java.util.Timer
 import java.util.TimerTask
 import kotlinx.coroutines.CoroutineScope
@@ -56,7 +57,7 @@ import kotlinx.coroutines.launch
 
 @SuppressLint("CheckResult")
 class BlissInput(context: Context, attrs: AttributeSet) :
-    LinearLayout(context, attrs), SearchCallback<AdapterItem>, OnUpdateListener {
+    LinearLayout(context, attrs), SearchCallback<AdapterItem>, OnUpdateListener, OnBackKeyListener {
     private val mSearchAlgorithm = DefaultAppSearchAlgorithm(context, true)
     private val appMonitor = LauncherAppMonitor.INSTANCE.get(context)
     private val suggestionProvider by lazy { SearchSuggestionUtil().getSuggestionProvider(context) }
@@ -66,7 +67,7 @@ class BlissInput(context: Context, attrs: AttributeSet) :
     private val mAppsStore by lazy { appMonitor.launcher.appsView.appsStore }
 
     private var results: SuggestionsResult? = null
-    private lateinit var mSearchInput: EditText
+    private lateinit var mSearchInput: ExtendedEditText
     private lateinit var mIconGrid: GridLayout
     private lateinit var mAppsLayout: View
     private lateinit var mClearButton: ImageView
@@ -116,13 +117,20 @@ class BlissInput(context: Context, attrs: AttributeSet) :
                 true
             }
 
-            setOnFocusChangeListener(context::toggleKeyboard)
+            setOnFocusChangeListener { _, hasFocus ->
+                if (!hasFocus) {
+                    mSearchInput.hideKeyboard()
+                } else {
+                    mSearchInput.showKeyboard()
+                }
+            }
 
             mClearButton.setOnClickListener {
                 clearSearchResult()
                 loadSuggestions()
             }
         }
+        mSearchInput.setOnBackKeyListener(this)
 
         mSuggestionRv.apply {
             setHasFixedSize(true)
@@ -184,6 +192,7 @@ class BlissInput(context: Context, attrs: AttributeSet) :
                 tag = info
                 applyFromApplicationInfo(info)
                 setForceHideDot(true)
+                setWidth(width / idp.numColumns)
                 setTextColor(Color.WHITE)
                 setPaddingRelative(padding.toInt(), 0, padding.toInt(), 0)
                 setOnClickListener(appMonitor.launcher.itemOnClickListener)
@@ -229,13 +238,26 @@ class BlissInput(context: Context, attrs: AttributeSet) :
             loadSuggestions()
             clearFocus()
         } else {
+            val swipeParent = parent.parent.parent
+            if (swipeParent is SwipeSearchContainer && swipeParent.visibility == View.VISIBLE) {
+                mSearchInput.requestFocus()
+            }
             super.onVisibilityChanged(changedView, visibility)
         }
+    }
+
+    override fun onAppsUpdated() = loadSuggestions()
+
+    override fun onBackKey(): Boolean {
+        val launcher = LauncherAppMonitor.getInstanceNoCreate().launcher
+        if (launcher.swipeSearchContainer.visibility == VISIBLE) {
+            launcher.hideSwipeSearchContainer()
+            return true
+        }
+        return false
     }
 
     companion object {
         private const val TAG = "BlissInput"
     }
-
-    override fun onAppsUpdated() = loadSuggestions()
 }
