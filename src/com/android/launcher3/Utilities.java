@@ -100,6 +100,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Predicate;
 
+import foundation.e.bliss.multimode.MultiModeController;
+
 /**
  * Various utilities shared amongst the Launcher's classes.
  */
@@ -659,8 +661,12 @@ public final class Utilities {
                         appState.getInvariantDeviceProfile().fillResIconDpi);
                 // Only fetch badge if the icon is on workspace
                 if (info.id != ItemInfo.NO_ID && badge == null) {
-                    badge = appState.getIconCache().getShortcutInfoBadge(si)
-                            .newIcon(context, FLAG_THEMED);
+                    if (MultiModeController.isSingleLayerMode()) {
+                        badge = new ColorDrawable(Color.TRANSPARENT);
+                    } else {
+                        badge = appState.getIconCache().getShortcutInfoBadge(si)
+                                .newIcon(context, FLAG_THEMED);
+                    }
                 }
             }
         } else if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_FOLDER) {

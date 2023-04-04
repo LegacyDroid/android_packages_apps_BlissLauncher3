@@ -77,6 +77,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import foundation.e.bliss.multimode.MultiModeController;
+
 /**
  * Cache of application icons.  Icons can be made from any thread.
  */
@@ -260,7 +262,11 @@ public class IconCache extends BaseIconCache {
         if (isDefaultIcon(bitmapInfo, user) && fallbackIconCheck.test(info)) {
             return;
         }
-        info.bitmap = bitmapInfo.withBadgeInfo(getShortcutInfoBadge(si.getShortcutInfo()));
+        info.bitmap = bitmapInfo;
+        if (!MultiModeController.isSingleLayerMode()) {
+            info.bitmap = bitmapInfo.withBadgeInfo(getShortcutInfoBadge(si.getShortcutInfo()));
+        }
+
     }
 
     /**
