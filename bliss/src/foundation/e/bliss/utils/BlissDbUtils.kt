@@ -272,14 +272,7 @@ object BlissDbUtils {
                         // Get the AppWidgetInfo for the current widget ID
                         val widgetInfo = appWidgetManager.getAppWidgetInfo(id)
                         if (widgetInfo != null) {
-                            widgetsInfoList.add(
-                                WidgetItems(
-                                    id,
-                                    height,
-                                    order,
-                                    widgetInfo.provider,
-                                )
-                            )
+                            widgetsInfoList.add(WidgetItems(id, height, order, widgetInfo.provider))
                         }
                     } catch (e: URISyntaxException) {
                         Logger.e(TAG, "getWidgetDetails: ", e)
@@ -298,7 +291,7 @@ object BlissDbUtils {
         val id: Int,
         val height: Int,
         val order: Int,
-        val componentName: ComponentName
+        val componentName: ComponentName,
     )
 
     private fun getBaseContentValues(favorite: Favorite): ContentValues {
