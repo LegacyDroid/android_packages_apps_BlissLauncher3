@@ -38,7 +38,10 @@ import com.android.launcher3.widget.LauncherWidgetHolder;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
+import java.util.Objects;
 import java.util.function.ToIntFunction;
+
+import foundation.e.bliss.multimode.MultiModeController;
 
 public class LauncherProvider extends ContentProvider {
     private static final String TAG = "LauncherProvider";
@@ -57,6 +60,10 @@ public class LauncherProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
+        MultiModeController.sharedPreferences = LauncherPrefs.getPrefs(
+                Objects.requireNonNull(getContext()).getApplicationContext());
+        MultiModeController.resources = getContext().getApplicationContext().getResources();
+
         return true;
     }
 
