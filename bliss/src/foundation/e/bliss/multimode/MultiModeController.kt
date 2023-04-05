@@ -21,7 +21,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Resources
 import com.android.launcher3.InvariantDeviceProfile
-import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.R
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
@@ -78,8 +77,6 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
         }
 
     init {
-        sharedPreferences = LauncherPrefs.getPrefs(context)
-        resources = context.resources
         monitor.registerCallback(mAppMonitorCallback)
     }
 
@@ -100,9 +97,16 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
         @JvmField var sharedPreferences: SharedPreferences? = null
         @JvmField var resources: Resources? = null
 
+        private fun throwIfControllerNotInit() {
+            if (sharedPreferences == null || resources == null) {
+                throw RuntimeException("sharedPreferences is not init.")
+            }
+        }
+
         @JvmStatic
         val isSingleLayerMode: Boolean
             get() {
+                throwIfControllerNotInit()
                 return sharedPreferences!!.getBoolean(
                     BlissPrefs.PREF_SINGLE_LAYER_MODE,
                     resources!!.getBoolean(R.bool.default_single_mode)
@@ -112,6 +116,7 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
         @JvmStatic
         val isNotifCountEnabled: Boolean
             get() {
+                throwIfControllerNotInit()
                 return sharedPreferences!!.getBoolean(BlissPrefs.PREF_NOTIF_COUNT, true)
             }
     }
