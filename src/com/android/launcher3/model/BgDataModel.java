@@ -167,6 +167,7 @@ public class BgDataModel {
                 && !SHOULD_SHOW_FIRST_PAGE_WIDGET)
                 || screenSet.isEmpty()) {
             screenSet.add(Workspace.FIRST_SCREEN_ID);
+            screenSet.add(Workspace.SECOND_SCREEN_ID);
         }
         return screenSet.getArray();
     }
