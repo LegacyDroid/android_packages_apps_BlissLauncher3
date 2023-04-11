@@ -251,7 +251,7 @@ public class FolderAnimationManager {
         ShapeDelegate shapeDelegate = ThemeManager.INSTANCE.get(mContext).getFolderShape();
         // Create reveal animator for the folder background
         play(a, shapeDelegate.createRevealAnimator(
-                mFolder, startRect, endRect, finalRadius, !mIsOpening));
+                mFolder.getAnimateObject(), startRect, endRect, finalRadius, !mIsOpening));
 
         int page = mIsOpening ? mContent.getCurrentPage() : mContent.getDestinationPage();
         if (Utilities.isRtl(mContext.getResources())) {

@@ -299,6 +299,7 @@ import java.util.stream.Stream;
 import foundation.e.bliss.LauncherAppMonitor;
 import foundation.e.bliss.blur.BlurBackgroundView;
 import foundation.e.bliss.blur.BlurWallpaperProvider;
+import foundation.e.bliss.multimode.MultiModeController;
 
 
 /**
@@ -2020,6 +2021,9 @@ public class Launcher extends StatefulActivity<LauncherState>
     public FolderIcon addFolder(CellLayout layout, int container, final int screenId, int cellX,
             int cellY) {
         final FolderInfo folderInfo = new FolderInfo();
+        if (MultiModeController.isSingleLayerMode()) {
+            folderInfo.setTitle(this.getString(R.string.untitled_folder), getModelWriter());
+        }
 
         // Update the model
         getModelWriter().addItemToDatabase(folderInfo, container, screenId, cellX, cellY);
