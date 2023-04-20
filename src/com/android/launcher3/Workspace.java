@@ -99,6 +99,7 @@ import com.android.launcher3.dragndrop.SpringLoadedDragController;
 import com.android.launcher3.folder.Folder;
 import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.folder.PreviewBackground;
+import com.android.launcher3.folder.PreviewItemManager;
 import com.android.launcher3.graphics.DragPreviewProvider;
 import com.android.launcher3.icons.BitmapRenderer;
 import com.android.launcher3.icons.FastBitmapDrawable;
@@ -2576,9 +2577,12 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         }
     }
 
+    public static boolean isWidget;
+
     private boolean isDragWidget(DragObject d) {
-        return (d.dragInfo instanceof LauncherAppWidgetInfo ||
+        isWidget = (d.dragInfo instanceof LauncherAppWidgetInfo ||
                 d.dragInfo instanceof PendingAddWidgetInfo);
+        return isWidget;
     }
 
     public void onDragOver(DragObject d) {
@@ -3294,6 +3298,32 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             cell.setVisibility(VISIBLE);
         }
         mDragInfo = null;
+        clearEmptyCell();
+    }
+
+    private void clearEmptyCell() {
+        int numberOfScreens = mScreenOrder.size();
+        for (int i = 1; i < numberOfScreens; i++) {
+            CellLayout cellLayout = mWorkspaceScreens.get(mScreenOrder.get(i));
+            needCellCleanup(cellLayout);
+        }
+    }
+
+    public void needCellCleanup(CellLayout cellLayout) {
+        int[] vacantCell = {-1, -1};
+        int[] lastCellOccupied = cellLayout.getLastOccupiedCells();
+        cellLayout.findCellForSpan(vacantCell, 1, 1);
+
+        if ((lastCellOccupied != null && lastCellOccupied[0] != -1) &&
+                ((vacantCell[1] < lastCellOccupied[1]) ||
+                        (vacantCell[1] == lastCellOccupied[1] && vacantCell[0] < lastCellOccupied[0])) &&
+                (vacantCell[0] != -1 && vacantCell[1] != -1) &&
+                !cellLayout.isOccupied(vacantCell[0], vacantCell[1])) {
+            postDelayed(() -> {
+                cellLayout.reArrangeIcons(lastCellOccupied[0], lastCellOccupied[1]);
+                needCellCleanup(cellLayout);
+            }, PreviewItemManager.INITIAL_ITEM_ANIMATION_DURATION);
+        }
     }
 
     /**
@@ -3520,6 +3550,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
         // Strip all the empty screens
         stripEmptyScreens();
+        clearEmptyCell();
     }
 
     @Override
@@ -3746,7 +3777,8 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             mapOverItems((info, view) -> {
                 view.setLayerType(LAYER_TYPE_HARDWARE, null);
                 if (excludeDraggingView && mDragObjectInfo != null) {
-                    if (mDragObjectInfo instanceof WorkspaceItemInfo
+                    if ((mDragObjectInfo instanceof WorkspaceItemInfo ||
+                            mDragObjectInfo instanceof FolderInfo)
                             && mDragObjectInfo.equals(view.getTag())) {
                         return false;
                     }

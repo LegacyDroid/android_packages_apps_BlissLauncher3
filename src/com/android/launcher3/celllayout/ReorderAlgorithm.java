@@ -21,11 +21,14 @@ import android.view.View;
 import com.android.launcher3.CellLayout;
 import com.android.launcher3.util.CellAndSpan;
 import com.android.launcher3.util.GridOccupancy;
+import com.android.launcher3.widget.LauncherAppWidgetHostView;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
+
+import foundation.e.bliss.multimode.MultiModeController;
 
 /**
  * Contains the logic of a reorder.
@@ -36,6 +39,10 @@ import java.util.Map.Entry;
 public class ReorderAlgorithm {
 
     CellLayout mCellLayout;
+
+    private final ArrayList<View> mIntersectingViews = new ArrayList<>();
+
+    private final Rect mOccupiedRect = new Rect();
 
     public ReorderAlgorithm(CellLayout cellLayout) {
         mCellLayout = cellLayout;
@@ -97,8 +104,30 @@ public class ReorderAlgorithm {
         boolean success;
         // First we try the exact nearest position of the item being dragged,
         // we will then want to try to move this around to other neighbouring positions
-        success = rearrangementExists(result[0], result[1], spanX, spanY, direction, dragView,
-                solution);
+        if (intersectingViewsExists(result[0], result[1], spanX, spanY, direction, dragView, solution)) {
+            int[] nearestResult = new int[2];
+            mCellLayout.markCellsAsOccupiedForView(dragView);
+            mCellLayout.findCellForSpan(nearestResult, spanX, spanY);
+            if (nearestResult[1] <= result[1]) {
+                result = nearestResult;
+                if (result[0] == 0) {
+                    result[0] = mCellLayout.getCountX() - 1;
+                    result[1] = result[1] - 1;
+                } else {
+                    result[0] = result[0] - 1;
+                }
+            }
+            mCellLayout.markCellsAsUnoccupiedForView(dragView);
+            if ((result[0] >= 0 && result[1] >= 0) && solution.map.containsKey(dragView)) {
+                intersectingViewsExists(result[0], result[1], spanX, spanY, direction, dragView, solution);
+            } else {
+                mCellLayout.findCellForSpan(nearestResult, spanX, spanY);
+                result = nearestResult;
+                intersectingViewsExists(result[0], result[1], spanX, spanY, direction, dragView, solution);
+            }
+            mCellLayout.markCellsAsUnoccupiedForView(dragView);
+        }
+        success = rearrangementExists(direction, dragView, solution);
 
         if (!success) {
             // We try shrinking the widget down to size in an alternating pattern, shrink 1 in
@@ -121,13 +150,13 @@ public class ReorderAlgorithm {
         return solution;
     }
 
-    private boolean rearrangementExists(int cellX, int cellY, int spanX, int spanY, int[] direction,
+    private boolean intersectingViewsExists(int cellX, int cellY, int spanX, int spanY, int[] direction,
             View ignoreView, ItemConfiguration solution) {
         // Return early if get invalid cell positions
         if (cellX < 0 || cellY < 0) return false;
 
-        ArrayList<View> intersectingViews = new ArrayList<>();
-        Rect occupiedRect = new Rect(cellX, cellY, cellX + spanX, cellY + spanY);
+        mIntersectingViews.clear();
+        mOccupiedRect.set(cellX, cellY, cellX + spanX, cellY + spanY);
 
         // Mark the desired location of the view currently being dragged.
         if (ignoreView != null) {
@@ -158,29 +187,37 @@ public class ReorderAlgorithm {
                 if (!lp.canReorder) {
                     return false;
                 }
-                intersectingViews.add(child);
+                if (!mCellLayout.isWidget() && child instanceof LauncherAppWidgetHostView) {
+                    return false;
+                }
+                mIntersectingViews.add(child);
             }
         }
 
-        solution.intersectingViews = intersectingViews;
+        solution.intersectingViews = mIntersectingViews;
+        return !mIntersectingViews.isEmpty();
+    }
 
+    public boolean rearrangementExists(int[] direction, View ignoreView, ItemConfiguration solution) {
         // First we try to find a solution which respects the push mechanic. That is,
         // we try to find a solution such that no displaced item travels through another item
         // without also displacing that item.
-        if (attemptPushInDirection(intersectingViews, occupiedRect, direction, ignoreView,
-                solution)) {
-            return true;
+        if (mIntersectingViews.size() == 1  || mIntersectingViews.isEmpty()) {
+            if (attemptPushInDirection(mIntersectingViews, mOccupiedRect, direction, ignoreView,
+                    solution)) {
+                return true;
+            }
         }
 
         // Next we try moving the views as a block, but without requiring the push mechanic.
-        if (addViewsToTempLocation(intersectingViews, occupiedRect, direction, ignoreView,
-                solution)) {
-            return true;
-        }
+        //if (addViewsToTempLocation(intersectingViews, occupiedRect, direction, ignoreView,
+        //        solution)) {
+        //    return true;
+        //}
 
         // Ok, they couldn't move as a block, let's move them individually
-        for (View v : intersectingViews) {
-            if (!addViewToTempLocation(v, occupiedRect, direction, solution)) {
+        for (View v : mIntersectingViews) {
+            if (!addViewToTempLocation(v, mOccupiedRect, direction, solution)) {
                 return false;
             }
         }
@@ -208,6 +245,8 @@ public class ReorderAlgorithm {
 
     private boolean pushViewsToTempLocation(ArrayList<View> views, Rect rectOccupiedByPotentialDrop,
             int[] direction, View dragView, ItemConfiguration currentState) {
+        int countX = mCellLayout.getCountX();
+        int countY = mCellLayout.getCountY();
 
         ViewCluster cluster = new ViewCluster(mCellLayout, views, currentState);
         Rect clusterRect = cluster.getBoundingRect();
@@ -251,6 +290,37 @@ public class ReorderAlgorithm {
         // they would be pushed by the cluster. For example, if the cluster is leading with its
         // left edge, we consider sort the views by their right edge, from right to left.
         cluster.sortConfigurationForEdgePush(whichEdge);
+
+        if (!mCellLayout.isWidget()) {
+            if (whichEdge == ViewCluster.LEFT) {
+                //order by row desc
+                currentState.sortedViews.sort((lhs, rhs) -> {
+                    CellLayoutLayoutParams lplhs = (CellLayoutLayoutParams) lhs.getLayoutParams();
+                    CellLayoutLayoutParams lprhs = (CellLayoutLayoutParams) rhs.getLayoutParams();
+                    if (lprhs.getCellY() + lprhs.cellVSpan == lplhs.getCellY() + lplhs.cellVSpan) {
+                        return lprhs.getCellX() - lplhs.getCellX();
+                    }
+                    return (lprhs.getCellY() + lprhs.cellVSpan) - (lplhs.getCellY() + lplhs.cellVSpan);
+                });
+
+            } else if (whichEdge == ViewCluster.RIGHT) {
+                //order by row asc
+                currentState.sortedViews.sort((lhs, rhs) -> {
+                    CellLayoutLayoutParams lplhs = (CellLayoutLayoutParams) lhs.getLayoutParams();
+                    CellLayoutLayoutParams lprhs = (CellLayoutLayoutParams) rhs.getLayoutParams();
+                    if (lplhs.getCellY() + lplhs.cellVSpan == lprhs.getCellY() + lprhs.cellVSpan) {
+                        return lplhs.getCellX() - lprhs.getCellX();
+                    }
+                    return (lplhs.getCellY() + lplhs.cellVSpan) - (lprhs.getCellY() + lprhs.cellVSpan);
+                });
+            }
+
+            if (cluster.views.size() == 1) {
+                View v = cluster.views.get(0);
+                CellAndSpan c = currentState.map.get(v);
+                pushIconByRow(c, countX, countY, whichEdge);
+            }
+        }
 
         while (pushDistance > 0 && !fail) {
             for (View v : currentState.sortedViews) {
@@ -480,6 +550,19 @@ public class ReorderAlgorithm {
     public ItemConfiguration calculateReorder(ReorderParameters reorderParameters) {
         getDirectionVectorForDrop(reorderParameters, mCellLayout.mDirectionVector);
 
+        if (!mCellLayout.isWidget() && !mCellLayout.findCellForSpan(null,
+                reorderParameters.getMinSpanX(), reorderParameters.getMinSpanY())) {
+            ItemConfiguration solution = new ItemConfiguration();
+            solution.cellX = solution.cellY = solution.spanX = solution.spanY = -1;
+            solution.isSolution =  true;
+            return solution;
+        }
+
+        if (MultiModeController.isSingleLayerMode() || !mCellLayout.isWidget()) {
+            mCellLayout.mDirectionVector[0] = -1;
+            mCellLayout.mDirectionVector[1] = 0;
+        }
+
         ItemConfiguration dropInPlaceSolution = dropInPlaceSolution(reorderParameters);
 
         // Find a solution involving pushing / displacing any items in the way
@@ -492,9 +575,9 @@ public class ReorderAlgorithm {
         // favor a solution in which the item is not resized, but
         if (swapSolution.isSolution && swapSolution.area() >= closestSpaceSolution.area()) {
             return swapSolution;
-        } else if (closestSpaceSolution.isSolution) {
+        } else if (closestSpaceSolution.isSolution && mCellLayout.isWidget()) {
             return closestSpaceSolution;
-        } else if (dropInPlaceSolution.isSolution) {
+        } else if (dropInPlaceSolution.isSolution && mCellLayout.isWidget()) {
             return dropInPlaceSolution;
         }
         return null;
@@ -644,5 +727,43 @@ public class ReorderAlgorithm {
             bestXY[1] = -1;
         }
         return bestXY;
+    }
+
+    private void pushIconByRow(CellAndSpan c, int countX, int countY, int whichEdge) {
+        if (whichEdge == ViewCluster.LEFT) {
+            if (c.cellX == 0 && c.cellY - c.spanY >= 0) {
+                c.cellY = c.cellY - c.spanY;
+                c.cellX = countX;
+            }
+            int result = mCellLayout.isCellInLauncherAppWidget(c.cellX - 1, c.cellY, ViewCluster.LEFT);
+            if (result != -1) {
+                c.cellX = result;
+                while (c.cellX == 0 && c.cellY - c.spanY >= 0) {
+                    c.cellY = c.cellY - c.spanY;
+                    c.cellX = countX;
+                    int cellX = mCellLayout.isCellInLauncherAppWidget(c.cellX - 1, c.cellY, ViewCluster.LEFT);
+                    if (cellX != -1) {
+                        c.cellX = cellX;
+                    }
+                }
+            }
+        } else if (whichEdge == ViewCluster.RIGHT) {
+            if (c.cellX == countX - 1 && c.cellY + c.spanY <= countY - 1) {
+                c.cellY = c.cellY + c.spanY;
+                c.cellX = -1;
+            }
+            int result = mCellLayout.isCellInLauncherAppWidget(c.cellX + 1, c.cellY, ViewCluster.RIGHT);
+            if (result != -1) {
+                c.cellX = result;
+                while (c.cellX == countX - 1 && c.cellY + c.spanY <= countY - 1) {
+                    c.cellY = c.cellY + c.spanY;
+                    c.cellX = -1;
+                    int cellX = mCellLayout.isCellInLauncherAppWidget(c.cellX + 1, c.cellY, ViewCluster.RIGHT);
+                    if (cellX != -1) {
+                        c.cellX = cellX;
+                    }
+                }
+            }
+        }
     }
 }
