@@ -97,10 +97,16 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
 
         @JvmStatic
         val isSingleLayerMode
-            get() = prefs.get(LauncherPrefs.IS_SINGLE_LAYER_ENABLED)
+            get() =
+                if (::prefs.isInitialized) {
+                    prefs.get(LauncherPrefs.IS_SINGLE_LAYER_ENABLED)
+                } else true
 
         @JvmStatic
         val isNotifCountEnabled
-            get() = prefs.get(LauncherPrefs.IS_NOTIF_COUNT_ENABLED)
+            get() =
+                if (::prefs.isInitialized) {
+                    prefs.get(LauncherPrefs.IS_NOTIF_COUNT_ENABLED)
+                } else true
     }
 }
