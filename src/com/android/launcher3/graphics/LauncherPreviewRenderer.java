@@ -276,6 +276,7 @@ public class LauncherPreviewRenderer extends BaseContext
 
         mHotseat = mRootView.findViewById(R.id.hotseat);
         mHotseat.resetLayout(false);
+        mHotseat.drawBlur = false;
 
         mLauncherWidgetSpanInfo = launcherWidgetSpanInfo == null ? new SparseArray<>() :
                 launcherWidgetSpanInfo;
