@@ -22,7 +22,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.os.UserManager
-import android.util.Log
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherSettings.Favorites.E_TABLE_NAME
 import com.android.launcher3.LauncherSettings.Favorites.E_TABLE_NAME_ALL
@@ -138,7 +137,7 @@ object BlissDbUtils {
                             )
                         )
                     } catch (e: URISyntaxException) {
-                        Log.e(TAG, "migrateDataFromDb: ", e)
+                        Logger.e(TAG, "migrateDataFromDb: ", e)
                         return false
                     }
                 }
@@ -367,7 +366,7 @@ object BlissDbUtils {
                     }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "queryDeepShortcutsFromeDb: ", e)
+            Logger.e(TAG, "queryDeepShortcutsFromeDb: ", e)
         }
 
         return shortcutKeys
