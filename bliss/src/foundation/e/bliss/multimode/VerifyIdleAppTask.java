@@ -22,7 +22,6 @@ import android.content.Context;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.LauncherApps;
 import android.os.UserHandle;
-import android.util.Log;
 import android.util.Pair;
 
 import androidx.annotation.WorkerThread;
@@ -45,6 +44,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
+
+import foundation.e.bliss.utils.Logger;
 
 @WorkerThread
 public class VerifyIdleAppTask implements Runnable {
@@ -129,7 +130,7 @@ public class VerifyIdleAppTask implements Runnable {
                         newItems.add(new ItemInstallQueue.PendingInstallShortcutInfo(
                                 info.getApplicationInfo().packageName, info.getUser()).getItemInfo(context));
                     }
-                    Log.d(TAG, "will bind " + componentKey.componentName + " to workspace.");
+                    Logger.d(TAG, "will bind " + componentKey.componentName + " to workspace.");
                 }
             }
         }
