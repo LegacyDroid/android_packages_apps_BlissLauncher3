@@ -16,5 +16,16 @@
     <application
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"
-        android:allowClearUserData="true" />
+        android:allowClearUserData="true">
+
+        <activity
+            android:name="foundation.e.bliss.widgets.WidgetsActivity"
+            android:autoRemoveFromRecents="true"
+            android:clearTaskOnLaunch="true"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:label="Remove Widgets"
+            android:theme="@style/HomeSettings.Theme" />
+    </application>
+
 </manifest>
