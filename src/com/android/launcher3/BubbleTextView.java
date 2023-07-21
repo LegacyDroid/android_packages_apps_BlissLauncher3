@@ -803,6 +803,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     }
 
     private void checkForEllipsis() {
+        if (MultiModeController.isSingleLayerMode()) {
+            return;
+        }
         float width = getWidth() - getCompoundPaddingLeft() - getCompoundPaddingRight();
         if (width <= 0) {
             return;
