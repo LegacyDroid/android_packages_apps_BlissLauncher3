@@ -33,17 +33,22 @@ object Logger {
     }
 
     @JvmStatic fun d(tag: String, msg: String) = log(tag, msg, null, AndroidLog::d)
+
     @JvmStatic fun d(tag: String, msg: String, tr: Throwable) = log(tag, msg, tr, AndroidLog::d)
 
     @JvmStatic fun e(tag: String, msg: String) = log(tag, msg, null, AndroidLog::e)
+
     @JvmStatic fun e(tag: String, msg: String, tr: Throwable) = log(tag, msg, tr, AndroidLog::e)
 
     @JvmStatic fun i(tag: String, msg: String) = log(tag, msg, null, AndroidLog::i)
+
     @JvmStatic fun i(tag: String, msg: String, tr: Throwable) = log(tag, msg, tr, AndroidLog::i)
 
     @JvmStatic fun v(tag: String, msg: String) = log(tag, msg, null, AndroidLog::v)
+
     @JvmStatic fun v(tag: String, msg: String, tr: Throwable) = log(tag, msg, tr, AndroidLog::v)
 
     @JvmStatic fun w(tag: String, msg: String) = log(tag, msg, null, AndroidLog::w)
+
     @JvmStatic fun w(tag: String, msg: String, tr: Throwable) = log(tag, msg, tr, AndroidLog::w)
 }
