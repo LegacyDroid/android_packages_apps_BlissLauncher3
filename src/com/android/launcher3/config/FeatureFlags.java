@@ -101,7 +101,7 @@ public final class FeatureFlags {
 
     // TODO(Block 14): Cleanup flags
     public static final BooleanFlag NOTIFY_CRASHES = getDebugFlag(270393108, "NOTIFY_CRASHES",
-            DISABLED, "Sends a notification whenever launcher encounters an uncaught exception.");
+            ENABLED, "Sends a notification whenever launcher encounters an uncaught exception.");
 
     public static final boolean ENABLE_TASKBAR_NAVBAR_UNIFICATION =
             enableTaskbarNavbarUnification() && (!isPhone() || enableTaskbarOnPhones());
