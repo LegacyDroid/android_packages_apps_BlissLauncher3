@@ -68,6 +68,7 @@ import com.android.launcher3.util.CellContentDimensions;
 import com.android.launcher3.util.DisplayController.Info;
 import com.android.launcher3.util.IconSizeSteps;
 import com.android.launcher3.util.ResourceHelper;
+import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.util.window.WindowManagerProxy;
@@ -319,10 +320,12 @@ public class DeviceProfile {
     public final boolean isTransientTaskbar;
     // DragController
     public int flingToDeleteThresholdVelocity;
+    private final Context context;
 
     /** Used only as an alternative to mocking when null values cannot be used. */
     @VisibleForTesting
-    public DeviceProfile() {
+    public DeviceProfile(Context context) {
+        this.context = context;
         inv = null;
         mInfo = null;
         mMetrics = null;
@@ -402,6 +405,7 @@ public class DeviceProfile {
         this.transposeLayoutWithOrientation = transposeLayoutWithOrientation;
         this.isMultiDisplay = isMultiDisplay;
         this.isGestureMode = isGestureMode;
+        this.context = context;
         windowX = windowBounds.bounds.left;
         windowY = windowBounds.bounds.top;
         this.rotationHint = windowBounds.rotationHint;
@@ -2008,10 +2012,14 @@ public class DeviceProfile {
      * Returns the number of pixels the hotseat is translated from the bottom of the screen.
      */
     private int getHotseatBarBottomPadding() {
+        WindowManagerProxy wm = WindowManagerProxy.newInstance(context);
+        boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
+
         if (isTaskbarPresent) { // QSB on top or inline
             return hotseatBarBottomSpacePx - (Math.abs(hotseatCellHeightPx - iconSizePx) / 2);
         } else {
-            return hotseatBarSizePx - hotseatCellHeightPx;
+            int size = hotseatBarSizePx - hotseatCellHeightPx;
+            return isFullyGesture ? size / 2 : size;
         }
     }
 
