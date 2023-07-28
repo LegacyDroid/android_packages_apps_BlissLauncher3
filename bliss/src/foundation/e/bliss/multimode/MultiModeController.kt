@@ -18,10 +18,8 @@
 package foundation.e.bliss.multimode
 
 import android.content.Context
-import android.content.SharedPreferences
-import android.content.res.Resources
 import com.android.launcher3.InvariantDeviceProfile
-import com.android.launcher3.R
+import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import foundation.e.bliss.BaseController
@@ -33,7 +31,6 @@ import java.io.FileDescriptor
 import java.io.PrintWriter
 
 class MultiModeController(val context: Context, val monitor: LauncherAppMonitor) : BaseController {
-
     private val idp by lazy { InvariantDeviceProfile.INSTANCE.get(context) }
     private val mAppMonitorCallback: LauncherAppMonitorCallback =
         object : LauncherAppMonitorCallback {
@@ -55,6 +52,7 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
                     BlissPrefs.PREF_SINGLE_LAYER_MODE -> {
                         monitor.launcher.model.forceReload()
                     }
+                    BlissPrefs.PREF_NOTIF_COUNT -> idp.onConfigChanged(context)
                     else -> Unit
                 }
             }
@@ -77,6 +75,7 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
         }
 
     init {
+        prefs = LauncherPrefs.INSTANCE.get(context)
         monitor.registerCallback(mAppMonitorCallback)
     }
 
@@ -94,30 +93,14 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
 
     companion object {
         private const val TAG = "MultiModeController"
-        @JvmField var sharedPreferences: SharedPreferences? = null
-        @JvmField var resources: Resources? = null
-
-        private fun throwIfControllerNotInit() {
-            if (sharedPreferences == null || resources == null) {
-                throw RuntimeException("sharedPreferences is not init.")
-            }
-        }
+        private lateinit var prefs: LauncherPrefs
 
         @JvmStatic
-        val isSingleLayerMode: Boolean
-            get() {
-                throwIfControllerNotInit()
-                return sharedPreferences!!.getBoolean(
-                    BlissPrefs.PREF_SINGLE_LAYER_MODE,
-                    resources!!.getBoolean(R.bool.default_single_mode)
-                )
-            }
+        val isSingleLayerMode
+            get() = prefs.get(LauncherPrefs.IS_SINGLE_LAYER_ENABLED)
 
         @JvmStatic
-        val isNotifCountEnabled: Boolean
-            get() {
-                throwIfControllerNotInit()
-                return sharedPreferences!!.getBoolean(BlissPrefs.PREF_NOTIF_COUNT, true)
-            }
+        val isNotifCountEnabled
+            get() = prefs.get(LauncherPrefs.IS_NOTIF_COUNT_ENABLED)
     }
 }

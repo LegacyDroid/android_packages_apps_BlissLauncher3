@@ -60,7 +60,8 @@
 
     <Preference
         android:key="pref_trust_apps"
-        android:title="@string/trust_apps_manager_name" />
+        android:title="@string/trust_apps_manager_name"
+        launcher:isPreferenceVisible="false" />
 
     <SwitchPreferenceCompat
         android:key="pref_desktop_show_labels"
