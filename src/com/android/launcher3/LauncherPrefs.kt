@@ -38,6 +38,7 @@ import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.DisplayController
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
+import foundation.e.bliss.preferences.BlissPrefs
 
 /**
  * Manages Launcher [SharedPreferences] through [Item] instances.
@@ -325,6 +326,12 @@ constructor(@ApplicationContext private val encryptedContext: Context) {
         @JvmField
         val RECONFIGURABLE_WIDGET_EDUCATION_TIP_SEEN =
             backedUpItem("launcher.reconfigurable_widget_education_tip_seen", false)
+
+        @JvmField
+        val IS_SINGLE_LAYER_ENABLED = backedUpItem(BlissPrefs.PREF_SINGLE_LAYER_MODE, true)
+
+        @JvmField
+        val IS_NOTIF_COUNT_ENABLED = backedUpItem(BlissPrefs.PREF_NOTIF_COUNT, true)
 
         @JvmStatic
         fun <T> backedUpItem(
