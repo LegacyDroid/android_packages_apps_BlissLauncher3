@@ -32,6 +32,7 @@ import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
 import com.android.launcher3.util.Themes
+import foundation.e.bliss.preferences.BlissPrefs
 
 /**
  * Use same context for shared preferences, so that we use a single cached instance
@@ -325,6 +326,13 @@ class LauncherPrefs(private val encryptedContext: Context) : SafeCloseable {
         val RECONFIGURABLE_WIDGET_EDUCATION_TIP_SEEN =
             backedUpItem("launcher.reconfigurable_widget_education_tip_seen", false)
 
+        @JvmField
+        val IS_NOTIF_COUNT_ENABLED = backedUpItem(BlissPrefs.PREF_NOTIF_COUNT, true)
+
+        @JvmField
+        val IS_SINGLE_LAYER_ENABLED = backedUpItem(BlissPrefs.PREF_SINGLE_LAYER_MODE, true)
+
+        @VisibleForTesting
         @JvmStatic
         fun <T> backedUpItem(
             sharedPrefKey: String,
