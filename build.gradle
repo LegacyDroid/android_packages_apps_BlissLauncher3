@@ -199,6 +199,10 @@ android {
         checkReleaseBuilds = false
     }
 
+    lintOptions {
+        disable "LogNotTimber"
+    }
+
     addFrameworkJar('framework.jar')
 
     preBuild.dependsOn 'makeReleaseJar'
@@ -256,6 +260,8 @@ dependencies {
     implementation libs.okhttp
     implementation libs.okio
     implementation libs.retrofit
+    implementation libs.telemetry
+    implementation libs.timber
 
     ksp libs.dagger.compiler
 

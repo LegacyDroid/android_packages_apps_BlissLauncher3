@@ -2,19 +2,17 @@
 // Copyright (C) 2025 MURENA SAS
 //
 
+// https://gitlab.e.foundation/e/os/e-telemetry
+android_library_import {
+    name: "e-telemetry",
+    aars:  ["telemetry-1.0.1-release.aar"],
+}
+
 // https://repo1.maven.org/maven2/io/github/hokofly/hoko-blur/1.5.5/hoko-blur-1.5.5.aar
 android_library_import {
     name: "hoko-blur-1.5.5",
     aars:  ["hoko-blur-1.5.5.aar"],
     extract_jni: true,
-}
-
-// https://repo1.maven.org/maven2/com/squareup/okhttp3/okhttp-jvm/5.3.0/okhttp-jvm-5.3.0.jar
-java_import {
-    name: "okhttp-jvm-5.3.0",
-    jars: [
-        "squareup/okhttp-jvm-5.3.0.jar",
-    ],
 }
 
 // https://repo1.maven.org/maven2/com/squareup/okhttp3/logging-interceptor/5.3.0/logging-interceptor-5.3.0.jar
@@ -25,3 +23,50 @@ java_import {
     ],
 }
 
+// https://repo1.maven.org/maven2/com/squareup/okhttp3/okhttp-jvm/5.3.0/okhttp-jvm-5.3.0.jar
+java_import {
+    name: "okhttp-jvm-5.3.0",
+    jars: [
+        "squareup/okhttp-jvm-5.3.0.jar",
+    ],
+}
+
+// https://github.com/getsentry/sentry-java/releases/tag/8.16.0
+android_library_import {
+    name: "sentry-android-core-release",
+    aars:  ["sentry/sentry-android-core-release.aar"],
+}
+
+android_library_import {
+    name: "sentry-android-timber-release",
+    aars:  ["sentry/sentry-android-timber-release.aar"],
+}
+
+android_library_import {
+    name: "sentry-android-release",
+    aars:  ["sentry/sentry-android-release.aar"],
+}
+
+android_library_import {
+    name: "sentry-android-ndk-8.16.0",
+    aars:  ["sentry/sentry-android-ndk-8.16.0.aar"],
+}
+
+android_library_import {
+    name: "sentry-native-ndk-0.8.4",
+    aars:  ["sentry/sentry-native-ndk-0.8.4.aar"],
+    extract_jni: true,
+}
+
+java_import {
+    name: "sentry-8.16.0",
+    jars: [
+        "sentry/sentry-8.16.0.jar",
+    ],
+}
+
+// https://repo1.maven.org/maven2/com/jakewharton/timber/timber/5.0.1/timber-5.0.1.aar
+android_library_import {
+    name: "timber-5.0.1",
+    aars:  ["timber-5.0.1.aar"],
+}

@@ -107,6 +107,7 @@ import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.ItemInfoMatcher.forFolderMatch;
 import static com.android.launcher3.util.SettingsCache.TOUCHPAD_NATURAL_SCROLLING;
 import static com.android.launcher3.util.WallpaperThemeManager.setWallpaperDependentTheme;
+import static foundation.e.lib.telemetry.BuildConfig.BLISS_SENTRY_DSN;
 
 import android.Manifest;
 import android.animation.Animator;
@@ -308,6 +309,7 @@ import foundation.e.bliss.multimode.MultiModeController;
 import foundation.e.bliss.utils.Logger;
 import foundation.e.bliss.widgets.RoundedWidgetView;
 import foundation.e.bliss.widgets.WidgetsDbHelper;
+import foundation.e.lib.telemetry.Telemetry;
 
 
 /**
@@ -459,6 +461,16 @@ public class Launcher extends StatefulActivity<LauncherState>
     @Override
     @TargetApi(Build.VERSION_CODES.S)
     protected void onCreate(Bundle savedInstanceState) {
+        Logger.plant();
+
+        if (!BuildConfig.IS_DEBUG_DEVICE) {
+            try {
+                Telemetry.init(BLISS_SENTRY_DSN, getApplication(), true);
+            } catch (Exception e) {
+                Logger.e(TAG, "Failed to initialize Sentry", e);
+            }
+        }
+
         mStartupLatencyLogger = createStartupLatencyLogger(
                 sIsNewProcess
                         ? LockedUserState.get(this).isUserUnlockedAtLauncherStartup()
@@ -504,7 +516,7 @@ public class Launcher extends StatefulActivity<LauncherState>
                     .build());
         }
 
-        if (Utilities.IS_DEBUG_DEVICE && FeatureFlags.NOTIFY_CRASHES.get()) {
+        if (FeatureFlags.NOTIFY_CRASHES.get()) {
             final String notificationChannelId = "com.android.launcher3.Debug";
             final String notificationChannelName = "Debug";
             final String notificationTag = "Debug";
@@ -518,20 +530,25 @@ public class Launcher extends StatefulActivity<LauncherState>
             Thread.currentThread().setUncaughtExceptionHandler((thread, throwable) -> {
                 String stackTrace = Log.getStackTraceString(throwable);
 
-                Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                shareIntent.setType("text/plain");
-                shareIntent.putExtra(Intent.EXTRA_TEXT, stackTrace);
-                shareIntent = Intent.createChooser(shareIntent, null);
-                PendingIntent sharePendingIntent = PendingIntent.getActivity(
-                        this, 0, shareIntent, FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE);
+                if (Utilities.IS_DEBUG_DEVICE) {
+                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                    shareIntent.setType("text/plain");
+                    shareIntent.putExtra(Intent.EXTRA_TEXT, stackTrace);
+                    shareIntent = Intent.createChooser(shareIntent, null);
+                    PendingIntent sharePendingIntent = PendingIntent.getActivity(
+                            this, 0, shareIntent, FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE);
 
-                Notification notification = new Notification.Builder(this, notificationChannelId)
-                        .setSmallIcon(android.R.drawable.ic_menu_close_clear_cancel)
-                        .setContentTitle("Launcher crash detected!")
-                        .setStyle(new Notification.BigTextStyle().bigText(stackTrace))
-                        .addAction(android.R.drawable.ic_menu_share, "Share", sharePendingIntent)
-                        .build();
-                notificationManager.notify(notificationTag, notificationId, notification);
+                    Notification notification = new Notification.Builder(this, notificationChannelId)
+                            .setSmallIcon(android.R.drawable.ic_menu_close_clear_cancel)
+                            .setContentTitle("Launcher crash detected!")
+                            .setStyle(new Notification.BigTextStyle().bigText(stackTrace))
+                            .addAction(android.R.drawable.ic_menu_share, "Share", sharePendingIntent)
+                            .build();
+
+                    notificationManager.notify(notificationTag, notificationId, notification);
+                } else {
+                    Logger.e(TAG, "Launcher crash detected!", throwable);
+                }
 
                 Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler =
                         Thread.getDefaultUncaughtExceptionHandler();
