@@ -394,7 +394,8 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
             .filterNot { screenId ->
                 isFirstPagePinnedItemEnabled &&
                     !SHOULD_SHOW_FIRST_PAGE_WIDGET &&
-                    (screenId == WorkspaceLayoutManager.FIRST_SCREEN_ID || screenId == WorkspaceLayoutManager.SECOND_SCREEN_ID)
+                    (screenId == WorkspaceLayoutManager.FIRST_SCREEN_ID ||
+                                screenId == WorkspaceLayoutManager.SECOND_SCREEN_ID)
             }
             .forEach { screenId ->
                 launcher.workspace.insertNewWorkspaceScreenBeforeEmptyScreen(screenId)
