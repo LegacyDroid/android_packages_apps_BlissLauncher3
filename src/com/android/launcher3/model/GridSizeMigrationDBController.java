@@ -359,7 +359,7 @@ public class GridSizeMigrationDBController {
             @NonNull final List<DbEntry> sortedItemsToPlace, List<Integer> idsInUse) {
         final GridOccupancy occupied = new GridOccupancy(trgX, trgY);
         final int adjScreenId = screenId == 0
-                && (FeatureFlags.QSB_ON_FIRST_SCREEN
+                && (FeatureFlags.QSB_ON_FIRST_SCREEN.get()
                 && (!enableSmartspaceRemovalToggle() || LauncherPrefs.getPrefs(destReader.mContext)
                 .getBoolean(SMARTSPACE_ON_HOME_SCREEN, true))
                 && !SHOULD_SHOW_FIRST_PAGE_WIDGET)
