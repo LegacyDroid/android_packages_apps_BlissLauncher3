@@ -131,6 +131,7 @@ android {
         configureEach {
             resValue "string", "quickstep_component", "${applicationId}/com.android.launcher3.uioverrides.QuickstepLauncher"
             resValue "string", "launcher_component", "${applicationId}/com.android.launcher3.Launcher"
+            buildConfigField "String", "SENTRY_DSN", "\"${System.getenv("SENTRY_DSN")}\""
         }
     }
 
@@ -179,6 +180,8 @@ android {
              freeCompilerArgs = ['-Xjvm-default=all']
          }
      }
+
+    lintOptions { disable "LogNotTimber" }
 
     addFrameworkJar('framework-15.jar')
 
