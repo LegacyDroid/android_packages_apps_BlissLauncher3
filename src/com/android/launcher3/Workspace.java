@@ -635,7 +635,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
      * Initializes and binds the first page
      */
     public void bindAndInitFirstWorkspaceScreen() {
-        if ((!FeatureFlags.QSB_ON_FIRST_SCREEN
+        if ((!FeatureFlags.QSB_ON_FIRST_SCREEN.get()
                 || !mLauncher.getIsFirstPagePinnedItemEnabled())
                 || SHOULD_SHOW_FIRST_PAGE_WIDGET) {
             mFirstPagePinnedItem = null;
@@ -672,7 +672,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         disableLayoutTransitions();
 
         // Recycle the first page pinned item
-        if (mFirstPagePinnedItem != null) {
+        if (mFirstPagePinnedItem != null && mFirstPagePinnedItem.getParent() != null) {
             ((ViewGroup) mFirstPagePinnedItem.getParent()).removeView(mFirstPagePinnedItem);
         }
 
@@ -839,7 +839,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             CellLayout screen = mWorkspaceScreens.get(screenId);
             if (screen == null || screen.getShortcutsAndWidgets().getChildCount() != 0
                     || screen.isDropPending()
-                    || (FeatureFlags.QSB_ON_FIRST_SCREEN && screenId == SECOND_SCREEN_ID)) {
+                    || (FeatureFlags.QSB_ON_FIRST_SCREEN.get() && screenId == SECOND_SCREEN_ID)) {
                 // Final screen doesn't exist or it isn't empty or there's a pending drop or
                 // It is an empty page used when QSB is there
                 return;
@@ -1086,7 +1086,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             int id = mWorkspaceScreens.keyAt(i);
             CellLayout cl = mWorkspaceScreens.valueAt(i);
             // FIRST_SCREEN_ID can never be removed.
-            if (((!FeatureFlags.QSB_ON_FIRST_SCREEN
+            if (((!FeatureFlags.QSB_ON_FIRST_SCREEN.get()
                     || SHOULD_SHOW_FIRST_PAGE_WIDGET)
                     || id > SECOND_SCREEN_ID)
                     && cl.getShortcutsAndWidgets().getChildCount() == 0) {
@@ -1337,7 +1337,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         updatePageScrollValues();
         enableHwLayersOnVisiblePages();
 
-        if (mIsPageInTransition) {
+        if (mIsPageInTransition && MultiModeController.isSingleLayerMode()) {
             firstPageItemHideHotseat(l);
         }
     }
@@ -1444,16 +1444,18 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                                             .setPageIndex(prevPage)).build())
                     .log(event);
 
-            if (mCurrentPage != 0) {
-                mLauncher.mBlurLayer.setAlpha(0f);
-                getWindowInsetsController().show(WindowInsetsCompat.Type.statusBars());
-            }
+            if (MultiModeController.isSingleLayerMode()) {
+                if (mCurrentPage != 0) {
+                    mLauncher.mBlurLayer.setAlpha(0f);
+                    getWindowInsetsController().show(WindowInsetsCompat.Type.statusBars());
+                }
 
-            if (mCurrentPage == 0 && prevPage == 1) {
-                getWindowInsetsController().hide(WindowInsetsCompat.Type.statusBars());
-            } else if (prevPage == 0 && mCurrentPage == 1) {
-                getWindowInsetsController().show(WindowInsetsCompat.Type.statusBars());
-                mFirstPagePinnedItem.clearFocus();
+                if (mCurrentPage == 0 && prevPage == 1) {
+                    getWindowInsetsController().hide(WindowInsetsCompat.Type.statusBars());
+                } else if (prevPage == 0 && mCurrentPage == 1) {
+                    getWindowInsetsController().show(WindowInsetsCompat.Type.statusBars());
+                    mFirstPagePinnedItem.clearFocus();
+                }
             }
         }
     }
