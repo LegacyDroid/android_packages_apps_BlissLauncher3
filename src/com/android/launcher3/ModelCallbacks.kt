@@ -40,7 +40,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
     var pagesToBindSynchronously = LIntSet()
 
     private var isFirstPagePinnedItemEnabled =
-        (BuildConfig.QSB_ON_FIRST_SCREEN && !enableSmartspaceRemovalToggle())
+        (FeatureFlags.QSB_ON_FIRST_SCREEN.get() && !enableSmartspaceRemovalToggle())
 
     var stringCache: StringCache? = null
 
@@ -395,7 +395,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
                 isFirstPagePinnedItemEnabled &&
                     !SHOULD_SHOW_FIRST_PAGE_WIDGET &&
                     screenId == WorkspaceLayoutManager.FIRST_SCREEN_ID
-                        || FeatureFlags.QSB_ON_FIRST_SCREEN && screenId == Workspace.SECOND_SCREEN_ID
+                        || FeatureFlags.QSB_ON_FIRST_SCREEN.get() && screenId == Workspace.SECOND_SCREEN_ID
             }
             .forEach { screenId ->
                 launcher.workspace.insertNewWorkspaceScreenBeforeEmptyScreen(screenId)

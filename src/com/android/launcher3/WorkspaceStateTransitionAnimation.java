@@ -21,7 +21,6 @@ import static androidx.dynamicanimation.animation.DynamicAnimation.MIN_VISIBLE_C
 import static com.android.app.animation.Interpolators.ACCELERATE_2;
 import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.app.animation.Interpolators.ZOOM_OUT;
-import static com.android.launcher3.BuildConfig.QSB_ON_FIRST_SCREEN;
 import static com.android.launcher3.LauncherAnimUtils.HOTSEAT_SCALE_PROPERTY_FACTORY;
 import static com.android.launcher3.LauncherAnimUtils.SCALE_INDEX_WORKSPACE_STATE;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_ALPHA;
@@ -61,6 +60,7 @@ import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.anim.PropertySetter;
 import com.android.launcher3.anim.SpringAnimationBuilder;
+import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.graphics.Scrim;
 import com.android.launcher3.graphics.SysUiScrim;
 import com.android.launcher3.states.EditModeState;
@@ -164,7 +164,7 @@ public class WorkspaceStateTransitionAnimation {
         float hotseatIconsAlpha = (elements & HOTSEAT_ICONS) != 0 ? 1 : 0;
         propertySetter.setViewAlpha(hotseat, hotseatIconsAlpha, hotseatFadeInterpolator);
 
-        if (MultiModeController.isSingleLayerMode() && QSB_ON_FIRST_SCREEN) {
+        if (MultiModeController.isSingleLayerMode() && FeatureFlags.QSB_ON_FIRST_SCREEN.get()) {
             propertySetter.setViewAlpha(
                     mWorkspace.getFirstPagePinnedItem(),
                     state == SPRING_LOADED ? FIRST_PAGE_PINNED_WIDGET_DISABLED_ALPHA : 1,
