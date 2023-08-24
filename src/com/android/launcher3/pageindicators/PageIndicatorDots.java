@@ -72,7 +72,7 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
     private static final int PAGE_INDICATOR_ALPHA = 255;
     private static final int DOT_ALPHA = 128;
     private static final float DOT_ALPHA_FRACTION = 0.5f;
-    private static final int DOT_GAP_FACTOR = 4;
+    private static final float DOT_GAP_FACTOR = 3.5f;
     private static final int VISIBLE_ALPHA = 255;
     private static final int INVISIBLE_ALPHA = 0;
     private Paint mPaginationPaint;
