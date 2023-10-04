@@ -56,6 +56,8 @@ import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider.Widget
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import foundation.e.bliss.multimode.MultiModeController;
+
 /**
  * Base class for various widgets popup
  */
