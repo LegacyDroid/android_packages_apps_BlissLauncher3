@@ -51,6 +51,8 @@ import com.android.launcher3.widget.util.WidgetSizes;
 import java.util.ArrayList;
 import java.util.List;
 
+import foundation.e.bliss.multimode.MultiModeController;
+
 public class AppWidgetResizeFrame extends AbstractFloatingView implements View.OnKeyListener {
     private static final int SNAP_DURATION_MS = 150;
     private static final float DIMMED_HANDLE_ALPHA = 0f;
@@ -868,6 +870,7 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
     }
 
     private boolean hasSeenReconfigurableWidgetEducationTip() {
+        if (MultiModeController.isSingleLayerMode()) return true;
         return LauncherPrefs.get(getContext()).get(RECONFIGURABLE_WIDGET_EDUCATION_TIP_SEEN)
                 || Utilities.isRunningInTestHarness();
     }
