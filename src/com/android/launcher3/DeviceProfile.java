@@ -435,11 +435,6 @@ public class DeviceProfile {
         isTaskbarPresent = (isTablet || (taskbarOrBubbleBarOnPhones && isGestureMode))
                 && wmProxy.isTaskbarDrawnInProcess();
 
-        inv.iconSize[INDEX_DEFAULT] *= 1.3;
-        inv.iconSize[INDEX_LANDSCAPE] *= 1.3;
-        inv.iconSize[INDEX_TWO_PANEL_PORTRAIT] *= 1.3;
-        inv.iconSize[INDEX_TWO_PANEL_LANDSCAPE] *= 1.3;
-
         // Some more constants.
         context = getContext(context, info, inv.isFixedLandscape
                         || isVerticalBarLayout()
