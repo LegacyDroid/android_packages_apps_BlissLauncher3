@@ -14,12 +14,12 @@ import android.graphics.*
 import android.util.DisplayMetrics
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.core.graphics.drawable.toBitmap
 import com.android.launcher3.Utilities
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
 import foundation.e.bliss.utils.Logger
-import foundation.e.bliss.utils.drawableToBitmap
 import foundation.e.bliss.utils.runOnMainThread
 import foundation.e.bliss.utils.safeForEach
 import kotlin.math.ceil
@@ -94,7 +94,7 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
         var wallpaper =
             try {
-                drawableToBitmap(mWallpaperManager.drawable!!, true) as Bitmap
+                mWallpaperManager.drawable!!.toBitmap()
             } catch (e: Exception) {
                 runOnMainThread {
                     val msg = "Failed: ${e.message}"
