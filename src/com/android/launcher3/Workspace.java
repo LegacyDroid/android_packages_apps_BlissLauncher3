@@ -595,6 +595,8 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         if (!wobbleExpireAlarm.alarmPending()) {
             wobbleExpireAlarm.setAlarm(WOBBLE_EXPIRATION_TIMEOUT);
         }
+
+        clearEmptyCell();
     }
 
     /**
@@ -2673,7 +2675,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
     protected void manageReorderOnDragOver(DragObject d, float targetCellDistance,
             boolean nearestDropOccupied, int minSpanX, int minSpanY, int reorderX, int reorderY) {
-
         ItemInfo item = d.dragInfo;
         final View child = (mDragInfo == null) ? null : mDragInfo.cell;
         if (!nearestDropOccupied) {
@@ -3314,7 +3315,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             cell.setVisibility(VISIBLE);
         }
         mDragInfo = null;
-        clearEmptyCell();
     }
 
     private void clearEmptyCell() {
