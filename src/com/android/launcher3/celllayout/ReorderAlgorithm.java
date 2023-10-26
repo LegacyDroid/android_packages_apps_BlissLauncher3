@@ -202,7 +202,7 @@ public class ReorderAlgorithm {
         // First we try to find a solution which respects the push mechanic. That is,
         // we try to find a solution such that no displaced item travels through another item
         // without also displacing that item.
-        if (mIntersectingViews.size() == 1  || mIntersectingViews.isEmpty()) {
+        if (mIntersectingViews.size() == 1 || mIntersectingViews.isEmpty()) {
             if (attemptPushInDirection(mIntersectingViews, mOccupiedRect, direction, ignoreView,
                     solution)) {
                 return true;
@@ -216,12 +216,15 @@ public class ReorderAlgorithm {
         //}
 
         // Ok, they couldn't move as a block, let's move them individually
+        boolean success = false;
         for (View v : mIntersectingViews) {
             if (!addViewToTempLocation(v, mOccupiedRect, direction, solution)) {
                 return false;
+            } else {
+                success = true;
             }
         }
-        return true;
+        return success;
     }
 
     private boolean addViewToTempLocation(View v, Rect rectOccupiedByPotentialDrop, int[] direction,
@@ -233,6 +236,15 @@ public class ReorderAlgorithm {
 
         int[] tmpLocation = findNearestArea(c.cellX, c.cellY, c.spanX, c.spanY, direction,
                 mCellLayout.mTmpOccupied.cells, null, new int[2]);
+
+        int[] vacantCell = new int[2];
+        mCellLayout.mTmpOccupied.findVacantCell(vacantCell, c.spanX, c.spanY);
+        if (vacantCell[0] >= 0 && vacantCell[1] >= 0) {
+            if (!mCellLayout.mTmpOccupied.cells[vacantCell[0]][vacantCell[1]]) {
+                tmpLocation[0] = vacantCell[0];
+                tmpLocation[1] = vacantCell[1];
+            }
+        }
 
         if (tmpLocation[0] >= 0 && tmpLocation[1] >= 0) {
             c.cellX = tmpLocation[0];
@@ -550,8 +562,10 @@ public class ReorderAlgorithm {
     public ItemConfiguration calculateReorder(ReorderParameters reorderParameters) {
         getDirectionVectorForDrop(reorderParameters, mCellLayout.mDirectionVector);
 
-        if (!mCellLayout.isWidget() && !mCellLayout.findCellForSpan(null,
-                reorderParameters.getMinSpanX(), reorderParameters.getMinSpanY())) {
+        int[] vacantCell = new int[2];
+        boolean isVacantCellAvailable = mCellLayout.findCellForSpan(vacantCell, reorderParameters.getMinSpanX(), reorderParameters.getMinSpanY());
+        if (!mCellLayout.isWidget() && !isVacantCellAvailable &&
+                !mCellLayout.isOccupied(vacantCell[0], vacantCell[1])) {
             ItemConfiguration solution = new ItemConfiguration();
             solution.cellX = solution.cellY = solution.spanX = solution.spanY = -1;
             solution.isSolution =  true;
