@@ -34,6 +34,7 @@ import com.android.launcher3.LauncherSettings.Favorites.PROFILE_ID
 import com.android.launcher3.model.DatabaseHelper
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.shortcuts.ShortcutKey
+import foundation.e.bliss.widgets.DefaultWidgets
 import java.net.URISyntaxException
 
 object BlissDbUtils {
@@ -272,7 +273,14 @@ object BlissDbUtils {
                         // Get the AppWidgetInfo for the current widget ID
                         val widgetInfo = appWidgetManager.getAppWidgetInfo(id)
                         if (widgetInfo != null) {
-                            widgetsInfoList.add(WidgetItems(id, height, order, widgetInfo.provider))
+                            var provider: ComponentName = widgetInfo.provider
+
+                            // Weather app component name has changed.
+                            if (provider == DefaultWidgets.oldWeatherWidget) {
+                                provider = DefaultWidgets.weatherWidget
+                            }
+
+                            widgetsInfoList.add(WidgetItems(id, height, order, provider))
                         }
                     } catch (e: URISyntaxException) {
                         Logger.e(TAG, "getWidgetDetails: ", e)
