@@ -3318,6 +3318,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     }
 
     private void clearEmptyCell() {
+        // Let Hotseat readjust as well
+        needCellCleanup(getHotseat());
+
         int numberOfScreens = mScreenOrder.size();
         for (int i = 1; i < numberOfScreens; i++) {
             CellLayout cellLayout = mWorkspaceScreens.get(mScreenOrder.get(i));
