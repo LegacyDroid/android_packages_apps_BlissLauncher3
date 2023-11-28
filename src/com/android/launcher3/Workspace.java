@@ -70,6 +70,8 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -1404,6 +1406,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         enableHwLayersOnVisiblePages();
 
         if (mIsPageInTransition && MultiModeController.isSingleLayerMode()) {
+            mLauncher.hideWidgetResizeContainer();
             firstPageItemHideHotseat(l);
         }
     }
