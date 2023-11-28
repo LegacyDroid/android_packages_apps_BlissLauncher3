@@ -23,7 +23,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Path;
 import android.graphics.Rect;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -31,7 +30,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import androidx.annotation.Nullable;
-import com.android.launcher3.CheckLongPressHelper;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.R;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
@@ -43,7 +41,6 @@ import foundation.e.bliss.blur.BlurWallpaperProvider;
 public class RoundedWidgetView extends LauncherAppWidgetHostView {
     private final Path stencilPath = new Path();
     private final float cornerRadius;
-    private final CheckLongPressHelper mLongPressHelper;
     private final Context mContext;
     private ImageView resizeBorder;
     private boolean mChildrenFocused;
@@ -53,7 +50,6 @@ public class RoundedWidgetView extends LauncherAppWidgetHostView {
         super(context);
         this.mContext = context;
         this.cornerRadius = context.getResources().getDimensionPixelSize(R.dimen.default_dialog_corner_radius);
-        mLongPressHelper = new CheckLongPressHelper(this);
         if (blurBackground) {
             mBlurDelegate = new BlurViewDelegate(this, BlurWallpaperProvider.Companion.getBlurConfigWidget(), null);
             mBlurDelegate.setBlurCornerRadius(cornerRadius);
@@ -99,25 +95,6 @@ public class RoundedWidgetView extends LauncherAppWidgetHostView {
             mBlurDelegate.draw(canvas);
         }
         super.onDraw(canvas);
-    }
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        mLongPressHelper.onTouchEvent(ev);
-        return mLongPressHelper.hasPerformedLongPress();
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        mLongPressHelper.onTouchEvent(event);
-        return true;
-    }
-
-    @Override
-    public void cancelLongPress() {
-        super.cancelLongPress();
-        mLongPressHelper.cancelLongPress();
     }
 
     @Override
