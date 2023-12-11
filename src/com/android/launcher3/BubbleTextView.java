@@ -73,7 +73,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewDebug;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.Nullable;
@@ -82,7 +81,6 @@ import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.accessibility.BaseAccessibilityDelegate;
 import com.android.launcher3.dot.DotInfo;
-import com.android.launcher3.dragndrop.DragController;
 import com.android.launcher3.dragndrop.DragOptions;
 import com.android.launcher3.dragndrop.DragOptions.PreDragCondition;
 import com.android.launcher3.dragndrop.DraggableView;
@@ -123,7 +121,7 @@ import foundation.e.bliss.wobble.UninstallButtonRenderer;
  * too aggressive.
  */
 public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
-        FloatingIconViewCompanion, DraggableView, Reorderable, DragController.DragListener {
+        FloatingIconViewCompanion, DraggableView, Reorderable {
 
     public static final String TAG = "BubbleTextView";
 
@@ -270,8 +268,6 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         super(context, attrs, defStyle);
         mActivity = ActivityContext.lookupContext(context);
         mLauncher = LauncherAppMonitor.getInstance(context).getLauncher();
-
-        mLauncher.getDragController().addDragListener(this);
 
         FastBitmapDrawable.setFlagHoverEnabled(enableCursorHoverStates());
 
@@ -1494,6 +1490,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         setForceHideDot(true);
         applyUninstallIconState(false);
         return () -> {
+            setForceHideDot(false);
         };
     }
 
@@ -1556,14 +1553,5 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
      */
     public boolean canShowLongPressPopup() {
         return getTag() instanceof ItemInfo && ShortcutUtil.supportsShortcuts((ItemInfo) getTag());
-    }
-
-    @Override
-    public void onDragStart(DropTarget.DragObject dragObject, DragOptions options) {
-    }
-
-    @Override
-    public void onDragEnd() {
-        setForceHideDot(false);
     }
 }
