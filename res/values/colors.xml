@@ -303,5 +303,5 @@
     <color name="materialColorTertiary">@color/system_tertiary_light</color>
     <color name="materialColorError">@color/system_error_light</color>
 
-    <color name="notification_dot_bg">#44B04C</color>
+    <color name="notification_dot_bg">#01D066</color>
 </resources>
