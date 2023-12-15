@@ -25,6 +25,8 @@ import android.view.VelocityTracker;
 import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 
+import com.android.launcher3.PagedView;
+
 /**
  * Abstraction layer to separate horizontal and vertical specific implementations
  * for {@link com.android.launcher3.PagedView}. Majority of these implementations are (should be) as
@@ -56,7 +58,8 @@ public interface PagedOrientationHandler {
     int getCenterForPage(View view, Rect insets);
     int getScrollOffsetStart(View view, Rect insets);
     int getScrollOffsetEnd(View view, Rect insets);
-    ChildBounds getChildBounds(View child, int childStart, int pageCenter, boolean layoutChild);
+    ChildBounds getChildBounds(View child, int childStart, int pageCenter, boolean layoutChild,
+                               PagedView.LayoutParams layoutParams, int offsetY);
     void setMaxScroll(AccessibilityEvent event, int maxScroll);
     boolean getRecentsRtlSetting(Resources resources);
 
