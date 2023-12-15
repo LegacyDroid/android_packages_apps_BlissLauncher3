@@ -41,6 +41,7 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.Toast
 import com.android.internal.appwidget.IAppWidgetService
+import com.android.launcher3.Insettable
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherPrefs
@@ -67,7 +68,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
 @Suppress("Deprecation", "NewApi")
-class WidgetContainer(context: Context, attrs: AttributeSet?) : FrameLayout(context, attrs) {
+class WidgetContainer(context: Context, attrs: AttributeSet?) :
+    FrameLayout(context, attrs), Insettable {
     private val mLauncher by lazy { Launcher.getLauncher(context) }
 
     private lateinit var mRemoveWidgetLayout: FrameLayout
@@ -76,6 +78,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) : FrameLayout(cont
 
     private var mWrapperChildCount = 0
     private val mResizeContainerRect = Rect()
+    private var mInsets: Rect? = null
 
     private val layoutListener = OnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
         val childCount = (view as LinearLayout).childCount
@@ -100,6 +103,9 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) : FrameLayout(cont
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+
+        val insetPadding = context.resources.getDimension(R.dimen.widget_page_inset_padding).toInt()
+
         findViewById<Button>(R.id.manage_widgets).setOnClickListener {
             WidgetsFullSheet.show(mLauncher, true, true)
         }
@@ -116,12 +122,31 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) : FrameLayout(cont
                 addOnLayoutChangeListener(layoutListener)
                 handleRemoveButtonVisibility(childCount)
             }
-        mResizeContainer = findViewById(R.id.widget_resizer_container)
+
+        mResizeContainer =
+            findViewById<RelativeLayout?>(R.id.widget_resizer_container).apply {
+                val layoutParams = this.layoutParams as LayoutParams
+                layoutParams.bottomMargin = insetPadding + (mInsets?.bottom ?: 0)
+                this.layoutParams = layoutParams
+            }
+
+        findViewById<LinearLayout>(R.id.widget_linear_layout).apply {
+            setPadding(
+                this.paddingLeft,
+                insetPadding + (mInsets?.top ?: 0),
+                this.paddingRight,
+                (mInsets?.bottom ?: 0),
+            )
+        }
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         mWrapper.removeOnLayoutChangeListener(layoutListener)
+    }
+
+    override fun setInsets(insets: Rect?) {
+        mInsets = insets
     }
 
     private fun handleRemoveButtonVisibility(childCount: Int) {
