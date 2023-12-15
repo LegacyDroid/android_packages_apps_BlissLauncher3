@@ -41,6 +41,7 @@ import androidx.core.view.updateLayoutParams
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.Flags
 import com.android.launcher3.LauncherAnimUtils
+import com.android.launcher3.PagedView
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.logger.LauncherAtom.TaskSwitcherContainer
@@ -317,7 +318,9 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
         child: View,
         childStart: Int,
         pageCenter: Int,
-        layoutChild: Boolean
+        layoutChild: Boolean,
+        lp: PagedView.LayoutParams,
+        offsetY: Int
     ): ChildBounds {
         val childHeight = child.measuredHeight
         val childWidth = child.measuredWidth
