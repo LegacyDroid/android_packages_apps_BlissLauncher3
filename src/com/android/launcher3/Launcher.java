@@ -646,6 +646,7 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         getWindow().setSoftInputMode(LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
         setTitle(R.string.home_screen);
+        getWindow().setNavigationBarColor(getWindow().getNavigationBarColor() | 0x26000000);
         mStartupLatencyLogger.logEnd(LAUNCHER_LATENCY_STARTUP_ACTIVITY_ON_CREATE);
 
         if (BuildCompat.isAtLeastV()
