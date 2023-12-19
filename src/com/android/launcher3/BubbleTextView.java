@@ -328,7 +328,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         mIsRtl = (getResources().getConfiguration().getLayoutDirection()
                 == View.LAYOUT_DIRECTION_RTL);
         mDeviceProfile = mActivity.getDeviceProfile();
-        mCenterVertically = a.getBoolean(R.styleable.BubbleTextView_centerVertically, false);
+        mCenterVertically = a.getBoolean(R.styleable.BubbleTextView_centerVertically, MultiModeController.isSingleLayerMode());
 
         mDisplay = a.getInteger(R.styleable.BubbleTextView_iconDisplay, DISPLAY_WORKSPACE);
         final int defaultIconSize;
@@ -358,7 +358,6 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             // widget_selection or shortcut_popup
             defaultIconSize = mDeviceProfile.iconSizePx;
         }
-
 
         mIconSize = a.getDimensionPixelSize(R.styleable.BubbleTextView_iconSizeOverride,
                 defaultIconSize);
