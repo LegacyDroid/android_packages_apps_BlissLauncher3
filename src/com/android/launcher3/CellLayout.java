@@ -1722,7 +1722,7 @@ public class CellLayout extends ViewGroup {
             if (!DESTRUCTIVE_REORDER
                     && (mode == MODE_ON_DROP || mode == MODE_ON_DROP_EXTERNAL)) {
                 // Since the temp solution didn't update dragView, don't commit it either
-                commitTempPlacement(dragView);
+                commitTempPlacement(null);
                 completeAndClearReorderPreviewAnimations();
                 setItemPlacementDirty(false);
             } else {
@@ -2039,6 +2039,7 @@ public class CellLayout extends ViewGroup {
             if (c.cellX == x && c.cellY == y) {
                 mTmpOccupied.markCells(c, false);
                 views.add(keyValue.getKey());
+                pushIconByRow(c, mCountX, mCountY, ViewCluster.LEFT);
             }
         }
 
@@ -2077,7 +2078,12 @@ public class CellLayout extends ViewGroup {
         solution.spanY = 1;
         solution.isSolution = true;
 
-        if (views.get(0) != null) {
+        for (View v: cluster.views) {
+            CellAndSpan c = solution.map.get(v);
+            mTmpOccupied.markCells(c, true);
+        }
+
+        if (!views.isEmpty() && views.get(0) != null) {
             performReorder(solution, views.get(0), MODE_ON_DROP);
         }
     }
