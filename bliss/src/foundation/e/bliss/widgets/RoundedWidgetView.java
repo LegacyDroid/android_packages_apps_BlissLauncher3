@@ -29,6 +29,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.R;
@@ -36,15 +37,18 @@ import com.android.launcher3.widget.LauncherAppWidgetHostView;
 
 import foundation.e.bliss.blur.BlurViewDelegate;
 import foundation.e.bliss.blur.BlurWallpaperProvider;
+import foundation.e.bliss.blur.OffsetParent;
 
 @SuppressLint("ViewConstructor")
-public class RoundedWidgetView extends LauncherAppWidgetHostView {
+public class RoundedWidgetView extends LauncherAppWidgetHostView implements OffsetParent {
     private final Path stencilPath = new Path();
     private final float cornerRadius;
     private final Context mContext;
     private ImageView resizeBorder;
     private boolean mChildrenFocused;
     private BlurViewDelegate mBlurDelegate = null;
+
+    private final OffsetParentDelegate offsetParentDelegate = new OffsetParentDelegate();
 
     public RoundedWidgetView(Context context, boolean blurBackground) {
         super(context);
@@ -155,5 +159,30 @@ public class RoundedWidgetView extends LauncherAppWidgetHostView {
             clearAnimation();
             resizeBorder = null;
         }
+    }
+
+    @Override
+    public float getOffsetX() {
+        return getTranslationX();
+    }
+
+    @Override
+    public float getOffsetY() {
+        return getTranslationY();
+    }
+
+    @Override
+    public boolean getNeedWallpaperScroll() {
+        return true;
+    }
+
+    @Override
+    public void addOnOffsetChangeListener(@NonNull OnOffsetChangeListener listener) {
+        offsetParentDelegate.addOnOffsetChangeListener(listener);
+    }
+
+    @Override
+    public void removeOnOffsetChangeListener(@NonNull OnOffsetChangeListener listener) {
+        offsetParentDelegate.removeOnOffsetChangeListener(listener);
     }
 }
