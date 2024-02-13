@@ -55,8 +55,4 @@ constructor(context: Context, attrs: AttributeSet? = null) :
     override fun removeOnOffsetChangeListener(listener: OffsetParent.OnOffsetChangeListener) {
         offsetParentDelegate.removeOnOffsetChangeListener(listener)
     }
-
-    override fun setVisibility(visibility: Int) {
-        super.setVisibility(visibility)
-    }
 }

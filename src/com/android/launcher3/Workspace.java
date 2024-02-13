@@ -1414,10 +1414,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         ((PageIndicatorDots) getPageIndicator()).setForcedTranslationY(dockTranslationY);
 
         mLauncher.mBlurLayer.setAlpha(progress);
-
-        if (getCurrentPage() != 0) {
-            mLauncher.mBlurLayer.setAlpha(0f);
-        }
     }
 
     public void showPageIndicatorAtCurrentScroll() {
