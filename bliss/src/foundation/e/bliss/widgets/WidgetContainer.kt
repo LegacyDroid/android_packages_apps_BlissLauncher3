@@ -417,7 +417,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
             if (resultCode == RESULT_OK && requestCode == REQUEST_CONFIGURE_APPWIDGET) {
                 addView(widgetId)
             } else {
-                mWidgetHost.deleteAppWidgetId(widgetId)
+                rebindWidgets()
             }
         }
 
