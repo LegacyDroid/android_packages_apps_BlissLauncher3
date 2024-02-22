@@ -201,15 +201,18 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
                     tag = "wrapper_children"
                     orientation = LinearLayout.VERTICAL
                 }
-
             if (isQsbEnabled) {
-                mWidgetHost.startListening()
                 loadWidgets()
             }
+
             return mWrapper
         }
 
         override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+            if (isQsbEnabled) {
+                mWidgetHost.startListening()
+            }
+
             super.onViewCreated(view, savedInstanceState)
         }
 
@@ -230,7 +233,6 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
                             Logger.e(TAG, "Could not add widget ${it.flattenToString()}")
                         }
                     }
-                    rebindWidgets()
                 } else {
                     rebindWidgets(true)
                 }
