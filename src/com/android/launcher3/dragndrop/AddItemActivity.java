@@ -156,6 +156,7 @@ public class AddItemActivity extends BaseActivity
                 targetApp = setupShortcut();
                 if (Objects.requireNonNull(mRequest.getShortcutInfo())
                         .getPackage().equals(BlissConstants.APPS_PACKAGE)) {
+                    finish();
                     onPlaceAutomaticallyClick();
                     return;
                 }
