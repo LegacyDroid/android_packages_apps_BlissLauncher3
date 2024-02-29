@@ -869,8 +869,8 @@ public class DeviceProfile {
         }
 
         // This is done last, after iconSizePx is calculated above.
-        mDotRendererWorkSpace = createDotRenderer(themeManager, iconSizePx, dotRendererCache, showNotificationCount, typeface, isTablet);
-        mDotRendererAllApps = createDotRenderer(themeManager, allAppsIconSizePx, dotRendererCache, showNotificationCount, typeface, isTablet);
+        mDotRendererWorkSpace = createDotRenderer(context, themeManager, iconSizePx, dotRendererCache, showNotificationCount, typeface, isTablet);
+        mDotRendererAllApps = createDotRenderer(context, themeManager, allAppsIconSizePx, dotRendererCache, showNotificationCount, typeface, isTablet);
     }
 
     /**
@@ -891,13 +891,15 @@ public class DeviceProfile {
                 || inv.isFixedLandscape;
     }
 
-    private static DotRenderer createDotRenderer(
+    private static DotRenderer createDotRenderer(Context context,
             @NonNull ThemeManager themeManager, int size, @NonNull SparseArray<DotRenderer> cache,
             boolean showNotificationCount, Typeface typeface, boolean isTablet) {
-        DotRenderer renderer = cache.get(size);
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        int dotSize = (int) (size / (metrics.density / 4));
+        DotRenderer renderer = cache.get(dotSize);
         if (renderer == null) {
             renderer = new DotRenderer(
-                    size,
+                    dotSize,
                     themeManager.getIconShape().getPath(DEFAULT_DOT_SIZE),
                     DEFAULT_DOT_SIZE, showNotificationCount, typeface, isTablet);
             cache.put(size, renderer);
