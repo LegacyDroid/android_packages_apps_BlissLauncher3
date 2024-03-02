@@ -1395,7 +1395,7 @@ public class DeviceProfile {
         updateHotseatSizes(iconSizePx);
 
         // Folder icon
-        folderIconSizePx = Math.round(iconSizePx * ICON_VISIBLE_AREA_FACTOR) - iconDrawablePaddingPx;
+        folderIconSizePx = (int) Math.ceil(iconSizePx * ThemeManager.INSTANCE.get(context).getIconState().getIconScale());
         folderIconOffsetYPx = (iconSizePx - folderIconSizePx) / 2;
 
         // Update widget padding:
