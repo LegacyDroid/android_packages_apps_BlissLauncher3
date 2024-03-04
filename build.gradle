@@ -30,6 +30,31 @@ allprojects {
     }
 }
 
+var appVersionCode = 3010020
+var appVersion = "3.1.2"
+
+def versionPropsFile = file('local.properties')
+Properties versionProps = new Properties()
+
+if (versionPropsFile.exists()) {
+    versionProps.load(new FileInputStream(versionPropsFile))
+}
+
+if (!versionProps.containsKey('VERSION_CODE')) {
+    versionProps['VERSION_CODE'] = appVersionCode.toString()
+    versionProps.store(versionPropsFile.newWriter(), null)
+}
+
+def getVersionCode = { ->
+    if (versionPropsFile.canRead()) {
+        versionProps.load(new FileInputStream(versionPropsFile))
+        def versionCode = versionProps['VERSION_CODE'].toInteger()
+        versionProps['VERSION_CODE'] = (versionCode.toInteger() + 1).toString()
+        versionProps.store(versionPropsFile.newWriter(), null)
+        return versionCode
+    }
+}
+
 android {
     namespace = "com.android.launcher3"
     compileSdkVersion 36
@@ -37,8 +62,8 @@ android {
     defaultConfig {
         minSdkVersion 36
         targetSdkVersion 36
-        versionCode 3010020
-        versionName "3.1.2"
+        versionCode getVersionCode()
+        versionName appVersion
     }
 
     signingConfigs {
