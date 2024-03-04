@@ -37,15 +37,41 @@ allprojects {
     }
 }
 
+var appVersionCode = 3000010
+var appVersion = "3.1.2"
+
+def versionPropsFile = file('local.properties')
+Properties versionProps = new Properties()
+
+if (versionPropsFile.exists()) {
+    versionProps.load(new FileInputStream(versionPropsFile))
+}
+
+if (!versionProps.containsKey('VERSION_CODE')) {
+    versionProps['VERSION_CODE'] = appVersionCode.toString()
+    versionProps.store(versionPropsFile.newWriter(), null)
+}
+
+def getVersionCode = { ->
+    if (versionPropsFile.canRead()) {
+        versionProps.load(new FileInputStream(versionPropsFile))
+        def versionCode = versionProps['VERSION_CODE'].toInteger()
+        versionProps['VERSION_CODE'] = (versionCode.toInteger() + 1).toString()
+        versionProps.store(versionPropsFile.newWriter(), null)
+        return versionCode
+    }
+}
+
 android {
     namespace "com.android.launcher3"
     compileSdk 35
 
     defaultConfig {
+
         minSdkVersion 35
         targetSdkVersion 35
-        versionCode 3000010
-        versionName "3.0.1"
+        versionCode getVersionCode()
+        versionName appVersion
 
         buildConfigField "boolean", "IS_STUDIO_BUILD", "false"
         buildConfigField "boolean", "QSB_ON_FIRST_SCREEN", "true"
