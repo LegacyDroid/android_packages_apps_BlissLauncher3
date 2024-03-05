@@ -81,7 +81,7 @@ public class StatusBarTouchController implements TouchController {
     private void dispatchTouchEvent(MotionEvent ev) {
         mLastAction = ev.getActionMasked();
         if (MultiModeController.isSingleLayerMode()) {
-            if (ev.getAction() == ACTION_UP && mLauncher.getWorkspace().getCurrentPage() != 0) {
+            if (ev.getAction() == ACTION_UP) {
                 mLauncher.toggleSwipeSearchState();
             }
         } else if (mSystemUiProxy.isActive()) {
@@ -99,14 +99,16 @@ public class StatusBarTouchController implements TouchController {
             if (!mCanIntercept) {
                 return false;
             }
+
+            mDownEvents.clear();
+            mDownEvents.put(pid, new PointF(ev.getX(), ev.getY()));
+
             if (MultiModeController.isSingleLayerMode() && mLauncher.swipeSearchContainer != null &&
                     mLauncher.swipeSearchContainer.getVisibility() == View.VISIBLE &&
                     ev.getY(idx) > mLauncher.swipeSearchContainer.getHeight()) {
                 setWindowSlippery(true);
                 return true;
             }
-            mDownEvents.clear();
-            mDownEvents.put(pid, new PointF(ev.getX(), ev.getY()));
         } else if (ev.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
             // Check!! should only set it only when threshold is not entered.
             mDownEvents.put(pid, new PointF(ev.getX(idx), ev.getY(idx)));
@@ -122,8 +124,7 @@ public class StatusBarTouchController implements TouchController {
             // when there is single touch event. (context: InputDispatcher.cpp line 1445)
             if (dy > mTouchSlop && dy > Math.abs(dx) && ev.getPointerCount() == 1 &&
                     (!MultiModeController.isSingleLayerMode() ||
-                            (mLauncher.swipeSearchContainer.getVisibility() == View.GONE &&
-                                    mLauncher.getWorkspace().getCurrentPage() != 0))) {
+                            mLauncher.swipeSearchContainer.getVisibility() == View.GONE)) {
                 ev.setAction(ACTION_DOWN);
                 dispatchTouchEvent(ev);
                 setWindowSlippery(true);
@@ -181,6 +182,12 @@ public class StatusBarTouchController implements TouchController {
                 return false;
             }
         }
+
+        if (MultiModeController.isSingleLayerMode()
+                && mLauncher.getWorkspace().getCurrentPage() == 0) {
+            return false;
+        }
+
         return SystemUiProxy.INSTANCE.get(mLauncher).isActive();
     }
 }
