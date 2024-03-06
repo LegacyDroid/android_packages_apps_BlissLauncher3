@@ -1177,6 +1177,8 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         if (pageShift >= 0) {
             setCurrentPage(currentPage - pageShift);
         }
+        // Update the page indicator to reflect the removed page.
+        showPageIndicatorAtCurrentScroll();
     }
 
     /**
