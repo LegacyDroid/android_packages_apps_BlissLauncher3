@@ -22,6 +22,7 @@ import android.content.ComponentName
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.os.UserHandle
 import android.os.UserManager
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherSettings.Favorites.E_TABLE_NAME
@@ -310,7 +311,7 @@ object BlissDbUtils {
             put("itemType", ITEM_TYPE_APPLICATION)
             put("modified", System.currentTimeMillis())
             put("options", 0)
-            put("profileId", 0)
+            put("profileId", UserHandle.myUserId())
             put("rank", 0)
             put("restored", 0)
             put("screen", favorite.screen)
