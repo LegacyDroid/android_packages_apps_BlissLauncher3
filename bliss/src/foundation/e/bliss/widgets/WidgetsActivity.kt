@@ -39,7 +39,7 @@ class WidgetsActivity : Activity(), OnActionClickListener {
     private val mCompositeDisposable = CompositeDisposable()
 
     private fun refreshRecyclerView() {
-        val widgetIds = mAppWidgetHost.appWidgetIds
+        val widgetIds = mAppWidgetHost.appWidgetIds.sorted()
         val widgets = mutableListOf<BlissWidget>()
 
         for (id in widgetIds) {
