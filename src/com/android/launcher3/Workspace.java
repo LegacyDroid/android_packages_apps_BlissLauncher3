@@ -1207,6 +1207,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
         // Now that we have removed some pages, ensure state description is up to date.
         updateAccessibilityViewPageDescription();
+
+        // Update the page indicator to reflect the removed page.
+        showPageIndicatorAtCurrentScroll();
     }
 
     /**
