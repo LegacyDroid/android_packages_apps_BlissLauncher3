@@ -20,7 +20,12 @@ package foundation.e.bliss.blur
 import android.annotation.SuppressLint
 import android.app.WallpaperManager
 import android.content.Context
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
 import android.widget.Toast
 import androidx.core.graphics.drawable.toBitmap
 import com.android.launcher3.Utilities
@@ -67,6 +72,8 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
     private var updatePending = false
 
+    private var isLiveWallpaper = false
+
     init {
         isEnabled = getEnabledStatus()
         updateAsync()
@@ -76,6 +83,10 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
     fun updateAsync() {
         Executors.THREAD_POOL_EXECUTOR.execute(mUpdateRunnable)
+    }
+
+    fun setLiveWallpaper(isLive: Boolean) {
+        isLiveWallpaper = isLive
     }
 
     @SuppressLint("MissingPermission")
@@ -100,7 +111,12 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
         var wallpaper =
             try {
-                mWallpaperManager.drawable?.toBitmap()
+                val wall = mWallpaperManager.drawable?.toBitmap()
+                if (isLiveWallpaper) {
+                    wall?.let { createTransparentBitmap(it.width, wall.height) }
+                } else {
+                    wall
+                }
             } catch (e: Exception) {
                 runOnMainThread {
                     val msg = "Failed: ${e.message}"
@@ -144,6 +160,18 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
             updatePending = false
             updateWallpaper()
         }
+    }
+
+    private fun createTransparentBitmap(width: Int, height: Int): Bitmap {
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        val paint =
+            Paint().apply {
+                color = Color.argb(68, 0, 0, 0) // Black with semi-transparency
+                isAntiAlias = true
+            }
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
+        return bitmap
     }
 
     private fun notifyWallpaperChanged() {
