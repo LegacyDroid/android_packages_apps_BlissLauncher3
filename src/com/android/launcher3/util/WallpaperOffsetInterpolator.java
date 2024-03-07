@@ -41,7 +41,7 @@ public class WallpaperOffsetInterpolator {
 
     private boolean mRegistered = false;
     private IBinder mWindowToken;
-    private boolean mWallpaperIsLiveWallpaper;
+    private static boolean mWallpaperIsLiveWallpaper;
 
     private boolean mLockedToDefaultPage;
     private int mNumScreens;
@@ -215,9 +215,15 @@ public class WallpaperOffsetInterpolator {
             // Updating the boolean on a background thread is fine as the assignments are atomic
             mWallpaperIsLiveWallpaper = WallpaperManager.getInstance(mWorkspace.getContext())
                     .getWallpaperInfo() != null;
+            setIsLiveWallpaper(mWorkspace.getContext());
             BlurWallpaperProvider.Companion.getInstance(mWorkspace.getContext()).updateAsync();
             updateOffset();
         });
+    }
+
+    public static void setIsLiveWallpaper(Context context) {
+        BlurWallpaperProvider.Companion.getInstance(context).setLiveWallpaper(
+                mWallpaperIsLiveWallpaper);
     }
 
     private static final int MSG_START_ANIMATION = 1;
@@ -311,6 +317,7 @@ public class WallpaperOffsetInterpolator {
         private void setOffsetSafely(IBinder token) {
             try {
                 mWM.setWallpaperOffsets(token, mCurrentOffset, 0.5f);
+                WallpaperOffsetInterpolator.setIsLiveWallpaper(mContext);
                 BlurWallpaperProvider.Companion.getInstance(mContext)
                         .setWallpaperOffset(mCurrentOffset);
             } catch (IllegalArgumentException e) {
