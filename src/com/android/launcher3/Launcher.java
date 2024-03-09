@@ -109,6 +109,8 @@ import static com.android.launcher3.util.SettingsCache.TOUCHPAD_NATURAL_SCROLLIN
 import static com.android.launcher3.util.WallpaperThemeManager.setWallpaperDependentTheme;
 import static foundation.e.lib.telemetry.BuildConfig.BLISS_SENTRY_DSN;
 
+import static foundation.e.bliss.widgets.BlissAppWidgetHost.REQUEST_CONFIGURE_APPWIDGET;
+
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -308,6 +310,7 @@ import foundation.e.bliss.blur.BlurWallpaperProvider;
 import foundation.e.bliss.multimode.MultiModeController;
 import foundation.e.bliss.utils.Logger;
 import foundation.e.bliss.widgets.RoundedWidgetView;
+import foundation.e.bliss.widgets.WidgetContainer;
 import foundation.e.bliss.widgets.WidgetsDbHelper;
 import foundation.e.lib.telemetry.Telemetry;
 
@@ -1088,6 +1091,12 @@ public class Launcher extends StatefulActivity<LauncherState>
     public void onActivityResult(
             final int requestCode, final int resultCode, final Intent data) {
         mPendingActivityRequestCode = -1;
+        if (requestCode == REQUEST_CONFIGURE_APPWIDGET) {
+            WidgetContainer.WidgetFragment widgetFragment = (WidgetContainer.WidgetFragment) getFragmentManager().findFragmentByTag("qsb_view");
+            widgetFragment.onActivityResult(requestCode, resultCode, data);
+            mPendingActivityRequestCode = -1;
+            return;
+        }
         handleActivityResult(requestCode, resultCode, data);
     }
 
