@@ -68,7 +68,6 @@ public class ItemLongClickListener {
         if (ev.getEventTime() - ev.getDownTime() < 150) {
             return false;
         }
-
         return onWorkspaceItemLongClick(v);
     }
 
