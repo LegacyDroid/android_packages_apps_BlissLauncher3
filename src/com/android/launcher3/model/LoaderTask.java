@@ -316,7 +316,7 @@ public class LoaderTask implements Runnable {
                 Trace.endSection();
             }
 
-            LauncherAppMonitor.getInstance(mContext)
+            LauncherAppMonitor.getInstanceNoCreate()
                     .onLoadAllAppsEnd(new ArrayList<>(mBgAllAppsList.data));
             logASplit("loadAllApps finished");
 

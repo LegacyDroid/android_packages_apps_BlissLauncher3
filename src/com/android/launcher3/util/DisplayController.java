@@ -439,7 +439,7 @@ public class DisplayController implements DesktopVisibilityListener {
                             flags);
                 }
                 perDisplayInfo.notifyListeners(newInfo, flags);
-                LauncherAppMonitor.getInstance(perDisplayInfo.mWindowContext).onUIConfigChanged();
+                LauncherAppMonitor.getInstanceNoCreate().onUIConfigChanged();
             });
         }
     }

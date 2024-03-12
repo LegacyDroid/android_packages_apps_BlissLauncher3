@@ -193,7 +193,7 @@ constructor(
 
     fun reloadStringCache() {
         enqueueModelUpdateTask(ReloadStringCacheTask(this.modelDelegate))
-        LauncherAppMonitor.getInstance(context).onReceive()
+        LauncherAppMonitor.getInstanceNoCreate().onReceive()
     }
 
     /**
@@ -241,7 +241,7 @@ constructor(
             }
         }
 
-        LauncherAppMonitor.getInstance(context).onReceive()
+        LauncherAppMonitor.getInstanceNoCreate().onReceive()
     }
 
     /**
