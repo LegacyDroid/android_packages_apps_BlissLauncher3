@@ -671,6 +671,7 @@ public class TouchInteractionService extends Service {
         mTaskbarManager = new TaskbarManager(
                 this, mAllAppsActionManager, mNavCallbacks, mDesktopVisibilityController);
         mInputConsumer = InputConsumerController.getRecentsAnimationInputConsumer();
+        LauncherAppMonitor.getInstance(this);
 
         // Call runOnUserUnlocked() before any other callbacks to ensure everything is initialized.
         LockedUserState.get(this).runOnUserUnlocked(this::onUserUnlocked);
@@ -719,7 +720,6 @@ public class TouchInteractionService extends Service {
 
     @UiThread
     public void onUserUnlocked() {
-        LauncherAppMonitor.getInstance(this);
         Log.d(TAG, "onUserUnlocked: userId=" + getUserId());
         mTaskAnimationManager = new TaskAnimationManager(this);
         mOverviewComponentObserver = new OverviewComponentObserver(this, mDeviceState);

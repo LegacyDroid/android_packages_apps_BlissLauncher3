@@ -267,7 +267,7 @@ public class LauncherModel implements InstallSessionTracker.Callback {
                 }
             }
         }
-        LauncherAppMonitor.getInstance(mApp.getContext()).onReceive(intent);
+        LauncherAppMonitor.getInstanceNoCreate().onReceive(intent);
     }
 
     /**
