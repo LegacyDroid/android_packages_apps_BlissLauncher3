@@ -49,12 +49,13 @@ import kotlinx.coroutines.launch
 class BlissInput(context: Context, attrs: AttributeSet) :
     LinearLayout(context, attrs), SearchCallback<AdapterItem>, OnUpdateListener, OnBackKeyListener {
     private val mSearchAlgorithm = DefaultAppSearchAlgorithm(context, true)
-    private val appMonitor = LauncherAppMonitor.getInstance(context)
     private val suggestionProvider by lazy { SearchSuggestionUtil.getSuggestionProvider(context) }
     private val suggestionAdapter by lazy { AutoCompleteAdapter(context) }
     private val idp by lazy { InvariantDeviceProfile.INSTANCE.get(context) }
     private val appUsageStats by lazy { AppUsageStats(context) }
-    private val mAppsStore by lazy { appMonitor.launcher.appsView.appsStore }
+    private val mAppsStore by lazy {
+        LauncherAppMonitor.getInstance(context).launcher.appsView.appsStore
+    }
 
     private var results: SuggestionsResult? = null
     private lateinit var mSearchInput: ExtendedEditText
@@ -161,9 +162,9 @@ class BlissInput(context: Context, attrs: AttributeSet) :
             .map { it.itemInfo }
             .filter {
                 it.componentName != null &&
-                    !context.resources
-                        .getStringArray(R.array.blacklisted_apps)
-                        .contains(it.targetPackage)
+                        !context.resources
+                            .getStringArray(R.array.blacklisted_apps)
+                            .contains(it.targetPackage)
             }
             .forEachIndexed { index, it ->
                 if (index >= idp.numColumns) return
@@ -175,7 +176,7 @@ class BlissInput(context: Context, attrs: AttributeSet) :
     private fun createAppView(info: AppInfo): BubbleTextView {
         val width =
             idp.getDeviceProfile(context).availableWidthPx -
-                ResourceUtils.pxFromDp(48f, context.resources.displayMetrics)
+                    ResourceUtils.pxFromDp(48f, context.resources.displayMetrics)
         val padding = ((width / idp.numColumns) - idp.iconBitmapSize) / 2
         return (LayoutInflater.from(context).inflate(R.layout.app_icon, null) as BubbleTextView)
             .apply {
@@ -186,7 +187,9 @@ class BlissInput(context: Context, attrs: AttributeSet) :
                 setTextColor(Color.WHITE)
                 setCenterVertically(false)
                 setPaddingRelative(padding, 0, padding, 0)
-                setOnClickListener(appMonitor.launcher.itemOnClickListener)
+                setOnClickListener(
+                    LauncherAppMonitor.getInstance(context).launcher.itemOnClickListener
+                )
             }
     }
 
