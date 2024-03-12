@@ -61,7 +61,7 @@ class WallpaperThemeManager private constructor(private val activity: Activity) 
         if (themeRes != Themes.getActivityThemeRes(activity)) {
             recreateToUpdateTheme = true
             activity.recreate()
-            LauncherAppMonitor.getInstance(activity.applicationContext).onThemeChanged();
+            LauncherAppMonitor.getInstanceNoCreate().onThemeChanged();
         }
     }
 
