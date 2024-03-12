@@ -206,7 +206,7 @@ class LauncherModel(
             DevicePolicyManager.ACTION_DEVICE_POLICY_RESOURCE_UPDATED ->
                 enqueueModelUpdateTask(ReloadStringCacheTask(this.modelDelegate))
         }
-        LauncherAppMonitor.getInstance(mApp.context).onReceive(intent);
+        LauncherAppMonitor.getInstanceNoCreate().onReceive(intent);
     }
 
     /**
