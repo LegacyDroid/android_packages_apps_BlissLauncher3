@@ -33,6 +33,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.LauncherPrefChangeListener;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.InvariantDeviceProfile;
@@ -51,7 +52,7 @@ import foundation.e.bliss.multimode.MultiModeController;
 
 public class LauncherAppMonitor extends LauncherApps.Callback
         implements
-            SharedPreferences.OnSharedPreferenceChangeListener,
+            LauncherPrefChangeListener,
             LauncherAppMonitorCallback,
             SafeCloseable {
 
@@ -125,7 +126,7 @@ public class LauncherAppMonitor extends LauncherApps.Callback
 
     public LauncherAppMonitor(Context context) {
         context.getSystemService(LauncherApps.class).registerCallback(this);
-        LauncherPrefs.getPrefs(context).registerOnSharedPreferenceChangeListener(this);
+        LauncherPrefs.get(context).addListener(this);
         mMultiModeController = new MultiModeController(context, this);
     }
 
@@ -358,6 +359,16 @@ public class LauncherAppMonitor extends LauncherApps.Callback
             LauncherAppMonitorCallback cb = mCallbacks.get(i).get();
             if (cb != null) {
                 cb.onShortcutsChanged(packageName, shortcuts, user);
+            }
+        }
+    }
+
+    @Override
+    public void onPrefChanged(String key) {
+        for (int i = 0; i < mCallbacks.size(); i++) {
+            LauncherAppMonitorCallback cb = mCallbacks.get(i).get();
+            if (cb != null) {
+                cb.onAppSharedPreferenceChanged(key);
             }
         }
     }

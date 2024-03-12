@@ -674,6 +674,7 @@ public class TouchInteractionService extends Service {
             mRecentsWindowManager = new RecentsWindowManager(this);
         }
         mInputConsumer = InputConsumerController.getRecentsAnimationInputConsumer();
+        LauncherAppMonitor.getInstance(this);
 
         // Call runOnUserUnlocked() before any other callbacks to ensure everything is initialized.
         LockedUserState.get(this).runOnUserUnlocked(mUserUnlockedRunnable);
@@ -724,7 +725,6 @@ public class TouchInteractionService extends Service {
     public void onUserUnlocked() {
         Log.d(TAG, "onUserUnlocked: userId=" + getUserId()
                 + " instance=" + System.identityHashCode(this));
-        LauncherAppMonitor.getInstance(this);
         mTaskAnimationManager = new TaskAnimationManager(this, mRecentsWindowManager);
         mOverviewComponentObserver = OverviewComponentObserver.INSTANCE.get(this);
         mOverviewCommandHelper = new OverviewCommandHelper(this,

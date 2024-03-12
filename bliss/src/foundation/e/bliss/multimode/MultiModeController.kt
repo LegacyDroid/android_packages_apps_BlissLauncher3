@@ -75,7 +75,7 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
         }
 
     init {
-        prefs = LauncherPrefs.INSTANCE.get(context)
+        prefs = LauncherPrefs.get(context)
         monitor.registerCallback(mAppMonitorCallback)
     }
 
