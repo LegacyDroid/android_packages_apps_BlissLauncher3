@@ -529,7 +529,14 @@ public class WidgetsFullSheet extends BaseWidgetSheet
             defaultWidgets = dataProvider.getDefaultWidgets();
         } else {
             // This code path can be deleted once enableTieredWidgetsByDefaultInPicker is inlined.
-            widgets = getWidgetsToDisplay();
+            List<WidgetsListBaseEntry> fullWidgets = new ArrayList<>(getWidgetsToDisplay());
+            if (isEditMode) {
+                fullWidgets.removeIf(item -> {
+                    item.mWidgets.removeIf(widget -> widget.widgetInfo == null);
+                    return item.mWidgets.isEmpty();
+                });
+            }
+            widgets = fullWidgets;
         }
 
         AdapterHolder primaryUserAdapterHolder = mAdapters.get(AdapterHolder.PRIMARY);
@@ -739,7 +746,6 @@ public class WidgetsFullSheet extends BaseWidgetSheet
                 getWidgetSheetId(activity),
                 activity.getDragLayer(),
                 false);
-        isEditMode = false;
         sheet.attachToContainer();
         sheet.mIsOpen = true;
         sheet.open(animate);
