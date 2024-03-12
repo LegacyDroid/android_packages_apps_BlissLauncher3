@@ -487,7 +487,14 @@ public class WidgetsFullSheet extends BaseWidgetSheet
         if (mIsInSearchMode) {
             return;
         }
-        List<WidgetsListBaseEntry> widgets = getWidgetsToDisplay();
+        List<WidgetsListBaseEntry> widgets = new ArrayList<>(getWidgetsToDisplay());
+
+        if (isEditMode) {
+            widgets.removeIf(item -> {
+                item.mWidgets.removeIf(widget -> widget.widgetInfo == null);
+                return item.mWidgets.isEmpty();
+            });
+        }
 
         AdapterHolder primaryUserAdapterHolder = mAdapters.get(AdapterHolder.PRIMARY);
         primaryUserAdapterHolder.mWidgetsListAdapter.setWidgets(widgets);
@@ -696,7 +703,6 @@ public class WidgetsFullSheet extends BaseWidgetSheet
                 getWidgetSheetId(activity),
                 activity.getDragLayer(),
                 false);
-        isEditMode = false;
         sheet.attachToContainer();
         sheet.mIsOpen = true;
         sheet.open(animate);
