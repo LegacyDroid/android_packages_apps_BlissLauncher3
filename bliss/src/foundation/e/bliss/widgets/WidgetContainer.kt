@@ -68,6 +68,7 @@ import kotlinx.coroutines.launch
 class WidgetContainer(context: Context, attrs: AttributeSet?) : FrameLayout(context, attrs) {
     private val mLauncher by lazy { Launcher.getLauncher(context) }
 
+    private lateinit var mManageWidgetLayout: LinearLayout
     private lateinit var mRemoveWidgetLayout: FrameLayout
     private lateinit var mResizeContainer: RelativeLayout
     private lateinit var mWidgetLinearLayout: LinearLayout
@@ -93,6 +94,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) : FrameLayout(cont
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
 
+        mManageWidgetLayout = findViewById(R.id.manage_widget_parent)
         mRemoveWidgetLayout = findViewById(R.id.remove_widget_parent)
         mResizeContainer = findViewById(R.id.widget_resizer_container)
         mWidgetLinearLayout = findViewById(R.id.widget_linear_layout)
@@ -146,6 +148,17 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) : FrameLayout(cont
                     mInsetPadding + (insets.top),
                     this.paddingRight,
                     (insets.bottom),
+                )
+            }
+        }
+
+        if (::mManageWidgetLayout.isInitialized) {
+            mManageWidgetLayout.apply {
+                setPadding(
+                    this.paddingLeft,
+                    mInsetPadding,
+                    this.paddingRight,
+                    (insets.top - mInsetPadding),
                 )
             }
         }
