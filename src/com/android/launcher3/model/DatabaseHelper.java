@@ -103,6 +103,10 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
         mMaxItemId.compareAndSet(-1, initializeMaxItemId(getWritableDatabase()));
     }
 
+    public void updateItemId() {
+        mMaxItemId.set(initializeMaxItemId(getWritableDatabase()));
+    }
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         if (LOGD) Log.d(TAG, "creating new launcher database");
