@@ -100,8 +100,12 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
         // In the case where neither onCreate nor onUpgrade gets called, we read the maxId from
         // the DB here
         if (mMaxItemId == -1) {
-            mMaxItemId = initializeMaxItemId(getWritableDatabase());
+            updateItemId();
         }
+    }
+
+    public void updateItemId() {
+        mMaxItemId = initializeMaxItemId(getWritableDatabase());
     }
 
     @Override

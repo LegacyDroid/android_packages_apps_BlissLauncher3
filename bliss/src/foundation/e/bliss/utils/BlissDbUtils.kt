@@ -233,6 +233,8 @@ object BlissDbUtils {
             }
         }
 
+        // Update item id after migrating
+        dbHelper.updateItemId()
         dbHelper.close()
 
         // Rename the database to old
