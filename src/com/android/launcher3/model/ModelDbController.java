@@ -640,10 +640,11 @@ public class ModelDbController {
      */
     @WorkerThread
     public synchronized void loadDefaultFavoritesIfNecessary() {
-        if (BlissDbUtils.migrateDataFromDb(mContext)) {
+        if (BlissDbUtils.migrateDataFromDb(mContext, mOpenHelper)) {
             SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-            copyTable(db, Favorites.E_TABLE_NAME,
-                    db, Favorites.E_TABLE_NAME_ALL, mContext);
+            copyTable(db, Favorites.E_TABLE_NAME_ALL,
+                    db, Favorites.E_TABLE_NAME, mContext);
+            mOpenHelper.updateItemId();
             clearFlagEmptyDbCreated();
             return;
         }
