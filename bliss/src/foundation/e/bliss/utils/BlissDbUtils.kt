@@ -54,25 +54,18 @@ object BlissDbUtils {
     private const val folderType = 2
 
     @JvmStatic
-    fun migrateDataFromDb(context: Context): Boolean {
+    fun migrateDataFromDb(context: Context, dbHelper: DatabaseHelper): Boolean {
         // Check if old database exists
         val oldFile = context.getDatabasePath(oldDbName)
         if (!oldFile.exists()) return false
 
         // Current database details
-        val currentDbName = InvariantDeviceProfile.INSTANCE[context].dbFile
         val rowCount = InvariantDeviceProfile.INSTANCE[context].numRows
         val columnCount = InvariantDeviceProfile.INSTANCE[context].numColumns
         val numFolderRows = InvariantDeviceProfile.INSTANCE[context].numFolderRows
         val numFolderColumns = InvariantDeviceProfile.INSTANCE[context].numFolderColumns
 
         // Init database helper classes
-        val dbHelper =
-            DatabaseHelper(
-                context,
-                currentDbName,
-                UserCache.INSTANCE.get(context)::getSerialNumberForUser,
-            ) {}
         val oldDbHelper = BlissDbHelper(context, oldDbName)
 
         // Retrieve data from the old table
@@ -233,10 +226,6 @@ object BlissDbUtils {
             }
         }
 
-        // Update item id after migrating
-        dbHelper.updateItemId()
-        dbHelper.close()
-
         // Rename the database to old
         val newFile = context.getDatabasePath(oldDbName + "_old")
         oldFile.renameTo(newFile)
@@ -275,8 +264,7 @@ object BlissDbUtils {
                         // Get the AppWidgetInfo for the current widget ID
                         val widgetInfo = appWidgetManager.getAppWidgetInfo(id)
                         if (widgetInfo != null) {
-                            val provider: ComponentName = widgetInfo.provider
-                            widgetsInfoList.add(WidgetItems(id, height, order, provider))
+                            widgetsInfoList.add(WidgetItems(id, height, order, widgetInfo.provider))
                         }
                     } catch (e: URISyntaxException) {
                         Logger.e(TAG, "getWidgetDetails: ", e)
