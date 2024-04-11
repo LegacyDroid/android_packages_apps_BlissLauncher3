@@ -438,9 +438,12 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     private void updateCellLayoutMeasures() {
         Rect padding = mLauncher.getDeviceProfile().cellLayoutPaddingPx;
         mWorkspaceScreens.forEach(cellLayout -> {
+            int widgetPadding = getResources().getDimensionPixelSize(R.dimen.widget_page_all_padding);
             int paddingTop = (cellLayout == mWorkspaceScreens.get(FIRST_SCREEN_ID))? 0 : padding.top;
             int paddingBottom = (cellLayout == mWorkspaceScreens.get(FIRST_SCREEN_ID))? 0 : padding.bottom;
-            cellLayout.setPadding(padding.left, paddingTop, padding.right, paddingBottom);
+            int paddingLeft = (cellLayout == mWorkspaceScreens.get(FIRST_SCREEN_ID))? widgetPadding : padding.left;
+            int paddingRight = (cellLayout == mWorkspaceScreens.get(FIRST_SCREEN_ID))? widgetPadding : padding.right;
+            cellLayout.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom);
             cellLayout.setSpaceBetweenCellLayoutsPx(getPageSpacing() / 4);
         });
     }
