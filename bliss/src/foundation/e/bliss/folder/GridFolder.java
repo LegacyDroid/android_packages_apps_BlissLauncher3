@@ -179,6 +179,7 @@ public class GridFolder extends Folder implements OnAlarmListener {
 
     @Override
     public void onFolderOpenStart() {
+        setVisibility(View.VISIBLE);
         mLastStateBeforeOpen = mLauncher.getStateManager().getState();
         if (!mLauncher.isInState(NORMAL)) {
             mLauncher.getStateManager().goToState(LauncherState.NORMAL, false);
