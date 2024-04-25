@@ -67,6 +67,7 @@
         android:key="pref_desktop_show_labels"
         android:title="@string/desktop_show_labels"
         android:defaultValue="true"
+        launcher:isPreferenceVisible="false"
         android:persistent="true" />
 
     <SwitchPreferenceCompat
