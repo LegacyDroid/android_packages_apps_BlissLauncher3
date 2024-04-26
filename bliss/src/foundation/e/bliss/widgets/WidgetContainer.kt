@@ -181,7 +181,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) : FrameLayout(cont
                 val info = (it as AppWidgetHostView).appWidgetInfo
                 val opts =
                     WidgetSizes.getWidgetSizeOptions(
-                        context,
+                        mLauncher,
                         info.provider,
                         mLauncher.deviceProfile.inv.numColumns,
                         mLauncher.deviceProfile.inv.numRows
@@ -440,7 +440,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) : FrameLayout(cont
 
                         opts =
                             WidgetSizes.getWidgetSizeOptions(
-                                context,
+                                launcher,
                                 info.provider,
                                 launcher.deviceProfile.inv.numColumns,
                                 launcher.deviceProfile.inv.numRows
