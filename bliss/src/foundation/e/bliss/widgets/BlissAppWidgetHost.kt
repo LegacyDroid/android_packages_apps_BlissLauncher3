@@ -25,8 +25,6 @@ import android.content.Context
 import com.android.launcher3.R
 
 class BlissAppWidgetHost(val context: Context) : AppWidgetHost(context, WIDGET_HOST_ID) {
-    private val widgetsDbHelper = WidgetsDbHelper.getInstance(context)
-
     fun createView(widgetId: Int, widgetInfo: AppWidgetProviderInfo): AppWidgetHostView {
         return createView(context, widgetId, widgetInfo).apply {
             val widgetTopBottom =
@@ -49,7 +47,6 @@ class BlissAppWidgetHost(val context: Context) : AppWidgetHost(context, WIDGET_H
 
     override fun onAppWidgetRemoved(appWidgetId: Int) {
         deleteAppWidgetId(appWidgetId)
-        widgetsDbHelper.delete(appWidgetId)
     }
 
     companion object {
