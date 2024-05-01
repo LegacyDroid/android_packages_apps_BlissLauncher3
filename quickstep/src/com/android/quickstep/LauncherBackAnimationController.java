@@ -52,6 +52,7 @@ import android.window.BackEvent;
 import android.window.BackMotionEvent;
 import android.window.BackProgressAnimator;
 import android.window.IBackAnimationHandoffHandler;
+import android.window.BackProgressAnimator.ProgressCallback;
 import android.window.IOnBackInvokedCallback;
 
 import com.android.app.animation.Animations;
@@ -232,12 +233,16 @@ public class LauncherBackAnimationController {
                 if (controller != null) {
                     controller.initBackMotion(backEvent);
                     controller.tryStartBackAnimation();
-                    mProgressAnimator.onBackStarted(backEvent, event -> {
-                        float backProgress = event.getProgress();
-                        controller.mBackProgress =
-                                mProgressInterpolator.getInterpolation(backProgress);
-                        controller.updateBackProgress(controller.mBackProgress, event);
+                    mProgressAnimator.onBackStarted(backEvent, new ProgressCallback() {
+                        @Override
+                        public void onProgressUpdate(BackEvent event) {
+                            float backProgress = event.getProgress();
+                            controller.mBackProgress =
+                                    mProgressInterpolator.getInterpolation(backProgress);
+                            controller.updateBackProgress(controller.mBackProgress, event);
+                        }
                     });
+
                 }
             });
         }
