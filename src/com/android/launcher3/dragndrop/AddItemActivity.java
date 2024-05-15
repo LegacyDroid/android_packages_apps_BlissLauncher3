@@ -51,6 +51,7 @@ import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -87,7 +88,9 @@ import com.android.launcher3.widget.WidgetSections;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import foundation.e.bliss.multimode.MultiModeController;
 import foundation.e.bliss.utils.BlissConstants;
+import foundation.e.bliss.widgets.WidgetContainer.WidgetFragment;
 
 /**
  * Activity to show pin widget dialog.
@@ -163,6 +166,11 @@ public class AddItemActivity extends BaseActivity
                 break;
             case PinItemRequest.REQUEST_TYPE_APPWIDGET:
                 targetApp = setupWidget();
+                if (MultiModeController.isSingleLayerMode()) {
+                    ((Button) findViewById(R.id.add_to_workspace))
+                            .setText(getString(R.string.add_to_widget_Screen));
+                    ((TextView)findViewById(R.id.widget_drag_instruction)).setVisibility(View.GONE);
+                }
                 break;
             default:
                 targetApp = null;
@@ -184,6 +192,11 @@ public class AddItemActivity extends BaseActivity
                 R.id.widget_preview_container);
         previewContainer.setOnTouchListener(this);
         previewContainer.setOnLongClickListener(this);
+
+        if (MultiModeController.isSingleLayerMode()) {
+            previewContainer.setOnTouchListener(null);
+            previewContainer.setOnLongClickListener(null);
+        }
 
         // savedInstanceState is null when the activity is created the first time (i.e., avoids
         // duplicate logging during rotation)
@@ -369,8 +382,13 @@ public class AddItemActivity extends BaseActivity
             return;
         }
 
-        mPendingBindWidgetId = mAppWidgetHolder.allocateAppWidgetId();
         AppWidgetProviderInfo widgetProviderInfo = mRequest.getAppWidgetProviderInfo(this);
+        if (MultiModeController.isSingleLayerMode() && widgetProviderInfo!= null) {
+            WidgetFragment.onWidgetAdded(widgetProviderInfo.provider);
+            return;
+        }
+
+        mPendingBindWidgetId = mAppWidgetHolder.allocateAppWidgetId();
         boolean success = mAppWidgetManager.bindAppWidgetIdIfAllowed(
                 mPendingBindWidgetId, widgetProviderInfo, mWidgetOptions);
         if (success) {
