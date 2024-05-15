@@ -772,7 +772,10 @@ public class CellLayout extends ViewGroup {
     }
 
     public boolean acceptsWidget() {
-        return mContainerType == WORKSPACE;
+        if (MultiModeController.isSingleLayerMode()) {
+            return false;
+        }
+            return mContainerType == WORKSPACE;
     }
 
     /**
