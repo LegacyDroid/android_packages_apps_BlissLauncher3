@@ -64,6 +64,7 @@ import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
@@ -133,6 +134,7 @@ import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.Thunk;
 import com.android.launcher3.util.WallpaperOffsetInterpolator;
+import com.android.launcher3.util.window.WindowManagerProxy;
 import com.android.launcher3.views.FloatingIconView;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
 import com.android.launcher3.widget.LauncherWidgetHolder;
@@ -387,7 +389,14 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         mWorkspaceFadeInAdjacentScreens = grid.shouldFadeAdjacentWorkspaceScreens();
 
         Rect padding = grid.workspacePadding;
-        setPadding(padding.left, padding.top, padding.right, padding.bottom);
+        // We need padding zeroed out for minus one page.
+        // Also handle vertical bar layout padding manually under
+        // updateCellLayoutPadding
+        if (grid.isLandscape) {
+            setPadding(0, padding.top, 0, padding.bottom);
+        } else {
+            setPadding(padding.left, padding.top, padding.right, padding.bottom);
+        }
         mInsets.set(insets);
 
         if (mWorkspaceFadeInAdjacentScreens) {
@@ -444,16 +453,26 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         mPageIndicator.setLayoutParams(lp);
     }
 
-    private void updateCellLayoutMeasures() {
-        Rect padding = mLauncher.getDeviceProfile().cellLayoutPaddingPx;
-        mWorkspaceScreens.forEach(cellLayout -> {
+    private void updateCellLayoutPadding() {
+        DeviceProfile grid = mLauncher.getDeviceProfile();
+        Rect padding = grid.cellLayoutPaddingPx;
+        int orientation = WindowManagerProxy.INSTANCE.get(mLauncher).getRotation(mLauncher);
+        int hotseatLeftCorrection = (grid.isVerticalBarLayout() && orientation == Surface.ROTATION_270)
+                ? grid.hotseatBarSizePx : 0;
+        int hotseatRightCorrection = (grid.isVerticalBarLayout() && orientation == Surface.ROTATION_90)
+                ? grid.hotseatBarSizePx : 0;
+
+        mWorkspaceScreens.forEach(s -> {
             int widgetPadding = getResources().getDimensionPixelSize(R.dimen.widget_page_all_padding);
-            int paddingTop = (cellLayout == mWorkspaceScreens.get(FIRST_SCREEN_ID))? 0 : padding.top;
-            int paddingBottom = (cellLayout == mWorkspaceScreens.get(FIRST_SCREEN_ID))? 0 : padding.bottom;
-            int paddingLeft = (cellLayout == mWorkspaceScreens.get(FIRST_SCREEN_ID))? widgetPadding : padding.left;
-            int paddingRight = (cellLayout == mWorkspaceScreens.get(FIRST_SCREEN_ID))? widgetPadding : padding.right;
-            cellLayout.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom);
-            cellLayout.setSpaceBetweenCellLayoutsPx(getPageSpacing() / 4);
+            int paddingTop = (s == mWorkspaceScreens.get(FIRST_SCREEN_ID)) ? 0 : padding.top;
+            int paddingBottom = (s == mWorkspaceScreens.get(FIRST_SCREEN_ID)) ? 0 : padding.bottom;
+            int paddingLeft = (s == mWorkspaceScreens.get(FIRST_SCREEN_ID))
+                    ? widgetPadding : (padding.left + hotseatLeftCorrection);
+            int paddingRight = (s == mWorkspaceScreens.get(FIRST_SCREEN_ID))
+                    ? widgetPadding : (padding.right + hotseatRightCorrection);
+
+            s.setSpaceBetweenCellLayoutsPx(getPageSpacing() / 4);
+            s.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom);
         });
     }
 
