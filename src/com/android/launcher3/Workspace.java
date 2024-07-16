@@ -397,6 +397,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         setPageIndicatorInset();
     }
 
+    @SuppressLint("NewApi")
     private void setPageIndicatorInset() {
         DeviceProfile grid = mLauncher.getDeviceProfile();
 
@@ -419,11 +420,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             // Get "safe" drawable inset to not overlap gesture pill
             int safeBottomInset;
             WindowInsets rootInsets = mLauncher.getWindow().getDecorView().getRootWindowInsets();
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-                safeBottomInset = rootInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars()).bottom;
-            } else {
-                safeBottomInset = rootInsets.getStableInsetBottom();
-            }
+            safeBottomInset = rootInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars()).bottom;
             lp.bottomMargin = safeBottomInset;
         } else {
             lp.bottomMargin = grid.hotseatBarSizePx;
