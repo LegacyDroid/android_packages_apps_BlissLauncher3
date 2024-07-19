@@ -395,6 +395,8 @@ public class DeviceProfile {
         isTransientTaskbar = false;
     }
 
+    private final static boolean FORCE_SHOW_LABELS = false;
+
     /** TODO: Once we fully migrate to staged split, remove "isMultiWindowMode" */
     DeviceProfile(Context context, InvariantDeviceProfile inv, Info info,
             WindowManagerProxy wmProxy, ThemeManager themeManager, WindowBounds windowBounds,
@@ -1160,6 +1162,7 @@ public class DeviceProfile {
      * It is important to call this method after the All Apps variables have been set.
      */
     private void hideWorkspaceLabelsIfNotEnoughSpace() {
+        if (FORCE_SHOW_LABELS) return;
         float iconTextHeight = Utilities.calculateTextHeight(iconTextSizePx);
         float workspaceCellPaddingY = getCellSize().y - iconSizePx - iconDrawablePaddingPx
                 - iconTextHeight;
