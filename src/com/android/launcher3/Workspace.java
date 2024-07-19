@@ -485,6 +485,15 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     ? widgetPadding : (padding.left + hotseatLeftCorrection);
             int paddingRight = (cellLayout == mWorkspaceScreens.get(FIRST_SCREEN_ID))
                     ? widgetPadding : (padding.right + hotseatRightCorrection);
+
+            if (grid.isVerticalBarLayout()) {
+                grid.inv.numRows = grid.inv.numColumnsFixed;
+                grid.inv.numColumns = grid.inv.numRowsFixed;
+            } else {
+                grid.inv.numRows = grid.inv.numRowsFixed;
+                grid.inv.numColumns = grid.inv.numColumnsFixed;
+            }
+
             cellLayout.setSpaceBetweenCellLayoutsPx(getPageSpacing() / 4);
             cellLayout.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom);
         });
