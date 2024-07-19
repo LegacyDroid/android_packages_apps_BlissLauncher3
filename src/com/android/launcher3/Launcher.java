@@ -847,8 +847,13 @@ public class Launcher extends StatefulActivity<LauncherState>
         if (FOLDABLE_SINGLE_PAGE.get() && mDeviceProfile.isTwoPanels) {
             mCellPosMapper = new TwoPanelCellPosMapper(mDeviceProfile.inv.numColumns);
         } else {
-            mCellPosMapper = new CellPosMapper(mDeviceProfile.isVerticalBarLayout(),
-                    mDeviceProfile.numShownHotseatIcons);
+            if (mDeviceProfile.isVerticalBarLayout()) {
+                mCellPosMapper = new CellPosMapper.TransposeCellPosMapper(mDeviceProfile.inv,
+                        mDeviceProfile.isVerticalBarLayout(), mDeviceProfile.numShownHotseatIcons);
+            } else {
+                mCellPosMapper = new CellPosMapper(mDeviceProfile.isVerticalBarLayout(),
+                        mDeviceProfile.numShownHotseatIcons);
+            }
         }
         mModelWriter = mModel.getWriter(true, mCellPosMapper, this);
         return true;
