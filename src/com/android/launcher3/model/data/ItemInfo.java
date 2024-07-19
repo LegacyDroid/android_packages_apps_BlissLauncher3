@@ -129,11 +129,13 @@ public class ItemInfo {
      * Indicates the X position of the associated cell.
      */
     public int cellX = -1;
+    public int cellXFixed = -1;
 
     /**
      * Indicates the Y position of the associated cell.
      */
     public int cellY = -1;
+    public int cellYFixed = -1;
 
     /**
      * Indicates the X cell span.
@@ -208,6 +210,8 @@ public class ItemInfo {
         title = info.title;
         cellX = info.cellX;
         cellY = info.cellY;
+        cellXFixed = info.cellX;
+        cellYFixed = info.cellY;
         spanX = info.spanX;
         spanY = info.spanY;
         minSpanX = info.minSpanX;
@@ -273,6 +277,8 @@ public class ItemInfo {
         screenId = values.getAsInteger(LauncherSettings.Favorites.SCREEN);
         cellX = values.getAsInteger(LauncherSettings.Favorites.CELLX);
         cellY = values.getAsInteger(LauncherSettings.Favorites.CELLY);
+        cellXFixed = values.getAsInteger(LauncherSettings.Favorites.CELLX);
+        cellYFixed = values.getAsInteger(LauncherSettings.Favorites.CELLY);
         spanX = values.getAsInteger(LauncherSettings.Favorites.SPANX);
         spanY = values.getAsInteger(LauncherSettings.Favorites.SPANY);
         rank = values.getAsInteger(LauncherSettings.Favorites.RANK);
