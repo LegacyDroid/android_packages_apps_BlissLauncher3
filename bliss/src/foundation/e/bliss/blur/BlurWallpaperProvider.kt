@@ -43,7 +43,7 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
     private val mWallpaperManager: WallpaperManager = WallpaperManager.getInstance(context)
     private val mListeners = ArrayList<Listener>()
-    private val mDisplaySize = DisplayController.INSTANCE.get(context).info.currentSize
+    private var mDisplaySize = DisplayController.INSTANCE.get(context).info.currentSize
 
     var wallpapers: BlurSizes? = null
         private set(value) {
@@ -96,6 +96,7 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
             return
         }
 
+        mDisplaySize = DisplayController.INSTANCE.get(context).info.currentSize
         val width = mDisplaySize.x
         val height = mDisplaySize.y
 
