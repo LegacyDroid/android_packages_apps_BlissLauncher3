@@ -185,7 +185,11 @@ dependencies {
 
     implementation project(':IconLoader')
 
-    implementation fileTree(dir: "libs", include: ['Launcher3QuickStepLib.jar', 'libGoogleFeed.jar'])
+    implementation fileTree(dir: "libs", include: [
+            'Launcher3QuickStepLib.jar',
+            'libGoogleFeed.jar',
+            'com_android_launcher3_flags_lib.jar'
+    ])
 }
 
 protobuf {
