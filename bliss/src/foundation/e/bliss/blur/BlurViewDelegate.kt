@@ -42,7 +42,7 @@ class BlurViewDelegate(
     private val blurWallpaperProvider by lazy { BlurWallpaperProvider.getInstanceNoCreate() }
 
     private var fullBlurDrawable: BlurDrawable? = null
-    private var blurAlpha = 255
+    var blurAlpha = 255
 
     private val blurDrawableCallback by lazy {
         object : Drawable.Callback {
