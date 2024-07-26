@@ -227,6 +227,18 @@ public final class FeatureFlags {
                 com.android.wm.shell.Flags.enableSplitContextual();
     }
 
+    public static final class SHOW_HOME_GARDENING {
+        public static boolean get() {
+            if (MultiModeController.isSingleLayerMode()) {
+                return  true;
+            } else {
+                return getDebugFlag(270395183,
+                        "SHOW_HOME_GARDENING", DISABLED,
+                        "Show the new home gardening mode").get();
+            }
+        }
+    }
+
     // TODO(Block 29): Clean up flags
     // Aconfig migration complete for ENABLE_ALL_APPS_BUTTON_IN_HOTSEAT.
     public static final BooleanFlag ENABLE_ALL_APPS_BUTTON_IN_HOTSEAT = getDebugFlag(270393897,
