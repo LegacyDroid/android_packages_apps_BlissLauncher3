@@ -105,7 +105,6 @@ public class StatusBarTouchController implements TouchController {
                 setWindowSlippery(true);
                 return true;
             }
-            mDownEvents.clear();
         } else if (ev.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
             // Check!! should only set it only when threshold is not entered.
             mDownEvents.put(pid, new PointF(ev.getX(idx), ev.getY(idx)));
