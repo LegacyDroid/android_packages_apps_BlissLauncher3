@@ -29,6 +29,7 @@ import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.ICON_OVER
 import static com.android.launcher3.icons.GraphicsUtils.getShapePath;
 import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR;
 import static com.android.launcher3.testing.shared.ResourceUtils.INVALID_RESOURCE_HANDLE;
+import static com.android.launcher3.testing.shared.ResourceUtils.NAVBAR_HEIGHT;
 import static com.android.launcher3.testing.shared.ResourceUtils.pxFromDp;
 import static com.android.launcher3.testing.shared.ResourceUtils.roundPxValueFromFloat;
 import static com.android.wm.shell.Flags.enableTinyTaskbar;
@@ -65,6 +66,7 @@ import com.android.launcher3.responsive.ResponsiveCellSpecsProvider;
 import com.android.launcher3.responsive.ResponsiveSpec.Companion.ResponsiveSpecType;
 import com.android.launcher3.responsive.ResponsiveSpec.DimensionType;
 import com.android.launcher3.responsive.ResponsiveSpecsProvider;
+import com.android.launcher3.testing.shared.ResourceUtils;
 import com.android.launcher3.util.CellContentDimensions;
 import com.android.launcher3.util.DisplayController.Info;
 import com.android.launcher3.util.IconSizeSteps;
@@ -392,6 +394,8 @@ public class DeviceProfile {
         isTransientTaskbar = false;
     }
 
+    private Context context;
+
     private final static boolean FORCE_SHOW_LABELS = false;
 
     /** TODO: Once we fully migrate to staged split, remove "isMultiWindowMode" */
@@ -704,6 +708,7 @@ public class DeviceProfile {
             updateHotseatSizes(pxFromDp(inv.iconSize[mTypeIndex], mMetrics));
         }
 
+        this.context = context;
         if (areNavButtonsInline && !isPhone) {
             inlineNavButtonsEndSpacingPx =
                     res.getDimensionPixelSize(inv.inlineNavButtonsEndSpacing);
@@ -973,6 +978,9 @@ public class DeviceProfile {
                     + hotseatQsbSpace
                     + hotseatQsbVisualHeight
                     + hotseatBarBottomSpacePx;
+        }
+        if (isPhoneUpsideDown()) {
+            hotseatBarSizePx += getNavbarHeight();
         }
     }
 
@@ -2032,8 +2040,14 @@ public class DeviceProfile {
         if (isTaskbarPresent) { // QSB on top or inline
             return hotseatBarBottomSpacePx - (Math.abs(hotseatCellHeightPx - iconSizePx) / 2);
         } else {
-            int size = hotseatBarSizePx - hotseatCellHeightPx;
-            return isFullyGesture ? size / 4 : Math.round(size / 1.5f);
+            int navPadding = 0;
+            if (isPhoneUpsideDown()) {
+                navPadding = Math.round(getNavbarHeight() / (isFullyGesture ? 2f : 4f));
+            }
+            if (isFullyGesture) {
+                return (Math.abs(hotseatBarSizePx - iconSizePx) / 2) + navPadding;
+            }
+            return (hotseatBarSizePx - hotseatCellHeightPx) + navPadding;
         }
     }
 
@@ -2109,6 +2123,17 @@ public class DeviceProfile {
      */
     public boolean isVerticalBarLayout() {
         return isLandscape && transposeLayoutWithOrientation;
+    }
+
+    private int getNavbarHeight() {
+        if (context == null) return 0;
+        return ResourceUtils.getDimenByName(NAVBAR_HEIGHT, context.getResources(), 0);
+    }
+
+    private boolean isPhoneUpsideDown() {
+        boolean isUpsideDown = DisplayController.INSTANCE.get(context)
+                .getInfo().rotation == Surface.ROTATION_180;
+        return isPhone && isUpsideDown;
     }
 
     public boolean isSeascape() {
