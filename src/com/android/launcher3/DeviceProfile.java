@@ -28,6 +28,7 @@ import static com.android.launcher3.Utilities.pxFromSp;
 import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR;
 import static com.android.launcher3.taskbar.TaskbarManager.ENABLE_TASKBAR;
 import static com.android.launcher3.testing.shared.ResourceUtils.INVALID_RESOURCE_HANDLE;
+import static com.android.launcher3.testing.shared.ResourceUtils.NAVBAR_HEIGHT;
 import static com.android.launcher3.testing.shared.ResourceUtils.pxFromDp;
 import static com.android.launcher3.testing.shared.ResourceUtils.roundPxValueFromFloat;
 import static com.android.wm.shell.Flags.enableBubbleBar;
@@ -66,6 +67,7 @@ import com.android.launcher3.responsive.ResponsiveCellSpecsProvider;
 import com.android.launcher3.responsive.ResponsiveSpec.Companion.ResponsiveSpecType;
 import com.android.launcher3.responsive.ResponsiveSpec.DimensionType;
 import com.android.launcher3.responsive.ResponsiveSpecsProvider;
+import com.android.launcher3.testing.shared.ResourceUtils;
 import com.android.launcher3.util.CellContentDimensions;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.DisplayController.Info;
@@ -994,6 +996,9 @@ public class DeviceProfile {
                     + hotseatQsbSpace
                     + hotseatQsbVisualHeight
                     + hotseatBarBottomSpacePx;
+        }
+        if (isPhoneUpsideDown()) {
+            hotseatBarSizePx += getNavbarHeight();
         }
     }
 
@@ -2112,7 +2117,11 @@ public class DeviceProfile {
         if (isTaskbarPresent || isQsbInline) { // QSB on top or inline
             return hotseatBarBottomSpacePx - (Math.abs(hotseatCellHeightPx - iconSizePx) / 2);
         } else {
-            return hotseatBarSizePx - hotseatCellHeightPx;
+            int navPadding = 0;
+            if (isPhoneUpsideDown()) {
+                navPadding = Math.round(getNavbarHeight() / (isFullyGesture ? 2f : 4f));
+            }
+            return (hotseatBarSizePx - hotseatCellHeightPx) + navPadding;
         }
     }
 
@@ -2233,6 +2242,17 @@ public class DeviceProfile {
      */
     public boolean isVerticalBarLayout() {
         return isLandscape && transposeLayoutWithOrientation;
+    }
+
+    private int getNavbarHeight() {
+        if (context == null) return 0;
+        return ResourceUtils.getDimenByName(NAVBAR_HEIGHT, context.getResources(), 0);
+    }
+
+    private boolean isPhoneUpsideDown() {
+        boolean isUpsideDown = DisplayController.INSTANCE.get(context)
+                .getInfo().rotation == Surface.ROTATION_180;
+        return isPhone && isUpsideDown;
     }
 
     public boolean isSeascape() {
