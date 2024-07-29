@@ -438,14 +438,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 lp.leftMargin = padding.left;
             }
 
-            // Get "safe" drawable inset to not overlap gesture pill
-            int safeBottomInset;
-            WindowInsets rootInsets = mLauncher.getWindow().getDecorView().getRootWindowInsets();
-            // rootInsets may be null in case launcher restarts and view hasn't yet been inflated
-            if (rootInsets != null) {
-                safeBottomInset = rootInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars()).bottom;
-                lp.bottomMargin = safeBottomInset;
-            }
+            lp.bottomMargin = grid.getInsets().bottom - (grid.edgeMarginPx / 2);
         } else {
             lp.bottomMargin = grid.hotseatBarSizePx;
         }
@@ -1448,23 +1441,17 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         if (progress < 0)
             return;
 
-        boolean isVerticalBar = mLauncher.getDeviceProfile().isVerticalBarLayout();
+        DeviceProfile grid = mLauncher.getDeviceProfile();
+        boolean isVerticalBar = grid.isVerticalBarLayout();
         getHotseat().setBlurAlpha((int) ((1 - (progress * 2)) * 255));
         if (isVerticalBar) {
             int dockWidth = getHotseat().getWidth();
-            float dockTranslationX = (mLauncher.getDeviceProfile().isSeascape() ? -1 : 1) *
+            float dockTranslationX = (grid.isSeascape() ? -1 : 1) *
                     progress * dockWidth;
             getHotseat().setForcedTranslationXY(dockTranslationX, 0);
 
-            // Initialize with safe height to completely hide indicator
-            int safeBottomInset = getPageIndicator().getHeight();
-            WindowInsets rootInsets = mLauncher.getWindow().getDecorView().getRootWindowInsets();
-
-            // rootInsets may be null in case launcher restarts and view hasn't yet been inflated
-            if (rootInsets != null) {
-                safeBottomInset = rootInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars()).bottom;
-            }
-            float pageIndicatorTranslationY = progress * (getPageIndicator().getHeight() + safeBottomInset);
+            int bottomInset = grid.getInsets().bottom - (grid.edgeMarginPx / 2);
+            float pageIndicatorTranslationY = progress * (getPageIndicator().getHeight() + bottomInset);
             ((PageIndicatorDots) getPageIndicator()).setForcedTranslationY(pageIndicatorTranslationY);
         } else {
             int dockHeight = getHotseat().getHeight() + getPageIndicator().getHeight();
