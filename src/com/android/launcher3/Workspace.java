@@ -1578,7 +1578,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     pageIndicatorDots.setForcedTranslationY(height);
                 }
 
-
                 mLauncher.mBlurLayer.setAlpha(1);
                 getWindowInsetsController().hide(WindowInsetsCompat.Type.statusBars());
             }
