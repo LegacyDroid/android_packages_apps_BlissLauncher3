@@ -1976,6 +1976,10 @@ public class DeviceProfile {
             boolean noHint = isFullyGesture && LineageSettings.System.getInt(
                     context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
             int hotseatIconMargin = Math.abs(hotseatCellHeightPx - iconSizePx);
+            // Values obtained by manual validation, independent of dpi and display scale
+            double marginScaleFactor = mInfo.navigationMode == NavigationMode.NO_BUTTON
+                    ? 3.25
+                    : 2.75;
             hotseatBarPadding.set(
                     hotseatAdjustment + workspacePadding.left + cellLayoutPaddingPx.left
                             + mInsets.left,
@@ -1983,7 +1987,7 @@ public class DeviceProfile {
                     hotseatAdjustment + workspacePadding.right + cellLayoutPaddingPx.right
                             + mInsets.right,
                     noHint ? getHotseatBarBottomPadding() - (getHotseatBarBottomPadding() / 2)
-                            : getHotseatBarBottomPadding() - (2 * hotseatIconMargin));
+                            : getHotseatBarBottomPadding() - - (int) (marginScaleFactor * hotseatIconMargin));
         }
         return hotseatBarPadding;
     }
