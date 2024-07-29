@@ -2060,13 +2060,22 @@ public class DeviceProfile {
             int hotseatAdjustment = Math.round((workspaceCellWidth - hotseatCellWidth) / 2);
             int hotseatIconMargin = Math.abs(hotseatCellHeightPx - iconSizePx);
 
+            WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
+            boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
+            boolean noHint = isFullyGesture && LineageSettings.System.getInt(
+                    context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
+            // Values obtained by manual validation, independent of dpi and display scale
+            double marginScaleFactor = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON
+                    ? 3.25
+                    : 2.75;
             hotseatBarPadding.set(
                     hotseatAdjustment + workspacePadding.left + cellLayoutPaddingPx.left
                             + mInsets.left,
                     getHotseatBarTopPadding(),
                     hotseatAdjustment + workspacePadding.right + cellLayoutPaddingPx.right
                             + mInsets.right,
-                    getHotseatBarBottomPadding() - (2 * hotseatIconMargin));
+                    noHint ? getHotseatBarBottomPadding() - (getHotseatBarBottomPadding() / 2)
+                            : getHotseatBarBottomPadding() - (int) (marginScaleFactor * hotseatIconMargin));
         }
         return hotseatBarPadding;
     }
@@ -2298,7 +2307,7 @@ public class DeviceProfile {
 
     public int getExtraStatusBarPadding() {
         if (context == null) return 0;
-        WindowManagerProxy wm = WindowManagerProxy.newInstance(context);
+        WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
         boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
         if (!isFullyGesture) {
             return ResourceUtils.getDimenByName(NAVBAR_HEIGHT, context.getResources(), 0);
