@@ -30,6 +30,7 @@ import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTO
 import static com.android.launcher3.taskbar.TaskbarManager.ENABLE_TASKBAR;
 import static com.android.launcher3.testing.shared.ResourceUtils.INVALID_RESOURCE_HANDLE;
 import static com.android.launcher3.testing.shared.ResourceUtils.NAVBAR_BOTTOM_GESTURE_SIZE;
+import static com.android.launcher3.testing.shared.ResourceUtils.NAVBAR_HEIGHT;
 import static com.android.launcher3.testing.shared.ResourceUtils.pxFromDp;
 import static com.android.launcher3.testing.shared.ResourceUtils.roundPxValueFromFloat;
 import static com.android.wm.shell.Flags.enableBubbleBar;
@@ -2293,6 +2294,17 @@ public class DeviceProfile {
                 context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
         if (!noHint) return 0;
         return ResourceUtils.getDimenByName(NAVBAR_BOTTOM_GESTURE_SIZE, context.getResources(), 0);
+    }
+
+    public int getExtraStatusBarPadding() {
+        if (context == null) return 0;
+        WindowManagerProxy wm = WindowManagerProxy.newInstance(context);
+        boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
+        if (!isFullyGesture) {
+            return ResourceUtils.getDimenByName(NAVBAR_HEIGHT, context.getResources(), 0);
+        }
+        // Fully gesture is always at the bottom
+        return 0;
     }
 
     private String pxToDpStr(String name, float value) {
