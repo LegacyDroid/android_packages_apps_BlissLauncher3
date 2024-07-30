@@ -1978,6 +1978,8 @@ public class DeviceProfile {
         boolean isTaskbarPresent = this.isTaskbarPresent &&
                 SettingsCache.INSTANCE.get(context).getValue(ENABLE_TASKBAR, 1);
         Rect hotseatBarPadding = new Rect();
+        WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
+        boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
         if (isVerticalBarLayout()) {
             // The hotseat icons will be placed in the middle of the hotseat cells.
             // Changing the hotseatCellHeightPx is not affecting hotseat icon positions
@@ -1985,12 +1987,18 @@ public class DeviceProfile {
             int paddingTop = Math.max((int) (mInsets.top + cellLayoutPaddingPx.top), 0);
             int paddingBottom = Math.max((int) (mInsets.bottom + cellLayoutPaddingPx.bottom), 0);
 
+            int remainingSpace = (hotseatBarSizePx - hotseatCellHeightPx);
+            int horizontalMargin = remainingSpace / 2;
+            int navigationPadding;
+
             if (isSeascape()) {
-                hotseatBarPadding.set(mInsets.left + mHotseatBarEdgePaddingPx, paddingTop,
-                        mHotseatBarWorkspaceSpacePx, paddingBottom);
+                navigationPadding = isFullyGesture ? 0 : mInsets.left;
+                hotseatBarPadding.set(horizontalMargin + navigationPadding, paddingTop,
+                        horizontalMargin, paddingBottom);
             } else {
-                hotseatBarPadding.set(mHotseatBarWorkspaceSpacePx, paddingTop,
-                        mInsets.right + mHotseatBarEdgePaddingPx, paddingBottom);
+                navigationPadding = isFullyGesture ? 0 : mInsets.right;
+                hotseatBarPadding.set(horizontalMargin, paddingTop,
+                        horizontalMargin + navigationPadding, paddingBottom);
             }
         } else if (inv.isFixedLandscape) {
             // Center the QSB vertically with hotseat
@@ -2059,9 +2067,6 @@ public class DeviceProfile {
             float hotseatCellWidth = (float) widthPx / numShownHotseatIcons;
             int hotseatAdjustment = Math.round((workspaceCellWidth - hotseatCellWidth) / 2);
             int hotseatIconMargin = Math.abs(hotseatCellHeightPx - iconSizePx);
-
-            WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
-            boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
             boolean noHint = isFullyGesture && LineageSettings.System.getInt(
                     context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
             // Values obtained by manual validation, independent of dpi and display scale
