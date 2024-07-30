@@ -1913,6 +1913,7 @@ public class DeviceProfile {
         // Make sure to update all relevant sizes for cutout and orientation
         updateHotseatSizes(pxFromDp(inv.iconSize[INDEX_DEFAULT], mMetrics));
         Rect hotseatBarPadding = new Rect();
+        boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
         if (isVerticalBarLayout()) {
             // The hotseat icons will be placed in the middle of the hotseat cells.
             // Changing the hotseatCellHeightPx is not affecting hotseat icon positions
@@ -1920,12 +1921,18 @@ public class DeviceProfile {
             int paddingTop = Math.max((int) (mInsets.top + cellLayoutPaddingPx.top), 0);
             int paddingBottom = Math.max((int) (mInsets.bottom + cellLayoutPaddingPx.bottom), 0);
 
+            int remainingSpace = (hotseatBarSizePx - hotseatCellHeightPx);
+            int horizontalMargin = remainingSpace / 2;
+            int navigationPadding;
+
             if (isSeascape()) {
-                hotseatBarPadding.set(mInsets.left + mHotseatBarEdgePaddingPx, paddingTop,
-                        mHotseatBarWorkspaceSpacePx, paddingBottom);
+                navigationPadding = isFullyGesture ? 0 : mInsets.left;
+                hotseatBarPadding.set(horizontalMargin + navigationPadding, paddingTop,
+                        horizontalMargin, paddingBottom);
             } else {
-                hotseatBarPadding.set(mHotseatBarWorkspaceSpacePx, paddingTop,
-                        mInsets.right + mHotseatBarEdgePaddingPx, paddingBottom);
+                navigationPadding = isFullyGesture ? 0 : mInsets.right;
+                hotseatBarPadding.set(horizontalMargin, paddingTop,
+                        horizontalMargin + navigationPadding, paddingBottom);
             }
         } else if (isTaskbarPresent) {
             // Center the QSB vertically with hotseat
