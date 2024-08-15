@@ -176,7 +176,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             mTaskbarDividerContainer = new TaskbarDividerContainer(context);
         }
 
-        if (Flags.taskbarOverflow()) {
+        if (FeatureFlags.ENABLE_TASKBAR_ALLAPPS.get() && Flags.taskbarOverflow()) {
             mTaskbarOverflowView = (IconButtonView) LayoutInflater.from(context)
                     .inflate(R.layout.taskbar_overflow_button, this, false);
             mTaskbarOverflowView.setIconDrawable(
@@ -602,7 +602,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         // Layout the children
         mIconLayoutBounds.right = iconEnd;
-        mIconLayoutBounds.top = (bottom - top - mIconTouchSize) / 2;
+        mIconLayoutBounds.top = (bottom - top - mIconTouchSize);
         mIconLayoutBounds.bottom = mIconLayoutBounds.top + mIconTouchSize;
         int count = getChildCount();
         for (int i = count; i > 0; i--) {

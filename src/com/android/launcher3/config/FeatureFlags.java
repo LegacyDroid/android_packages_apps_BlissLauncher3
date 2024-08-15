@@ -259,6 +259,10 @@ public final class FeatureFlags {
         return flagState;
     }
 
+    public static final BooleanFlag ENABLE_TASKBAR_ALLAPPS = getDebugFlag(-1,
+            "ENABLE_TASKBAR_ALLAPPS", false,
+            "Enables all apps button in taskbar");
+
     public static BooleanFlag getReleaseFlag(
             int bugId, String key, BooleanFlag flagState, String description) {
         return flagState;
