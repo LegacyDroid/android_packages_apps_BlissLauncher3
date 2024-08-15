@@ -92,6 +92,7 @@ import java.util.function.Predicate;
 
 import foundation.e.bliss.LauncherAppMonitor;
 import foundation.e.bliss.folder.GridFolder;
+import foundation.e.bliss.folder.GridFolderController;
 import foundation.e.bliss.multimode.MultiModeController;
 
 /**
@@ -169,9 +170,10 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
 
     private void init() {
         mLongPressHelper = new CheckLongPressHelper(this);
-        if (MultiModeController.isSingleLayerMode()) {
-            mPreviewLayoutRule = LauncherAppMonitor.getInstance(getContext())
-                    .getGridFolderController().getGridFolderIconLayoutRule();
+        LauncherAppMonitor monitor = LauncherAppMonitor.getInstance(getContext());
+        GridFolderController controller = monitor != null ? monitor.getGridFolderController() : null;
+        if (MultiModeController.isSingleLayerMode() && controller != null) {
+            mPreviewLayoutRule = controller.getGridFolderIconLayoutRule();
         } else{
             mPreviewLayoutRule = new ClippedFolderIconLayoutRule();
         }
