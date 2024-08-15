@@ -839,7 +839,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         // Layout the children
         mIconLayoutBounds.right = iconEnd;
-        mIconLayoutBounds.top = (bottom - top - mIconTouchSize);
+        mIconLayoutBounds.top = (bottom - top - mIconTouchSize) / 2;
         mIconLayoutBounds.bottom = mIconLayoutBounds.top + mIconTouchSize;
 
         // With rtl layout, the all apps button will be translated by `allAppsButtonOffset` after

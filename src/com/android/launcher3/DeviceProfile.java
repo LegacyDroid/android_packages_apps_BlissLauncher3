@@ -988,6 +988,10 @@ public class DeviceProfile {
             }
         }
 
+        if (isTablet) {
+            hotseatBarBottomSpacePx /= 4;
+        }
+
         hotseatBarBottomSpacePx += mInfo.cutout.bottom;
 
         // Ensure there is enough space for folder icons, which have a slightly larger radius.
@@ -1005,15 +1009,6 @@ public class DeviceProfile {
                     + hotseatQsbVisualHeight
                     + hotseatBarBottomSpacePx;
         }
-
-        // For 2 and 3 button mode, add some padding based on margin between real icon size
-        // and cell layout height. Gestural mode reports a more than sufficient inset,
-        // so make sure it isn't applied for gestural navigation.
-        if (wm.getNavigationMode(context) != NavigationMode.NO_BUTTON) {
-            int hotseatIconMargin = Math.abs(hotseatCellHeightPx - iconSizePx);
-            hotseatBarSizePx += (int) (hotseatIconMargin * ICON_OVERLAP_FACTOR);
-        }
-        hotseatBarSizePx -= getDeductibleGestureHeight();
     }
 
     /**
@@ -1998,16 +1993,7 @@ public class DeviceProfile {
                         horizontalMargin + navigationPadding, paddingBottom);
             }
         } else if (isTaskbarPresent || inv.isFixedLandscape) {
-            // Center the QSB vertically with hotseat
-            boolean noHint = isFullyGesture && LineageSettings.System.getInt(
-                    context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
-            int hotseatIconMargin = Math.abs(hotseatCellHeightPx - iconSizePx);
-            // Values obtained by manual validation, independent of dpi and display scale
-            double marginScaleFactor = isFullyGesture
-                    ? (noHint ? 2.5 : 3.25)
-                    : 2.75;
-            int hotseatBarBottomPadding = getHotseatBarBottomPadding() -
-                    (int) (marginScaleFactor * hotseatIconMargin);
+            int hotseatBarBottomPadding = getHotseatBarBottomPadding();
             int hotseatBarTopPadding =
                     hotseatBarSizePx - hotseatBarBottomPadding - hotseatCellHeightPx;
             int hotseatWidth = getHotseatRequiredWidth();
@@ -2141,6 +2127,7 @@ public class DeviceProfile {
         boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
 
         if (isTaskbarPresent) { // QSB on top or inline
+            if (isTablet) return hotseatBarBottomSpacePx / 2;
             return hotseatBarBottomSpacePx - (Math.abs(hotseatCellHeightPx - iconSizePx) / 2);
         } else {
             return hotseatBarSizePx - hotseatCellHeightPx;

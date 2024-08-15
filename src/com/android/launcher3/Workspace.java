@@ -37,8 +37,6 @@ import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_HOME;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SWIPELEFT;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SWIPERIGHT;
 
-import static foundation.e.bliss.utils.BlissUtilsKt.createNavbarColorAnimator;
-
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.LayoutTransition;
@@ -323,7 +321,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
     private final MSDLPlayerWrapper mMSDLPlayerWrapper;
 
-    private final ValueAnimator navbarAnimator;
     private boolean isWobbling = false;
     private ItemInfo mDragObjectInfo;
     private Animation mWobbleAnimation;
@@ -360,7 +357,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         mWallpaperManager = WallpaperManager.getInstance(context);
         mAllAppsIconSize = mLauncher.getDeviceProfile().allAppsIconSizePx;
 
-        navbarAnimator = createNavbarColorAnimator(mLauncher.getWindow());
 
         mWallpaperOffset = new WallpaperOffsetInterpolator(this);
 
@@ -1545,10 +1541,8 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 }
 
                 if (mCurrentPage == 0 && prevPage == 1) {
-                    navbarAnimator.start();
                     getWindowInsetsController().hide(WindowInsetsCompat.Type.statusBars());
                 } else if (prevPage == 0 && mCurrentPage == 1) {
-                    navbarAnimator.reverse();
                     getWindowInsetsController().show(WindowInsetsCompat.Type.statusBars());
                     mFirstPagePinnedItem.clearFocus();
                 }
@@ -1576,7 +1570,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 }
 
                 mLauncher.mBlurLayer.setAlpha(1);
-                getWindowInsetsController().hide(WindowInsetsCompat.Type.statusBars());
             }
         }
         super.setCurrentPage(currentPage, overridePrevPage);
