@@ -191,7 +191,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             mTaskbarDividerContainer = new TaskbarDividerContainer(context);
         }
 
-        if (Flags.taskbarOverflow()) {
+        if (FeatureFlags.ENABLE_TASKBAR_ALLAPPS.get() && Flags.taskbarOverflow()) {
             mTaskbarOverflowView = TaskbarOverflowView.inflateIcon(
                     R.layout.taskbar_overflow_view, this,
                     mIconTouchSize, mItemPadding);
@@ -848,7 +848,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         // Layout the children
         mIconLayoutBounds.right = iconEnd;
-        mIconLayoutBounds.top = (bottom - top - mIconTouchSize) / 2;
+        mIconLayoutBounds.top = (bottom - top - mIconTouchSize);
         mIconLayoutBounds.bottom = mIconLayoutBounds.top + mIconTouchSize;
 
         // With rtl layout, the all apps button will be translated by `allAppsButtonOffset` after

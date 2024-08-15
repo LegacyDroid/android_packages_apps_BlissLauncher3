@@ -220,6 +220,10 @@ public final class FeatureFlags {
         return ENABLE_RESPONSIVE_WORKSPACE.get() || Flags.enableResponsiveWorkspace();
     }
 
+    public static final BooleanFlag ENABLE_TASKBAR_ALLAPPS = getDebugFlag(-1,
+            "ENABLE_TASKBAR_ALLAPPS", DISABLED,
+            "Enables all apps button in taskbar");
+
     public static BooleanFlag getDebugFlag(
             int bugId, String key, BooleanFlag flagState, String description) {
         return flagState;
