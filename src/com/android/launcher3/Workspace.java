@@ -1576,7 +1576,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 }
 
                 mLauncher.mBlurLayer.setAlpha(1);
-                getWindowInsetsController().hide(WindowInsetsCompat.Type.statusBars());
             }
         }
         super.setCurrentPage(currentPage, overridePrevPage);
