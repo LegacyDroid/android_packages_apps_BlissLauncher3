@@ -328,7 +328,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         mIsRtl = (getResources().getConfiguration().getLayoutDirection()
                 == View.LAYOUT_DIRECTION_RTL);
         mDeviceProfile = mActivity.getDeviceProfile();
-        mCenterVertically = a.getBoolean(R.styleable.BubbleTextView_centerVertically, MultiModeController.isSingleLayerMode());
+        mCenterVertically = a.getBoolean(R.styleable.BubbleTextView_centerVertically, false);
 
         mDisplay = a.getInteger(R.styleable.BubbleTextView_iconDisplay, DISPLAY_WORKSPACE);
         final int defaultIconSize;
