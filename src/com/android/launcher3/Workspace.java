@@ -477,7 +477,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             int paddingRight = (cellLayout == mWorkspaceScreens.get(FIRST_SCREEN_ID))
                     ? widgetPadding : (padding.right + rightCorrection);
 
-            if (grid.isVerticalBarLayout()) {
+            if (grid.isLandscape) {
                 grid.inv.numRows = grid.inv.numColumnsFixed;
                 grid.inv.numColumns = grid.inv.numRowsFixed;
             } else {
