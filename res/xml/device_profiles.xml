@@ -282,7 +282,7 @@
         launcher:inlineNavButtonsEndSpacing="@dimen/taskbar_button_margin_6_5"
         launcher:devicePaddingId="@xml/paddings_6x5"
         launcher:dbFile="launcher_6_by_5.db"
-        launcher:defaultLayoutId="@xml/default_workspace_6x5"
+        launcher:defaultLayoutId="@xml/default_workspace_4x6_tablet"
         launcher:deviceCategory="tablet" >
 
         <display-option
