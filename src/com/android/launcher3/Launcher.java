@@ -846,7 +846,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         if (FOLDABLE_SINGLE_PAGE.get() && mDeviceProfile.isTwoPanels) {
             mCellPosMapper = new TwoPanelCellPosMapper(mDeviceProfile.inv.numColumns);
         } else {
-            if (mDeviceProfile.isVerticalBarLayout()) {
+            if (mDeviceProfile.isLandscape) {
                 mCellPosMapper = new CellPosMapper.TransposeCellPosMapper(mDeviceProfile.inv,
                         mDeviceProfile.isVerticalBarLayout(), mDeviceProfile.numShownHotseatIcons);
             } else {
