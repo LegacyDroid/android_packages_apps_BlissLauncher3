@@ -44,6 +44,7 @@ import com.android.launcher3.taskbar.bubbles.BubbleBarController;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.MultiPropertyFactory;
+import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.OnboardingPrefs;
 import com.android.quickstep.HomeVisibilityState;
 import com.android.quickstep.RecentsAnimationCallbacks;
@@ -438,7 +439,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
 
     @Override
     public boolean isHotseatIconOnTopWhenAligned() {
-        return false;
+        return !DisplayController.getNavigationMode(mLauncher).equals(NavigationMode.NO_BUTTON);
     }
 
     @Override
