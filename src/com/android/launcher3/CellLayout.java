@@ -100,6 +100,10 @@ public class CellLayout extends ViewGroup {
     private static final int FOLDER_LEAVE_BEHIND_COLOR = Color.argb(160, 245, 245, 245);
 
     protected final ActivityContext mActivity;
+
+    public int translationX = 0;
+    public int translationY = 0;
+
     @ViewDebug.ExportedProperty(category = "launcher")
     @Thunk int mCellWidth;
     @ViewDebug.ExportedProperty(category = "launcher")
@@ -1896,8 +1900,8 @@ public class CellLayout extends ViewGroup {
                 + getTranslationXForCell(cellX, cellY);
         int y = vStartPadding + (cellY * mBorderSpace.y) + (cellY * cellHeight);
 
-        int width = cellHSpan * cellWidth + ((cellHSpan - 1) * mBorderSpace.x);
-        int height = cellVSpan * cellHeight + ((cellVSpan - 1) * mBorderSpace.y);
+        int width = cellHSpan * cellWidth + ((cellHSpan - 1) * mBorderSpace.x) + translationX;
+        int height = cellVSpan * cellHeight + ((cellVSpan - 1) * mBorderSpace.y) + translationY;
 
         resultRect.set(x, y, x + width, y + height);
     }
