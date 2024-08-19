@@ -41,6 +41,8 @@ import com.android.launcher3.CellLayout.ContainerType;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
 import com.android.launcher3.widget.NavigableAppWidgetHostView;
@@ -218,7 +220,8 @@ public class ShortcutAndWidgetContainer extends ViewGroup implements FolderIcon.
         Trace.endSection();
 
         int translation;
-        if (numOccupied != 0) {
+        boolean isGestural = DisplayController.getNavigationMode(getContext()).equals(NavigationMode.NO_BUTTON);
+        if (numOccupied != 0 && isGestural) {
             final CellLayoutLayoutParams lp = (CellLayoutLayoutParams) getChildAt(0).getLayoutParams();
             int width = lp.width + mBorderSpace.x;
             translation = (getWidth() - (numOccupied * width) + mBorderSpace.x) / 2;
