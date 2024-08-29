@@ -1015,7 +1015,7 @@ public class DeviceProfile {
         }
 
 
-        if (wm.getNavigationMode(context) != NavigationMode.NO_BUTTON) {
+        if (wm.getNavigationMode(context) != NavigationMode.NO_BUTTON && !isVerticalBarLayout()) {
             int hotseatIconMargin = Math.abs(hotseatCellHeightPx - iconSizePx);
             hotseatBarSizePx += (int) (hotseatIconMargin * ICON_OVERLAP_FACTOR);
         }
