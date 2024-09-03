@@ -55,7 +55,6 @@ import com.android.launcher3.CellLayout.ContainerType;
 import com.android.launcher3.DevicePaddings.DevicePadding;
 import com.android.launcher3.graphics.IconShape;
 import com.android.launcher3.icons.DotRenderer;
-import com.android.launcher3.icons.IconNormalizer;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.responsive.CalculatedCellSpec;
 import com.android.launcher3.responsive.CalculatedHotseatSpec;
@@ -142,6 +141,9 @@ public class DeviceProfile {
     private CalculatedHotseatSpec mResponsiveHotseatSpec;
     private CalculatedCellSpec mResponsiveWorkspaceCellSpec;
     private CalculatedCellSpec mResponsiveAllAppsCellSpec;
+
+    private boolean isNoHintGesture = false;
+    private boolean isNoButtonGesture = false;
 
     /**
      * The maximum amount of left/right workspace padding as a percentage of the screen width.
@@ -321,7 +323,6 @@ public class DeviceProfile {
     public final boolean isTransientTaskbar;
     // DragController
     public int flingToDeleteThresholdVelocity;
-    private final Context context;
 
     /** Used only as an alternative to mocking when null values cannot be used. */
     @VisibleForTesting
@@ -429,6 +430,11 @@ public class DeviceProfile {
                 (isTablet || (enableTinyTaskbar() && isGestureMode)) ? 1 : 0) == 1;
         isTaskbarPresent = isTaskBarEnabled
                 && WindowManagerProxy.INSTANCE.get(context).isTaskbarDrawnInProcess();
+
+        WindowManagerProxy wm = WindowManagerProxy.newInstance(context);
+        isNoButtonGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
+        isNoHintGesture = isNoButtonGesture && LineageSettings.System.getInt(
+                context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
 
         // Some more constants.
         context = getContext(context, info, isVerticalBarLayout() || (isTablet && isLandscape)
@@ -871,7 +877,6 @@ public class DeviceProfile {
         // This is done last, after iconSizePx is calculated above.
         mDotRendererWorkSpace = createDotRenderer(context, iconSizePx, dotRendererCache, showNotificationCount, typeface);
         mDotRendererAllApps = createDotRenderer(context, allAppsIconSizePx, dotRendererCache, showNotificationCount, typeface);
-        this.context = context;
     }
 
     private static DotRenderer createDotRenderer(
@@ -2018,14 +2023,14 @@ public class DeviceProfile {
      * Returns the number of pixels the hotseat is translated from the bottom of the screen.
      */
     private int getHotseatBarBottomPadding() {
-        WindowManagerProxy wm = WindowManagerProxy.newInstance(context);
-        boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
-
         if (isTaskbarPresent) { // QSB on top or inline
             return hotseatBarBottomSpacePx - (Math.abs(hotseatCellHeightPx - iconSizePx) / 2);
         } else {
-            int size = hotseatBarSizePx - hotseatCellHeightPx;
-            return isFullyGesture ? size / 4 : Math.round(size / 1.5f);
+            if (isNoHintGesture) return 0;
+            if (isNoButtonGesture) {
+                return Math.abs(hotseatBarSizePx - iconSizePx) / 2;
+            }
+            return hotseatBarSizePx - hotseatCellHeightPx;
         }
     }
 
