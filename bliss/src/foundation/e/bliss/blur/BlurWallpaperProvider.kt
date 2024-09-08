@@ -74,6 +74,8 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
     private var isLiveWallpaper = false
 
+    private var lastOffset = 0.5f
+
     init {
         isEnabled = getEnabledStatus()
         updateAsync()
@@ -226,7 +228,10 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
     fun createBlurDrawable(config: BlurConfig = blurConfigDock) = BlurDrawable(this, config)
 
-    fun setWallpaperOffset(offset: Float) {
+    fun setWallpaperOffset(inputOffset: Float?) {
+        val offset = inputOffset ?: lastOffset
+        lastOffset = offset
+
         if (!isEnabled) return
         if (wallpapers == null) return
 
