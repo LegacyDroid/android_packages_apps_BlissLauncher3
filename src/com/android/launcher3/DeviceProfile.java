@@ -2150,11 +2150,26 @@ public class DeviceProfile {
      * Returns the number of pixels the hotseat is translated from the bottom of the screen.
      */
     private int getHotseatBarBottomPadding() {
+        WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
+        boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
+        int heightDifference = Math.abs(hotseatCellHeightPx - iconSizePx);
         if (isTaskbarPresent) { // QSB on top or inline
-            if (isTablet) return hotseatBarBottomSpacePx / 2;
-            return hotseatBarBottomSpacePx - (Math.abs(hotseatCellHeightPx - iconSizePx) / 2);
+            if (isFullyGesture) {
+                if (isLandscape) {
+                    return 0;
+                } else {
+                    return  heightDifference / 2;
+                }
+            } else {
+                if (isLandscape) {
+                    return hotseatBarBottomSpacePx - (heightDifference / 2);
+                } else {
+                    return heightDifference;
+                }
+            }
+
         } else {
-            return hotseatBarSizePx - hotseatCellHeightPx;
+            return hotseatBarBottomSpacePx + ((isFullyGesture ? 1 : 2) * heightDifference);
         }
 
     }

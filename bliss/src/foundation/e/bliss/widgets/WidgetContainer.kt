@@ -352,7 +352,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
                     layoutManager =
                         NoScrollStaggeredLayoutManager(
                             spanCount,
-                            StaggeredGridLayoutManager.VERTICAL
+                            StaggeredGridLayoutManager.VERTICAL,
                         )
                     adapter = widgetsAdapter
                     isNestedScrollingEnabled = false
