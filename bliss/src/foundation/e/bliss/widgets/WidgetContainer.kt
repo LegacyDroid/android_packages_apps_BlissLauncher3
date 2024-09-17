@@ -131,9 +131,11 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
             if (
                 mLauncher != null &&
                     (mLauncher.deviceProfile.isTablet || mLauncher.deviceProfile.isLandscape)
-            )
+            ) {
                 2
-            else 1
+            } else {
+                1
+            }
         mRecyclerView.layoutManager =
             NoScrollStaggeredLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
     }
@@ -343,9 +345,11 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
                 if (
                     launcher != null &&
                         (launcher.deviceProfile.isTablet || launcher.deviceProfile.isLandscape)
-                )
+                ) {
                     2
-                else 1
+                } else {
+                    1
+                }
             recyclerView =
                 RecyclerView(context, null).apply {
                     tag = "wrapper_children"

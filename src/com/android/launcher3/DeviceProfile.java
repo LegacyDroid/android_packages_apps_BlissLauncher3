@@ -1979,8 +1979,7 @@ public class DeviceProfile {
         boolean isTaskbarPresent = this.isTaskbarPresent &&
                 SettingsCache.INSTANCE.get(context).getValue(ENABLE_TASKBAR, 1);
         Rect hotseatBarPadding = new Rect();
-        WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
-        boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
+        boolean isFullyGesture = isGestural();
         if (isVerticalBarLayout()) {
             // The hotseat icons will be placed in the middle of the hotseat cells.
             // Changing the hotseatCellHeightPx is not affecting hotseat icon positions
@@ -2154,7 +2153,7 @@ public class DeviceProfile {
         boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
         int heightDifference = Math.abs(hotseatCellHeightPx - iconSizePx);
         if (isTaskbarPresent) { // QSB on top or inline
-            if (isFullyGesture) {
+            if (isGestural()) {
                 if (isLandscape) {
                     return 0;
                 } else {
@@ -2169,7 +2168,7 @@ public class DeviceProfile {
             }
 
         } else {
-            return hotseatBarBottomSpacePx + ((isFullyGesture ? 1 : 2) * heightDifference);
+            return hotseatBarBottomSpacePx + ((isGestural() ? 1 : 2) * heightDifference);
         }
 
     }
@@ -2320,23 +2319,27 @@ public class DeviceProfile {
 
     private int getDeductibleGestureHeight() {
         if (isVerticalBarLayout() || context == null) return 0;
-        WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
-        boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
-        boolean noHint = isFullyGesture && LineageSettings.System.getInt(
+        boolean noHint = isGestural() && LineageSettings.System.getInt(
                 context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
         if (!noHint) return 0;
         return ResourceUtils.getDimenByName(NAVBAR_BOTTOM_GESTURE_SIZE, context.getResources(), 0);
     }
 
     public int getExtraStatusBarPadding() {
-        if (context == null) return 0;
-        WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
-        boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
-        if (!isFullyGesture) {
+        if (!isGestural()) {
             return ResourceUtils.getDimenByName(NAVBAR_HEIGHT, context.getResources(), 0);
         }
         // Fully gesture is always at the bottom
         return 0;
+    }
+
+    public boolean isGestural() {
+        WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
+        return wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
+    }
+
+    public static boolean isGestural(Context context) {
+        return DisplayController.getNavigationMode(context).equals(NavigationMode.NO_BUTTON);
     }
 
     private String pxToDpStr(String name, float value) {
