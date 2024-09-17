@@ -128,8 +128,9 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
         super.onConfigurationChanged(newConfig)
         updatePadding()
         val spanCount =
-            if (mLauncher != null &&
-                (mLauncher.deviceProfile.isTablet || mLauncher.deviceProfile.isLandscape)
+            if (
+                mLauncher != null &&
+                    (mLauncher.deviceProfile.isTablet || mLauncher.deviceProfile.isLandscape)
             ) {
                 2
             } else {
@@ -341,8 +342,9 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
             widgetsDbHelper = WidgetsDbHelper.getInstance(context)
             widgetsAdapter = StaggeredAdapter()
             val spanCount =
-                if (launcher != null &&
-                    (launcher.deviceProfile.isTablet || launcher.deviceProfile.isLandscape)
+                if (
+                    launcher != null &&
+                        (launcher.deviceProfile.isTablet || launcher.deviceProfile.isLandscape)
                 ) {
                     2
                 } else {
