@@ -472,8 +472,8 @@ public class InvariantDeviceProfile implements SafeCloseable, OnSharedPreference
         for (WindowBounds bounds : displayInfo.supportedBounds) {
             boolean isTablet = displayInfo.isTablet(bounds);
             if (isTablet) {
-                iconSize[INDEX_DEFAULT] *= 1.25f;
-                iconSize[INDEX_LANDSCAPE] *= 1.25f;
+                iconSize[INDEX_DEFAULT] *= 1.6f;
+                iconSize[INDEX_LANDSCAPE] *= 1.6f;
                 break;
             }
         }
