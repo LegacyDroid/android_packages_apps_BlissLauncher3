@@ -48,7 +48,6 @@ import com.android.launcher3.taskbar.bubbles.BubbleBarController;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.MultiPropertyFactory;
-import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.OnboardingPrefs;
 import com.android.quickstep.LauncherActivityInterface;
 import com.android.quickstep.RecentsAnimationCallbacks;
@@ -141,7 +140,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
                         mTaskbarInAppDisplayProgressMultiProp.get(i).getValue();
             }
             // Ensure nav buttons react to our latest state if necessary.
-            mControllers.navbarButtonsViewController.updateNavButtonTranslationY();
+            mControllers.navbarButtonsViewController.updateNavButtonTranslations();
         }
     }
 
@@ -410,6 +409,10 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
     @Override
     protected boolean isInOverview() {
         return mTaskbarLauncherStateController.isInOverview();
+    }
+
+    protected boolean isInHome() {
+        return mTaskbarLauncherStateController.isInHome();
     }
 
     @Override
