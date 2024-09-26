@@ -118,6 +118,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
 
     private final Rect mTempRect = new Rect();
 
+    private static final boolean NAV_TRANSLATION_DISABLED = true;
     private static final int FLAG_SWITCHER_SHOWING = 1 << 0;
     private static final int FLAG_IME_VISIBLE = 1 << 1;
     private static final int FLAG_ROTATION_BUTTON_VISIBLE = 1 << 2;
@@ -651,7 +652,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
      * Sets the translationY of the nav buttons based on the current device state.
      */
     public void updateNavButtonTranslationY() {
-        if (mContext.isPhoneButtonNavMode()) {
+        if (mContext.isPhoneButtonNavMode() || NAV_TRANSLATION_DISABLED) {
             return;
         }
         final float normalTranslationY = mTaskbarNavButtonTranslationY.value;
