@@ -859,6 +859,10 @@ public class TaskbarLauncherStateController {
         return mLauncherState;
     }
 
+    boolean isInHome() {
+        return mLauncherState == LauncherState.NORMAL;
+    }
+
     private void playStateTransitionAnim(AnimatorSet animatorSet, long duration,
             boolean committed) {
         boolean isInStashedState = mLauncherState.isTaskbarStashed(mLauncher);
