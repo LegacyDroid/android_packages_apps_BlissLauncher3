@@ -331,6 +331,7 @@ public class DeviceProfile {
     private Context context;
 
     private final static boolean FORCE_SHOW_LABELS = false;
+    private final static boolean FORCE_LAYOUT_ALL_HOTSEAT_ICONS = true;
 
     /** TODO: Once we fully migrate to staged split, remove "isMultiWindowMode" */
     DeviceProfile(Context context, InvariantDeviceProfile inv, Info info, WindowBounds windowBounds,
@@ -705,7 +706,7 @@ public class DeviceProfile {
 
         mMinHotseatIconSpacePx = res.getDimensionPixelSize(R.dimen.min_hotseat_icon_space);
         mMinHotseatQsbWidthPx = res.getDimensionPixelSize(R.dimen.min_hotseat_qsb_width);
-        mMaxHotseatIconSpacePx = areNavButtonsInline
+        mMaxHotseatIconSpacePx = areNavButtonsInline && !FORCE_LAYOUT_ALL_HOTSEAT_ICONS
                 ? res.getDimensionPixelSize(R.dimen.max_hotseat_icon_space) : Integer.MAX_VALUE;
         // Hotseat and QSB width depends on updated cellSize and workspace padding
         recalculateHotseatWidthAndBorderSpace();
@@ -831,7 +832,7 @@ public class DeviceProfile {
     }
 
     /** Updates hotseatCellHeightPx and hotseatBarSizePx */
-    private void updateHotseatSizes(int hotseatIconSizePx) {
+    private void updateHotseatSizes(int hotseatIconSizePx, Resources res) {
         // Move here from constructor to ensure we do the following on
         // rotate/onLayout/setInsets/equivalent call
         // 1. Get latest DisplayController info - cutout.bottom usage
@@ -903,9 +904,9 @@ public class DeviceProfile {
                 : res.getDimensionPixelSize(R.dimen.spring_loaded_hotseat_top_margin);
 
         if (mIsResponsiveGrid) {
-            updateHotseatSizes(mResponsiveWorkspaceCellSpec.getIconSize());
+            updateHotseatSizes(mResponsiveWorkspaceCellSpec.getIconSize(), res);
         } else {
-            updateHotseatSizes(pxFromDp(inv.iconSize[mTypeIndex], mMetrics));
+            updateHotseatSizes(pxFromDp(inv.iconSize[mTypeIndex], mMetrics), res);
         }
 
         if (isTablet) {
@@ -913,6 +914,9 @@ public class DeviceProfile {
         }
 
         hotseatBarBottomSpacePx += mInfo.cutout.bottom;
+        hotseatBarBottomSpacePx += (areNavButtonsInline && FORCE_LAYOUT_ALL_HOTSEAT_ICONS
+                ? res.getDimensionPixelSize(R.dimen.taskbar_nav_buttons_size)
+                : 0);
 
         // Ensure there is enough space for folder icons, which have a slightly larger radius.
         hotseatCellHeightPx = getIconSizeWithOverlap(hotseatIconSizePx);
@@ -959,6 +963,10 @@ public class DeviceProfile {
         int maxHotseatIconsWidthPx = maxHotseatWidthPx - (isQsbInline ? hotseatQsbWidth : 0);
         hotseatBorderSpace = calculateHotseatBorderSpace(maxHotseatIconsWidthPx,
                 (isQsbInline ? 1 : 0) + /* border between nav buttons and first icon */ 1);
+
+        if (FORCE_LAYOUT_ALL_HOTSEAT_ICONS && isTaskbarPresent && areNavButtonsInline) {
+            return;
+        }
 
         if (hotseatBorderSpace >= mMinHotseatIconSpacePx) {
             return;
@@ -1301,7 +1309,7 @@ public class DeviceProfile {
             allAppsCellHeightPx += Utilities.calculateTextHeight(allAppsIconTextSizePx);
         }
 
-        updateHotseatSizes(iconSizePx);
+        updateHotseatSizes(iconSizePx, context.getResources());
 
         // Folder icon
         int visibleIcon = (int) Math.ceil(iconSizePx * IconShape.getNormalizationScale());
@@ -1809,7 +1817,7 @@ public class DeviceProfile {
      */
     public Rect getHotseatLayoutPadding(Context context) {
         // Make sure to update all relevant sizes for cutout and orientation
-        updateHotseatSizes(pxFromDp(inv.iconSize[INDEX_DEFAULT], mMetrics));
+        updateHotseatSizes(pxFromDp(inv.iconSize[INDEX_DEFAULT], mMetrics), context.getResources());
         Rect hotseatBarPadding = new Rect();
         boolean isFullyGesture = isGestural();
         if (isVerticalBarLayout()) {
@@ -1840,7 +1848,7 @@ public class DeviceProfile {
             int startSpacing;
             int endSpacing;
             // Hotseat aligns to the left with nav buttons
-            if (hotseatBarEndOffset > 0) {
+            if (hotseatBarEndOffset > 0 && !FORCE_LAYOUT_ALL_HOTSEAT_ICONS) {
                 startSpacing = inlineNavButtonsEndSpacingPx;
                 endSpacing = availableWidthPx - hotseatWidth - startSpacing + hotseatBorderSpace;
             } else {
@@ -1938,7 +1946,8 @@ public class DeviceProfile {
     private int getHotseatRequiredWidth() {
         int additionalQsbSpace = getAdditionalQsbSpace();
         return iconSizePx * numShownHotseatIcons
-                + hotseatBorderSpace * (numShownHotseatIcons - (areNavButtonsInline ? 0 : 1))
+                + hotseatBorderSpace * (numShownHotseatIcons -
+                        (areNavButtonsInline && !FORCE_LAYOUT_ALL_HOTSEAT_ICONS ? 0 : 1))
                 + additionalQsbSpace;
     }
 
@@ -1968,11 +1977,7 @@ public class DeviceProfile {
                     return  heightDifference / 2;
                 }
             } else {
-                if (isLandscape) {
-                    return hotseatBarBottomSpacePx - (heightDifference / 2);
-                } else {
-                    return heightDifference;
-                }
+                return hotseatBarBottomSpacePx - (heightDifference / 2);
             }
 
         } else {
