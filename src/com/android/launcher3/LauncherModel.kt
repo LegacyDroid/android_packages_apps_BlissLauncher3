@@ -411,6 +411,10 @@ class LauncherModel(
             }
         }
 
+        fun isModelLoaded(): Boolean {
+            return mModelLoaded
+        }
+
         override fun close() {
             synchronized(mLock) {
                 // If we are still the last one to be scheduled, remove ourselves.
