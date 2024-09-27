@@ -303,7 +303,9 @@ public class LoaderTask implements Runnable {
             sendFirstScreenActiveInstallsBroadcast();
 
             // Take a break
-            waitForIdle();
+            if (transaction.isModelLoaded()) {
+                waitForIdle();
+            }
             logASplit("step 1 loading workspace complete");
             verifyNotStopped();
 
@@ -338,7 +340,9 @@ public class LoaderTask implements Runnable {
                     mModel::onPackageIconsUpdated);
 
             // Take a break
-            waitForIdle();
+            if (transaction.isModelLoaded()) {
+                waitForIdle();
+            }
             logASplit("step 2 loading AllApps complete");
             verifyNotStopped();
 
@@ -358,7 +362,9 @@ public class LoaderTask implements Runnable {
                     (pkgs, user) -> { });
 
             // Take a break
-            waitForIdle();
+            if (transaction.isModelLoaded()) {
+                waitForIdle();
+            }
             logASplit("step 3 loading all shortcuts complete");
             verifyNotStopped();
 
