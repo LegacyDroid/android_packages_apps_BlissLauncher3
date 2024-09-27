@@ -3367,7 +3367,9 @@ public class Launcher extends StatefulActivity<LauncherState>
             public void onStopTrackingTouch(SeekBar seekBar) {
                 int newHeight = minHeight + (normalisedDifference * seekBar.getProgress());
                 if (getWorkspace().getFirstPagePinnedItem() instanceof WidgetContainer) {
-                    ((WidgetContainer) getWorkspace().getFirstPagePinnedItem()).updateWidgets();
+                    WidgetContainer container = ((WidgetContainer) getWorkspace().getFirstPagePinnedItem());
+                    container.reloadStaggeredLayout();
+                    container.updateWidgets();
                 }
                 Logger.d("Launcher.WidgetResize", "newHeight: " + newHeight);
                 WidgetsDbHelper.getInstance(getApplicationContext())
