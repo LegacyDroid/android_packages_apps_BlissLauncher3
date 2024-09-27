@@ -832,7 +832,7 @@ public class DeviceProfile {
     }
 
     /** Updates hotseatCellHeightPx and hotseatBarSizePx */
-    private void updateHotseatSizes(int hotseatIconSizePx, Resources res) {
+    private void updateHotseatSizes(int hotseatIconSizePx) {
         // Move here from constructor to ensure we do the following on
         // rotate/onLayout/setInsets/equivalent call
         // 1. Get latest DisplayController info - cutout.bottom usage
@@ -904,9 +904,9 @@ public class DeviceProfile {
                 : res.getDimensionPixelSize(R.dimen.spring_loaded_hotseat_top_margin);
 
         if (mIsResponsiveGrid) {
-            updateHotseatSizes(mResponsiveWorkspaceCellSpec.getIconSize(), res);
+            updateHotseatSizes(mResponsiveWorkspaceCellSpec.getIconSize());
         } else {
-            updateHotseatSizes(pxFromDp(inv.iconSize[mTypeIndex], mMetrics), res);
+            updateHotseatSizes(pxFromDp(inv.iconSize[mTypeIndex], mMetrics));
         }
 
         if (isTablet) {
@@ -915,7 +915,7 @@ public class DeviceProfile {
 
         hotseatBarBottomSpacePx += mInfo.cutout.bottom;
         hotseatBarBottomSpacePx += (areNavButtonsInline && FORCE_LAYOUT_ALL_HOTSEAT_ICONS
-                ? res.getDimensionPixelSize(R.dimen.taskbar_nav_buttons_size)
+                ? context.getResources().getDimensionPixelSize(R.dimen.taskbar_nav_buttons_size)
                 : 0);
 
         // Ensure there is enough space for folder icons, which have a slightly larger radius.
@@ -1309,7 +1309,7 @@ public class DeviceProfile {
             allAppsCellHeightPx += Utilities.calculateTextHeight(allAppsIconTextSizePx);
         }
 
-        updateHotseatSizes(iconSizePx, context.getResources());
+        updateHotseatSizes(iconSizePx);
 
         // Folder icon
         int visibleIcon = (int) Math.ceil(iconSizePx * IconShape.getNormalizationScale());
@@ -1817,7 +1817,7 @@ public class DeviceProfile {
      */
     public Rect getHotseatLayoutPadding(Context context) {
         // Make sure to update all relevant sizes for cutout and orientation
-        updateHotseatSizes(pxFromDp(inv.iconSize[INDEX_DEFAULT], mMetrics), context.getResources());
+        updateHotseatSizes(pxFromDp(inv.iconSize[INDEX_DEFAULT], mMetrics));
         Rect hotseatBarPadding = new Rect();
         boolean isFullyGesture = isGestural();
         if (isVerticalBarLayout()) {
