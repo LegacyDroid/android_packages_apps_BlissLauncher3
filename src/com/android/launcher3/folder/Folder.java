@@ -343,6 +343,12 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         return mLauncherDelegate.isDraggingEnabled();
     }
 
+    public boolean isFolderWobbling() {
+        Launcher launcher = mLauncherDelegate.getLauncher();
+        if (launcher == null) return false;
+        return launcher.getWorkspace().isWobbling();
+    }
+
     public boolean startDrag(View v, DragOptions options) {
         Object tag = v.getTag();
         if (tag instanceof ItemInfo item) {
