@@ -35,6 +35,7 @@ import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.content.res.XmlResourceParser;
@@ -417,8 +418,9 @@ public class InvariantDeviceProfile {
         for (WindowBounds bounds : displayInfo.supportedBounds) {
             boolean isTablet = displayInfo.isTablet(bounds);
             if (isTablet) {
-                iconSize[INDEX_DEFAULT] *= 1.6f;
-                iconSize[INDEX_LANDSCAPE] *= 1.6f;
+                Configuration config = new Configuration(context.getResources().getConfiguration());
+                iconSize[INDEX_DEFAULT] *= config.smallestScreenWidthDp < 660 ? 1.15f : 1.4f;
+                iconSize[INDEX_LANDSCAPE] *= config.smallestScreenWidthDp < 660 ? 1.15f : 1.4f;
                 break;
             }
         }
