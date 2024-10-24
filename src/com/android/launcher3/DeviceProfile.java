@@ -1989,7 +1989,7 @@ public class DeviceProfile {
      */
     public Rect getHotseatLayoutPadding(Context context) {
         // Make sure to update all relevant sizes for cutout and orientation
-        updateHotseatSizes(pxFromDp(inv.iconSize[INDEX_DEFAULT], mMetrics));
+        updateHotseatSizes(pxFromDp(inv.iconSize[mTypeIndex], mMetrics));
         boolean isTaskbarPresent = this.isTaskbarPresent &&
                 SettingsCache.INSTANCE.get(context).getValue(ENABLE_TASKBAR, 1);
         Rect hotseatBarPadding = new Rect();
