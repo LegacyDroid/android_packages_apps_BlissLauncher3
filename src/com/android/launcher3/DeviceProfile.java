@@ -973,7 +973,7 @@ public class DeviceProfile {
 
         if (!isVerticalBarLayout()) {
             // Have a little space between the inset and the QSB
-            if (mInsets.bottom + minQsbMargin > hotseatBarBottomSpace) {
+            if (mInsets.bottom + minQsbMargin > hotseatBarBottomSpace && !areNavButtonsInline) {
                 int availableSpace = hotseatQsbSpace - (mInsets.bottom - hotseatBarBottomSpace);
 
                 // Only change the spaces if there is space
@@ -993,13 +993,9 @@ public class DeviceProfile {
             }
         }
 
-        if (isTablet) {
-            hotseatBarBottomSpacePx /= 4;
-        }
-
         hotseatBarBottomSpacePx += mInfo.cutout.bottom;
         hotseatBarBottomSpacePx += (areNavButtonsInline && FORCE_LAYOUT_ALL_HOTSEAT_ICONS
-                ? context.getResources().getDimensionPixelSize(R.dimen.taskbar_nav_buttons_size)
+                ? context.getResources().getDimensionPixelSize(R.dimen.taskbar_size)
                 : 0);
 
         // Ensure there is enough space for folder icons, which have a slightly larger radius.
@@ -1344,7 +1340,7 @@ public class DeviceProfile {
             } else {
                 cellYPaddingPx = Math.max(0, cellHeightPx - cellContentHeight) / 2;
             }
-        } else if (mIsScalableGrid) {
+        } else if (mIsScalableGrid && !isTablet) {
             iconDrawablePaddingPx = (int) (getNormalizedIconDrawablePadding() * iconScale);
             cellWidthPx = pxFromDp(inv.minCellSize[mTypeIndex].x, mMetrics, scale);
             cellHeightPx = pxFromDp(inv.minCellSize[mTypeIndex].y, mMetrics, scale);
