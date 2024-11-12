@@ -662,22 +662,6 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
         }
     }
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (MultiModeController.isSingleLayerMode()) {
-            boolean shouldCenterIcon = mActivity.getDeviceProfile().iconCenterVertically;
-            if (shouldCenterIcon) {
-                int iconSize = mActivity.getDeviceProfile().iconSizePx;
-                Paint.FontMetrics fm = mFolderName.getPaint().getFontMetrics();
-                int cellHeightPx = iconSize + mFolderName.getCompoundDrawablePadding()
-                        + (int) Math.ceil(fm.bottom - fm.top);
-                setPadding(getPaddingLeft(), (MeasureSpec.getSize(heightMeasureSpec)
-                        - cellHeightPx) / 2, getPaddingRight(), getPaddingBottom());
-            }
-        }
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-    }
-
     /** Sets the visibility of the icon's title text */
     public void setTextVisible(boolean visible) {
         if (visible) {
