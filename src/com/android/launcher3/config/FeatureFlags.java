@@ -516,7 +516,7 @@ public final class FeatureFlags {
     // List of assigned blocks can be found: http://go/gnl-flags-block-directory
 
     public static final BooleanFlag ENABLE_TASKBAR_ALLAPPS = getDebugFlag(-1,
-            "ENABLE_TASKBAR_ALLAPPS", false,
+            "ENABLE_TASKBAR_ALLAPPS", DISABLED,
             "Enables all apps button in taskbar");
 
     public static class BooleanFlag {

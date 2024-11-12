@@ -50,6 +50,7 @@ import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
@@ -124,6 +125,7 @@ import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.Thunk;
 import com.android.launcher3.util.WallpaperOffsetInterpolator;
 import com.android.launcher3.util.window.WindowManagerProxy;
+import com.android.launcher3.views.FloatingIconView;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
 import com.android.launcher3.widget.LauncherWidgetHolder;
 import com.android.launcher3.widget.LauncherWidgetHolder.ProviderChangedListener;
@@ -432,7 +434,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         mPageIndicator.setLayoutParams(lp);
     }
 
-    private void updateCellLayoutPadding() {
+    private void updateCellLayoutMeasures() {
         DeviceProfile grid = mLauncher.getDeviceProfile();
         Rect padding = grid.cellLayoutPaddingPx;
         setOrientation(mLauncher);
