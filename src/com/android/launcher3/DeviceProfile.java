@@ -577,6 +577,17 @@ public class DeviceProfile {
                 isTwoPanels ? inv.numDatabaseAllAppsColumns : inv.numAllAppsColumns;
 
         this.context = context;
+
+        springLoadedHotseatBarTopMarginPx = shouldApplyWidePortraitDimens
+                ? res.getDimensionPixelSize(R.dimen.spring_loaded_hotseat_top_margin_wide_portrait)
+                : res.getDimensionPixelSize(R.dimen.spring_loaded_hotseat_top_margin);
+
+        if (mIsResponsiveGrid) {
+            updateHotseatSizes(mResponsiveWorkspaceCellSpec.getIconSize());
+        } else {
+            updateHotseatSizes(pxFromDp(inv.iconSize[mTypeIndex], mMetrics));
+        }
+
         if (areNavButtonsInline && !isPhone) {
             inlineNavButtonsEndSpacingPx =
                     res.getDimensionPixelSize(inv.inlineNavButtonsEndSpacing);
@@ -897,16 +908,6 @@ public class DeviceProfile {
             } else {
                 hotseatBarBottomSpacePx = hotseatBarBottomSpace;
             }
-        }
-
-        springLoadedHotseatBarTopMarginPx = shouldApplyWidePortraitDimens
-                ? res.getDimensionPixelSize(R.dimen.spring_loaded_hotseat_top_margin_wide_portrait)
-                : res.getDimensionPixelSize(R.dimen.spring_loaded_hotseat_top_margin);
-
-        if (mIsResponsiveGrid) {
-            updateHotseatSizes(mResponsiveWorkspaceCellSpec.getIconSize());
-        } else {
-            updateHotseatSizes(pxFromDp(inv.iconSize[mTypeIndex], mMetrics));
         }
 
         hotseatBarBottomSpacePx += mInfo.cutout.bottom;
