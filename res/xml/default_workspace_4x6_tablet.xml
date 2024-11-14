@@ -39,8 +39,8 @@
         launcher:screen="2"
         launcher:x="2"
         launcher:y="0"
-        launcher:className="com.android.gallery3d.app.GalleryActivity"
-        launcher:packageName="com.android.gallery3d" />
+        launcher:className="org.lineageos.glimpse.MainActivity"
+        launcher:packageName="org.lineageos.glimpse" />
 
     <!-- TODO: Ideally Calendar goes here. Current tablet build does not have calendar -->
     <favorite
