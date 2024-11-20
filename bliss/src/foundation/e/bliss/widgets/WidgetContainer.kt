@@ -617,7 +617,11 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
 
                     for (i in 0 until adapter.itemCount) {
                         if (layoutManager.spanCount == 1) {
-                            totalHeight[0] += adapter.getWidgets()[i].measuredHeight
+                            totalHeight[0] +=
+                                adapter
+                                    .getWidgets()[i]
+                                    .measuredHeight
+                                    .coerceAtLeast(launcher.deviceProfile.iconSizePx)
                             continue
                         }
                         val viewHolder = recyclerView.findViewHolderForAdapterPosition(i)
