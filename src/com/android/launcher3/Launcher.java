@@ -123,8 +123,6 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.Toast;
@@ -135,7 +133,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.annotation.VisibleForTesting;
-import androidx.core.app.ActivityCompat;
 
 import com.android.launcher3.DropTarget.DragObject;
 import com.android.launcher3.accessibility.BaseAccessibilityDelegate.LauncherAction;
@@ -622,7 +619,6 @@ public class Launcher extends StatefulActivity<LauncherState>
             getWindow().setSoftInputMode(LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
         }
         setTitle(R.string.home_screen);
-        getWindow().setNavigationBarColor(getWindow().getNavigationBarColor() | 0x26000000);
     }
 
     /**
@@ -801,7 +797,11 @@ public class Launcher extends StatefulActivity<LauncherState>
         if (FOLDABLE_SINGLE_PAGE.get() && mDeviceProfile.isTwoPanels) {
             mCellPosMapper = new TwoPanelCellPosMapper(mDeviceProfile.inv.numColumns);
         } else {
-            mCellPosMapper = CellPosMapper.DEFAULT;
+            if (mDeviceProfile.isLandscape) {
+                mCellPosMapper = new CellPosMapper.TransposeCellPosMapper(mDeviceProfile.inv);
+            } else {
+                mCellPosMapper = CellPosMapper.DEFAULT;
+            }
         }
         mModelWriter = mModel.getWriter(getDeviceProfile().isVerticalBarLayout(), true,
                 mCellPosMapper, this);
@@ -2966,7 +2966,7 @@ public class Launcher extends StatefulActivity<LauncherState>
             if (v != null && activeRecyclerView.computeVerticalScrollOffset() > 0) {
                 RectF locationBounds = new RectF();
                 FloatingIconView.getLocationBoundsForView(this, v, false, locationBounds,
-                        new Rect());
+                        new Rect(), true);
                 if (locationBounds.top < mAppsView.getHeaderBottom()) {
                     // Icon is covered by scrim, return null to play fallback animation.
                     return null;
@@ -3646,7 +3646,9 @@ public class Launcher extends StatefulActivity<LauncherState>
             public void onStopTrackingTouch(SeekBar seekBar) {
                 int newHeight = minHeight + (normalisedDifference * seekBar.getProgress());
                 if (getWorkspace().getFirstPagePinnedItem() instanceof WidgetContainer) {
-                    ((WidgetContainer) getWorkspace().getFirstPagePinnedItem()).updateWidgets();
+                    WidgetContainer container = ((WidgetContainer) getWorkspace().getFirstPagePinnedItem());
+                    container.reloadStaggeredLayout();
+                    container.updateWidgets();
                 }
                 Logger.d("Launcher.WidgetResize", "newHeight: " + newHeight);
                 WidgetsDbHelper.getInstance(getApplicationContext())

@@ -32,7 +32,7 @@ class BlurWallpaperProvider(val context: Context) {
 
     private val mWallpaperManager: WallpaperManager = WallpaperManager.getInstance(context)
     private val mListeners = ArrayList<Listener>()
-    private val mDisplaySize = DisplayController.INSTANCE.get(context).info.currentSize
+    private var mDisplaySize = DisplayController.INSTANCE.get(context).info.currentSize
 
     var wallpapers: BlurSizes? = null
         private set(value) {
@@ -63,6 +63,8 @@ class BlurWallpaperProvider(val context: Context) {
 
     private var isLiveWallpaper = false
 
+    private var lastOffset = 0.5f
+
     init {
         isEnabled = getEnabledStatus()
         updateAsync()
@@ -85,6 +87,7 @@ class BlurWallpaperProvider(val context: Context) {
             return
         }
 
+        mDisplaySize = DisplayController.INSTANCE.get(context).info.currentSize
         val width = mDisplaySize.x
         val height = mDisplaySize.y
 
@@ -119,7 +122,7 @@ class BlurWallpaperProvider(val context: Context) {
         mWallpaperWidth = wallpaper.width
 
         val offsetY: Float
-        if (wallpaper.height > height) {
+        if (wallpaper.height >= height) {
             offsetY = (wallpaper.height - height) * 0.5f
             mListeners.forEach { it.onOffsetChanged(offsetY) }
         }
@@ -167,21 +170,17 @@ class BlurWallpaperProvider(val context: Context) {
     }
 
     private fun applyVibrancy(wallpaper: Bitmap): Bitmap {
-        val width = wallpaper.width
-        val height = wallpaper.height
 
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas()
-        canvas.setBitmap(bitmap)
+        mVibrancyPaint.colorFilter =
+            ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(1.25f) })
 
-        val colorMatrix = ColorMatrix()
-        colorMatrix.setSaturation(1.25f)
-        val filter = ColorMatrixColorFilter(colorMatrix)
-        mVibrancyPaint.colorFilter = filter
-        canvas.drawBitmap(wallpaper, 0f, 0f, mVibrancyPaint)
+        val bitmap = Bitmap.createBitmap(wallpaper)
+        Canvas().apply {
+            setBitmap(bitmap)
+            drawBitmap(wallpaper, 0f, 0f, mVibrancyPaint)
+        }
 
         wallpaper.recycle()
-
         return bitmap
     }
 
@@ -213,7 +212,10 @@ class BlurWallpaperProvider(val context: Context) {
 
     fun createBlurDrawable(config: BlurConfig = blurConfigDock) = BlurDrawable(this, config)
 
-    fun setWallpaperOffset(offset: Float) {
+    fun setWallpaperOffset(inputOffset: Float?) {
+        val offset = inputOffset ?: lastOffset
+        lastOffset = offset
+
         if (!isEnabled) return
         if (wallpapers == null) return
 
@@ -277,7 +279,7 @@ class BlurWallpaperProvider(val context: Context) {
 
         @JvmField val blurConfigBackground = BlurConfig({ it.background }, 2, 8)
 
-        @JvmField val blurConfigDock = BlurConfig({ it.dock }, 2, 0)
+        @JvmField val blurConfigDock = BlurConfig({ it.dock }, 2, 8)
 
         @JvmField val blurConfigAppGroup = BlurConfig({ it.appGroup }, 6, 8)
 

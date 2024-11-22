@@ -125,6 +125,8 @@ public class InvariantDeviceProfile implements OnSharedPreferenceChangeListener 
      */
     public int numRows;
     public int numColumns;
+    public int numRowsFixed;
+    public int numColumnsFixed;
     public int numSearchContainerColumns;
 
     /**
@@ -364,7 +366,9 @@ public class InvariantDeviceProfile implements OnSharedPreferenceChangeListener 
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         GridOption closestProfile = displayOption.grid;
         numRows = closestProfile.numRows;
+        numRowsFixed = closestProfile.numRows;
         numColumns = closestProfile.numColumns;
+        numColumnsFixed = closestProfile.numColumns;
         numSearchContainerColumns = closestProfile.numSearchContainerColumns;
         dbFile = closestProfile.dbFile;
         defaultLayoutId = closestProfile.defaultLayoutId;
@@ -383,6 +387,14 @@ public class InvariantDeviceProfile implements OnSharedPreferenceChangeListener 
         inlineNavButtonsEndSpacing = closestProfile.inlineNavButtonsEndSpacing;
 
         iconSize = displayOption.iconSizes;
+        for (WindowBounds bounds : displayInfo.supportedBounds) {
+            boolean isTablet = displayInfo.isTablet(bounds);
+            if (isTablet) {
+                iconSize[INDEX_DEFAULT] *= 1.6f;
+                iconSize[INDEX_LANDSCAPE] *= 1.6f;
+                break;
+            }
+        }
         float maxIconSize = iconSize[0];
         for (int i = 1; i < iconSize.length; i++) {
             maxIconSize = Math.max(maxIconSize, iconSize[i]);
@@ -634,6 +646,8 @@ public class InvariantDeviceProfile implements OnSharedPreferenceChangeListener 
             if (numRows > 0 && numColumns > 0) {
                 this.numRows = numRows;
                 this.numColumns = numColumns;
+                this.numRowsFixed = numRows;
+                this.numColumnsFixed = numColumns;
             }
             if (iconSizePx > 0) {
                 this.iconSize[InvariantDeviceProfile.INDEX_DEFAULT] =

@@ -17,7 +17,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -53,7 +52,7 @@ public class RoundedWidgetView extends LauncherAppWidgetHostView implements Offs
     }
 
     public void setHeight(int newHeight) {
-        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) getLayoutParams();
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) getLayoutParams();
         params.height = newHeight;
         setLayoutParams(params);
     }
