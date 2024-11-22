@@ -88,9 +88,9 @@ android {
     if (!versionPropsFile.exists()) {
         versionProps['VERSION_CHANGE'] = '0'
         versionProps['VERSION_MAJOR'] = '3'
-        versionProps['VERSION_MINOR'] = '0'
-        versionProps['VERSION_PATCH'] = '1'
-        versionProps['VERSION_CODE'] = '3000010'
+        versionProps['VERSION_MINOR'] = '1'
+        versionProps['VERSION_PATCH'] = '0'
+        versionProps['VERSION_CODE'] = '3010000'
         versionProps.store(versionPropsFile.newWriter(), null)
     }
 
