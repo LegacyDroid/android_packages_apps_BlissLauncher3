@@ -16,8 +16,10 @@
 package com.android.launcher3.celllayout;
 
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 
 import com.android.launcher3.LauncherSettings.Favorites;
+import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.model.data.ItemInfo;
 
 import java.util.Objects;
@@ -53,6 +55,46 @@ public class CellPosMapper {
                     ? mNumOfHotseat - presenterY - 1 : presenterX;
         }
         return new CellPos(presenterX, presenterY, presenterScreen);
+    }
+
+
+    /**
+     * Cell mapper which maps a portrait layout to landscape, maintaining sequence
+     */
+    public static class TransposeCellPosMapper extends CellPosMapper  {
+
+        private final InvariantDeviceProfile mIDP;
+
+        public TransposeCellPosMapper(InvariantDeviceProfile idp,
+                boolean hasVerticalHotseat, int numOfHotseat) {
+            super(hasVerticalHotseat, numOfHotseat);
+            this.mIDP = idp;
+        }
+
+        /**
+         * Maps the position in model to the position in view
+         */
+        public CellPos mapModelToPresenter(ItemInfo info) {
+            if (info.container != Favorites.CONTAINER_DESKTOP) {
+                return super.mapModelToPresenter(info);
+            }
+            final int numRows = mIDP.numRowsFixed;
+            final int numColumns = mIDP.numColumnsFixed;
+            final int index = (info.cellY * numColumns) + info.cellX;
+            return new CellPos(index % numRows, index / numRows, info.screenId);
+        }
+
+        @Override
+        public CellPos mapPresenterToModel(int presenterX, int presenterY, int presenterScreen,
+                                           int container) {
+            if (container != Favorites.CONTAINER_DESKTOP) {
+                super.mapPresenterToModel(presenterX, presenterY, presenterScreen, container);
+            }
+            final int numRows = mIDP.numColumnsFixed;
+            final int numColumns = mIDP.numRowsFixed;
+            final int index = (presenterY * numColumns) + presenterX;
+            return new CellPos(index % numRows, index / numRows, presenterScreen);
+        }
     }
 
     /**

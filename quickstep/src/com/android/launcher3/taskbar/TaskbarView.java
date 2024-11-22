@@ -50,6 +50,7 @@ import com.android.launcher3.Insettable;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.apppairs.AppPairIcon;
+import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.folder.PreviewBackground;
 import com.android.launcher3.model.data.FolderInfo;
@@ -153,7 +154,8 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // Needed to draw folder leave-behind when opening one.
         setWillNotDraw(false);
 
-        if (!mActivityContext.getPackageManager().hasSystemFeature(FEATURE_PC)) {
+        if (FeatureFlags.ENABLE_TASKBAR_ALLAPPS.get() &&
+                !mActivityContext.getPackageManager().hasSystemFeature(FEATURE_PC)) {
             mAllAppsButton = (IconButtonView) LayoutInflater.from(context)
                     .inflate(R.layout.taskbar_all_apps_button, this, false);
             mAllAppsButton.setIconDrawable(resources.getDrawable(

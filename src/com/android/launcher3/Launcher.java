@@ -632,7 +632,6 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         getWindow().setSoftInputMode(LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
         setTitle(R.string.home_screen);
-        getWindow().setNavigationBarColor(getWindow().getNavigationBarColor() | 0x26000000);
         mStartupLatencyLogger.logEnd(LAUNCHER_LATENCY_STARTUP_ACTIVITY_ON_CREATE);
 
         if (com.android.launcher3.Flags.enableTwoPaneLauncherSettings()) {
@@ -847,8 +846,13 @@ public class Launcher extends StatefulActivity<LauncherState>
         if (FOLDABLE_SINGLE_PAGE.get() && mDeviceProfile.isTwoPanels) {
             mCellPosMapper = new TwoPanelCellPosMapper(mDeviceProfile.inv.numColumns);
         } else {
-            mCellPosMapper = new CellPosMapper(mDeviceProfile.isVerticalBarLayout(),
-                    mDeviceProfile.numShownHotseatIcons);
+            if (mDeviceProfile.isLandscape) {
+                mCellPosMapper = new CellPosMapper.TransposeCellPosMapper(mDeviceProfile.inv,
+                        mDeviceProfile.isVerticalBarLayout(), mDeviceProfile.numShownHotseatIcons);
+            } else {
+                mCellPosMapper = new CellPosMapper(mDeviceProfile.isVerticalBarLayout(),
+                        mDeviceProfile.numShownHotseatIcons);
+            }
         }
         mModelWriter = mModel.getWriter(true, mCellPosMapper, this);
         return true;
@@ -2476,7 +2480,7 @@ public class Launcher extends StatefulActivity<LauncherState>
             if (v != null && activeRecyclerView.computeVerticalScrollOffset() > 0) {
                 RectF locationBounds = new RectF();
                 FloatingIconView.getLocationBoundsForView(this, v, false, locationBounds,
-                        new Rect());
+                        new Rect(), true);
                 if (locationBounds.top < mAppsView.getHeaderBottom()) {
                     // Icon is covered by scrim, return null to play fallback animation.
                     return null;
@@ -3112,7 +3116,9 @@ public class Launcher extends StatefulActivity<LauncherState>
             public void onStopTrackingTouch(SeekBar seekBar) {
                 int newHeight = minHeight + (normalisedDifference * seekBar.getProgress());
                 if (getWorkspace().getFirstPagePinnedItem() instanceof WidgetContainer) {
-                    ((WidgetContainer) getWorkspace().getFirstPagePinnedItem()).updateWidgets();
+                    WidgetContainer container = ((WidgetContainer) getWorkspace().getFirstPagePinnedItem());
+                    container.reloadStaggeredLayout();
+                    container.updateWidgets();
                 }
                 Logger.d("Launcher.WidgetResize", "newHeight: " + newHeight);
                 WidgetsDbHelper.getInstance(getApplicationContext())

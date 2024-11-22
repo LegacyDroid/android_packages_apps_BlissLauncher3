@@ -86,7 +86,6 @@ import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.icons.IconCache.ItemInfoUpdateReceiver;
 import com.android.launcher3.icons.PlaceHolderIconDrawable;
 import com.android.launcher3.model.data.AppInfo;
-import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
@@ -230,6 +229,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
     private Launcher mLauncher;
 
+    public int translationX = 0;
+    public int translationY = 0;
+
     public BubbleTextView(Context context) {
         this(context, null, 0);
     }
@@ -250,7 +252,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         mIsRtl = (getResources().getConfiguration().getLayoutDirection()
                 == View.LAYOUT_DIRECTION_RTL);
         mDeviceProfile = mActivity.getDeviceProfile();
-        mCenterVertically = a.getBoolean(R.styleable.BubbleTextView_centerVertically, MultiModeController.isSingleLayerMode());
+        mCenterVertically = a.getBoolean(R.styleable.BubbleTextView_centerVertically, false);
 
         SharedPreferences prefs = LauncherPrefs.getPrefs(context.getApplicationContext());
 
@@ -705,7 +707,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             final int scrollY = getScrollY();
             canvas.translate(scrollX, scrollY);
             mDotParams.leftAlign = true;
-            mDotRenderer.draw(canvas, mDotParams, mDotInfo == null ? -1 : mDotInfo.getNotificationCount());
+            mDotRenderer.draw(canvas, mDotParams, mDotInfo == null ? -1 : mDotInfo.getNotificationCount(),
+                    mActivity.getDeviceProfile().isTablet, mDisplay == DISPLAY_TASKBAR);
             canvas.translate(-scrollX, -scrollY);
         }
     }
@@ -820,14 +823,24 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     /**
      * Get the icon bounds on the view depending on the layout type.
      */
-    public void getIconBounds(Rect outBounds) {
-        getIconBounds(mIconSize, outBounds);
+
+    public void getIconBounds(Rect outBounds, boolean isClosing) {
+        getIconBounds(mIconSize, outBounds, isClosing);
     }
+
+    public void getIconBounds(Rect outBounds) {
+        getIconBounds(mIconSize, outBounds, false);
+    }
+
+    public void getIconBounds(int iconSize, Rect outBounds) {
+        getIconBounds(iconSize, outBounds, false);
+    }
+
 
     /**
      * Get the icon bounds on the view depending on the layout type.
      */
-    public void getIconBounds(int iconSize, Rect outBounds) {
+    public void getIconBounds(int iconSize, Rect outBounds, boolean isClosing) {
         outBounds.set(0, 0, iconSize, iconSize);
         if (mLayoutHorizontal) {
             int top = (getHeight() - iconSize) / 2;
@@ -838,6 +851,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             }
         } else {
             outBounds.offset((getWidth() - iconSize) / 2, getPaddingTop());
+        }
+        if (isClosing) {
+            outBounds.offset(translationX, translationY);
         }
     }
 
@@ -863,7 +879,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int height = MeasureSpec.getSize(heightMeasureSpec);
-        if (mCenterVertically && (getTag() != null && !(getTag() instanceof FolderInfo))) {
+        if (mCenterVertically) {
             Paint.FontMetrics fm = getPaint().getFontMetrics();
             int cellHeightPx = mIconSize + getCompoundDrawablePadding() +
                     (int) Math.ceil(fm.bottom - fm.top);

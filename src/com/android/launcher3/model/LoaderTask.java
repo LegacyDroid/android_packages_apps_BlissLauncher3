@@ -250,7 +250,9 @@ public class LoaderTask implements Runnable {
             logASplit("sendFirstScreenActiveInstallsBroadcast");
 
             // Take a break
-            waitForIdle();
+            if (transaction.isModelLoaded()) {
+                waitForIdle();
+            }
             logASplit("step 1 complete");
             verifyNotStopped();
 
@@ -289,7 +291,9 @@ public class LoaderTask implements Runnable {
                     mApp.getModel()::onPackageIconsUpdated);
 
             // Take a break
-            waitForIdle();
+            if (transaction.isModelLoaded()) {
+                waitForIdle();
+            }
             logASplit("step 2 complete");
             verifyNotStopped();
 
@@ -307,7 +311,9 @@ public class LoaderTask implements Runnable {
                     new ShortcutCachingLogic(), (pkgs, user) -> { });
 
             // Take a break
-            waitForIdle();
+            if (transaction.isModelLoaded()) {
+                waitForIdle();
+            }
             logASplit("step 3 complete");
             verifyNotStopped();
 

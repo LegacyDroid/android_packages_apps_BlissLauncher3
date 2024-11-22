@@ -553,6 +553,10 @@ public class LauncherModel implements InstallSessionTracker.Callback {
             }
         }
 
+        public boolean isModelLoaded() {
+            return mModelLoaded;
+        }
+
         @Override
         public void close() {
             synchronized (mLock) {

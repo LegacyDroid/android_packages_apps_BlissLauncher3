@@ -61,14 +61,14 @@ import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -95,7 +95,6 @@ import com.android.launcher3.dragndrop.SpringLoadedDragController;
 import com.android.launcher3.folder.Folder;
 import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.folder.PreviewBackground;
-import com.android.launcher3.folder.PreviewItemManager;
 import com.android.launcher3.graphics.DragPreviewProvider;
 import com.android.launcher3.icons.BitmapRenderer;
 import com.android.launcher3.icons.FastBitmapDrawable;
@@ -125,6 +124,7 @@ import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.Thunk;
 import com.android.launcher3.util.WallpaperOffsetInterpolator;
+import com.android.launcher3.util.window.WindowManagerProxy;
 import com.android.launcher3.views.FloatingIconView;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
 import com.android.launcher3.widget.LauncherWidgetHolder;
@@ -315,6 +315,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     private Animation mReverseWobbleAnimation;
 
     private Alarm wobbleExpireAlarm = new Alarm();
+
+    private int mOrientation;
+
     public static final int WOBBLE_EXPIRATION_TIMEOUT = 25000;
 
     /**
@@ -338,6 +341,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         super(context, attrs, defStyle);
 
         mLauncher = Launcher.getLauncher(context);
+        setOrientation(mLauncher);
         mStateTransitionAnimation = new WorkspaceStateTransitionAnimation(mLauncher, this);
         mWallpaperManager = WallpaperManager.getInstance(context);
         mAllAppsIconSize = mLauncher.getDeviceProfile().allAppsIconSizePx;
@@ -373,7 +377,14 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         mWorkspaceFadeInAdjacentScreens = grid.shouldFadeAdjacentWorkspaceScreens();
 
         Rect padding = grid.workspacePadding;
-        setPadding(padding.left, padding.top, padding.right, padding.bottom);
+        // We need padding zeroed out for minus one page.
+        // Also handle vertical bar layout padding manually under
+        // updateCellLayoutPadding
+        if (grid.isLandscape || grid.isTablet) {
+            setPadding(0, padding.top, 0, padding.bottom);
+        } else {
+            setPadding(padding.left, padding.top, padding.right, padding.bottom);
+        }
         mInsets.set(insets);
 
         if (mWorkspaceFadeInAdjacentScreens) {
@@ -396,6 +407,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         setPageIndicatorInset();
     }
 
+    @SuppressLint("NewApi")
     private void setPageIndicatorInset() {
         DeviceProfile grid = mLauncher.getDeviceProfile();
 
@@ -403,30 +415,70 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
         // Set insets for page indicator
         Rect padding = grid.workspacePadding;
+
+        // Horizontally center the indicator unconditionally
+        lp.leftMargin = lp.rightMargin = 0;
+        lp.gravity = Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM;
         if (grid.isVerticalBarLayout()) {
-            lp.leftMargin = padding.left + grid.workspaceCellPaddingXPx;
-            lp.rightMargin = padding.right + grid.workspaceCellPaddingXPx;
-            lp.bottomMargin = padding.bottom;
+            // Adjust right/left margin based on orientation
+            if (grid.isSeascape()) {
+                lp.rightMargin = padding.right;
+            } else {
+                lp.leftMargin = padding.left;
+            }
+
+            lp.bottomMargin = grid.getInsets().bottom - (grid.edgeMarginPx / 2);
         } else {
-            lp.leftMargin = lp.rightMargin = 0;
-            lp.gravity = Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM;
             lp.bottomMargin = grid.hotseatBarSizePx;
         }
         mPageIndicator.setLayoutParams(lp);
     }
 
     private void updateCellLayoutMeasures() {
-        Rect padding = mLauncher.getDeviceProfile().cellLayoutPaddingPx;
-        mWorkspaceScreens.forEach(
-                s -> {
-                    int widgetPadding = getResources().getDimensionPixelSize(R.dimen.widget_page_all_padding);
-                    int paddingTop = (s == mWorkspaceScreens.get(FIRST_SCREEN_ID))? 0 : padding.top;
-                    int paddingBottom = (s == mWorkspaceScreens.get(FIRST_SCREEN_ID))? 0 : padding.bottom;
-                    s.setSpaceBetweenCellLayoutsPx(getPageSpacing() / 4);
-                    int paddingLeft = (s == mWorkspaceScreens.get(FIRST_SCREEN_ID))? widgetPadding : padding.left;
-                    int paddingRight = (s == mWorkspaceScreens.get(FIRST_SCREEN_ID))? widgetPadding : padding.right;
-                    s.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom);
-                });
+        DeviceProfile grid = mLauncher.getDeviceProfile();
+        Rect padding = grid.cellLayoutPaddingPx;
+        setOrientation(mLauncher);
+        int tabletMarginMultiplier = grid.isLandscape ? 3 : 2;
+        Rect correction = new Rect();
+        correction.left = ((grid.isVerticalBarLayout() && mOrientation == Surface.ROTATION_270)
+                ? grid.hotseatBarSizePx : 0)
+                + (grid.isTablet ? (padding.left * tabletMarginMultiplier) : 0);
+        correction.right = ((grid.isVerticalBarLayout() && mOrientation == Surface.ROTATION_90)
+                ? grid.hotseatBarSizePx : 0)
+                + (grid.isTablet ? (padding.left * tabletMarginMultiplier) : 0);
+        int verticalMargin = grid.isTablet ? (grid.edgeMarginPx * tabletMarginMultiplier / 2) : 0;
+        correction.top = verticalMargin;
+        correction.bottom = verticalMargin;
+        mWorkspaceScreens.forEach(s -> {
+            int widgetPadding = getResources().getDimensionPixelSize(R.dimen.widget_page_all_padding);
+            if (grid.isLandscape) widgetPadding *= grid.isTablet ? 40 : 20;
+            int paddingTop = (s == mWorkspaceScreens.get(FIRST_SCREEN_ID)) ? 0 : (padding.top + correction.top);
+            int paddingBottom = (s == mWorkspaceScreens.get(FIRST_SCREEN_ID)) ? 0 : (padding.bottom + correction.bottom);
+            int paddingLeft = (s == mWorkspaceScreens.get(FIRST_SCREEN_ID))
+                    ? widgetPadding : (padding.left + correction.left);
+            int paddingRight = (s == mWorkspaceScreens.get(FIRST_SCREEN_ID))
+                    ? widgetPadding : (padding.right + correction.right);
+            if (grid.isLandscape) {
+                grid.inv.numRows = grid.inv.numColumnsFixed;
+                grid.inv.numColumns = grid.inv.numRowsFixed;
+            } else {
+                grid.inv.numRows = grid.inv.numRowsFixed;
+                grid.inv.numColumns = grid.inv.numColumnsFixed;
+            }
+
+            s.setSpaceBetweenCellLayoutsPx(getPageSpacing() / 4);
+            s.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom);
+        });
+    }
+
+    private void setOrientation(Context context) {
+        int newOrientation = WindowManagerProxy.INSTANCE.get(context).getRotation(context);
+        if (newOrientation != mOrientation) {
+            mOrientation = newOrientation;
+            if (isWobbling) {
+                wobbleLayouts(false);
+            }
+        }
     }
 
     private void updateWorkspaceWidgetsSizes() {
@@ -1391,10 +1443,10 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         }
     }
 
+    @SuppressLint("NewApi")
     private void firstPageItemHideHotseat() {
         final int index = mScreenOrder.indexOf(FIRST_SCREEN_ID);
-        final int scrollDelta = getScrollX() - getScrollForPage(index) -
-                getLayoutTransitionOffsetForPage(index);
+        final int scrollDelta = getScrollX() - getScrollForPage(index);
         float scrollRange = getScrollForPage(index + 1) - getScrollForPage(index);
 
         if (scrollRange == 0)
@@ -1405,12 +1457,24 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         if (progress < 0)
             return;
 
-        int dockHeight = getHotseat().getHeight() + getPageIndicator().getHeight();
-        float dockTranslationY = progress * dockHeight;
+        DeviceProfile grid = mLauncher.getDeviceProfile();
+        boolean isVerticalBar = grid.isVerticalBarLayout();
+        getHotseat().setBlurAlpha((int) ((1 - (progress * 2)) * 255));
+        if (isVerticalBar) {
+            int dockWidth = getHotseat().getWidth();
+            float dockTranslationX = (grid.isSeascape() ? -1 : 1) *
+                    progress * dockWidth;
+            getHotseat().setForcedTranslationXY(dockTranslationX, 0);
 
-        getHotseat().setForcedTranslationY(dockTranslationY);
-        ((PageIndicatorDots) getPageIndicator()).setForcedTranslationY(dockTranslationY);
-
+            int bottomInset = grid.getInsets().bottom - (grid.edgeMarginPx / 2);
+            float pageIndicatorTranslationY = progress * (getPageIndicator().getHeight() + bottomInset);
+            ((PageIndicatorDots) getPageIndicator()).setForcedTranslationY(pageIndicatorTranslationY);
+        } else {
+            int dockHeight = getHotseat().getHeight() + getPageIndicator().getHeight();
+            float dockTranslationY = progress * dockHeight;
+            getHotseat().setForcedTranslationXY(0, dockTranslationY);
+            ((PageIndicatorDots) getPageIndicator()).setForcedTranslationY(dockTranslationY);
+        }
         mLauncher.mBlurLayer.setAlpha(progress);
     }
 
@@ -1505,8 +1569,12 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             if (currentPage == FIRST_SCREEN_ID) {
                 Hotseat hotseat = getHotseat();
                 int height = hotseat.getHeight() + getPageIndicator().getHeight();
-                if (hotseat.getTranslationY() >= 0) {
-                    hotseat.setForcedTranslationY(height);
+                boolean isVerticalBar = mLauncher.getDeviceProfile().isVerticalBarLayout();
+                if (isVerticalBar) {
+                    boolean isSeascape = mLauncher.getDeviceProfile().isSeascape();
+                    hotseat.setForcedTranslationXY((isSeascape ? -1 : 1) * hotseat.getWidth(), 0);
+                } else {
+                    hotseat.setForcedTranslationXY(0, hotseat.getHeight());
                 }
 
                 PageIndicatorDots pageIndicatorDots = (PageIndicatorDots) getPageIndicator();
@@ -1515,7 +1583,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 }
 
                 mLauncher.mBlurLayer.setAlpha(1);
-                getWindowInsetsController().hide(WindowInsetsCompat.Type.statusBars());
             }
         }
         super.setCurrentPage(currentPage, overridePrevPage);
