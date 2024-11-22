@@ -120,7 +120,7 @@ android {
             def versionMinor = versionProps['VERSION_MINOR']
             def versionPatch = versionProps['VERSION_PATCH']
 
-            return "${versionMajor}.${versionMinor}.${versionPatch}-beta"
+            return "${versionMajor}.${versionMinor}.${versionPatch}"
         }
     }
 
