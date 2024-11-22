@@ -140,7 +140,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
                         mTaskbarInAppDisplayProgressMultiProp.get(i).getValue();
             }
             // Ensure nav buttons react to our latest state if necessary.
-            mControllers.navbarButtonsViewController.updateNavButtonTranslationY();
+            mControllers.navbarButtonsViewController.updateNavButtonTranslations();
         }
     }
 
@@ -403,14 +403,16 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
 
     @Override
     public boolean isHotseatIconOnTopWhenAligned() {
-        return mTaskbarLauncherStateController.isInHotseatOnTopStates()
-                && mTaskbarInAppDisplayProgressMultiProp.get(MINUS_ONE_PAGE_PROGRESS_INDEX)
-                    .getValue() == 0;
+        return false;
     }
 
     @Override
     protected boolean isInOverview() {
         return mTaskbarLauncherStateController.isInOverview();
+    }
+
+    protected boolean isInHome() {
+        return mTaskbarLauncherStateController.isInHome();
     }
 
     @Override

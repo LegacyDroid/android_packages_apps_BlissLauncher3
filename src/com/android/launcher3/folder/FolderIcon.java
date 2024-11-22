@@ -90,6 +90,7 @@ import java.util.function.Predicate;
 
 import foundation.e.bliss.LauncherAppMonitor;
 import foundation.e.bliss.folder.GridFolder;
+import foundation.e.bliss.folder.GridFolderController;
 import foundation.e.bliss.multimode.MultiModeController;
 
 /**
@@ -167,9 +168,10 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
 
     private void init() {
         mLongPressHelper = new CheckLongPressHelper(this);
-        if (MultiModeController.isSingleLayerMode()) {
-            mPreviewLayoutRule = LauncherAppMonitor.getInstanceNoCreate()
-                    .getGridFolderController().getGridFolderIconLayoutRule();
+        LauncherAppMonitor monitor = LauncherAppMonitor.getInstanceNoCreate();
+        GridFolderController controller = monitor != null ? monitor.getGridFolderController() : null;
+        if (MultiModeController.isSingleLayerMode() && controller != null) {
+            mPreviewLayoutRule = controller.getGridFolderIconLayoutRule();
         } else{
             mPreviewLayoutRule = new ClippedFolderIconLayoutRule();
         }
@@ -658,22 +660,6 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
             mDotParams.leftAlign = true;
             mDotRenderer.draw(canvas, mDotParams, mDotInfo == null ? -1 : mDotInfo.getNotificationCount());
         }
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (MultiModeController.isSingleLayerMode()) {
-            boolean shouldCenterIcon = mActivity.getDeviceProfile().iconCenterVertically;
-            if (shouldCenterIcon) {
-                int iconSize = mActivity.getDeviceProfile().iconSizePx;
-                Paint.FontMetrics fm = mFolderName.getPaint().getFontMetrics();
-                int cellHeightPx = iconSize + mFolderName.getCompoundDrawablePadding()
-                        + (int) Math.ceil(fm.bottom - fm.top);
-                setPadding(getPaddingLeft(), (MeasureSpec.getSize(heightMeasureSpec)
-                        - cellHeightPx) / 2, getPaddingRight(), getPaddingBottom());
-            }
-        }
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
     /** Sets the visibility of the icon's title text */
