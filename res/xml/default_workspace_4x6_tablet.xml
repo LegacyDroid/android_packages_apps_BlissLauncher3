@@ -23,7 +23,7 @@
         launcher:screen="0"
         launcher:x="0"
         launcher:y="0"
-        launcher:className="foundation.e.apps.MainActivity"
+        launcher:className="foundation.e.apps.ui.MainActivity"
         launcher:packageName="foundation.e.apps" />
 
     <favorite
