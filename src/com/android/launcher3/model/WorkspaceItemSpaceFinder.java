@@ -104,7 +104,7 @@ public class WorkspaceItemSpaceFinder {
             int[] xy, int spanX, int spanY) {
         InvariantDeviceProfile profile = app.getInvariantDeviceProfile();
 
-        GridOccupancy occupied = new GridOccupancy(profile.numColumns, profile.numRows);
+        GridOccupancy occupied = new GridOccupancy(profile.numColumnsFixed, profile.numRowsFixed);
         if (occupiedPos != null) {
             for (ItemInfo r : occupiedPos) {
                 occupied.markCells(r, true);
