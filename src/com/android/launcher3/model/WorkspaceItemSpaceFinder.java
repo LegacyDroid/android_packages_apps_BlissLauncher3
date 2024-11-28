@@ -115,7 +115,7 @@ public class WorkspaceItemSpaceFinder {
 
     private boolean findNextAvailableIconSpaceInScreen(
             ArrayList<ItemInfo> occupiedPos, int[] xy, int spanX, int spanY) {
-        GridOccupancy occupied = new GridOccupancy(mIDP.numColumns, mIDP.numRows);
+        GridOccupancy occupied = new GridOccupancy(mIDP.numColumnsFixed, mIDP.numRowsFixed);
         if (occupiedPos != null) {
             for (ItemInfo r : occupiedPos) {
                 occupied.markCells(r, true);
