@@ -186,9 +186,10 @@ class BlissInput(context: Context, attrs: AttributeSet) :
     }
 
     private fun createAppView(info: AppInfo): BubbleTextView {
+        val parentWidth = (mIconGrid.parent as View).width
         val width =
-            idp.getDeviceProfile(context).availableWidthPx -
-                ResourceUtils.pxFromDp(48f, context.resources.displayMetrics)
+            (if (parentWidth == 0) idp.getDeviceProfile(context).availableWidthPx
+            else parentWidth) - ResourceUtils.pxFromDp(48f, context.resources.displayMetrics)
         val padding = ((width / idp.numColumns) - idp.iconBitmapSize) / 2
         return (LayoutInflater.from(context).inflate(R.layout.app_icon, null) as BubbleTextView)
             .apply {
