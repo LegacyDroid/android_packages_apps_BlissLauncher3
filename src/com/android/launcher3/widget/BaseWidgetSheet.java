@@ -124,7 +124,7 @@ public abstract class BaseWidgetSheet extends AbstractSlideInView<BaseActivity>
     }
 
     @Override
-    public final void onClick(View v) {
+    public void onClick(View v) {
         if (v instanceof WidgetCell) {
             mActivityContext.getItemOnClickListener().onClick(v);
         } else if (v.getParent() instanceof WidgetCell wc) {
