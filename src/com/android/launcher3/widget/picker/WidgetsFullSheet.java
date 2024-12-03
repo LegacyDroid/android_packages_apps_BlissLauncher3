@@ -976,6 +976,24 @@ public class WidgetsFullSheet extends BaseWidgetSheet
         mAdapters.get(AdapterHolder.PRIMARY).mWidgetsRecyclerView.scrollToTop();
     }
 
+    @Override
+    public void onClick(View v) {
+        if (isEditMode) {
+            WidgetFragment.onWidgetClick(mActivityContext, v, close -> {
+                handleClose(false);
+                return null;
+            });
+        } else {
+            super.onClick(v);
+        }
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        if (isEditMode) return false;
+        return super.onLongClick(v);
+    }
+
     /** A holder class for holding adapters & their corresponding recycler view. */
     final class AdapterHolder {
         static final int PRIMARY = 0;
@@ -996,12 +1014,8 @@ public class WidgetsFullSheet extends BaseWidgetSheet
                     context,
                     LayoutInflater.from(context),
                     this::getEmptySpaceHeight,
-                    /* iconClickListener= */ !isEditMode ? WidgetsFullSheet.this :
-                    v -> WidgetFragment.onWidgetClick(context, v, close -> {
-                        handleClose(false);
-                        return null;
-                    }),
-                    /* iconLongClickListener= */ !isEditMode ? WidgetsFullSheet.this : null,
+                    WidgetsFullSheet.this,
+                    WidgetsFullSheet.this,
                     isTwoPane());
             mWidgetsListAdapter.setHasStableIds(true);
             switch (mAdapterType) {
