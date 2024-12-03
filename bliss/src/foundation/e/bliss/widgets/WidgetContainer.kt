@@ -18,6 +18,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.Insets
 import android.graphics.Rect
 import android.os.Bundle
 import android.os.UserHandle
@@ -26,6 +27,8 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowInsets
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -54,6 +57,7 @@ import foundation.e.bliss.utils.OnDataChangedListener
 import foundation.e.bliss.utils.disableComponent
 import foundation.e.bliss.widgets.BlissAppWidgetHost.Companion.REQUEST_CONFIGURE_APPWIDGET
 import io.reactivex.rxjava3.disposables.Disposable
+import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -153,12 +157,14 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
         }
 
         if (::mWidgetLinearLayout.isInitialized) {
+
+            val windowInsets = getSystemInsets(context)
             mWidgetLinearLayout.apply {
                 setPadding(
                     this.paddingLeft,
-                    mInsetPadding + (insets.top),
+                    mInsetPadding + max(windowInsets.top, insets.top),
                     this.paddingRight,
-                    (insets.bottom),
+                    max(windowInsets.bottom, insets.bottom),
                 )
             }
         }
@@ -669,6 +675,19 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
     override fun onDataChanged() {
         if (::mWidgetAdapter.isInitialized) {
             handleRemoveButtonVisibility(mWidgetAdapter.getWidgets().size)
+        }
+    }
+
+    companion object {
+        @SuppressLint("NewApi")
+        fun getSystemInsets(context: Context): Insets {
+            val windowInsets =
+                context
+                    .getSystemService(WindowManager::class.java)
+                    ?.currentWindowMetrics
+                    ?.windowInsets
+                    ?.getInsets(WindowInsets.Type.systemBars())
+            return windowInsets ?: Insets.NONE
         }
     }
 }
