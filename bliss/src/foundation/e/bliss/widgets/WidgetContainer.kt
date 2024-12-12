@@ -153,7 +153,9 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
     private fun updateRecyclerViewHeight() {
         mRecyclerView.post {
             val widgetFragment = mLauncher.fragmentManager.findFragmentByTag("qsb_view")
-            (widgetFragment as WidgetFragment).setRecyclerViewHeight()
+            if (widgetFragment != null) {
+                (widgetFragment as WidgetFragment).setRecyclerViewHeight()
+            }
         }
     }
 
