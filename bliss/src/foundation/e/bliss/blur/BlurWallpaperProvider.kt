@@ -190,7 +190,7 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
             Bitmap.createBitmap(
                 wallpaper.width,
                 wallpaper.height,
-                wallpaper.config ?: Bitmap.Config.ARGB_8888
+                wallpaper.config ?: Bitmap.Config.ARGB_8888,
             )
         Canvas().apply {
             setBitmap(bitmap)
