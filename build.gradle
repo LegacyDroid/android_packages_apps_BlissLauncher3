@@ -151,13 +151,6 @@ android {
     }
 
     signingConfigs {
-        debugConfig {
-            storeFile file("$rootDir/keystore/testkey.jks")
-            storePassword 'testkey'
-            keyAlias 'testkey'
-            keyPassword 'testkey'
-        }
-
         platformConfig {
             storeFile file("$rootDir/keystore/platform.jks")
             storePassword 'platform'
@@ -186,7 +179,7 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.debugConfig
+            signingConfig = signingConfigs.platformConfig
         }
 
     }

@@ -184,7 +184,12 @@ class BlurWallpaperProvider(val context: Context) {
         mVibrancyPaint.colorFilter =
             ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(1.25f) })
 
-        val bitmap = Bitmap.createBitmap(wallpaper)
+        val bitmap =
+            Bitmap.createBitmap(
+                wallpaper.width,
+                wallpaper.height,
+                wallpaper.config ?: Bitmap.Config.ARGB_8888
+            )
         Canvas().apply {
             setBitmap(bitmap)
             drawBitmap(wallpaper, 0f, 0f, mVibrancyPaint)
