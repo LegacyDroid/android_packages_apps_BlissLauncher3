@@ -15,4 +15,5 @@
     <string name="widget_no_resize">Kan ikke endre størrelsen på denne modulen</string>
     <string name="remove_widgets">Fjern moduler</string>
     <string name="show_notification_count">Vis antall notifikasjoner</string>
+    <string name="add_to_widget_Screen">Legg til i modulskjermen</string>
 </resources>
