@@ -19,6 +19,7 @@ import static android.content.pm.PackageManager.FEATURE_PC;
 import static android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Rect;
@@ -106,6 +107,13 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     public TaskbarView(@NonNull Context context, @Nullable AttributeSet attrs,
             int defStyleAttr) {
         this(context, attrs, defStyleAttr, 0);
+    }
+
+    @Override
+    protected void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        onDeviceProfileChanged(mActivityContext.getDeviceProfile());
     }
 
     public TaskbarView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr,
