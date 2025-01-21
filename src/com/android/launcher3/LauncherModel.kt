@@ -163,10 +163,11 @@ constructor(
     }
 
     fun getWriter(
+        hasVerticalHotseat: Boolean,
         verifyChanges: Boolean,
         cellPosMapper: CellPosMapper?,
         owner: BgDataModel.Callbacks?,
-    ) = ModelWriter(context, this, mBgDataModel, verifyChanges, cellPosMapper, owner)
+    ) = ModelWriter(context, this, mBgDataModel, hasVerticalHotseat, verifyChanges, cellPosMapper, owner)
 
     /** Called when the icon for an app changes, outside of package event */
     @WorkerThread

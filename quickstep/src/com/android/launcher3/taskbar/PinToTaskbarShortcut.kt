@@ -57,7 +57,7 @@ class PinToTaskbarShortcut<T>(
         val writer =
             LauncherAppState.getInstance(mOriginalView.context)
                 .model
-                .getWriter(true, mTarget!!.cellPosMapper, callbacks)
+                .getWriter(false, true, mTarget!!.cellPosMapper, callbacks)
 
         if (!mIsPin) {
             writer.deleteItemFromDatabase(mItemInfo, "item unpinned through long-press menu")
