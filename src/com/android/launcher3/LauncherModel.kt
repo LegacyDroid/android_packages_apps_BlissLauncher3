@@ -160,10 +160,11 @@ class LauncherModel(
     }
 
     fun getWriter(
+        hasVerticalHotseat: Boolean,
         verifyChanges: Boolean,
         cellPosMapper: CellPosMapper?,
         owner: BgDataModel.Callbacks?,
-    ) = ModelWriter(mApp.context, this, mBgDataModel, verifyChanges, cellPosMapper, owner)
+    ) = ModelWriter(mApp.context, this, mBgDataModel, hasVerticalHotseat, verifyChanges, cellPosMapper, owner)
 
     /** Returns the [WidgetsFilterDataProvider] that manages widget filters. */
     fun getWidgetsFilterDataProvider(): WidgetsFilterDataProvider {
