@@ -152,6 +152,8 @@ public class DeviceProfile {
     private CalculatedCellSpec mResponsiveWorkspaceCellSpec;
     private CalculatedCellSpec mResponsiveAllAppsCellSpec;
 
+    private boolean isNoHintGesture = false;
+
     /**
      * The maximum amount of left/right workspace padding as a percentage of the screen width.
      * To be clear, this means that up to 7% of the screen width can be used as left padding, and
@@ -441,6 +443,9 @@ public class DeviceProfile {
         isTwoPanels = isTablet && isMultiDisplay;
         isTaskbarPresent = (isTablet || (enableTinyTaskbar() && isGestureMode))
                 && WindowManagerProxy.INSTANCE.get(context).isTaskbarDrawnInProcess();
+
+        isNoHintGesture = LineageSettings.System.getInt(
+                context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
 
         // Some more constants.
         context = getContext(context, info, inv.isFixedLandscape
@@ -2154,7 +2159,8 @@ public class DeviceProfile {
             }
 
         } else {
-            return hotseatBarBottomSpacePx + ((isGestural() ? 1 : 2) * heightDifference);
+            return hotseatBarBottomSpacePx +
+                    (int) ((isGestural() ? (isNoHintGesture ? -2.5f : 1f) : 2f) * heightDifference);
         }
     }
 
