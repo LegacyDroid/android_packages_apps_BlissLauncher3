@@ -1506,7 +1506,11 @@ public class DeviceProfile {
             }
 
         } else {
-            return hotseatBarBottomSpacePx + ((isGestural() ? 1 : 2) * heightDifference);
+            boolean isFullyGesture = isGestural();
+            boolean noHint = isFullyGesture && LineageSettings.System.getInt(
+                    context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
+            return hotseatBarBottomSpacePx +
+                    (int) ((isFullyGesture ? (noHint ? -2.5f : 1f) : 2f) * heightDifference);
         }
     }
 
