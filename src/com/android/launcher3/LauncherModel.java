@@ -207,10 +207,10 @@ public class LauncherModel implements InstallSessionTracker.Callback {
     }
 
     @NonNull
-    public ModelWriter getWriter(final boolean verifyChanges, CellPosMapper cellPosMapper,
-            @Nullable final Callbacks owner) {
-        return new ModelWriter(mApp.getContext(), this, mBgDataModel, verifyChanges, cellPosMapper,
-                owner);
+    public ModelWriter getWriter(final boolean hasVerticalHotseat, final boolean verifyChanges,
+            CellPosMapper cellPosMapper, @Nullable final Callbacks owner) {
+        return new ModelWriter(mApp.getContext(), this, mBgDataModel,
+                hasVerticalHotseat, verifyChanges, cellPosMapper, owner);
     }
 
     /**
