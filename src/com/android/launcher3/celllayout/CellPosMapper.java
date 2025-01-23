@@ -29,14 +29,9 @@ import java.util.Objects;
  */
 public class CellPosMapper {
 
-    public static final CellPosMapper DEFAULT = new CellPosMapper(false, -1);
-    private final boolean mHasVerticalHotseat;
-    private final int mNumOfHotseat;
+    public static final CellPosMapper DEFAULT = new CellPosMapper();
 
-    public CellPosMapper(boolean hasVerticalHotseat, int numOfHotseat) {
-        mHasVerticalHotseat = hasVerticalHotseat;
-        mNumOfHotseat = numOfHotseat;
-    }
+    private CellPosMapper() { }
 
     /**
      * Maps the position in model to the position in view
@@ -50,10 +45,6 @@ public class CellPosMapper {
      */
     public CellPos mapPresenterToModel(int presenterX, int presenterY, int presenterScreen,
             int container) {
-        if (container == Favorites.CONTAINER_HOTSEAT) {
-            presenterScreen = mHasVerticalHotseat
-                    ? mNumOfHotseat - presenterY - 1 : presenterX;
-        }
         return new CellPos(presenterX, presenterY, presenterScreen);
     }
 
@@ -65,9 +56,7 @@ public class CellPosMapper {
 
         private final InvariantDeviceProfile mIDP;
 
-        public TransposeCellPosMapper(InvariantDeviceProfile idp,
-                boolean hasVerticalHotseat, int numOfHotseat) {
-            super(hasVerticalHotseat, numOfHotseat);
+        public TransposeCellPosMapper(InvariantDeviceProfile idp) {
             this.mIDP = idp;
         }
 
@@ -100,12 +89,11 @@ public class CellPosMapper {
     /**
      * Cell mapper which maps two panels into a single layout
      */
-    public static class TwoPanelCellPosMapper extends CellPosMapper {
+    public static class TwoPanelCellPosMapper extends CellPosMapper  {
 
         private final int mColumnCount;
 
         public TwoPanelCellPosMapper(int columnCount) {
-            super(false, -1);
             mColumnCount = columnCount;
         }
 
@@ -155,14 +143,6 @@ public class CellPosMapper {
         @Override
         public int hashCode() {
             return Objects.hash(cellX, cellY, screenId);
-        }
-
-        @Override
-        public String toString() {
-            return "CellPos{"
-                    + "cellX=" + cellX
-                    + ", cellY=" + cellY
-                    + ", screenId=" + screenId + '}';
         }
     }
 }

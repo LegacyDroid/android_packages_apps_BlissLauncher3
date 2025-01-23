@@ -39,46 +39,44 @@ public class CellPosMapperTest {
 
     @Test
     public void testMapModelToPresenter_default() {
-        CellPosMapper mapper = CellPosMapper.DEFAULT;
-        assertThat(mapper.mapModelToPresenter(
+        assertThat(CellPosMapper.DEFAULT.mapModelToPresenter(
                 createInfo(0, 0, 0, CONTAINER_DESKTOP))).isEqualTo(new CellPos(0, 0, 0));
-        assertThat(mapper.mapModelToPresenter(
+        assertThat(CellPosMapper.DEFAULT.mapModelToPresenter(
                 createInfo(0, 0, 1, CONTAINER_DESKTOP))).isEqualTo(new CellPos(0, 0, 1));
-        assertThat(mapper.mapModelToPresenter(
+        assertThat(CellPosMapper.DEFAULT.mapModelToPresenter(
                 createInfo(5, 0, 1, CONTAINER_DESKTOP))).isEqualTo(new CellPos(5, 0, 1));
-        assertThat(mapper.mapModelToPresenter(
+        assertThat(CellPosMapper.DEFAULT.mapModelToPresenter(
                 createInfo(5, 0, 0, CONTAINER_DESKTOP))).isEqualTo(new CellPos(5, 0, 0));
 
-        assertThat(mapper.mapModelToPresenter(
+        assertThat(CellPosMapper.DEFAULT.mapModelToPresenter(
                 createInfo(0, 0, 0, CONTAINER_HOTSEAT))).isEqualTo(new CellPos(0, 0, 0));
-        assertThat(mapper.mapModelToPresenter(
+        assertThat(CellPosMapper.DEFAULT.mapModelToPresenter(
                 createInfo(0, 0, 1, CONTAINER_HOTSEAT))).isEqualTo(new CellPos(0, 0, 1));
-        assertThat(mapper.mapModelToPresenter(
+        assertThat(CellPosMapper.DEFAULT.mapModelToPresenter(
                 createInfo(5, 0, 1, CONTAINER_HOTSEAT))).isEqualTo(new CellPos(5, 0, 1));
-        assertThat(mapper.mapModelToPresenter(
+        assertThat(CellPosMapper.DEFAULT.mapModelToPresenter(
                 createInfo(5, 0, 0, CONTAINER_HOTSEAT))).isEqualTo(new CellPos(5, 0, 0));
     }
 
     @Test
     public void testMapPresenterToModel_default() {
-        CellPosMapper mapper = CellPosMapper.DEFAULT;
-        assertThat(mapper.mapPresenterToModel(
+        assertThat(CellPosMapper.DEFAULT.mapPresenterToModel(
                 0, 0, 0, CONTAINER_DESKTOP)).isEqualTo(new CellPos(0, 0, 0));
-        assertThat(mapper.mapPresenterToModel(
+        assertThat(CellPosMapper.DEFAULT.mapPresenterToModel(
                 0, 0, 1, CONTAINER_DESKTOP)).isEqualTo(new CellPos(0, 0, 1));
-        assertThat(mapper.mapPresenterToModel(
+        assertThat(CellPosMapper.DEFAULT.mapPresenterToModel(
                 5, 0, 1, CONTAINER_DESKTOP)).isEqualTo(new CellPos(5, 0, 1));
-        assertThat(mapper.mapPresenterToModel(
+        assertThat(CellPosMapper.DEFAULT.mapPresenterToModel(
                 5, 0, 0, CONTAINER_DESKTOP)).isEqualTo(new CellPos(5, 0, 0));
 
-        assertThat(mapper.mapPresenterToModel(
+        assertThat(CellPosMapper.DEFAULT.mapPresenterToModel(
                 0, 0, 0, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(0, 0, 0));
-        assertThat(mapper.mapPresenterToModel(
-                0, 0, 1, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(0, 0, 0));
-        assertThat(mapper.mapPresenterToModel(
-                5, 0, 1, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(5, 0, 5));
-        assertThat(mapper.mapPresenterToModel(
-                5, 0, 0, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(5, 0, 5));
+        assertThat(CellPosMapper.DEFAULT.mapPresenterToModel(
+                0, 0, 1, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(0, 0, 1));
+        assertThat(CellPosMapper.DEFAULT.mapPresenterToModel(
+                5, 0, 1, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(5, 0, 1));
+        assertThat(CellPosMapper.DEFAULT.mapPresenterToModel(
+                5, 0, 0, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(5, 0, 0));
     }
 
     @Test
@@ -118,33 +116,11 @@ public class CellPosMapperTest {
         assertThat(mapper.mapPresenterToModel(
                 0, 0, 0, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(0, 0, 0));
         assertThat(mapper.mapPresenterToModel(
-                0, 0, 1, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(0, 0, 0));
+                0, 0, 1, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(0, 0, 1));
         assertThat(mapper.mapPresenterToModel(
-                5, 0, 1, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(5, 0, 5));
+                5, 0, 1, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(5, 0, 1));
         assertThat(mapper.mapPresenterToModel(
-                5, 0, 0, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(5, 0, 5));
-    }
-
-    @Test
-    public void testMapPresenterToModel_VerticalHotseat() {
-        CellPosMapper mapper = new CellPosMapper(true, 6);
-        assertThat(mapper.mapPresenterToModel(
-                0, 0, 0, CONTAINER_DESKTOP)).isEqualTo(new CellPos(0, 0, 0));
-        assertThat(mapper.mapPresenterToModel(
-                0, 0, 1, CONTAINER_DESKTOP)).isEqualTo(new CellPos(0, 0, 1));
-        assertThat(mapper.mapPresenterToModel(
-                5, 0, 1, CONTAINER_DESKTOP)).isEqualTo(new CellPos(5, 0, 1));
-        assertThat(mapper.mapPresenterToModel(
-                5, 0, 0, CONTAINER_DESKTOP)).isEqualTo(new CellPos(5, 0, 0));
-
-        assertThat(mapper.mapPresenterToModel(
-                0, 0, 0, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(0, 0, 5));
-        assertThat(mapper.mapPresenterToModel(
-                0, 0, 1, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(0, 0, 5));
-        assertThat(mapper.mapPresenterToModel(
-                0, 5, 1, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(0, 5, 0));
-        assertThat(mapper.mapPresenterToModel(
-                0, 5, 0, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(0, 5, 0));
+                5, 0, 0, CONTAINER_HOTSEAT)).isEqualTo(new CellPos(5, 0, 0));
     }
 
     private ItemInfo createInfo(int cellX, int cellY, int screen, int container) {

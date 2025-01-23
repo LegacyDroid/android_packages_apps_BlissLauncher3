@@ -482,8 +482,7 @@ public interface ActivityContext {
     }
 
     default CellPosMapper getCellPosMapper() {
-        DeviceProfile dp = getDeviceProfile();
-        return new CellPosMapper(dp.isVerticalBarLayout(), dp.numShownHotseatIcons);
+        return CellPosMapper.DEFAULT;
     }
 
     /** Whether bubbles are enabled. */
