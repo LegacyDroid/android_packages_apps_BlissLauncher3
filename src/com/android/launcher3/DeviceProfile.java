@@ -1985,7 +1985,8 @@ public class DeviceProfile {
             }
 
         } else {
-            return hotseatBarBottomSpacePx + ((isGestural() ? 1 : 2) * heightDifference);
+            return hotseatBarBottomSpacePx +
+                    (int) ((isGestural() ? (isNoHintGesture ? -2.5f : 1f) : 2f) * heightDifference);
         }
     }
 
