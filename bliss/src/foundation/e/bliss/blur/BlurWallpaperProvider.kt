@@ -26,6 +26,7 @@ import android.graphics.Color
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
+import android.util.Log
 import android.widget.Toast
 import androidx.core.graphics.drawable.toBitmap
 import com.android.launcher3.Utilities
@@ -184,12 +185,9 @@ class BlurWallpaperProvider(val context: Context) {
         mVibrancyPaint.colorFilter =
             ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(1.25f) })
 
-        val bitmap =
-            Bitmap.createBitmap(
-                wallpaper.width,
-                wallpaper.height,
-                wallpaper.config ?: Bitmap.Config.ARGB_8888
-            )
+        val origBitmap = Bitmap.createBitmap(wallpaper)
+        val bitmap = origBitmap.copy(Bitmap.Config.ARGB_8888, true)
+        Log.i("BlurWallpaperProvider", "config=${origBitmap.isMutable} ${origBitmap.config}")
         Canvas().apply {
             setBitmap(bitmap)
             drawBitmap(wallpaper, 0f, 0f, mVibrancyPaint)
