@@ -184,14 +184,20 @@ class BlurWallpaperProvider(val context: Context) {
         mVibrancyPaint.colorFilter =
             ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(1.25f) })
 
-        val bitmap =
-            Bitmap.createBitmap(
-                wallpaper.width,
-                wallpaper.height,
-                wallpaper.config ?: Bitmap.Config.ARGB_8888
-            )
+        val origBitmap = Bitmap.createBitmap(wallpaper)
+        val bitmap = origBitmap.copy(Bitmap.Config.ARGB_8888, true)
         Canvas().apply {
-            setBitmap(bitmap)
+            try {
+                setBitmap(bitmap)
+            } catch (e: IllegalStateException) {
+                Logger.e(TAG, "Failed to set bitmap, using fallback", e)
+                val newBitmap = Bitmap.createBitmap(
+                    wallpaper.width,
+                    wallpaper.height,
+                    wallpaper.config ?: Bitmap.Config.ARGB_8888
+                )
+                setBitmap(newBitmap)
+            }
             drawBitmap(wallpaper, 0f, 0f, mVibrancyPaint)
         }
 
@@ -294,7 +300,7 @@ class BlurWallpaperProvider(val context: Context) {
 
         @JvmField val blurConfigBackground = BlurConfig({ it.background }, 2, 8)
 
-        @JvmField val blurConfigDock = BlurConfig({ it.dock }, 2, 8)
+        @JvmField val blurConfigDock = BlurConfig({ it.dock }, 2, 2)
 
         @JvmField val blurConfigAppGroup = BlurConfig({ it.appGroup }, 6, 8)
 
