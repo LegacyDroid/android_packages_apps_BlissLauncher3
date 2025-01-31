@@ -106,6 +106,8 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import foundation.e.bliss.multimode.MultiModeController;
+
 /**
  * Various utilities shared amongst the Launcher's classes.
  */
@@ -584,7 +586,8 @@ public final class Utilities {
         Drawable mainIcon = null;
 
         Drawable badge = null;
-        if ((info instanceof ItemInfoWithIcon iiwi) && !iiwi.usingLowResIcon()) {
+        if ((info instanceof ItemInfoWithIcon iiwi) && !iiwi.usingLowResIcon()
+                && !MultiModeController.isSingleLayerMode()) {
             badge = iiwi.bitmap.getBadgeDrawable(context, useTheme);
         }
 
@@ -611,7 +614,8 @@ public final class Utilities {
                 mainIcon = ShortcutCachingLogic.getIcon(context, si,
                         appState.getInvariantDeviceProfile().fillResIconDpi);
                 // Only fetch badge if the icon is on workspace
-                if (info.id != ItemInfo.NO_ID && badge == null) {
+                if (info.id != ItemInfo.NO_ID && badge == null
+                        && !MultiModeController.isSingleLayerMode()) {
                     badge = appState.getIconCache().getShortcutInfoBadge(si)
                             .newIcon(context, FLAG_THEMED);
                 }
@@ -673,7 +677,7 @@ public final class Utilities {
                                     .getUserInfo(info.user)
                                     .applyBitmapInfoFlags(FlagOp.NO_OP))
                     .getBadgeDrawable(context, useTheme);
-            if (badge == null) {
+            if (badge == null || MultiModeController.isSingleLayerMode()) {
                 badge = new ColorDrawable(Color.TRANSPARENT);
             }
         }
