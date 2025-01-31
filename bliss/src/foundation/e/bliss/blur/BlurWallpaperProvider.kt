@@ -193,11 +193,12 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
                 setBitmap(bitmap)
             } catch (e: IllegalStateException) {
                 Logger.e(TAG, "Failed to set bitmap, using fallback", e)
-                val newBitmap = Bitmap.createBitmap(
-                    wallpaper.width,
-                    wallpaper.height,
-                    wallpaper.config ?: Bitmap.Config.ARGB_8888
-                )
+                val newBitmap =
+                    Bitmap.createBitmap(
+                        wallpaper.width,
+                        wallpaper.height,
+                        wallpaper.config ?: Bitmap.Config.ARGB_8888
+                    )
                 setBitmap(newBitmap)
             }
             drawBitmap(wallpaper, 0f, 0f, mVibrancyPaint)
