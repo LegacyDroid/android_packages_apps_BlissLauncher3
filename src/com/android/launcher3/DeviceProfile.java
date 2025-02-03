@@ -146,7 +146,6 @@ public class DeviceProfile {
     private CalculatedCellSpec mResponsiveAllAppsCellSpec;
 
     private boolean isNoHintGesture = false;
-    private boolean isNoButtonGesture = false;
 
     /**
      * The maximum amount of left/right workspace padding as a percentage of the screen width.
@@ -370,9 +369,7 @@ public class DeviceProfile {
                 LineageSettings.System.ENABLE_TASKBAR, isTablet ? 1 : 0) == 1;
         isTaskbarPresent = isTaskBarEnabled && ApiWrapper.TASKBAR_DRAWN_IN_PROCESS;
 
-        WindowManagerProxy wm = WindowManagerProxy.newInstance(context);
-        isNoButtonGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
-        isNoHintGesture = isNoButtonGesture && LineageSettings.System.getInt(
+        isNoHintGesture = isGestural() && LineageSettings.System.getInt(
                 context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
 
         // Some more constants.
@@ -1887,11 +1884,9 @@ public class DeviceProfile {
             float hotseatCellWidth = (float) widthPx / numShownHotseatIcons;
             int hotseatAdjustment = Math.round((workspaceCellWidth - hotseatCellWidth) / 2);
             int hotseatIconMargin = Math.abs(hotseatCellHeightPx - iconSizePx);
-            boolean noHint = isFullyGesture && LineageSettings.System.getInt(
-                    context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
             // Values obtained by manual validation, independent of dpi and display scale
             double marginScaleFactor = isFullyGesture
-                    ? (noHint ? 2.5 : 3.25)
+                    ? (isNoHintGesture ? 2.5 : 3.25)
                     : 2.75;
             hotseatBarPadding.set(
                     hotseatAdjustment + workspacePadding.left + cellLayoutPaddingPx.left
@@ -1899,9 +1894,8 @@ public class DeviceProfile {
                     0,
                     hotseatAdjustment + workspacePadding.right + cellLayoutPaddingPx.right
                             + mInsets.right,
-                    getHotseatBarBottomPadding()
-                            - (int) (marginScaleFactor * hotseatIconMargin)
-
+                    getHotseatBarBottomPadding() -
+                            (int) (marginScaleFactor * hotseatIconMargin)
             );
         }
         return hotseatBarPadding;
@@ -1978,15 +1972,18 @@ public class DeviceProfile {
                 if (isLandscape) {
                     return 0;
                 } else {
-                    return  heightDifference / 2;
+                    return heightDifference / 2;
                 }
             } else {
                 return hotseatBarBottomSpacePx - (heightDifference / 2);
             }
 
         } else {
-            return hotseatBarBottomSpacePx +
-                    (int) ((isGestural() ? (isNoHintGesture ? -2.5f : 1f) : 2f) * heightDifference);
+            if (isNoHintGesture) {
+                return Math.abs(hotseatBarSizePx - iconSizePx) / 2;
+            }
+            return hotseatBarBottomSpacePx + (int) ((isGestural() ? .75f : 2f)
+                    * heightDifference);
         }
     }
 
@@ -2107,9 +2104,7 @@ public class DeviceProfile {
 
     private int getDeductibleGestureHeight() {
         if (isVerticalBarLayout() || context == null) return 0;
-        boolean noHint = isGestural() && LineageSettings.System.getInt(
-                context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
-        if (!noHint) return 0;
+        if (!isNoHintGesture) return 0;
         return ResourceUtils.getDimenByName(NAVBAR_BOTTOM_GESTURE_SIZE, context.getResources(), 0);
     }
 
