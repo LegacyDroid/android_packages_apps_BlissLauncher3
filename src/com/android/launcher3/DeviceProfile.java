@@ -1499,14 +1499,13 @@ public class DeviceProfile {
         if (isTaskbarPresent) { // QSB on top or inline
             if (isGestural()) {
                 if (isLandscape) {
-                    return 0;
+                    return -1;
                 } else {
-                    return heightDifference / 2;
+                    return heightDifference / 5;
                 }
             } else {
-                return hotseatBarBottomSpacePx - (heightDifference / 2);
+                return hotseatBarBottomSpacePx - heightDifference;
             }
-
         } else {
             if (isNoHintGesture) {
                 return Math.abs(hotseatBarSizePx - iconSizePx) / 2;
