@@ -25,22 +25,25 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
     private val mAppMonitorCallback: LauncherAppMonitorCallback =
         object : LauncherAppMonitorCallback {
             override fun onLoadAllAppsEnd(apps: ArrayList<AppInfo?>?) {
-                MODEL_EXECUTOR.submit(
-                    VerifyIdleAppTask(
-                        context,
-                        apps,
-                        null,
-                        null,
-                        false,
-                        monitor.launcher.model.mBgDataModel
+                val launcherModel = monitor.launcher?.model
+                if (launcherModel != null) {
+                    MODEL_EXECUTOR.submit(
+                        VerifyIdleAppTask(
+                            context,
+                            apps,
+                            null,
+                            null,
+                            false,
+                            launcherModel.mBgDataModel
+                        )
                     )
-                )
+                }
             }
 
             override fun onAppSharedPreferenceChanged(key: String?) {
                 when (key) {
                     BlissPrefs.PREF_SINGLE_LAYER_MODE -> {
-                        monitor.launcher.model.forceReload()
+                        monitor.launcher?.model?.forceReload()
                     }
                     BlissPrefs.PREF_NOTIF_COUNT -> idp.onConfigChanged(context)
                     else -> Unit
