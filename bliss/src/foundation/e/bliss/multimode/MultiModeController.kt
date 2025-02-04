@@ -45,7 +45,7 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
             override fun onAppSharedPreferenceChanged(key: String?) {
                 when (key) {
                     BlissPrefs.PREF_SINGLE_LAYER_MODE -> {
-                        monitor.launcher.model.forceReload()
+                        monitor.launcher?.model?.forceReload()
                     }
                     else -> Unit
                 }
