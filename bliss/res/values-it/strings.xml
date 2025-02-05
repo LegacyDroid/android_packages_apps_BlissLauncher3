@@ -29,4 +29,5 @@
     <string name="widget_remove">Rimuovi</string>
     <string name="show_notification_count">Mostra il numero di notifiche</string>
     <string name="remove_widgets">Rimuovi Widget</string>
+    <string name="add_to_widget_Screen">Aggiungi alla schermata dei widget</string>
 </resources>
