@@ -258,6 +258,8 @@ public class DeviceProfile {
     public int dropTargetGapPx;
     public int dropTargetButtonWorkspaceEdgeGapPx;
 
+    private boolean isNoHintGesture = false;
+
     // Insets
     private final Rect mInsets = new Rect();
     public final Rect workspacePadding = new Rect();
@@ -321,6 +323,9 @@ public class DeviceProfile {
                 windowBounds);
         final Resources res = context.getResources();
         mMetrics = res.getDisplayMetrics();
+
+        isNoHintGesture = isGestural() && LineageSettings.System.getInt(
+                context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
 
         // Determine sizes.
         widthPx = windowBounds.bounds.width();
@@ -1374,7 +1379,11 @@ public class DeviceProfile {
      */
     public Rect getHotseatLayoutPadding(Context context) {
         // Make sure to update all relevant sizes for cutout and orientation
-        updateHotseatSizes(pxFromDp(inv.iconSize[mTypeIndex], mMetrics));
+        int hotseatIconSizePx = pxFromDp(inv.iconSize[mTypeIndex], mMetrics);
+        if (!isTaskbarPresent && isNoHintGesture) {
+            hotseatIconSizePx = (int) (hotseatIconSizePx / 1.2f);
+        }
+        updateHotseatSizes(hotseatIconSizePx);
         Rect hotseatBarPadding = new Rect();
         boolean isFullyGesture = isGestural();
         if (isVerticalBarLayout()) {
@@ -1441,21 +1450,16 @@ public class DeviceProfile {
             float hotseatCellWidth = (float) widthPx / numShownHotseatIcons;
             int hotseatAdjustment = Math.round((workspaceCellWidth - hotseatCellWidth) / 2);
             int hotseatIconMargin = Math.abs(hotseatCellHeightPx - iconSizePx);
-            boolean noHint = isFullyGesture && LineageSettings.System.getInt(
-                    context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
             // Values obtained by manual validation, independent of dpi and display scale
-            double marginScaleFactor = isFullyGesture
-                    ? (noHint ? 2.5 : 3.25)
-                    : 2.75;
+            double marginScaleFactor = isFullyGesture ? 3.25 : 2.75;
             hotseatBarPadding.set(
                     hotseatAdjustment + workspacePadding.left + cellLayoutPaddingPx.left
                             + mInsets.left,
                     0,
                     hotseatAdjustment + workspacePadding.right + cellLayoutPaddingPx.right
                             + mInsets.right,
-                    getHotseatBarBottomPadding()
-                            - (int) (marginScaleFactor * hotseatIconMargin)
-
+                    getHotseatBarBottomPadding() -
+                            (int) (marginScaleFactor * hotseatIconMargin)
             );
         }
         return hotseatBarPadding;
@@ -1497,20 +1501,19 @@ public class DeviceProfile {
         if (isTaskbarPresent) { // QSB on top or inline
             if (isGestural()) {
                 if (isLandscape) {
-                    return 0;
+                    return -1;
                 } else {
-                    return  heightDifference / 2;
+                    return heightDifference / 5;
                 }
             } else {
-                return hotseatBarBottomSpacePx - (heightDifference / 2);
+                return hotseatBarBottomSpacePx - heightDifference;
             }
-
         } else {
-            boolean isFullyGesture = isGestural();
-            boolean noHint = isFullyGesture && LineageSettings.System.getInt(
-                    context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
-            return hotseatBarBottomSpacePx +
-                    (int) ((isFullyGesture ? (noHint ? -2.5f : 1f) : 2f) * heightDifference);
+            if (isNoHintGesture) {
+                return (int) (Math.abs(hotseatBarSizePx - iconSizePx) / 2.2f);
+            }
+            return hotseatBarBottomSpacePx + (int) ((isGestural() ? .75f : 2f)
+                    * heightDifference);
         }
     }
 
@@ -1636,9 +1639,7 @@ public class DeviceProfile {
 
     private int getDeductibleGestureHeight() {
         if (isVerticalBarLayout() || context == null) return 0;
-        boolean noHint = isGestural() && LineageSettings.System.getInt(
-                context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
-        if (!noHint) return 0;
+        if (!isNoHintGesture) return 0;
         return ResourceUtils.getDimenByName(NAVBAR_BOTTOM_GESTURE_SIZE, context.getResources(), 0);
     }
 
