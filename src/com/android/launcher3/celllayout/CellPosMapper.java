@@ -77,7 +77,7 @@ public class CellPosMapper {
         public CellPos mapPresenterToModel(int presenterX, int presenterY, int presenterScreen,
                                            int container) {
             if (container != Favorites.CONTAINER_DESKTOP) {
-                super.mapPresenterToModel(presenterX, presenterY, presenterScreen, container);
+                return super.mapPresenterToModel(presenterX, presenterY, presenterScreen, container);
             }
             final int numRows = mIDP.numColumnsFixed;
             final int numColumns = mIDP.numRowsFixed;
