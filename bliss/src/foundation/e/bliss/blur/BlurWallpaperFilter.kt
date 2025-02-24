@@ -58,7 +58,8 @@ class BlurWallpaperFilter(private val context: Context) :
     private fun blur(wallpaper: Bitmap, config: BlurWallpaperProvider.BlurConfig): Bitmap {
         val source =
             if (config.scale == 1) {
-                wallpaper
+                // Make mutable copy in case we need to return source
+                Bitmap.createBitmap(wallpaper)
             } else {
                 Bitmap.createScaledBitmap(
                     wallpaper,
@@ -67,6 +68,12 @@ class BlurWallpaperFilter(private val context: Context) :
                     true
                 )
             }
+
+        // Bypass blur processor if we don't need to blur (hotseat)
+        // This will only happen if the input is full resolution (scale = 1) and blur radius = 0
+        if (config.radius == 0 && config.scale == 1) {
+            return source
+        }
 
         return HokoBlur.with(context)
             .scheme(HokoBlur.SCHEME_NATIVE)
