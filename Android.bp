@@ -305,6 +305,57 @@ java_import {
     ],
 }
 
+android_library {
+    name: "BlissLauncher3Lib",
+
+    static_libs: [
+        "Launcher3ResLib",
+        "LauncherPluginLib",
+        "launcher_quickstep_log_protos_lite",
+        "androidx-constraintlayout_constraintlayout",
+        "androidx.recyclerview_recyclerview",
+        "androidx.dynamicanimation_dynamicanimation",
+        "androidx.fragment_fragment",
+        "androidx.preference_preference",
+        "androidx.slice_slice-view",
+        "androidx.cardview_cardview",
+        "androidx.window_window",
+        "com.google.android.material_material",
+        "//frameworks/libs/systemui:iconloader_base",
+        "//frameworks/libs/systemui:view_capture",
+        "//frameworks/libs/systemui:animationlib",
+        "//frameworks/libs/systemui:contextualeducationlib",
+        "SystemUI-statsd",
+        "launcher-testing-shared",
+        "androidx.lifecycle_lifecycle-common-java8",
+        "androidx.lifecycle_lifecycle-extensions",
+        "androidx.lifecycle_lifecycle-runtime-ktx",
+        "kotlinx_coroutines_android",
+        "kotlinx_coroutines",
+        "com_android_launcher3_flags_lib",
+        "com_android_wm_shell_flags_lib",
+        "dagger2",
+        "jsr330",
+        "com_android_systemui_shared_flags_lib",
+        "libGoogleFeed",
+        "org.lineageos.platform",
+    ],
+
+    srcs: [
+        ":launcher-src",
+        ":launcher-src_no_quickstep",
+        ":launcher-build-config",
+        "bliss/**/*.java",
+        "bliss/**/*.kt",
+    ],
+
+    manifest: "bliss/AndroidManifest.xml",
+    platform_apis: true,
+    min_sdk_version: min_launcher3_sdk_version,
+    target_sdk_version: "current",
+    plugins: ["dagger2-compiler"],
+}
+
 // Library with all the dependencies for building Launcher3
 android_library {
     name: "Launcher3ResLib",
@@ -357,9 +408,10 @@ android_library {
 //
 android_app {
     name: "Trebuchet",
-    defaults: ["launcher-non-platform-apis-defaults"],
+//    defaults: ["launcher-non-platform-apis-defaults"],
 
     static_libs: [
+        "BlissLauncher3Lib",
         "Launcher3ResLib",
     ],
     srcs: [
@@ -374,7 +426,7 @@ android_app {
         enabled: false,
     },
 
-    sdk_version: "current",
+    platform_apis: true,
     min_sdk_version: min_launcher3_sdk_version,
     target_sdk_version: "current",
     plugins: ["dagger2-compiler"],
