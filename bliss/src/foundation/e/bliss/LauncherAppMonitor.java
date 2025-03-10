@@ -38,6 +38,7 @@ import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.util.MainThreadInitializedObject;
+import com.android.launcher3.util.SafeCloseable;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
@@ -47,7 +48,7 @@ import java.util.List;
 public class LauncherAppMonitor extends LauncherApps.Callback
         implements
             SharedPreferences.OnSharedPreferenceChangeListener,
-            LauncherAppMonitorCallback {
+            LauncherAppMonitorCallback, SafeCloseable {
 
     // We do not need any synchronization for this variable as its only written on
     // UI thread.
@@ -60,12 +61,8 @@ public class LauncherAppMonitor extends LauncherApps.Callback
 
     // private MultiModeController mMultiModeController = null;
 
-    public static LauncherAppMonitor getInstance(final Context context) {
+    public static LauncherAppMonitor getInstance(Context context) {
         return INSTANCE.get(context.getApplicationContext());
-    }
-
-    public static LauncherAppMonitor getInstanceNoCreate() {
-        return INSTANCE.getNoCreate();
     }
 
     // return null while launcher activity isn't running
@@ -479,4 +476,7 @@ public class LauncherAppMonitor extends LauncherApps.Callback
     @Override
     public void onAppSharedPreferenceChanged(@Nullable String key) {
     }
+
+    @Override
+    public void close() { }
 }
