@@ -301,7 +301,7 @@ java_library {
 java_import {
     name: "libGoogleFeed",
     jars: [
-        "libs/libGoogleFeed.jar",
+        "prebuilts/libGoogleFeed.jar",
     ],
 }
 
