@@ -105,7 +105,7 @@ android {
     sourceSets {
         main {
             res.srcDirs = ['res', 'libs_systemui/animationlib/res', 'libs_systemui/iconloaderlib/res']
-            java.srcDirs = ['src', 'tests/multivalentTests/shared']
+            java.srcDirs = ['src', 'tests/multivalentTests/shared', 'src_dagger']
             manifest.srcFile 'AndroidManifest-common.xml'
             proto.srcDirs = ['protos/', 'quickstep/protos_overrides/']
         }
