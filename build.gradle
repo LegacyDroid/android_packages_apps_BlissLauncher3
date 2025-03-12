@@ -143,11 +143,23 @@ android {
     }
 
     addFrameworkJar('framework-15.jar')
+
+    preBuild.dependsOn 'makeReleaseJar'
 }
 
 tasks.register("makeReleaseJar", Jar) {
     archiveFileName.set("Launcher3QuickStepLib.jar")
     destinationDirectory.set(file("libs"))
+
+    def outputFile = file("libs/Launcher3QuickStepLib.jar")
+    onlyIf {
+        if (outputFile.exists()) {
+            println("Launcher3QuickStepLib.jar already exists. Skipping task.")
+            return false  // Skip task execution
+        }
+        return true
+    }
+
     from(zipTree("libs/classes.jar")) {
         include("**/*.class")
         exclude(
