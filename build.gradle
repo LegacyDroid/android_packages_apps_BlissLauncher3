@@ -188,7 +188,12 @@ dependencies {
     implementation fileTree(dir: "libs", include: [
             'Launcher3QuickStepLib.jar',
             'libGoogleFeed.jar',
-            'com_android_launcher3_flags_lib.jar'
+            'framework-annotations-lib.jar',
+            'aconfig-annotations-lib.jar',
+            'unsupportedappusage.jar',
+            'com_android_launcher3_flags_lib.jar',
+            'android.os.flags-aconfig-java.jar',
+            'com.android.window.flags.window-aconfig-java.jar'
     ])
 }
 
