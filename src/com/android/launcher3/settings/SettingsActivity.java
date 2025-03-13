@@ -48,7 +48,7 @@ import androidx.preference.PreferenceFragmentCompat.OnPreferenceStartScreenCallb
 import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceGroup.PreferencePositionCallback;
 import androidx.preference.PreferenceScreen;
-import androidx.preference.SwitchPreference;
+import androidx.preference.SwitchPreferenceCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.launcher3.BuildConfig;
@@ -346,7 +346,7 @@ public class SettingsActivity extends FragmentActivity
                 case BlissPrefs.PREF_SINGLE_LAYER_MODE:
                     boolean isSingleLayer = MultiModeController.isSingleLayerMode();
                     preference.setDefaultValue(isSingleLayer);
-                    ((SwitchPreference) preference).setChecked(isSingleLayer);
+                    ((SwitchPreferenceCompat) preference).setChecked(isSingleLayer);
                     return true;
 
                 case ADD_ICON_PREFERENCE_KEY:

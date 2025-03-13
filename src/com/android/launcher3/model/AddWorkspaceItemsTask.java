@@ -62,10 +62,11 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
     private final WorkspaceItemSpaceFinder mItemSpaceFinder;
 
     private boolean mAnimated = true;
+    private boolean mIgnoreLoaded;
 
     public AddWorkspaceItemsTask(List<Pair<ItemInfo, Object>> itemList, boolean ignoreLoaded) {
         this(itemList);
-//        mIgnoreLoaded = ignoreLoaded;
+        mIgnoreLoaded = ignoreLoaded;
     }
 
     public void setEnableAnimated(boolean animated) {
