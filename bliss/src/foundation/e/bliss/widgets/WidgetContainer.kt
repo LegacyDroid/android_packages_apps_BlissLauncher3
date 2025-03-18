@@ -136,7 +136,8 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) : FrameLayout(cont
         private val isQsbEnabled: Boolean
             get() = FeatureFlags.QSB_ON_FIRST_SCREEN
 
-        init {
+        override fun onAttach(context: Context?) {
+            super.onAttach(context)
             LauncherAppMonitor.getInstance(context).registerCallback(mAppMonitorCallback)
         }
 
