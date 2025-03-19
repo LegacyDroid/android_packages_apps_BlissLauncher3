@@ -114,8 +114,6 @@ public class LauncherModel implements InstallSessionTracker.Callback {
     // only allow this once per reboot to reload work apps
     private boolean mShouldReloadWorkProfile = true;
 
-    boolean mIgnoreLoaded;
-
     // Indicates whether the current model data is valid or not.
     // We start off with everything not loaded. After that, we assume that
     // our monitoring of the package manager provides all updates and we never
@@ -619,7 +617,7 @@ public class LauncherModel implements InstallSessionTracker.Callback {
             return;
         }
         MODEL_EXECUTOR.execute(() -> {
-            if (!isModelLoaded() && !mIgnoreLoaded) {
+            if (!isModelLoaded() && !task.isIgnoreLoaded()) {
                 // Loader has not yet run.
                 return;
             }
@@ -642,6 +640,10 @@ public class LauncherModel implements InstallSessionTracker.Callback {
 
         void execute(@NonNull ModelTaskController taskController,
                 @NonNull BgDataModel dataModel, @NonNull AllAppsList apps);
+
+        default boolean isIgnoreLoaded() {
+            return false; // Default value
+        }
     }
 
     public void updateAndBindWorkspaceItem(@NonNull final WorkspaceItemInfo si,

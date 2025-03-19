@@ -62,7 +62,7 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
     private final WorkspaceItemSpaceFinder mItemSpaceFinder;
 
     private boolean mAnimated = true;
-    private boolean mIgnoreLoaded;
+    private boolean mIgnoreLoaded = false;
 
     public AddWorkspaceItemsTask(List<Pair<ItemInfo, Object>> itemList, boolean ignoreLoaded) {
         this(itemList);
@@ -90,6 +90,10 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
         mItemSpaceFinder = itemSpaceFinder;
     }
 
+    @Override
+    public boolean isIgnoreLoaded() {
+        return mIgnoreLoaded;
+    }
 
     @Override
     public void execute(@NonNull ModelTaskController taskController, @NonNull BgDataModel dataModel,
@@ -116,8 +120,7 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
 
                     // b/139663018 Short-circuit this logic if the icon is a system app
                     if (PackageManagerHelper.isSystemApp(context,
-//                            Objects.requireNonNull(item.getIntent())) && !mIgnoreLoaded) {
-                            Objects.requireNonNull(item.getIntent()))) {
+                            Objects.requireNonNull(item.getIntent())) && !mIgnoreLoaded) {
                         continue;
                     }
 
