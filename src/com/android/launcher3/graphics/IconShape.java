@@ -64,7 +64,7 @@ public final class IconShape implements SafeCloseable {
 
 
     private static ShapeDelegate mDelegate = new Circle();
-    private float mNormalizationScale = ICON_VISIBLE_AREA_FACTOR;
+    private static float mNormalizationScale = ICON_VISIBLE_AREA_FACTOR;
 
     private IconShape(Context context) {
         pickBestShape(context);
@@ -74,7 +74,7 @@ public final class IconShape implements SafeCloseable {
         return mDelegate;
     }
 
-    public float getNormalizationScale() {
+    public static float getNormalizationScale() {
         return mNormalizationScale;
     }
 
