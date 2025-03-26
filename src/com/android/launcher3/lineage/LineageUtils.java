@@ -15,15 +15,6 @@ import com.android.launcher3.R;
 
 public class LineageUtils {
 
-    public static boolean isPackageEnabled(Context context, String pkgName) {
-        try {
-            ApplicationInfo ai = context.getPackageManager().getApplicationInfo(pkgName, 0);
-            return ai.enabled;
-        } catch (PackageManager.NameNotFoundException e) {
-            return false;
-        }
-    }
-
     /**
      * Shows authentication screen to confirm credentials (pin, pattern or password) for the current
      * user of the device.

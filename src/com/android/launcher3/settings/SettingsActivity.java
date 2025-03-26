@@ -87,9 +87,6 @@ public class SettingsActivity extends FragmentActivity
 
     public static final String KEY_TRUST_APPS = "pref_trust_apps";
 
-    private static final String KEY_SUGGESTIONS = "pref_suggestions";
-    private static final String SUGGESTIONS_PACKAGE = "com.google.android.as";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -336,9 +333,6 @@ public class SettingsActivity extends FragmentActivity
                         return true;
                     });
                     return true;
-
-                case KEY_SUGGESTIONS:
-                    return LineageUtils.isPackageEnabled(getActivity(), SUGGESTIONS_PACKAGE);
 
                 case BlissPrefs.PREF_SINGLE_LAYER_MODE:
                     boolean isSingleLayer = MultiModeController.isSingleLayerMode();
