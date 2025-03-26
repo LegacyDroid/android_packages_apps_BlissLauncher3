@@ -204,7 +204,7 @@ public final class FeatureFlags {
             DISABLED, "Always use hardware optimization for folder animations.");
 
     public static final BooleanFlag SEPARATE_RECENTS_ACTIVITY = getDebugFlag(270392980,
-            "SEPARATE_RECENTS_ACTIVITY", ENABLED,
+            "SEPARATE_RECENTS_ACTIVITY", DISABLED,
             "Uses a separate recents activity instead of using the integrated recents+Launcher UI");
 
     public static final BooleanFlag USE_LOCAL_ICON_OVERRIDES = getDebugFlag(270394973,
