@@ -665,7 +665,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         boolean shouldCenterIcon = mActivity.getDeviceProfile().iconCenterVertically;
-        if (shouldCenterIcon || MultiModeController.isSingleLayerMode()) {
+        if (shouldCenterIcon) {
             int iconSize = mActivity.getDeviceProfile().iconSizePx;
             Paint.FontMetrics fm = mFolderName.getPaint().getFontMetrics();
             int cellHeightPx = iconSize + mFolderName.getCompoundDrawablePadding()
