@@ -37,6 +37,7 @@ import com.android.launcher3.LauncherState
 import com.android.launcher3.anim.AnimatorListeners
 import com.android.launcher3.anim.PendingAnimation
 import com.android.launcher3.anim.PropertySetter
+import com.android.launcher3.config.FeatureFlags
 import com.android.launcher3.states.StateAnimationConfig
 import com.android.launcher3.states.StateAnimationConfig.SKIP_DEPTH_CONTROLLER
 import com.android.launcher3.states.StateAnimationConfig.SKIP_OVERVIEW
@@ -101,7 +102,7 @@ class ScalingWorkspaceRevealAnim(
         val hotseat = launcher.hotseat
 
         var fromSize =
-            if (Flags.coordinateWorkspaceScale()) {
+            if (FeatureFlags.coordinateWorkspaceScale()) {
                 // Interrupt the current animation, if any.
                 Animations.cancelOngoingAnimation(workspace)
                 Animations.cancelOngoingAnimation(hotseat)
@@ -225,7 +226,7 @@ class ScalingWorkspaceRevealAnim(
                     workspace.setLayerType(View.LAYER_TYPE_NONE, null)
                     hotseat.setLayerType(View.LAYER_TYPE_NONE, null)
 
-                    if (Flags.coordinateWorkspaceScale()) {
+                    if (FeatureFlags.coordinateWorkspaceScale()) {
                         // Reset the cached animations.
                         Animations.setOngoingAnimation(workspace, animation = null)
                         Animations.setOngoingAnimation(hotseat, animation = null)
@@ -243,7 +244,7 @@ class ScalingWorkspaceRevealAnim(
 
     fun start() {
         val animators = getAnimators()
-        if (Flags.coordinateWorkspaceScale()) {
+        if (FeatureFlags.coordinateWorkspaceScale()) {
             // Make sure to cache the current animation, so it can be properly interrupted.
             // TODO(b/367591368): ideally these animations would be refactored to be controlled
             //  centrally so each instances doesn't need to care about this coordination.

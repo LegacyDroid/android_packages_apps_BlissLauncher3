@@ -53,6 +53,7 @@ import static com.android.launcher3.LauncherState.NORMAL;
 import static com.android.launcher3.LauncherState.OVERVIEW;
 import static com.android.launcher3.Utilities.mapBoundToRange;
 import static com.android.launcher3.config.FeatureFlags.SEPARATE_RECENTS_ACTIVITY;
+import static com.android.launcher3.config.FeatureFlags.coordinateWorkspaceScale;
 import static com.android.launcher3.testing.shared.TestProtocol.WALLPAPER_OPEN_ANIMATION_FINISHED_MESSAGE;
 import static com.android.launcher3.util.DisplayController.isTransientTaskbar;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
@@ -584,7 +585,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         } else {
             List<View> viewsToAnimate = new ArrayList<>();
             Workspace<?> workspace = mLauncher.getWorkspace();
-            if (Flags.coordinateWorkspaceScale()) {
+            if (coordinateWorkspaceScale()) {
                 viewsToAnimate.add(workspace);
             } else {
                 workspace.forEachVisiblePage(
@@ -606,7 +607,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
                 float[] scale = scales;
-                if (Flags.coordinateWorkspaceScale()) {
+                if (coordinateWorkspaceScale()) {
                     // Start the animation from the current value, instead of assuming the views are
                     // in their resting state, so interrupted animations merge seamlessly.
                     // TODO(b/367591368): ideally these animations would be refactored to be
@@ -633,7 +634,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                     SCALE_PROPERTY.set(view, 1f);
                     view.setLayerType(View.LAYER_TYPE_NONE, null);
 
-                    if (Flags.coordinateWorkspaceScale()) {
+                    if (coordinateWorkspaceScale()) {
                         // Reset the cached animation.
                         Animations.Companion.setOngoingAnimation(view, null /* animation */);
                     }

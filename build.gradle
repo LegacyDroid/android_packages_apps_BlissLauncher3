@@ -85,6 +85,7 @@ android {
         buildConfigField "boolean", "IS_DEBUG_DEVICE", "false"
         buildConfigField "boolean", "WIDGETS_ENABLED", "true"
         buildConfigField "boolean", "NOTIFICATION_DOTS_ENABLED", "true"
+        buildConfigField "boolean", "ENABLE_WORKSPACE_SCALE", "false"
     }
 
     signingConfigs {

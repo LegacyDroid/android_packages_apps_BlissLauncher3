@@ -144,6 +144,10 @@ public final class FeatureFlags {
         return ENABLE_TASKBAR_PINNING.get() || Flags.enableTaskbarPinning();
     }
 
+    public static boolean coordinateWorkspaceScale() {
+        return BuildConfig.ENABLE_WORKSPACE_SCALE && Flags.coordinateWorkspaceScale();
+    }
+
     // Aconfig migration complete for ENABLE_APP_PAIRS.
     public static final BooleanFlag ENABLE_APP_PAIRS = getDebugFlag(274189428,
             "ENABLE_APP_PAIRS", DISABLED,
