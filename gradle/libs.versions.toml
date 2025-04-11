@@ -7,6 +7,7 @@ androidx-slice-view = "1.0.0"
 core-animation = "1.0.0"
 dagger = "2.57.2"
 elib = "0.0.1-alpha11"
+githooks-plugin = "1.0"
 google-material = "1.13.0"
 google-protobuf = "0.9.5"
 google-protobuf-javalite = "4.33.0"
@@ -16,11 +17,15 @@ kotlin = "2.1.10"
 kotlinx-coroutines-core = "1.10.2"
 ksp = "2.1.10-1.0.31"
 okio = "3.16.2"
+spotless = "8.0.0"
+spotless-plugin = "1.0"
 window = "1.5.0"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+bliss-spotless = { id = "foundation.e.bliss.spotless", version.ref = "spotless-plugin" }
+bliss-githooks = { id = "foundation.e.bliss.githooks", version.ref = "githooks-plugin" }
 google-protobuf = { id = "com.google.protobuf", version.ref = "google-protobuf" }
 kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
@@ -33,6 +38,7 @@ androidx-graphics-shapes = { module = "androidx.graphics:graphics-shapes", versi
 androidx-preference = { module = "androidx.preference:preference-ktx", version.ref = "androidx-preference" }
 androidx-slice-view = { module = "androidx.slice:slice-view", version.ref = "androidx-slice-view" }
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
+build-spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
 dagger = { module = "com.google.dagger:dagger", version.ref = "dagger" }
 dagger-compiler = { module = "com.google.dagger:dagger-compiler", version.ref = "dagger" }
 elib = { module = "foundation.e:elib", version.ref = "elib" }

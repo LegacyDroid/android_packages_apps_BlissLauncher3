@@ -6,6 +6,8 @@ plugins {
     alias libs.plugins.kotlin
     alias libs.plugins.google.protobuf
     alias libs.plugins.ksp
+    alias libs.plugins.bliss.spotless
+    alias libs.plugins.bliss.githooks
 }
 
 allprojects {
@@ -184,6 +186,7 @@ android {
     addFrameworkJar('framework.jar')
 
     preBuild.dependsOn 'makeReleaseJar'
+    preBuild.dependsOn 'createPreCommitHook'
 }
 
 tasks.register("makeReleaseJar", Jar) {
