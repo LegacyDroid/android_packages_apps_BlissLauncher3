@@ -22,6 +22,9 @@ google-protobuf = "0.9.4"
 google-protobuf-javalite = "4.30.2"
 hoko-blur = "1.5.3"
 reactivex-rxkotlin3 = "3.0.1"
+spotless = "6.25.0"
+spotless-plugin = "1.0"
+githooks-plugin = "1.0"
 square-retrofit = "2.11.0"
 square-okhttp = "4.12.0"
 square-gson = "2.11.0"
@@ -34,6 +37,8 @@ kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 google-protobuf = { id = "com.google.protobuf", version.ref = "google-protobuf" }
 org-jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "org-jetbrains-kotlin-jvm" }
+bliss-spotless = { id = "foundation.e.bliss.spotless", version.ref = "spotless-plugin" }
+bliss-githooks = { id = "foundation.e.bliss.githooks", version.ref = "githooks-plugin" }
 
 [libraries]
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
@@ -48,6 +53,7 @@ androidx-core-animation = { module = "androidx.core:core-animation", version.ref
 airbnb-lottie = { module = "com.airbnb.android:lottie", version.ref = "airbnb-lottie" }
 dagger = { module = "com.google.dagger:dagger", version.ref = "dagger" }
 dagger-compiler = { module = "com.google.dagger:dagger-compiler", version.ref = "dagger" }
+build-spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
 e-telemetry = { module = "foundation.e.lib:telemetry", version.ref = "e-telemetry" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 elib = { module = "foundation.e:elib", version.ref = "elib" }

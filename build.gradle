@@ -7,6 +7,12 @@ plugins {
     alias libs.plugins.kotlin
     alias libs.plugins.google.protobuf
     alias libs.plugins.ksp
+    alias libs.plugins.bliss.spotless
+    alias libs.plugins.bliss.githooks
+}
+
+afterEvaluate {
+    tasks.prepareKotlinBuildScriptModel.dependsOn(tasks.copyGitHooks, tasks.installGitHooks)
 }
 
 allprojects {
