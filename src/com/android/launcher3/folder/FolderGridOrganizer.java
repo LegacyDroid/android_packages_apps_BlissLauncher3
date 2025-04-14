@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import foundation.e.bliss.LauncherAppMonitor;
+import foundation.e.bliss.folder.GridFolderController;
 import foundation.e.bliss.multimode.MultiModeController;
 
 /**
@@ -78,11 +79,7 @@ public class FolderGridOrganizer {
         if (contentSize != mNumItemsInFolder) {
             calculateGridSize(contentSize);
 
-            int maxSize = MAX_NUM_ITEMS_IN_PREVIEW;
-            if (MultiModeController.isSingleLayerMode() && LauncherAppMonitor.getInstanceNoCreate() != null) {
-                maxSize = LauncherAppMonitor.getInstanceNoCreate().getGridFolderController()
-                        .getGridFolderIconLayoutRule().getMaxNumItemsInPreview();
-            }
+            int maxSize = getMaxSize(MAX_NUM_ITEMS_IN_PREVIEW);
             mDisplayingUpperLeftQuadrant = contentSize > maxSize;
             mNumItemsInFolder = contentSize;
         }
@@ -175,6 +172,18 @@ public class FolderGridOrganizer {
         return mPoint;
     }
 
+    private int getMaxSize(int defaultValue) {
+        LauncherAppMonitor appMonitor = LauncherAppMonitor.getInstanceNoCreate();
+        if (MultiModeController.isSingleLayerMode() && appMonitor != null) {
+            GridFolderController controller = appMonitor.getGridFolderController();
+            if (controller != null) {
+                return controller.getGridFolderIconLayoutRule().getMaxNumItemsInPreview();
+            }
+        }
+
+        return defaultValue;
+    }
+
     /**
      * Returns the preview items for the provided pageNo using the full list of contents
      */
@@ -184,11 +193,7 @@ public class FolderGridOrganizer {
         int start = itemsPerPage * page;
         int end = Math.min(start + itemsPerPage, contents.size());
 
-        int maxSize = MAX_NUM_ITEMS_IN_PREVIEW;
-        if (MultiModeController.isSingleLayerMode() && LauncherAppMonitor.getInstanceNoCreate() != null) {
-            maxSize = LauncherAppMonitor.getInstanceNoCreate().getGridFolderController()
-                    .getGridFolderIconLayoutRule().getMaxNumItemsInPreview();
-        }
+        int maxSize = getMaxSize(MAX_NUM_ITEMS_IN_PREVIEW);
         for (int i = start, rank = 0; i < end; i++, rank++) {
             if (isItemInPreview(page, rank)) {
                 result.add((R) contents.get(i));
@@ -224,9 +229,8 @@ public class FolderGridOrganizer {
     public boolean isItemInPreview(int page, int rank) {
         // First page items are laid out such that the first 4 items are always in the upper
         // left quadrant. For all other pages, we need to check the row and col.
-        if (MultiModeController.isSingleLayerMode() && LauncherAppMonitor.getInstanceNoCreate() != null) {
-            int maxSize = LauncherAppMonitor.getInstanceNoCreate().getGridFolderController()
-                    .getGridFolderIconLayoutRule().getMaxNumItemsInPreview();
+        int maxSize = getMaxSize(0);
+        if (maxSize != 0) {
             return rank < maxSize;
         }
 
