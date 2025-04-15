@@ -24,6 +24,7 @@ interface SuggestionProvider {
 enum class Providers(val key: String, val url: String) {
     DUCKDUCKGO("duckduckgo", "https://duckduckgo.com/"),
     QWANT("qwant", "https://www.qwant.com/"),
+    MURENASEARCH("murena search", "https://murena.qwant.com/"),
     SPOT("spot", "https://spot.murena.io/"),
     MOJEEK("mojeek", "https://www.mojeek.com/"),
 }

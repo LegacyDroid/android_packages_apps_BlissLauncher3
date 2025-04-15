@@ -27,7 +27,8 @@ object SearchSuggestionUtil {
     fun getSuggestionProvider(context: Context): SuggestionProvider {
         return with(defaultSearchEngine(context)) {
             when {
-                contains(Providers.QWANT.key, true) -> QwantProvider()
+                contains(Providers.QWANT.key, true) || contains(Providers.MURENASEARCH.key, true) ->
+                    QwantProvider()
                 else -> DuckDuckGoProvider()
             }
         }
@@ -38,10 +39,13 @@ object SearchSuggestionUtil {
 
         return with(defaultSearchEngine) {
             when {
+                contains(Providers.MURENASEARCH.key, true) ->
+                    "${Providers.MURENASEARCH.url}?q=$query"
                 contains(Providers.QWANT.key, true) -> "${Providers.QWANT.url}?q=$query"
                 contains(Providers.DUCKDUCKGO.key, true) -> "${Providers.DUCKDUCKGO.url}?q=$query"
                 contains(Providers.MOJEEK.key, true) -> "${Providers.MOJEEK.url}search?q=$query"
-                else -> "${Providers.SPOT.url}?q=$query"
+                contains(Providers.SPOT.key, true) -> "${Providers.SPOT.url}?q=$query"
+                else -> "${Providers.MURENASEARCH.url}?q=$query"
             }.toUri()
         }
     }
