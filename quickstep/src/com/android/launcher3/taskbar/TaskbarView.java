@@ -239,9 +239,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // separately.
         boolean forceTransientTaskbarSize =
                 enableTaskbarPinning() && !mActivityContext.isThreeButtonNav();
-        availableWidth -= iconSize - (int) getResources().getDimension(
-                mAllAppsButtonContainer.getAllAppsButtonTranslationXOffset(
-                        forceTransientTaskbarSize || isTransientTaskbar()));
+//        availableWidth -= iconSize - (int) getResources().getDimension(
+//                mAllAppsButtonContainer.getAllAppsButtonTranslationXOffset(
+//                        forceTransientTaskbarSize || isTransientTaskbar()));
         ++additionalIcons;
 
         return Math.floorDiv(availableWidth, iconSize) + additionalIcons;
@@ -270,8 +270,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
      * initially and avoid removing them during updates.
      */
     private int addStaticViews() {
-        int numStaticViews = 1;
-        addView(mAllAppsButtonContainer);
+        int numStaticViews = 0;
         if (mActivityContext.getDeviceProfile().isQsbInline) {
             addView(mQsb, mIsRtl ? 1 : 0);
             mQsb.setVisibility(View.INVISIBLE);
@@ -442,19 +441,19 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         updateHotseatItems(hotseatItemInfos);
 
         if (mTaskbarDividerContainer != null && !recentTasks.isEmpty()) {
-            addView(mTaskbarDividerContainer, mNextViewIndex++);
-            mAddedDividerForRecents = true;
+//            addView(mTaskbarDividerContainer, mNextViewIndex++);
+            mAddedDividerForRecents = false;
         }
 
         updateRecents(recentTasks);
 
-        addView(mAllAppsButtonContainer, mIsRtl ? hotseatItemInfos.length : 0);
+//        removeView(mAllAppsButtonContainer);
 
         // If there are no recent tasks, add divider after All Apps (unless it's the only view).
         if (!mAddedDividerForRecents
                 && mTaskbarDividerContainer != null
                 && getChildCount() > 1) {
-            addView(mTaskbarDividerContainer, mIsRtl ? (getChildCount() - 1) : 1);
+//            addView(mTaskbarDividerContainer, mIsRtl ? (getChildCount() - 1) : 1);
         }
 
         if (mActivityContext.getDeviceProfile().isQsbInline) {
@@ -509,7 +508,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             }
             removeView(mTaskbarDividerContainer);
 
-            addView(mTaskbarDividerContainer, mNextViewIndex);
+//            addView(mTaskbarDividerContainer, mNextViewIndex);
         } else if (!hasRecents && mAddedDividerForRecents) {
             mAddedDividerForRecents = false;
             removeViewAt(mNextViewIndex);
@@ -528,9 +527,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 && getChildCount() >= mNumStaticViews + 1) {
             // Static views with at least one app icon so add divider. For RTL, add it after the
             // icon that is at the expected index.
-            addView(
-                    mTaskbarDividerContainer,
-                    mIsRtl ? expectedAllAppsDividerIndex + 1 : expectedAllAppsDividerIndex);
+//            addView(
+//                    mTaskbarDividerContainer,
+//                    mIsRtl ? expectedAllAppsDividerIndex + 1 : expectedAllAppsDividerIndex);
         }
     }
 
