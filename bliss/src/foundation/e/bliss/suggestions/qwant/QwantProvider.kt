@@ -33,7 +33,7 @@ class QwantProvider : SuggestionProvider {
             Timber.e("HTTP error: ${e.code()} - ${e.message()}")
             SuggestionsResult(query).apply { networkItems = emptyList() }
         } catch (e: IOException) {
-            Timber.e("HTTP error: $e - ${e.message}")
+            Timber.e("IO error: $e - ${e.message}")
             SuggestionsResult(query).apply { networkItems = emptyList() }
         }
     }
