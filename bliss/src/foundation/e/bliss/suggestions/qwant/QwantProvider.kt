@@ -20,6 +20,7 @@ package foundation.e.bliss.suggestions.qwant
 import foundation.e.bliss.suggestions.RetrofitService
 import foundation.e.bliss.suggestions.SuggestionProvider
 import foundation.e.bliss.suggestions.SuggestionsResult
+import java.io.IOException
 import retrofit2.HttpException
 import timber.log.Timber
 
@@ -40,6 +41,9 @@ class QwantProvider : SuggestionProvider {
             }
         } catch (e: HttpException) {
             Timber.e("HTTP error: ${e.code()} - ${e.message()}")
+            SuggestionsResult(query).apply { networkItems = emptyList() }
+        } catch (e: IOException) {
+            Timber.e("HTTP error: $e - ${e.message}")
             SuggestionsResult(query).apply { networkItems = emptyList() }
         }
     }
