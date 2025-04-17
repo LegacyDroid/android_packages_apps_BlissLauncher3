@@ -7,10 +7,12 @@
  */
 package foundation.e.bliss.suggestions.qwant
 
-import android.util.Log
 import foundation.e.bliss.suggestions.RetrofitService
 import foundation.e.bliss.suggestions.SuggestionProvider
 import foundation.e.bliss.suggestions.SuggestionsResult
+import java.io.IOException
+import retrofit2.HttpException
+import timber.log.Timber
 
 class QwantProvider : SuggestionProvider {
 
@@ -18,13 +20,21 @@ class QwantProvider : SuggestionProvider {
         get() = RetrofitService.getInstance(QwantApi.BASE_URL).create(QwantApi::class.java)
 
     override suspend fun query(query: String): SuggestionsResult {
-        val result = suggestionService.query(query)
-        Log.d("QwantProvider", "Result: $result")
-        return SuggestionsResult(query).apply {
-            networkItems =
-                if (result.status == "success") {
-                    result.data?.items?.map { it.value }?.take(3) ?: emptyList()
-                } else emptyList()
+        return try {
+            val result = suggestionService.query(query)
+            Timber.d("Result: $result")
+            SuggestionsResult(query).apply {
+                networkItems =
+                    if (result.status == "success") {
+                        result.data?.items?.map { it.value }?.take(3) ?: emptyList()
+                    } else emptyList()
+            }
+        } catch (e: HttpException) {
+            Timber.e("HTTP error: ${e.code()} - ${e.message()}")
+            SuggestionsResult(query).apply { networkItems = emptyList() }
+        } catch (e: IOException) {
+            Timber.e("IO error: $e - ${e.message}")
+            SuggestionsResult(query).apply { networkItems = emptyList() }
         }
     }
 }
