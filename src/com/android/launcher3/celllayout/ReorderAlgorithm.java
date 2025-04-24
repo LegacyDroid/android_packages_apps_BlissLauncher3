@@ -123,7 +123,6 @@ public class ReorderAlgorithm {
                     result[0] = result[0] - 1;
                 }
             }
-            mCellLayout.markCellsAsUnoccupiedForView(dragView);
             if ((result[0] >= 0 && result[1] >= 0) && solution.map.containsKey(dragView)) {
                 intersectingViewsExists(result[0], result[1], spanX, spanY, direction, dragView, solution);
             } else {
