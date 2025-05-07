@@ -31,6 +31,7 @@ import static com.android.launcher3.LauncherSettings.Settings.BLOB_KEY_PREFIX;
 import static com.android.launcher3.LauncherSettings.Settings.LAYOUT_DIGEST_LABEL;
 import static com.android.launcher3.LauncherSettings.Settings.LAYOUT_DIGEST_TAG;
 import static com.android.launcher3.LauncherSettings.Settings.LAYOUT_PROVIDER_KEY;
+import static com.android.launcher3.provider.LauncherDbUtils.copyTable;
 import static com.android.launcher3.provider.LauncherDbUtils.tableExists;
 
 import android.app.blob.BlobHandle;
@@ -91,6 +92,9 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.util.List;
 
+import foundation.e.bliss.multimode.MultiModeController;
+import foundation.e.bliss.utils.BlissDbUtils;
+
 /**
  * Utility class which maintains an instance of Launcher database and provides utility methods
  * around it.
@@ -98,9 +102,16 @@ import java.util.List;
 public class ModelDbController {
     private static final String TAG = "LauncherProvider";
 
-    private static final String EMPTY_DATABASE_CREATED = "EMPTY_DATABASE_CREATED";
+    private static final String EMPTY_DATABASE_CREATED = getEmptyDatabaseCreated();
+    private static final String E_EMPTY_DATABASE_CREATED = "EMPTY_DATABASE_CREATED";
+    private static final String E_EMPTY_DATABASE_CREATED_ALL = "EMPTY_DATABASE_CREATED_ALL";
+
     public static final String EXTRA_DB_NAME = "db_name";
     public static final String DATA_TYPE_DB_FILE = "database_file";
+
+    private static String getEmptyDatabaseCreated() {
+        return MultiModeController.isSingleLayerMode() ? E_EMPTY_DATABASE_CREATED_ALL : E_EMPTY_DATABASE_CREATED;
+    }
 
     protected DatabaseHelper mOpenHelper;
 
@@ -226,7 +237,10 @@ public class ModelDbController {
 
         addModifiedTime(values);
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-        int count = db.update(table, values, selection, selectionArgs);
+        int count = 0;
+        if (tableExists(db, table)) {
+            count = db.update(table, values, selection, selectionArgs);
+        }
         return count;
     }
 
@@ -626,6 +640,15 @@ public class ModelDbController {
      */
     @WorkerThread
     public synchronized void loadDefaultFavoritesIfNecessary() {
+        if (BlissDbUtils.migrateDataFromDb(mContext, mOpenHelper)) {
+            SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+            copyTable(db, Favorites.E_TABLE_NAME_ALL,
+                    db, Favorites.E_TABLE_NAME, mContext);
+            mOpenHelper.updateItemId();
+            clearFlagEmptyDbCreated();
+            return;
+        }
+
         createDbIfNotExists();
 
         if (LauncherPrefs.get(mContext).get(getEmptyDbCreatedKey())) {
@@ -664,6 +687,8 @@ public class ModelDbController {
                     mOpenHelper.loadFavorites(mOpenHelper.getWritableDatabase(),
                             getDefaultLayoutParser(widgetHolder));
                 }
+                copyTable(mOpenHelper.getReadableDatabase(), Favorites.E_TABLE_NAME_ALL,
+                        mOpenHelper.getWritableDatabase(), Favorites.E_TABLE_NAME, mContext);
                 clearFlagEmptyDbCreated();
             } finally {
                 widgetHolder.destroy();

@@ -32,6 +32,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.content.res.XmlResourceParser;
@@ -103,8 +104,6 @@ public class InvariantDeviceProfile implements SafeCloseable, OnSharedPreference
 
     private static final float ICON_SIZE_DEFINED_IN_APP_DP = 48;
 
-    public static final String KEY_ALLAPPS_THEMED_ICONS = "pref_allapps_themed_icons";
-    public static final String KEY_DRAWER_OPEN_KEYBOARD = "pref_drawer_open_keyboard";
     public static final String KEY_SHOW_DESKTOP_LABELS = "pref_desktop_show_labels";
     public static final String KEY_SHOW_DRAWER_LABELS = "pref_drawer_show_labels";
     public static final String KEY_WORKSPACE_LOCK = "pref_workspace_lock";
@@ -135,6 +134,8 @@ public class InvariantDeviceProfile implements SafeCloseable, OnSharedPreference
      */
     public int numRows;
     public int numColumns;
+    public int numRowsFixed;
+    public int numColumnsFixed;
     public int numSearchContainerColumns;
 
     /**
@@ -360,13 +361,8 @@ public class InvariantDeviceProfile implements SafeCloseable, OnSharedPreference
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-        switch (key) {
-            case KEY_ALLAPPS_THEMED_ICONS:
-            case KEY_DRAWER_OPEN_KEYBOARD:
-            case KEY_SHOW_DESKTOP_LABELS:
-            case KEY_SHOW_DRAWER_LABELS:
-                onConfigChanged(mContext);
-                break;
+        if (KEY_SHOW_DESKTOP_LABELS.equals(key) || KEY_SHOW_DRAWER_LABELS.equals(key)) {
+            onConfigChanged(mContext);
         }
     }
 
@@ -437,7 +433,9 @@ public class InvariantDeviceProfile implements SafeCloseable, OnSharedPreference
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         GridOption closestProfile = displayOption.grid;
         numRows = closestProfile.numRows;
+        numRowsFixed = closestProfile.numRows;
         numColumns = closestProfile.numColumns;
+        numColumnsFixed = closestProfile.numColumns;
         numSearchContainerColumns = closestProfile.numSearchContainerColumns;
         dbFile = closestProfile.dbFile;
         defaultLayoutId = closestProfile.defaultLayoutId;
@@ -472,6 +470,15 @@ public class InvariantDeviceProfile implements SafeCloseable, OnSharedPreference
         inlineNavButtonsEndSpacing = closestProfile.inlineNavButtonsEndSpacing;
 
         iconSize = displayOption.iconSizes;
+        for (WindowBounds bounds : displayInfo.supportedBounds) {
+            boolean isTablet = displayInfo.isTablet(bounds);
+            if (isTablet) {
+                Configuration config = new Configuration(context.getResources().getConfiguration());
+                iconSize[INDEX_DEFAULT] *= config.smallestScreenWidthDp < 660 ? 1.15f : 1.4f;
+                iconSize[INDEX_LANDSCAPE] *= config.smallestScreenWidthDp < 660 ? 1.15f : 1.4f;
+                break;
+            }
+        }
         float maxIconSize = iconSize[0];
         for (int i = 1; i < iconSize.length; i++) {
             maxIconSize = Math.max(maxIconSize, iconSize[i]);
@@ -845,6 +852,8 @@ public class InvariantDeviceProfile implements SafeCloseable, OnSharedPreference
             if (numRows > 0 && numColumns > 0) {
                 this.numRows = numRows;
                 this.numColumns = numColumns;
+                this.numRowsFixed = numRows;
+                this.numColumnsFixed = numColumns;
             }
             if (iconSizePx > 0) {
                 this.iconSize[InvariantDeviceProfile.INDEX_DEFAULT] =

@@ -64,6 +64,7 @@ import com.android.launcher3.celllayout.ItemConfiguration;
 import com.android.launcher3.celllayout.ReorderAlgorithm;
 import com.android.launcher3.celllayout.ReorderParameters;
 import com.android.launcher3.celllayout.ReorderPreviewAnimation;
+import com.android.launcher3.celllayout.ViewCluster;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dragndrop.DraggableView;
 import com.android.launcher3.folder.PreviewBackground;
@@ -85,7 +86,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Stack;
+
+import foundation.e.bliss.multimode.MultiModeController;
 
 public class CellLayout extends ViewGroup {
     private static final String TAG = "CellLayout";
@@ -95,6 +99,10 @@ public class CellLayout extends ViewGroup {
     private static final int FOLDER_LEAVE_BEHIND_COLOR = Color.argb(160, 245, 245, 245);
 
     protected final ActivityContext mActivity;
+
+    public int translationX = 0;
+    public int translationY = 0;
+
     @ViewDebug.ExportedProperty(category = "launcher")
     @Thunk int mCellWidth;
     @ViewDebug.ExportedProperty(category = "launcher")
@@ -110,6 +118,8 @@ public class CellLayout extends ViewGroup {
     protected int mCountY;
 
     private boolean mDropPending = false;
+    private boolean mIsDragTarget = true;
+    private boolean mJailContent = true;
 
     // These are temporary variables to prevent having to allocate a new object just to
     // return an (x, y) value from helper functions. Do NOT use them to maintain other state.
@@ -213,6 +223,8 @@ public class CellLayout extends ViewGroup {
     DragAndDropAccessibilityDelegate mTouchHelper;
 
     CellLayoutContainer mCellLayoutContainer;
+
+    ArrayList<CellAndSpan> mWidgetCellAndSpanList = new ArrayList<>();
 
     public static final FloatProperty<CellLayout> SPRING_LOADED_PROGRESS =
             new FloatProperty<CellLayout>("spring_loaded_progress") {
@@ -448,16 +460,32 @@ public class CellLayout extends ViewGroup {
         }
     }
 
+    void disableDragTarget() {
+        mIsDragTarget = false;
+    }
+
+    public boolean isDragTarget() {
+        return mIsDragTarget;
+    }
+
+    public void disableJailContent() {
+        mJailContent = false;
+    }
+
     @Override
     protected void dispatchSaveInstanceState(SparseArray<Parcelable> container) {
-        ParcelableSparseArray jail = getJailedArray(container);
-        super.dispatchSaveInstanceState(jail);
-        container.put(R.id.cell_layout_jail_id, jail);
+        if (mJailContent) {
+            ParcelableSparseArray jail = getJailedArray(container);
+            super.dispatchSaveInstanceState(jail);
+            container.put(R.id.cell_layout_jail_id, jail);
+        } else {
+            super.dispatchSaveInstanceState(container);
+        }
     }
 
     @Override
     protected void dispatchRestoreInstanceState(SparseArray<Parcelable> container) {
-        super.dispatchRestoreInstanceState(getJailedArray(container));
+        super.dispatchRestoreInstanceState(mJailContent ? getJailedArray(container) : container);
     }
 
     /**
@@ -476,6 +504,10 @@ public class CellLayout extends ViewGroup {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        if (!mIsDragTarget) {
+            return;
+        }
+
         // When we're large, we are either drawn in a "hover" state (ie when dragging an item to
         // a neighboring page) or with just a normal background (if backgroundAlpha > 0.0f)
         // When we're small, we are either drawn normally or in the "accepts drops" state (during
@@ -567,7 +599,9 @@ public class CellLayout extends ViewGroup {
     public void setSpringLoadedProgress(float progress) {
         if (Float.compare(progress, mSpringLoadedProgress) != 0) {
             mSpringLoadedProgress = progress;
-            updateBgAlpha();
+            if (!MultiModeController.isSingleLayerMode()) {
+                updateBgAlpha();
+            }
             setGridAlpha(progress);
         }
     }
@@ -592,7 +626,9 @@ public class CellLayout extends ViewGroup {
     public void setScrollProgress(float progress) {
         if (Float.compare(Math.abs(progress), mScrollProgress) != 0) {
             mScrollProgress = Math.abs(progress);
-            updateBgAlpha();
+            if (!MultiModeController.isSingleLayerMode()) {
+                updateBgAlpha();
+            }
         }
     }
 
@@ -626,7 +662,7 @@ public class CellLayout extends ViewGroup {
             }
         }
 
-        if (mVisualizeDropLocation) {
+        if (mVisualizeDropLocation && !MultiModeController.isSingleLayerMode()) {
             for (int i = 0; i < mDragOutlines.length; i++) {
                 final float alpha = mDragOutlineAlphas[i];
                 if (alpha <= 0) continue;
@@ -740,7 +776,10 @@ public class CellLayout extends ViewGroup {
     }
 
     public boolean acceptsWidget() {
-        return mContainerType == WORKSPACE;
+        if (MultiModeController.isSingleLayerMode()) {
+            return false;
+        }
+            return mContainerType == WORKSPACE;
     }
 
     /**
@@ -929,7 +968,7 @@ public class CellLayout extends ViewGroup {
         DeviceProfile grid = mActivity.getDeviceProfile();
         float iconVisibleRadius = ICON_VISIBLE_AREA_FACTOR * grid.iconSizePx / 2;
         // Halfway between reorder radius and icon.
-        return (getReorderRadius(targetCell, 1, 1) + iconVisibleRadius) / 2;
+        return (getReorderRadius(targetCell, 1, 1) + iconVisibleRadius) / 4;
     }
 
     /**
@@ -1049,7 +1088,7 @@ public class CellLayout extends ViewGroup {
 
     @Override
     protected boolean verifyDrawable(Drawable who) {
-        return super.verifyDrawable(who) || (who == mBackground);
+        return super.verifyDrawable(who) || (mIsDragTarget && who == mBackground);
     }
 
     public ShortcutAndWidgetContainer getShortcutsAndWidgets() {
@@ -1395,7 +1434,7 @@ public class CellLayout extends ViewGroup {
         int childCount = mShortcutsAndWidgets.getChildCount();
         for (int i = 0; i < childCount; i++) {
             View child = mShortcutsAndWidgets.getChildAt(i);
-            if (child == dragView) continue;
+            // if (child == dragView) continue;
             CellAndSpan c = solution.map.get(child);
             if (c != null) {
                 animateChildToPosition(child, c.cellX, c.cellY, REORDER_ANIMATION_DURATION, 0,
@@ -1580,12 +1619,16 @@ public class CellLayout extends ViewGroup {
     }
 
     public void copyCurrentStateToSolution(ItemConfiguration solution) {
+        mWidgetCellAndSpanList.clear();
         int childCount = mShortcutsAndWidgets.getChildCount();
         for (int i = 0; i < childCount; i++) {
             View child = mShortcutsAndWidgets.getChildAt(i);
             CellLayoutLayoutParams lp = (CellLayoutLayoutParams) child.getLayoutParams();
-            solution.add(child,
-                    new CellAndSpan(lp.getCellX(), lp.getCellY(), lp.cellHSpan, lp.cellVSpan));
+            CellAndSpan c = new CellAndSpan(lp.getCellX(), lp.getCellY(), lp.cellHSpan, lp.cellVSpan);
+            if (child instanceof LauncherAppWidgetHostView) {
+                mWidgetCellAndSpanList.add(c);
+            }
+            solution.add(child, c);
         }
     }
 
@@ -1686,7 +1729,7 @@ public class CellLayout extends ViewGroup {
             if (!DESTRUCTIVE_REORDER
                     && (mode == MODE_ON_DROP || mode == MODE_ON_DROP_EXTERNAL)) {
                 // Since the temp solution didn't update dragView, don't commit it either
-                commitTempPlacement(dragView);
+                commitTempPlacement(null);
                 completeAndClearReorderPreviewAnimations();
                 setItemPlacementDirty(false);
             } else {
@@ -1748,6 +1791,21 @@ public class CellLayout extends ViewGroup {
             cellXY = new int[2];
         }
         return mOccupied.findVacantCell(cellXY, spanX, spanY);
+    }
+
+    public int[] getLastOccupiedCells() {
+        int[] loc = new int[]{-1, -1};
+        out:
+        for (int y = mCountY - 1; y >= 0; y--) {
+            for (int x = mCountX - 1; x >= 0; x--) {
+                if (isOccupied(x, y)) {
+                    loc[0] = x;
+                    loc[1] = y;
+                    break out;
+                }
+            }
+        }
+        return loc;
     }
 
     /**
@@ -1816,8 +1874,8 @@ public class CellLayout extends ViewGroup {
                 + (int) Math.ceil(getUnusedHorizontalSpace() / 2f);
         final int vStartPadding = getPaddingTop();
 
-        int x = hStartPadding + (cellX * mBorderSpace.x) + (cellX * cellWidth);
-        int y = vStartPadding + (cellY * mBorderSpace.y) + (cellY * cellHeight);
+        int x = hStartPadding + (cellX * mBorderSpace.x) + (cellX * cellWidth) + translationX;
+        int y = vStartPadding + (cellY * mBorderSpace.y) + (cellY * cellHeight) + translationY;
 
         int width = cellHSpan * cellWidth + ((cellHSpan - 1) * mBorderSpace.x);
         int height = cellVSpan * cellHeight + ((cellVSpan - 1) * mBorderSpace.y);
@@ -1953,5 +2011,144 @@ public class CellLayout extends ViewGroup {
 
     public void setSpaceBetweenCellLayoutsPx(@Px int spaceBetweenCellLayoutsPx) {
         mSpaceBetweenCellLayoutsPx = spaceBetweenCellLayoutsPx;
+    }
+
+    public int isCellInLauncherAppWidget(int x, int y, int whichEdge) {
+        for (CellAndSpan c : mWidgetCellAndSpanList) {
+            if (x >= c.cellX && x < c.cellX + c.spanX && y >= c.cellY && y < c.cellY + c.spanY) {
+                if (whichEdge == ViewCluster.LEFT) {
+                    return c.cellX;
+                } else if (whichEdge == ViewCluster.RIGHT) {
+                    return c.cellX + c.spanX - 1;
+                }
+            }
+        }
+        return -1;
+    }
+
+    public void reArrangeIcons(int x, int y) {
+        ItemConfiguration solution = new ItemConfiguration();
+        copyCurrentStateToSolution(solution);
+
+        solution.save();
+
+        int[] intersecting = new int[2];
+        ArrayList<View> views = new ArrayList<>();
+
+        if (x == 0) {
+            intersecting[0] = getCountX() - 1;
+            intersecting[1] = y - 1;
+        } else {
+            intersecting[0] = x - 1;
+            intersecting[1] = y;
+        }
+
+        for (Map.Entry <View, CellAndSpan> keyValue : solution.map.entrySet()) {
+            CellAndSpan c = keyValue.getValue();
+
+            if (c.cellX == x && c.cellY == y) {
+                mTmpOccupied.markCells(c, false);
+                views.add(keyValue.getKey());
+                pushIconByRow(c, mCountX, mCountY, ViewCluster.LEFT);
+            }
+        }
+
+        ViewCluster cluster = new ViewCluster(this, views, solution);
+        cluster.sortConfigurationForEdgePush(ViewCluster.LEFT);
+
+        solution.sortedViews.sort((lhs, rhs) -> {
+            CellLayoutLayoutParams lplhs = (CellLayoutLayoutParams) lhs.getLayoutParams();
+            CellLayoutLayoutParams lprhs = (CellLayoutLayoutParams) rhs.getLayoutParams();
+            if (lprhs.getCellY() + lprhs.cellVSpan == lplhs.getCellY() + lplhs.cellVSpan) {
+                return lprhs.getCellX() - lplhs.getCellX();
+            }
+            return (lprhs.getCellY() + lprhs.cellVSpan) - (lplhs.getCellY() + lplhs.cellVSpan);
+        });
+
+        for (View v: solution.sortedViews) {
+            CellAndSpan c = solution.map.get(v);
+            CellLayoutLayoutParams lp = (CellLayoutLayoutParams) v.getLayoutParams();
+            if (!lp.canReorder) {
+                // The push solution includes the all apps button, this is not viable.
+                break;
+            }
+            if (cluster.isViewTouchingEdge(v, ViewCluster.LEFT)) {
+                if (!cluster.views.contains(v)) {
+                    cluster.addView(v);
+                }
+                mTmpOccupied.markCells(c, false);
+                pushIconByRow(c, getCountX(), getCountY(),ViewCluster.LEFT);
+            }
+        }
+        cluster.shift(ViewCluster.LEFT, 1);
+
+        Rect clusterRect = cluster.getBoundingRect();
+        boolean isSolution = false;
+        if (clusterRect.left >= 0 && clusterRect.right <= mCountX && clusterRect.top >= 0 &&
+                clusterRect.bottom <= mCountY) {
+            isSolution = true;
+        } else {
+            solution.restore();
+        }
+
+        for (View v: cluster.views) {
+            CellAndSpan c = solution.map.get(v);
+            mTmpOccupied.markCells(c, true);
+        }
+
+        if (isSolution) {
+            solution.cellX = intersecting[0];
+            solution.cellY = intersecting[1];
+            solution.spanX = 1;
+            solution.spanY = 1;
+            solution.isSolution = true;
+
+
+            if (!views.isEmpty() && views.get(0) != null) {
+                performReorder(solution, views.get(0), MODE_ON_DROP);
+            }
+        }
+    }
+
+    public void pushIconByRow(CellAndSpan c, int countX, int countY, int whichEdge) {
+        if (whichEdge == ViewCluster.LEFT) {
+            if (c.cellX == 0 && c.cellY - c.spanY >= 0) {
+                c.cellY = c.cellY - c.spanY;
+                c.cellX = countX;
+            }
+            int result = isCellInLauncherAppWidget(c.cellX - 1, c.cellY, ViewCluster.LEFT);
+            if (result != -1) {
+                c.cellX = result;
+                while (c.cellX == 0 && c.cellY - c.spanY >= 0) {
+                    c.cellY = c.cellY - c.spanY;
+                    c.cellX = countX;
+                    int cellX = isCellInLauncherAppWidget(c.cellX - 1, c.cellY, ViewCluster.LEFT);
+                    if (cellX != -1) {
+                        c.cellX = cellX;
+                    }
+                }
+            }
+        } else if (whichEdge == ViewCluster.RIGHT) {
+            if (c.cellX == countX - 1 && c.cellY + c.spanY <= countY - 1) {
+                c.cellY = c.cellY + c.spanY;
+                c.cellX = -1;
+            }
+            int result = isCellInLauncherAppWidget(c.cellX + 1, c.cellY, ViewCluster.RIGHT);
+            if (result != -1) {
+                c.cellX = result;
+                while (c.cellX == countX - 1 && c.cellY + c.spanY <= countY - 1) {
+                    c.cellY = c.cellY + c.spanY;
+                    c.cellX = -1;
+                    int cellX = isCellInLauncherAppWidget(c.cellX + 1, c.cellY, ViewCluster.RIGHT);
+                    if (cellX != -1) {
+                        c.cellX = cellX;
+                    }
+                }
+            }
+        }
+    }
+
+    public boolean isWidget() {
+        return Workspace.isWidget;
     }
 }

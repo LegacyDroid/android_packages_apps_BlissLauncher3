@@ -49,7 +49,7 @@ class ModelTaskController(
      * Updates from model task, do not deal with icon position in hotseat. Also no need to verify
      * changes as the ModelTasks always push the changes to callbacks
      */
-    fun getModelWriter() = model.getWriter(false /* verifyChanges */, CellPosMapper.DEFAULT, null)
+    fun getModelWriter() = model.getWriter(false, /* hasVerticalHotseat */false /* verifyChanges */, CellPosMapper.DEFAULT, null)
 
     fun bindUpdatedWorkspaceItems(allUpdates: List<WorkspaceItemInfo>) {
         // Bind workspace items

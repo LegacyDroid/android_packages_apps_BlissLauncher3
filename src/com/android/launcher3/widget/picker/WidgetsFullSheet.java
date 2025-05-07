@@ -60,6 +60,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.launcher3.BaseActivity;
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.Launcher;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.compat.AccessibilityManagerCompat;
@@ -86,6 +87,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
+
+import foundation.e.bliss.multimode.MultiModeController;
+import foundation.e.bliss.widgets.WidgetContainer.WidgetFragment;
 
 /**
  * Popup for showing the full list of available widgets
@@ -162,6 +166,8 @@ public class WidgetsFullSheet extends BaseWidgetSheet
     protected TextView mHeaderTitle;
     protected RecyclerViewFastScroller mFastScroller;
     protected int mBottomPadding;
+
+    private static boolean isEditMode = false;
 
     public WidgetsFullSheet(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
@@ -519,7 +525,14 @@ public class WidgetsFullSheet extends BaseWidgetSheet
             defaultWidgets = dataProvider.getDefaultWidgets();
         } else {
             // This code path can be deleted once enableTieredWidgetsByDefaultInPicker is inlined.
-            widgets = getWidgetsToDisplay();
+            List<WidgetsListBaseEntry> fullWidgets = new ArrayList<>(getWidgetsToDisplay());
+            if (isEditMode) {
+                fullWidgets.removeIf(item -> {
+                    item.mWidgets.removeIf(widget -> widget.widgetInfo == null);
+                    return item.mWidgets.isEmpty();
+                });
+            }
+            widgets = fullWidgets;
         }
 
         AdapterHolder primaryUserAdapterHolder = mAdapters.get(AdapterHolder.PRIMARY);
@@ -793,6 +806,11 @@ public class WidgetsFullSheet extends BaseWidgetSheet
                 || (activity.getDeviceProfile().isTwoPanels && enableUnfoldedTwoPanePicker());
 
         return isTwoPane ? R.layout.widgets_two_pane_sheet : R.layout.widgets_full_sheet;
+    }
+
+    public static WidgetsFullSheet show(Launcher launcher, boolean animate, boolean inEditMode) {
+        isEditMode = inEditMode;
+        return show(launcher, animate);
     }
 
     @Override
@@ -1077,6 +1095,23 @@ public class WidgetsFullSheet extends BaseWidgetSheet
         return findViewById(R.id.primary_widgets_list_view);
     }
 
+    public void onClick(View v) {
+        if (isEditMode) {
+            WidgetFragment.onWidgetClick(mActivityContext, v, close -> {
+                handleClose(false);
+                return null;
+            });
+        } else {
+            super.onClick(v);
+        }
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        if (isEditMode) return false;
+        return super.onLongClick(v);
+    }
+
     /** A holder class for holding adapters & their corresponding recycler view. */
     final class AdapterHolder {
         static final int PRIMARY = 0;
@@ -1097,8 +1132,8 @@ public class WidgetsFullSheet extends BaseWidgetSheet
                     context,
                     LayoutInflater.from(context),
                     this::getEmptySpaceHeight,
-                    /* iconClickListener= */ WidgetsFullSheet.this,
-                    /* iconLongClickListener= */ WidgetsFullSheet.this,
+                    WidgetsFullSheet.this,
+                    WidgetsFullSheet.this,
                     /* expandButtonClickListener= */ WidgetsFullSheet.this,
                     isTwoPane());
             mWidgetsListAdapter.setHasStableIds(true);

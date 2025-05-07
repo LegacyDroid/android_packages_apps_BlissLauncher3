@@ -27,7 +27,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.LauncherModel.CallbackTask;
-import com.android.launcher3.LauncherModel.ModelUpdateTask;
+import com.android.launcher3.ModelUpdateTask;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.logging.FileLog;
@@ -61,6 +61,23 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
 
     @NonNull
     private final WorkspaceItemSpaceFinder mItemSpaceFinder;
+
+    private boolean mAnimated = true;
+    private static boolean mIgnoreLoaded = false;
+
+    @Override
+    public boolean isIgnoreLoaded() {
+        return mIgnoreLoaded;
+    }
+
+    public AddWorkspaceItemsTask(List<Pair<ItemInfo, Object>> itemList, boolean ignoreLoaded) {
+        this(itemList);
+        mIgnoreLoaded = ignoreLoaded;
+    }
+
+    public void setEnableAnimated(boolean animated) {
+        mAnimated = animated;
+    }
 
     /**
      * @param itemList items to add on the workspace
@@ -105,7 +122,8 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
 
                     // b/139663018 Short-circuit this logic if the icon is a system app
                     if (new ApplicationInfoWrapper(context,
-                            Objects.requireNonNull(item.getIntent())).isSystem()) {
+                            Objects.requireNonNull(item.getIntent())).isSystem()
+                            && !isIgnoreLoaded()) {
                         continue;
                     }
 

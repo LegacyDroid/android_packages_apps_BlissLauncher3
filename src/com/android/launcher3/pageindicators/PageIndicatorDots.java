@@ -46,9 +46,13 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.Insettable;
+import com.android.launcher3.Launcher;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
+import com.android.launcher3.folder.Folder;
 import com.android.launcher3.util.Themes;
+
+import foundation.e.bliss.multimode.MultiModeController;
 
 /**
  * {@link PageIndicator} which shows dots per page. The active page is shown with the current
@@ -70,7 +74,7 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
     private static final int PAGE_INDICATOR_ALPHA = 255;
     private static final int DOT_ALPHA = 128;
     private static final float DOT_ALPHA_FRACTION = 0.5f;
-    private static final int DOT_GAP_FACTOR = 4;
+    private static final float DOT_GAP_FACTOR = 3.5f;
     private static final int VISIBLE_ALPHA = 255;
     private static final int INVISIBLE_ALPHA = 0;
     private Paint mPaginationPaint;
@@ -186,6 +190,10 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
             currentScroll = totalScroll - currentScroll;
         }
 
+        if (currentScroll == 0) {
+            return;
+        }
+
         mTotalScroll = totalScroll;
 
         int scrollPerPage = totalScroll / (mNumPages - 1);
@@ -231,8 +239,22 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
     }
 
     private void hideAfterDelay() {
+        if (MultiModeController.isSingleLayerMode()) return;
         mDelayedPaginationFadeHandler.removeCallbacksAndMessages(null);
         mDelayedPaginationFadeHandler.postDelayed(mHidePaginationRunnable, PAGINATION_FADE_DELAY);
+    }
+
+
+    @Override
+    public void setAlpha(float alpha) {
+        Launcher launcher = Launcher.getLauncher(getContext());
+        if (launcher.getWorkspace().getPageIndicator() == this) {
+            if (Folder.getOpen(launcher) == null) {
+                super.setAlpha(alpha);
+            }
+        } else {
+            super.setAlpha(alpha);
+        }
     }
 
     private void animatePaginationToAlpha(int alpha) {
@@ -509,6 +531,14 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
                 );
             }
         }
+    }
+
+    @Override
+    public void setTranslationY(float translationY) {
+    }
+
+    public void  setForcedTranslationY(float translationY) {
+        super.setTranslationY(translationY);
     }
 
     /**

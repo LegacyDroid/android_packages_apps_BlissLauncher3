@@ -130,6 +130,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import foundation.e.bliss.LauncherAppMonitor;
+
 /**
  * Service connected by system-UI for handling touch interaction.
  */
@@ -672,6 +674,7 @@ public class TouchInteractionService extends Service {
             mRecentsWindowManager = new RecentsWindowManager(this);
         }
         mInputConsumer = InputConsumerController.getRecentsAnimationInputConsumer();
+        LauncherAppMonitor.getInstance(this);
 
         // Call runOnUserUnlocked() before any other callbacks to ensure everything is initialized.
         LockedUserState.get(this).runOnUserUnlocked(mUserUnlockedRunnable);

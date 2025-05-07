@@ -53,6 +53,7 @@ import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.PackageManagerHelper
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.util.Preconditions
+import foundation.e.bliss.LauncherAppMonitor
 import java.io.FileDescriptor
 import java.io.PrintWriter
 import java.util.concurrent.CancellationException
@@ -82,7 +83,7 @@ class LauncherModel(
      * All the static data should be accessed on the background thread, A lock should be acquired on
      * this object when accessing any data from this model.
      */
-    private val mBgDataModel = BgDataModel()
+    val mBgDataModel = BgDataModel()
 
     val modelDelegate: ModelDelegate =
         ModelDelegate.newInstance(
@@ -136,11 +137,34 @@ class LauncherModel(
         enqueueModelUpdateTask(AddWorkspaceItemsTask(itemList))
     }
 
+    /**
+     * Adds the provided items to the workspace.
+     */
+    fun addAndBindAddedWorkspaceItems(
+        itemList: List<Pair<ItemInfo?, Any?>?>,
+        animated: Boolean, ignoreLoaded: Boolean
+    ) {
+        callbacks.forEach { it.preAddApps() }
+        val sortedItemList = if (ignoreLoaded) {
+            itemList
+                .filterNotNull()
+                .sortedBy { it.first?.title?.toString()?.lowercase() ?: "" }
+        } else {
+            itemList
+        }
+        enqueueModelUpdateTask(AddWorkspaceItemsTask(sortedItemList))
+        val addWorkspaceItemsTask =
+            AddWorkspaceItemsTask(sortedItemList, ignoreLoaded)
+        addWorkspaceItemsTask.setEnableAnimated(animated)
+        enqueueModelUpdateTask(addWorkspaceItemsTask)
+    }
+
     fun getWriter(
+        hasVerticalHotseat: Boolean,
         verifyChanges: Boolean,
         cellPosMapper: CellPosMapper?,
         owner: BgDataModel.Callbacks?,
-    ) = ModelWriter(mApp.context, this, mBgDataModel, verifyChanges, cellPosMapper, owner)
+    ) = ModelWriter(mApp.context, this, mBgDataModel, hasVerticalHotseat, verifyChanges, cellPosMapper, owner)
 
     /** Returns the [WidgetsFilterDataProvider] that manages widget filters. */
     fun getWidgetsFilterDataProvider(): WidgetsFilterDataProvider {
@@ -183,6 +207,7 @@ class LauncherModel(
             DevicePolicyManager.ACTION_DEVICE_POLICY_RESOURCE_UPDATED ->
                 enqueueModelUpdateTask(ReloadStringCacheTask(this.modelDelegate))
         }
+        LauncherAppMonitor.getInstanceNoCreate().onReceive(intent);
     }
 
     /**
@@ -387,6 +412,10 @@ class LauncherModel(
             }
         }
 
+        fun isModelLoaded(): Boolean {
+            return mModelLoaded
+        }
+
         override fun close() {
             synchronized(mLock) {
                 // If we are still the last one to be scheduled, remove ourselves.
@@ -441,7 +470,7 @@ class LauncherModel(
             return
         }
         MODEL_EXECUTOR.execute {
-            if (!isModelLoaded()) {
+            if (!isModelLoaded() && !task.isIgnoreLoaded) {
                 // Loader has not yet run.
                 return@execute
             }
@@ -459,10 +488,6 @@ class LauncherModel(
      */
     fun interface CallbackTask {
         fun execute(callbacks: BgDataModel.Callbacks)
-    }
-
-    fun interface ModelUpdateTask {
-        fun execute(taskController: ModelTaskController, dataModel: BgDataModel, apps: AllAppsList)
     }
 
     fun updateAndBindWorkspaceItem(si: WorkspaceItemInfo, info: ShortcutInfo) {

@@ -16,8 +16,10 @@
 package com.android.launcher3.celllayout;
 
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 
 import com.android.launcher3.LauncherSettings.Favorites;
+import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.model.data.ItemInfo;
 
 import java.util.Objects;
@@ -27,14 +29,9 @@ import java.util.Objects;
  */
 public class CellPosMapper {
 
-    public static final CellPosMapper DEFAULT = new CellPosMapper(false, -1);
-    private final boolean mHasVerticalHotseat;
-    private final int mNumOfHotseat;
+    public static final CellPosMapper DEFAULT = new CellPosMapper();
 
-    public CellPosMapper(boolean hasVerticalHotseat, int numOfHotseat) {
-        mHasVerticalHotseat = hasVerticalHotseat;
-        mNumOfHotseat = numOfHotseat;
-    }
+    private CellPosMapper() { }
 
     /**
      * Maps the position in model to the position in view
@@ -48,22 +45,55 @@ public class CellPosMapper {
      */
     public CellPos mapPresenterToModel(int presenterX, int presenterY, int presenterScreen,
             int container) {
-        if (container == Favorites.CONTAINER_HOTSEAT) {
-            presenterScreen = mHasVerticalHotseat
-                    ? mNumOfHotseat - presenterY - 1 : presenterX;
-        }
         return new CellPos(presenterX, presenterY, presenterScreen);
+    }
+
+
+    /**
+     * Cell mapper which maps a portrait layout to landscape, maintaining sequence
+     */
+    public static class TransposeCellPosMapper extends CellPosMapper  {
+
+        private final InvariantDeviceProfile mIDP;
+
+        public TransposeCellPosMapper(InvariantDeviceProfile idp) {
+            this.mIDP = idp;
+        }
+
+        /**
+         * Maps the position in model to the position in view
+         */
+        public CellPos mapModelToPresenter(ItemInfo info) {
+            if (info.container != Favorites.CONTAINER_DESKTOP) {
+                return super.mapModelToPresenter(info);
+            }
+            final int numRows = mIDP.numRowsFixed;
+            final int numColumns = mIDP.numColumnsFixed;
+            final int index = (info.cellY * numColumns) + info.cellX;
+            return new CellPos(index % numRows, index / numRows, info.screenId);
+        }
+
+        @Override
+        public CellPos mapPresenterToModel(int presenterX, int presenterY, int presenterScreen,
+                                           int container) {
+            if (container != Favorites.CONTAINER_DESKTOP) {
+                return super.mapPresenterToModel(presenterX, presenterY, presenterScreen, container);
+            }
+            final int numRows = mIDP.numColumnsFixed;
+            final int numColumns = mIDP.numRowsFixed;
+            final int index = (presenterY * numColumns) + presenterX;
+            return new CellPos(index % numRows, index / numRows, presenterScreen);
+        }
     }
 
     /**
      * Cell mapper which maps two panels into a single layout
      */
-    public static class TwoPanelCellPosMapper extends CellPosMapper {
+    public static class TwoPanelCellPosMapper extends CellPosMapper  {
 
         private final int mColumnCount;
 
         public TwoPanelCellPosMapper(int columnCount) {
-            super(false, -1);
             mColumnCount = columnCount;
         }
 
@@ -113,14 +143,6 @@ public class CellPosMapper {
         @Override
         public int hashCode() {
             return Objects.hash(cellX, cellY, screenId);
-        }
-
-        @Override
-        public String toString() {
-            return "CellPos{"
-                    + "cellX=" + cellX
-                    + ", cellY=" + cellY
-                    + ", screenId=" + screenId + '}';
         }
     }
 }
