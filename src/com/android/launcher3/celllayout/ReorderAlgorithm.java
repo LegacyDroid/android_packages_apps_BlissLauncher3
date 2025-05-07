@@ -333,7 +333,7 @@ public class ReorderAlgorithm {
             if (cluster.views.size() == 1) {
                 View v = cluster.views.get(0);
                 CellAndSpan c = currentState.map.get(v);
-                pushIconByRow(c, countX, countY, whichEdge);
+                mCellLayout.pushIconByRow(c, countX, countY, whichEdge);
             }
         }
 
@@ -808,43 +808,5 @@ public class ReorderAlgorithm {
             bestXY[1] = -1;
         }
         return bestXY;
-    }
-
-    private void pushIconByRow(CellAndSpan c, int countX, int countY, int whichEdge) {
-        if (whichEdge == ViewCluster.LEFT) {
-            if (c.cellX == 0 && c.cellY - c.spanY >= 0) {
-                c.cellY = c.cellY - c.spanY;
-                c.cellX = countX;
-            }
-            int result = mCellLayout.isCellInLauncherAppWidget(c.cellX - 1, c.cellY, ViewCluster.LEFT);
-            if (result != -1) {
-                c.cellX = result;
-                while (c.cellX == 0 && c.cellY - c.spanY >= 0) {
-                    c.cellY = c.cellY - c.spanY;
-                    c.cellX = countX;
-                    int cellX = mCellLayout.isCellInLauncherAppWidget(c.cellX - 1, c.cellY, ViewCluster.LEFT);
-                    if (cellX != -1) {
-                        c.cellX = cellX;
-                    }
-                }
-            }
-        } else if (whichEdge == ViewCluster.RIGHT) {
-            if (c.cellX == countX - 1 && c.cellY + c.spanY <= countY - 1) {
-                c.cellY = c.cellY + c.spanY;
-                c.cellX = -1;
-            }
-            int result = mCellLayout.isCellInLauncherAppWidget(c.cellX + 1, c.cellY, ViewCluster.RIGHT);
-            if (result != -1) {
-                c.cellX = result;
-                while (c.cellX == countX - 1 && c.cellY + c.spanY <= countY - 1) {
-                    c.cellY = c.cellY + c.spanY;
-                    c.cellX = -1;
-                    int cellX = mCellLayout.isCellInLauncherAppWidget(c.cellX + 1, c.cellY, ViewCluster.RIGHT);
-                    if (cellX != -1) {
-                        c.cellX = cellX;
-                    }
-                }
-            }
-        }
     }
 }
