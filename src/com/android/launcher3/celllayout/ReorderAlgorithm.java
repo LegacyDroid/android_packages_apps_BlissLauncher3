@@ -73,30 +73,8 @@ public class ReorderAlgorithm {
         boolean success;
         // First we try the exact nearest position of the item being dragged,
         // we will then want to try to move this around to other neighbouring positions
-        if (!mCellLayout.intersectingViewsExists(result[0], result[1], spanX, spanY, direction, dragView, solution)) {
-            int[] nearestResult = new int[2];
-            mCellLayout.markCellsAsOccupiedForView(dragView);
-            mCellLayout.findCellForSpan(nearestResult, spanX, spanY);
-            if (nearestResult[1] <= result[1]) {
-                result = nearestResult;
-                if (result[0] == 0) {
-                    result[0] = mCellLayout.getCountX() - 1;
-                    result[1] = result[1] - 1;
-                } else {
-                    result[0] = result[0] - 1;
-                }
-            }
-            mCellLayout.markCellsAsUnoccupiedForView(dragView);
-            if ((result[0] >= 0 && result[1] >= 0) && solution.map.containsKey(dragView)) {
-                mCellLayout.intersectingViewsExists(result[0], result[1], spanX, spanY, direction, dragView, solution);
-            } else {
-                mCellLayout.findCellForSpan(nearestResult, spanX, spanY);
-                result = nearestResult;
-                mCellLayout.intersectingViewsExists(result[0], result[1], spanX, spanY, direction, dragView, solution);
-            }
-            mCellLayout.markCellsAsUnoccupiedForView(dragView);
-        }
-        success = mCellLayout.rearrangementExists(direction, dragView, solution);
+        success = mCellLayout.rearrangementExists(result[0], result[1], spanX, spanY, direction,
+                dragView, solution);
 
         if (!success) {
             // We try shrinking the widget down to size in an alternating pattern, shrink 1 in
