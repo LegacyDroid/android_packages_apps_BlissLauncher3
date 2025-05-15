@@ -1927,36 +1927,34 @@ public class CellLayout extends ViewGroup {
             // to find a solution by pushing along the perpendicular axis.
 
             // Swap the components
-            if (isWidget()) {
-                int temp = direction[1];
-                direction[1] = direction[0];
-                direction[0] = temp;
-                if (pushViewsToTempLocation(intersectingViews, occupied, direction,
-                        ignoreView, solution)) {
-                    return true;
-                }
-
-                // Then we try the opposite direction
-                direction[0] *= -1;
-                direction[1] *= -1;
-                if (pushViewsToTempLocation(intersectingViews, occupied, direction,
-                        ignoreView, solution)) {
-                    return true;
-                }
-                // Switch the direction back
-                direction[0] *= -1;
-                direction[1] *= -1;
-
-                // Swap the components back
-                temp = direction[1];
-                direction[1] = direction[0];
-                direction[0] = temp;
+            int temp = direction[1];
+            direction[1] = direction[0];
+            direction[0] = temp;
+            if (pushViewsToTempLocation(intersectingViews, occupied, direction,
+                    ignoreView, solution)) {
+                return true;
             }
+
+            // Then we try the opposite direction
+            direction[0] *= -1;
+            direction[1] *= -1;
+            if (pushViewsToTempLocation(intersectingViews, occupied, direction,
+                    ignoreView, solution)) {
+                return true;
+            }
+            // Switch the direction back
+            direction[0] *= -1;
+            direction[1] *= -1;
+
+            // Swap the components back
+            temp = direction[1];
+            direction[1] = direction[0];
+            direction[0] = temp;
         }
         return false;
     }
 
-    private boolean intersectingViewsExists(int cellX, int cellY, int spanX, int spanY, int[] direction,
+    private boolean rearrangementExists(int cellX, int cellY, int spanX, int spanY, int[] direction,
             View ignoreView, ItemConfiguration solution) {
         // Return early if get invalid cell positions
         if (cellX < 0 || cellY < 0) return false;
@@ -1992,27 +1990,19 @@ public class CellLayout extends ViewGroup {
 
         solution.intersectingViews = new ArrayList<>(mIntersectingViews);
 
-        return !mIntersectingViews.isEmpty();
-    }
-
-    public boolean rearrangementExists(int[] direction, View ignoreView, ItemConfiguration solution) {
         // First we try to find a solution which respects the push mechanic. That is,
         // we try to find a solution such that no displaced item travels through another item
         // without also displacing that item.
-        if (mIntersectingViews.size() == 1 || mIntersectingViews.isEmpty()) {
-            if (attemptPushInDirection(mIntersectingViews, mOccupiedRect, direction, ignoreView,
-                    solution)) {
-                return true;
-            }
+        if (attemptPushInDirection(mIntersectingViews, mOccupiedRect, direction, ignoreView,
+        solution)) {
+            return true;
         }
 
         // Next we try moving the views as a block, but without requiring the push mechanic.
-        /*
         if (addViewsToTempLocation(mIntersectingViews, mOccupiedRect, direction, ignoreView,
                 solution)) {
             return true;
         }
-         */
 
         // Ok, they couldn't move as a block, let's move them individually
         boolean success = false;
@@ -2144,30 +2134,8 @@ public class CellLayout extends ViewGroup {
         boolean success;
         // First we try the exact nearest position of the item being dragged,
         // we will then want to try to move this around to other neighbouring positions
-        if (!intersectingViewsExists(result[0], result[1], spanX, spanY, direction, dragView, solution)) {
-            int[] nearestResult = new int[2];
-            markCellsAsOccupiedForView(dragView);
-            findCellForSpan(nearestResult, spanX, spanY);
-            if (nearestResult[1] <= result[1]) {
-                result = nearestResult;
-                if (result[0] == 0) {
-                    result[0] = getCountX() - 1;
-                    result[1] = result[1] - 1;
-                } else {
-                    result[0] = result[0] - 1;
-                }
-            }
-            markCellsAsUnoccupiedForView(dragView);
-            if ((result[0] >= 0 && result[1] >= 0) && solution.map.containsKey(dragView)) {
-                intersectingViewsExists(result[0], result[1], spanX, spanY, direction, dragView, solution);
-            } else {
-                findCellForSpan(nearestResult, spanX, spanY);
-                result = nearestResult;
-                intersectingViewsExists(result[0], result[1], spanX, spanY, direction, dragView, solution);
-            }
-            markCellsAsUnoccupiedForView(dragView);
-        }
-        success = rearrangementExists(direction, dragView, solution);
+        success = rearrangementExists(result[0], result[1], spanX, spanY, direction, dragView,
+        solution);
 
         if (!success) {
             // We try shrinking the widget down to size in an alternating pattern, shrink 1 in
