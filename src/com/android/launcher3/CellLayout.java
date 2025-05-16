@@ -2202,7 +2202,7 @@ public class CellLayout extends ViewGroup {
     // to push items in each of the cardinal directions, in an order based on the direction vector
     // passed.
     private boolean attemptPushInDirection(ArrayList<View> intersectingViews, Rect occupied,
-            int[] direction, View ignoreView, ItemConfiguration solution) {
+                                           int[] direction, View ignoreView, ItemConfiguration solution) {
         if ((Math.abs(direction[0]) + Math.abs(direction[1])) > 1) {
             // If the direction vector has two non-zero components, we try pushing
             // separately in each of the components.
@@ -2268,31 +2268,29 @@ public class CellLayout extends ViewGroup {
             // to find a solution by pushing along the perpendicular axis.
 
             // Swap the components
-            if (isWidget()) {
-                int temp = direction[1];
-                direction[1] = direction[0];
-                direction[0] = temp;
-                if (pushViewsToTempLocation(intersectingViews, occupied, direction,
-                        ignoreView, solution)) {
-                    return true;
-                }
-
-                // Then we try the opposite direction
-                direction[0] *= -1;
-                direction[1] *= -1;
-                if (pushViewsToTempLocation(intersectingViews, occupied, direction,
-                        ignoreView, solution)) {
-                    return true;
-                }
-                // Switch the direction back
-                direction[0] *= -1;
-                direction[1] *= -1;
-
-                // Swap the components back
-                temp = direction[1];
-                direction[1] = direction[0];
-                direction[0] = temp;
+            int temp = direction[1];
+            direction[1] = direction[0];
+            direction[0] = temp;
+            if (pushViewsToTempLocation(intersectingViews, occupied, direction,
+                    ignoreView, solution)) {
+                return true;
             }
+
+            // Then we try the opposite direction
+            direction[0] *= -1;
+            direction[1] *= -1;
+            if (pushViewsToTempLocation(intersectingViews, occupied, direction,
+                    ignoreView, solution)) {
+                return true;
+            }
+            // Switch the direction back
+            direction[0] *= -1;
+            direction[1] *= -1;
+
+            // Swap the components back
+            temp = direction[1];
+            direction[1] = direction[0];
+            direction[0] = temp;
         }
         return false;
     }
@@ -2414,8 +2412,8 @@ public class CellLayout extends ViewGroup {
         return success;
     }
 
-    public boolean intersectingViewsExists(int cellX, int cellY, int spanX, int spanY, int[] direction,
-            View ignoreView, ItemConfiguration solution) {
+    public boolean rearrangementExists(int cellX, int cellY, int spanX, int spanY, int[] direction,
+                                       View ignoreView, ItemConfiguration solution) {
         // Return early if get invalid cell positions
         if (cellX < 0 || cellY < 0) return false;
 
@@ -2432,7 +2430,7 @@ public class CellLayout extends ViewGroup {
         }
         Rect r0 = new Rect(cellX, cellY, cellX + spanX, cellY + spanY);
         Rect r1 = new Rect();
-        for (View child : solution.map.keySet()) {
+        for (View child: solution.map.keySet()) {
             if (child == ignoreView) continue;
             CellAndSpan c = solution.map.get(child);
             CellLayoutLayoutParams lp = (CellLayoutLayoutParams) child.getLayoutParams();
@@ -2441,34 +2439,25 @@ public class CellLayout extends ViewGroup {
                 if (!lp.canReorder) {
                     return false;
                 }
-
-                if (!isWidget() && child instanceof LauncherAppWidgetHostView) {
-                    return false;
-                }
                 mIntersectingViews.add(child);
             }
         }
+
         solution.intersectingViews = new ArrayList<>(mIntersectingViews);
 
-        return !mIntersectingViews.isEmpty();
-    }
-
-    public boolean rearrangementExists(int[] direction, View ignoreView, ItemConfiguration solution) {
         // First we try to find a solution which respects the push mechanic. That is,
         // we try to find a solution such that no displaced item travels through another item
         // without also displacing that item.
-        if (mIntersectingViews.size() == 1 || mIntersectingViews.isEmpty()) {
-            if (attemptPushInDirection(mIntersectingViews, mOccupiedRect, direction, ignoreView,
-                    solution)) {
-                return true;
-            }
+        if (attemptPushInDirection(mIntersectingViews, mOccupiedRect, direction, ignoreView,
+                solution)) {
+            return true;
         }
 
         // Next we try moving the views as a block, but without requiring the push mechanic.
-        //if (addViewsToTempLocation(mIntersectingViews, mOccupiedRect, direction, ignoreView,
-        //        solution)) {
-        //   return true;
-        // }
+        if (addViewsToTempLocation(mIntersectingViews, mOccupiedRect, direction, ignoreView,
+                solution)) {
+            return true;
+        }
 
         // Ok, they couldn't move as a block, let's move them individually
         boolean success = false;
@@ -2481,6 +2470,7 @@ public class CellLayout extends ViewGroup {
         }
         return success;
     }
+
 
     public void reArrangeIcons(int x, int y) {
 
