@@ -18,6 +18,8 @@
 package foundation.e.bliss.multimode
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.model.data.AppInfo
@@ -35,19 +37,24 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
     private val mAppMonitorCallback: LauncherAppMonitorCallback =
         object : LauncherAppMonitorCallback {
             override fun onLoadAllAppsEnd(apps: ArrayList<AppInfo?>?) {
-                val launcherModel = monitor.launcher?.model
-                if (launcherModel != null) {
-                    MODEL_EXECUTOR.submit(
-                        VerifyIdleAppTask(
-                            context,
-                            apps,
-                            null,
-                            null,
-                            false,
-                            launcherModel.mBgDataModel
+                fun loadModel() {
+                    val launcherModel = monitor.launcher?.model
+                    if (launcherModel != null) {
+                        MODEL_EXECUTOR.submit(
+                            VerifyIdleAppTask(
+                                context,
+                                apps,
+                                null,
+                                null,
+                                false,
+                                launcherModel.mBgDataModel
+                            )
                         )
-                    )
+                    } else {
+                        Handler(Looper.getMainLooper()).post(::loadModel)
+                    }
                 }
+                loadModel()
             }
 
             override fun onAppSharedPreferenceChanged(key: String?) {
