@@ -92,7 +92,6 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
         mItemSpaceFinder = itemSpaceFinder;
     }
 
-
     @Override
     public void execute(@NonNull ModelTaskController taskController, @NonNull BgDataModel dataModel,
             @NonNull AllAppsList apps) {
@@ -111,6 +110,13 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
             for (Pair<ItemInfo, Object> entry : mItemList) {
                 ItemInfo item = entry.first;
                 if (item.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPLICATION) {
+                    // Don't add webapk before we load system app icons
+                    if (!isIgnoreLoaded() && mItemList.size() < 5 &&
+                            Objects.requireNonNull(item.getTargetPackage()).startsWith(
+                                    "foundation.e.webapk")) {
+                        continue;
+                    }
+
                     // Short-circuit this logic if the icon exists somewhere on the workspace
                     if (shortcutExists(dataModel, item.getIntent(), item.user)) {
                         continue;
