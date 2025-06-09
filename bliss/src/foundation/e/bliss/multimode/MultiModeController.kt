@@ -34,6 +34,8 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
     private val idp by lazy { InvariantDeviceProfile.INSTANCE.get(context) }
     private val mAppMonitorCallback: LauncherAppMonitorCallback =
         object : LauncherAppMonitorCallback {
+            private var cachedApps: ArrayList<AppInfo?>? = null
+
             override fun onLoadAllAppsEnd(apps: ArrayList<AppInfo?>?) {
                 val launcherModel = monitor.launcher?.model
                 if (launcherModel != null) {
@@ -47,6 +49,16 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
                             launcherModel.mBgDataModel
                         )
                     )
+                } else {
+                    cachedApps = apps
+                }
+            }
+
+            override fun onLauncherCreated() {
+                super.onLauncherCreated()
+                cachedApps?.let {
+                    onLoadAllAppsEnd(it)
+                    cachedApps = null
                 }
             }
 
