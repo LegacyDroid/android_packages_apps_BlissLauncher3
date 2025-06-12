@@ -33,6 +33,14 @@ java_defaults {
 // Common source files used to build launcher (java and kotlin)
 // All sources are split so they can be reused in many other libraries/apps in other folders
 
+filegroup {
+    name: "bliss-src",
+    srcs: [
+        "bliss/src/**/*.java",
+        "bliss/src/**/*.kt",
+    ],
+}
+
 // Main Launcher source, excluding the build config
 filegroup {
     name: "launcher-src",
@@ -413,6 +421,65 @@ android_library {
 //
 // Build rule for Launcher3 app.
 //
+android_library {
+    name: "BlissLauncher3ResOverridesLib",
+    srcs: [],
+    resource_dirs: ["bliss/res_overrides"],
+}
+
+android_library {
+    name: "BlissLauncher3Lib",
+
+    static_libs: [
+        "BlissLauncher3ResOverridesLib",
+        "Launcher3ResLib",
+        "LauncherPluginLib",
+        "launcher_quickstep_log_protos_lite",
+        "androidx-constraintlayout_constraintlayout",
+        "androidx.recyclerview_recyclerview",
+        "androidx.dynamicanimation_dynamicanimation",
+        "androidx.fragment_fragment",
+        "androidx.preference_preference",
+        "androidx.slice_slice-view",
+        "androidx.cardview_cardview",
+        "androidx.window_window",
+        "com.google.android.material_material",
+        "//frameworks/libs/systemui:iconloader_base",
+        "//frameworks/libs/systemui:view_capture",
+        "//frameworks/libs/systemui:animationlib",
+        "//frameworks/libs/systemui:contextualeducationlib",
+        "SystemUI-statsd",
+        "launcher-testing-shared",
+        "androidx.lifecycle_lifecycle-common-java8",
+        "androidx.lifecycle_lifecycle-extensions",
+        "androidx.lifecycle_lifecycle-runtime-ktx",
+        "kotlinx_coroutines_android",
+        "kotlinx_coroutines",
+        "com_android_launcher3_flags_lib",
+        "com_android_wm_shell_flags_lib",
+        "dagger2",
+        "jsr330",
+        "com_android_systemui_shared_flags_lib",
+        "org.lineageos.platform",
+    ],
+
+    srcs: [
+        ":launcher-src",
+        ":launcher-src_no_quickstep",
+        ":launcher-build-config",
+        "bliss/**/*.java",
+        "bliss/**/*.kt",
+    ],
+
+    resource_dirs: ["bliss/res"],
+
+    manifest: "bliss/AndroidManifest.xml",
+    platform_apis: true,
+    min_sdk_version: min_launcher3_sdk_version,
+    target_sdk_version: "current",
+    plugins: ["dagger2-compiler"],
+}
+
 android_app {
     name: "Trebuchet",
     defaults: ["launcher-non-platform-apis-defaults"],
@@ -555,7 +622,10 @@ android_library {
 // Build rule for Quickstep app.
 android_app {
     name: "TrebuchetQuickStep",
-    static_libs: ["Launcher3QuickStepLib"],
+    static_libs: [
+        "BlissLauncher3Lib",
+        "Launcher3QuickStepLib"
+    ],
     optimize: {
         proguard_flags_files: [":launcher-proguard-rules"],
         enabled: true,
