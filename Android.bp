@@ -33,18 +33,12 @@ java_defaults {
 // Common source files used to build launcher (java and kotlin)
 // All sources are split so they can be reused in many other libraries/apps in other folders
 
-filegroup {
-    name: "bliss-src",
-    srcs: [
-        "bliss/src/**/*.java",
-        "bliss/src/**/*.kt",
-    ],
-}
-
 // Main Launcher source, excluding the build config
 filegroup {
     name: "launcher-src",
     srcs: [
+        "bliss/src/**/*.java",
+        "bliss/src/**/*.kt",
         "src/**/*.java",
         "src/**/*.kt",
     ],
@@ -371,59 +365,6 @@ java_library {
     min_sdk_version: min_launcher3_sdk_version,
 }
 
-android_library_import {
-    name: "timber",
-    aars:  ["libs/timber.aar"],
-}
-
-
-java_import {
-    name: "okhttp-me",
-    jars: [
-        "libs/okhttp.jar",
-    ],
-}
-
-java_import {
-    name: "okhttp-log",
-    jars: [
-        "libs/logging-interceptor.jar",
-    ],
-}
-
-java_import {
-    name: "converter-gson",
-    jars: [
-        "libs/converter-gson.jar",
-    ],
-}
-
-android_library_import {
-    name: "hoko-blur",
-    aars:  ["libs/hoko-blur.aar"],
-}
-
-java_import {
-    name: "librxkotlin",
-    jars: [
-        "libs/rxkotlin.jar",
-    ],
-}
-
-java_import {
-    name: "librxjava",
-    jars: [
-        "libs/rxjava.jar",
-    ],
-}
-
-java_import {
-    name: "libretrofit",
-    jars: [
-        "libs/retrofit.jar",
-    ],
-}
-
 // Library with all the dependencies for building Launcher3
 android_library {
     name: "Launcher3ResLib",
@@ -431,7 +372,9 @@ android_library {
         "launcher_compose_defaults",
     ],
     srcs: [],
-    resource_dirs: ["res"],
+    resource_dirs: [
+        "res"
+    ],
     static_libs: [
         "LauncherPluginLib",
         "launcher_quickstep_log_protos_lite",
@@ -461,7 +404,6 @@ android_library {
         "dagger2",
         "jsr330",
         "com_android_systemui_shared_flags_lib",
-        "elib",
         "org.lineageos.platform",
     ],
     manifest: "AndroidManifest-common.xml",
@@ -475,80 +417,6 @@ android_library {
 //
 // Build rule for Launcher3 app.
 //
-android_library {
-    name: "BlissLauncher3ResOverridesLib",
-    srcs: [],
-    static_libs: [
-        "Launcher3ResLib",
-    ],
-    resource_dirs: [
-        "bliss/res",
-        "bliss/res_overrides",
-    ],
-}
-
-android_library {
-    name: "BlissLauncher3Lib",
-
-    static_libs: [
-        "BlissLauncher3ResOverridesLib",
-        "LauncherPluginLib",
-        "launcher_quickstep_log_protos_lite",
-        "androidx-constraintlayout_constraintlayout",
-        "androidx.recyclerview_recyclerview",
-        "androidx.dynamicanimation_dynamicanimation",
-        "androidx.fragment_fragment",
-        "androidx.preference_preference",
-        "androidx.slice_slice-view",
-        "androidx.cardview_cardview",
-        "androidx.window_window",
-        "com.google.android.material_material",
-        "//frameworks/libs/systemui:iconloader_base",
-        "//frameworks/libs/systemui:view_capture",
-        "//frameworks/libs/systemui:animationlib",
-        "//frameworks/libs/systemui:contextualeducationlib",
-        "SystemUI-statsd",
-        "launcher-testing-shared",
-        "androidx.lifecycle_lifecycle-common-java8",
-        "androidx.lifecycle_lifecycle-extensions",
-        "androidx.lifecycle_lifecycle-runtime-ktx",
-        "kotlinx_coroutines_android",
-        "kotlinx_coroutines",
-        "com_android_launcher3_flags_lib",
-        "com_android_wm_shell_flags_lib",
-        "dagger2",
-        "jsr330",
-        "timber",
-        "okhttp-me",
-        "converter-gson",
-        "okhttp-log",
-        "hoko-blur",
-        "rxjava",
-        "librxjava",
-        "librxkotlin",
-        "gson",
-        "libretrofit",
-        "com_android_systemui_shared_flags_lib",
-        "org.lineageos.platform",
-    ],
-
-    srcs: [
-        ":launcher-src",
-        ":launcher-src_no_quickstep",
-        ":launcher-build-config",
-        "bliss/**/*.java",
-        "bliss/**/*.kt",
-    ],
-
-    kotlincflags: ["-Xjvm-default=all"],
-
-    manifest: "bliss/AndroidManifest.xml",
-    platform_apis: true,
-    min_sdk_version: "current",
-    target_sdk_version: "current",
-    plugins: ["dagger2-compiler"],
-}
-
 android_app {
     name: "Trebuchet",
     defaults: ["launcher-non-platform-apis-defaults"],
@@ -655,6 +523,59 @@ android_library {
     use_resource_processor: false,
 }
 
+android_library_import {
+    name: "timber",
+    aars:  ["libs/timber.aar"],
+}
+
+
+java_import {
+    name: "okhttp-me",
+    jars: [
+        "libs/okhttp.jar",
+    ],
+}
+
+java_import {
+    name: "okhttp-log",
+    jars: [
+        "libs/logging-interceptor.jar",
+    ],
+}
+
+java_import {
+    name: "converter-gson",
+    jars: [
+        "libs/converter-gson.jar",
+    ],
+}
+
+android_library_import {
+    name: "hoko-blur",
+    aars:  ["libs/hoko-blur.aar"],
+}
+
+java_import {
+    name: "librxkotlin",
+    jars: [
+        "libs/rxkotlin.jar",
+    ],
+}
+
+java_import {
+    name: "librxjava",
+    jars: [
+        "libs/rxjava.jar",
+    ],
+}
+
+java_import {
+    name: "libretrofit",
+    jars: [
+        "libs/retrofit.jar",
+    ],
+}
+
 // Library with all the source code and dependencies for building Quickstep
 android_library {
     name: "Launcher3QuickStepLib",
@@ -663,7 +584,6 @@ android_library {
         "quickstep_compose_defaults",
     ],
     srcs: [
-        ":bliss-src",
         ":launcher-src",
         ":launcher-quickstep-src",
         ":launcher-quickstep-dagger",
@@ -677,10 +597,10 @@ android_library {
     // overriding. We want the most specific resource overrides defined
     // in QuickstepResLib to take precendece, so it should be the final
     // dependency. See b/208647810 for how this can go wrong.
-    //  "BlissLauncher3Lib",
     static_libs: [
         "SystemUI-statsd",
         "QuickstepResLib",
+        "elib",
         "timber",
         "okhttp-me",
         "converter-gson",
@@ -691,32 +611,20 @@ android_library {
         "librxkotlin",
         "gson",
         "libretrofit",
-
     ],
     manifest: "quickstep/AndroidManifest.xml",
     platform_apis: true,
     plugins: ["dagger2-compiler"],
+    kotlincflags: ["-Xjvm-default=all"],
     min_sdk_version: "current",
     // TODO(b/319712088): re-enable use_resource_processor
     use_resource_processor: false,
 }
 
-//android_library {
-//    name: "bliss-res",
-//    use_resource_processor: true,
-//    resource_dirs: [
-//        "bliss/res",
-//    ],
-//    manifest: "bliss/AndroidManifest-res.xml",
-//}
-
 // Build rule for Quickstep app.
 android_app {
     name: "TrebuchetQuickStep",
-    static_libs: [
-        "BlissLauncher3Lib",
-        "Launcher3QuickStepLib"
-    ],
+    static_libs: ["Launcher3QuickStepLib"],
     optimize: {
         proguard_flags_files: [":launcher-proguard-rules"],
         enabled: true,
@@ -741,9 +649,7 @@ android_app {
         "launcher.quickstep.protolog.pb",
     ],
 
-    resource_dirs: [
-        "quickstep/res",
-    ],
+    resource_dirs: ["quickstep/res"],
 
     additional_manifests: [
         "quickstep/AndroidManifest-launcher.xml",

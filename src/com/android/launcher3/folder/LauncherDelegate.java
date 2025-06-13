@@ -41,7 +41,7 @@ import com.android.launcher3.views.BaseDragLayer;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import foundation.e.bliss.folder.GridFolder;
+import com.android.launcher3.folder.GridFolder;
 
 /**
  * Wrapper around Launcher methods to allow folders in non-launcher context

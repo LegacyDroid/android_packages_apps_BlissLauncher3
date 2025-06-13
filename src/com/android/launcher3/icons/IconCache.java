@@ -77,7 +77,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * Cache of application icons.  Icons can be made from any thread.

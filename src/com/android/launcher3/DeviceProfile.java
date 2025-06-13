@@ -87,7 +87,7 @@ import java.io.PrintWriter;
 import java.util.Locale;
 import java.util.function.Consumer;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 import lineageos.providers.LineageSettings;
 
 @SuppressLint("NewApi")

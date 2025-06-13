@@ -51,7 +51,7 @@ import com.android.launcher3.widget.util.WidgetSizes;
 import java.util.ArrayList;
 import java.util.List;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 public class AppWidgetResizeFrame extends AbstractFloatingView implements View.OnKeyListener {
     private static final int SNAP_DURATION_MS = 150;

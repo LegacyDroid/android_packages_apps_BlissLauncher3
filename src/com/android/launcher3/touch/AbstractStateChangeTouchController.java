@@ -48,7 +48,7 @@ import com.android.launcher3.util.FlingBlockCheck;
 import com.android.launcher3.util.TouchController;
 import com.android.systemui.contextualeducation.GestureType;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * TouchController for handling state changes

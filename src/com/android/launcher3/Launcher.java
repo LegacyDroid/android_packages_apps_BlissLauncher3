@@ -103,7 +103,7 @@ import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.ItemInfoMatcher.forFolderMatch;
 import static com.android.launcher3.util.SettingsCache.TOUCHPAD_NATURAL_SCROLLING;
 
-import static foundation.e.bliss.widgets.BlissAppWidgetHost.REQUEST_CONFIGURE_APPWIDGET;
+import static com.android.launcher3.widgets.BlissAppWidgetHost.REQUEST_CONFIGURE_APPWIDGET;
 
 import android.Manifest;
 import android.animation.Animator;
@@ -301,15 +301,14 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import foundation.e.bliss.LauncherAppMonitor;
-import foundation.e.bliss.blur.BlurBackgroundView;
-import foundation.e.bliss.blur.BlurWallpaperProvider;
-import foundation.e.bliss.multimode.MultiModeController;
-import foundation.e.bliss.utils.Logger;
-import foundation.e.bliss.widgets.RoundedWidgetView;
-import foundation.e.bliss.widgets.WidgetContainer;
-import foundation.e.bliss.widgets.WidgetsDbHelper;
-import foundation.e.lib.telemetry.Telemetry;
+import com.android.launcher3.LauncherAppMonitor;
+import com.android.launcher3.blur.BlurBackgroundView;
+import com.android.launcher3.blur.BlurWallpaperProvider;
+import com.android.launcher3.multimode.MultiModeController;
+import com.android.launcher3.utils.Logger;
+import com.android.launcher3.widgets.RoundedWidgetView;
+import com.android.launcher3.widgets.WidgetContainer;
+import com.android.launcher3.widgets.WidgetsDbHelper;
 import timber.log.Timber;
 
 /**
@@ -463,14 +462,6 @@ public class Launcher extends StatefulActivity<LauncherState>
     @TargetApi(Build.VERSION_CODES.S)
     protected void onCreate(Bundle savedInstanceState) {
         Logger.plant();
-
-        if (!BuildConfig.DEBUG) {
-            try {
-                Telemetry.init(BuildConfig.SENTRY_DSN, getApplication(), true);
-            } catch (Exception e) {
-                Logger.e(TAG, "Failed to initialize Sentry");
-            }
-        }
 
         mStartupLatencyLogger = createStartupLatencyLogger(
                 sIsNewProcess

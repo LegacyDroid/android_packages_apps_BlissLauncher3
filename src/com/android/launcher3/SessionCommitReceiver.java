@@ -35,7 +35,7 @@ import com.android.launcher3.util.Executors;
 
 import java.util.Locale;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * BroadcastReceiver to handle session commit intent.

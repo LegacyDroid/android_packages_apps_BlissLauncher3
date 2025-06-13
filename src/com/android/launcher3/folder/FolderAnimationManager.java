@@ -53,7 +53,7 @@ import com.android.launcher3.views.BaseDragLayer;
 
 import java.util.List;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * Manages the opening and closing animations for a {@link Folder}.

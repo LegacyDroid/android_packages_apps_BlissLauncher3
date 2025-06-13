@@ -33,7 +33,7 @@ import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
 import com.android.launcher3.util.Themes
-import foundation.e.bliss.preferences.BlissPrefs
+import com.android.launcher3.preferences.BlissPrefs
 
 /**
  * Manages Launcher [SharedPreferences] through [Item] instances.

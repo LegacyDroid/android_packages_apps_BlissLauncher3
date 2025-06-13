@@ -81,7 +81,7 @@ import com.airbnb.lottie.LottieAnimationView;
 import java.net.URISyntaxException;
 import java.util.Map;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * A page shows after SUW flow to hint users to swipe up from the bottom of the screen to go home

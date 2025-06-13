@@ -63,8 +63,8 @@ import java.util.Map;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
-import foundation.e.bliss.folder.GridFolder;
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.folder.GridFolder;
+import com.android.launcher3.multimode.MultiModeController;
 
 public class FolderPagedView extends PagedView<PageIndicatorDots> implements ClipPathView {
 

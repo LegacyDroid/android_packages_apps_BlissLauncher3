@@ -88,8 +88,8 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
-import foundation.e.bliss.multimode.MultiModeController;
-import foundation.e.bliss.widgets.WidgetContainer.WidgetFragment;
+import com.android.launcher3.multimode.MultiModeController;
+import com.android.launcher3.widgets.WidgetContainer.WidgetFragment;
 
 /**
  * Popup for showing the full list of available widgets

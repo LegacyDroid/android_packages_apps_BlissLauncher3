@@ -45,7 +45,7 @@ import com.android.launcher3.icons.BitmapRenderer;
 import com.android.launcher3.util.Preconditions;
 import com.android.launcher3.views.ActivityContext;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * {@link AdaptiveIconDrawable} representation of a {@link FolderIcon}

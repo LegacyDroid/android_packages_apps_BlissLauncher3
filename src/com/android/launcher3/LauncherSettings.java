@@ -30,7 +30,7 @@ import com.android.launcher3.model.data.ItemInfo;
 import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * Settings related utilities.

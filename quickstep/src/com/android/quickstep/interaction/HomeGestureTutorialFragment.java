@@ -30,7 +30,7 @@ import com.android.quickstep.interaction.TutorialController.TutorialType;
 
 import java.util.ArrayList;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /** Shows the Home gesture interactive tutorial. */
 public class HomeGestureTutorialFragment extends TutorialFragment {

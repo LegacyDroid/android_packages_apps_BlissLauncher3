@@ -19,7 +19,7 @@ import com.android.app.animation.Interpolators;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.Workspace;
 
-import foundation.e.bliss.blur.BlurWallpaperProvider;
+import com.android.launcher3.blur.BlurWallpaperProvider;
 
 /**
  * Utility class to handle wallpaper scrolling along with workspace.

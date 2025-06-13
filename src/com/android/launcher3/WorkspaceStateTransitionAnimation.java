@@ -69,7 +69,7 @@ import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.util.DynamicResource;
 import com.android.systemui.plugins.ResourceProvider;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * Manages the animations between each of the workspace states.

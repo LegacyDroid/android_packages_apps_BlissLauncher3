@@ -39,7 +39,7 @@ import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.WallpaperColorHints;
 import com.android.launcher3.util.WindowBounds;
 
-import foundation.e.bliss.LauncherAppMonitor;
+import com.android.launcher3.LauncherAppMonitor;
 
 /**
  * Extension of BaseActivity allowing support for drag-n-drop

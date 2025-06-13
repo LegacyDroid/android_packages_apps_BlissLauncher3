@@ -27,9 +27,9 @@ import com.android.launcher3.model.data.ItemInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-import foundation.e.bliss.LauncherAppMonitor;
-import foundation.e.bliss.folder.GridFolderController;
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.LauncherAppMonitor;
+import com.android.launcher3.folder.GridFolderController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * Utility class for managing item positions in a folder based on rank
