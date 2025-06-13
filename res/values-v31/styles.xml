@@ -18,6 +18,9 @@
 -->
 
 <resources>
+    <color name="e_background">@color/e_background_light</color>
+    <color name="e_background_dark">#121212</color>
+    <color name="e_background_light">#FFFFFF</color>
 
     <style name="HomeSettings.Theme" parent="@android:style/Theme.DeviceDefault.Settings">
         <item name="android:listPreferredItemPaddingEnd">16dp</item>
@@ -74,6 +77,8 @@
         <item name="colorAccent">@color/e_accent</item>
         <item name="colorPrimary">@color/e_background</item>
         <item name="elevationOverlayColor">@color/e_background</item>
+        
+
         <item name="elevationOverlayEnabled">false</item>
     </style>
 

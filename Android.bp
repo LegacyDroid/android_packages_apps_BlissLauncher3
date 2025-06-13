@@ -371,6 +371,59 @@ java_library {
     min_sdk_version: min_launcher3_sdk_version,
 }
 
+android_library_import {
+    name: "timber",
+    aars:  ["libs/timber.aar"],
+}
+
+
+java_import {
+    name: "okhttp-me",
+    jars: [
+        "libs/okhttp.jar",
+    ],
+}
+
+java_import {
+    name: "okhttp-log",
+    jars: [
+        "libs/logging-interceptor.jar",
+    ],
+}
+
+java_import {
+    name: "converter-gson",
+    jars: [
+        "libs/converter-gson.jar",
+    ],
+}
+
+android_library_import {
+    name: "hoko-blur",
+    aars:  ["libs/hoko-blur.aar"],
+}
+
+java_import {
+    name: "librxkotlin",
+    jars: [
+        "libs/rxkotlin.jar",
+    ],
+}
+
+java_import {
+    name: "librxjava",
+    jars: [
+        "libs/rxjava.jar",
+    ],
+}
+
+java_import {
+    name: "libretrofit",
+    jars: [
+        "libs/retrofit.jar",
+    ],
+}
+
 // Library with all the dependencies for building Launcher3
 android_library {
     name: "Launcher3ResLib",
@@ -408,6 +461,7 @@ android_library {
         "dagger2",
         "jsr330",
         "com_android_systemui_shared_flags_lib",
+        "elib",
         "org.lineageos.platform",
     ],
     manifest: "AndroidManifest-common.xml",
@@ -424,7 +478,10 @@ android_library {
 android_library {
     name: "BlissLauncher3ResOverridesLib",
     srcs: [],
-    resource_dirs: ["bliss/res_overrides"],
+    resource_dirs: [
+        "bliss/res",
+        "bliss/res_overrides",
+    ],
 }
 
 android_library {
@@ -459,6 +516,16 @@ android_library {
         "com_android_wm_shell_flags_lib",
         "dagger2",
         "jsr330",
+        "timber",
+        "okhttp-me",
+        "converter-gson",
+        "okhttp-log",
+        "hoko-blur",
+        "rxjava",
+        "librxjava",
+        "librxkotlin",
+        "gson",
+        "libretrofit",
         "com_android_systemui_shared_flags_lib",
         "org.lineageos.platform",
     ],
@@ -471,11 +538,11 @@ android_library {
         "bliss/**/*.kt",
     ],
 
-    resource_dirs: ["bliss/res"],
+    kotlincflags: ["-Xjvm-default=all"],
 
     manifest: "bliss/AndroidManifest.xml",
     platform_apis: true,
-    min_sdk_version: min_launcher3_sdk_version,
+    min_sdk_version: "current",
     target_sdk_version: "current",
     plugins: ["dagger2-compiler"],
 }
@@ -608,6 +675,7 @@ android_library {
     // in QuickstepResLib to take precendece, so it should be the final
     // dependency. See b/208647810 for how this can go wrong.
     static_libs: [
+        "BlissLauncher3Lib",
         "SystemUI-statsd",
         "QuickstepResLib",
     ],
@@ -618,6 +686,15 @@ android_library {
     // TODO(b/319712088): re-enable use_resource_processor
     use_resource_processor: false,
 }
+
+//android_library {
+//    name: "bliss-res",
+//    use_resource_processor: true,
+//    resource_dirs: [
+//        "bliss/res",
+//    ],
+//    manifest: "bliss/AndroidManifest-res.xml",
+//}
 
 // Build rule for Quickstep app.
 android_app {
@@ -650,7 +727,9 @@ android_app {
         "launcher.quickstep.protolog.pb",
     ],
 
-    resource_dirs: ["quickstep/res"],
+    resource_dirs: [
+        "quickstep/res",
+    ],
 
     additional_manifests: [
         "quickstep/AndroidManifest-launcher.xml",
