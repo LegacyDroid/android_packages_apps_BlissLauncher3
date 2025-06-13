@@ -26,13 +26,13 @@ object DefaultWidgets {
         ComponentName("foundation.e.advancedprivacy", "foundation.e.advancedprivacy.Widget")
     val oldWeatherWidget =
         ComponentName(
-            "com.android.launcher3launcher",
-            "com.android.launcher3launcher.features.weather.WeatherAppWidgetProvider"
+            "com.android.launcher3",
+            "com.android.launcher3.features.weather.WeatherAppWidgetProvider"
         )
     val weatherWidget =
         ComponentName(
-            "com.android.launcher3weather",
-            "com.android.launcher3weather.widget.WeatherAppWidgetProvider"
+            "foundation.e.blissweather",
+            "foundation.e.blissweather.widget.WeatherAppWidgetProvider"
         )
 
     val defaultWidgets = listOf(ecloudWidget, privacyWidget, weatherWidget)

@@ -15,9 +15,25 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
-package foundation.e.blisslauncher.features.weather
+package com.android.launcher3.features.notification
 
-import android.appwidget.AppWidgetProvider
+import com.android.launcher3.notification.NotificationListener
 
-// Dummy class for the migration of weather app
-class WeatherAppWidgetProvider : AppWidgetProvider()
+class NotificationService : NotificationListener() {
+
+    init {
+        sIsConnected = true
+        sNotificationServiceInstance = this
+    }
+
+    companion object {
+        private var sIsConnected = false
+
+        private var sNotificationServiceInstance: NotificationService? = null
+
+        @JvmStatic
+        fun getInstanceIfConnected(): NotificationService? {
+            return if (sIsConnected) sNotificationServiceInstance else null
+        }
+    }
+}

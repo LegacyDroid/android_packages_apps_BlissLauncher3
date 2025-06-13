@@ -652,6 +652,7 @@ android_app {
     resource_dirs: ["quickstep/res"],
 
     additional_manifests: [
+        "bliss/AndroidManifest.xml",
         "quickstep/AndroidManifest-launcher.xml",
         "AndroidManifest-common.xml",
     ],
