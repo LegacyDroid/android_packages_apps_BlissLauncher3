@@ -1,2 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="edit">Editar</string>
+    <string name="search">Pesquisar</string>
+    <string name="suggestions">SUGESTÕES</string>
+    <string name="maps">Mapas</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancelar</string>
+    <string name="uninstall_app">Deseja desinstalar esse aplicativo?</string>
+    <string name="untitled_folder">Sem título</string>
+    <string name="max">Máx</string>
+    <string name="min">Mín</string>
+    <string name="widget_no_resize">Não é possível redimensionar este widget</string>
+    <string name="widget_add">Adicionar</string>
+    <string name="widget_remove">Remover</string>
+    <string name="remove_widgets">Remover Widgets</string>
+    <string name="show_notification_count">Mostrar número de notificações</string>
+    <string name="add_to_widget_Screen">Adicionar à tela de widgets</string>
+</resources>
