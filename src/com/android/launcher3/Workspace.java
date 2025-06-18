@@ -153,12 +153,12 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import foundation.e.bliss.LauncherAppMonitor;
-import foundation.e.bliss.LauncherAppMonitorCallback;
-import foundation.e.bliss.OnBackPressedHandler;
-import foundation.e.bliss.folder.GridFolder;
-import foundation.e.bliss.multimode.MultiModeController;
-import foundation.e.bliss.widgets.WidgetContainer;
+import com.android.launcher3.LauncherAppMonitor;
+import com.android.launcher3.LauncherAppMonitorCallback;
+import com.android.launcher3.OnBackPressedHandler;
+import com.android.launcher3.folder.GridFolder;
+import com.android.launcher3.multimode.MultiModeController;
+import com.android.launcher3.widgets.WidgetContainer;
 
 /**
  * The workspace is a wide area with a wallpaper and a finite number of pages.

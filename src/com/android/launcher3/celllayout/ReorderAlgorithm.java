@@ -28,7 +28,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * Contains the logic of a reorder.

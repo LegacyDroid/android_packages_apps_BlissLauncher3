@@ -39,7 +39,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.notification.NotificationListener;
 import com.android.launcher3.util.SettingsCache;
 
-import foundation.e.blisslauncher.features.notification.NotificationService;
+import com.android.launcher3.features.notification.NotificationService;
 
 /**
  * A {@link Preference} for indicating notification dots status.

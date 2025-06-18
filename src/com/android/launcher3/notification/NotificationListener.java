@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import foundation.e.blisslauncher.features.notification.NotificationService;
+import com.android.launcher3.features.notification.NotificationService;
 
 /**
  * A {@link NotificationListenerService} that sends updates to its

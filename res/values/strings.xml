@@ -533,4 +533,21 @@
     <string name="ps_add_button_label">Install</string>
     <!-- Content description for install app icon -->
     <string name="ps_add_button_content_description">Install apps to Private Space</string>
+
+    <string name="edit">Edit</string>
+    <string name="search">Search</string>
+    <string name="suggestions">SUGGESTIONS</string>
+    <string name="maps">Maps</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="uninstall_app">Do you want to uninstall this app?</string>
+    <string name="untitled_folder">Untitled</string>
+    <string name="max">Max</string>
+    <string name="min">Min</string>
+    <string name="widget_no_resize">Cannot resize this widget</string>
+    <string name="widget_add">Add</string>
+    <string name="widget_remove">Remove</string>
+    <string name="remove_widgets">Remove Widgets</string>
+    <string name="show_notification_count">Show notification count</string>
+    <string name="add_to_widget_Screen">Add to widget screen</string>
 </resources>

@@ -41,7 +41,7 @@ import java.io.PrintWriter;
 import java.util.Objects;
 import java.util.function.ToIntFunction;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 public class LauncherProvider extends ContentProvider {
     private static final String TAG = "LauncherProvider";

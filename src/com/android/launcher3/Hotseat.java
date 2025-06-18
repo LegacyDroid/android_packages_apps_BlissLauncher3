@@ -52,10 +52,10 @@ import java.io.PrintWriter;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import foundation.e.bliss.blur.BlurViewDelegate;
-import foundation.e.bliss.blur.BlurWallpaperProvider;
-import foundation.e.bliss.blur.OffsetParent;
-import foundation.e.bliss.folder.GridFolder;
+import com.android.launcher3.blur.BlurViewDelegate;
+import com.android.launcher3.blur.BlurWallpaperProvider;
+import com.android.launcher3.blur.OffsetParent;
+import com.android.launcher3.folder.GridFolder;
 
 /**
  * View class that represents the bottom row of the home screen.

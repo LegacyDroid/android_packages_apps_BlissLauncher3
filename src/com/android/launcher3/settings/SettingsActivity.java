@@ -65,8 +65,8 @@ import com.android.launcher3.states.RotationHelper;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.SettingsCache;
 
-import foundation.e.bliss.multimode.MultiModeController;
-import foundation.e.bliss.preferences.BlissPrefs;
+import com.android.launcher3.multimode.MultiModeController;
+import com.android.launcher3.preferences.BlissPrefs;
 
 /**
  * Settings activity for Launcher. Currently implements the following setting: Allow rotation

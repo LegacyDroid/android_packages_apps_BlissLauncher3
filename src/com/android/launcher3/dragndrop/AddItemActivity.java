@@ -88,9 +88,9 @@ import com.android.launcher3.widget.WidgetSections;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import foundation.e.bliss.multimode.MultiModeController;
-import foundation.e.bliss.utils.BlissConstants;
-import foundation.e.bliss.widgets.WidgetContainer.WidgetFragment;
+import com.android.launcher3.multimode.MultiModeController;
+import com.android.launcher3.utils.BlissConstants;
+import com.android.launcher3.widgets.WidgetContainer.WidgetFragment;
 
 /**
  * Activity to show pin widget dialog.

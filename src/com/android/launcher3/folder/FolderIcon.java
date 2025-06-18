@@ -90,10 +90,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
-import foundation.e.bliss.LauncherAppMonitor;
-import foundation.e.bliss.folder.GridFolder;
-import foundation.e.bliss.folder.GridFolderController;
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.LauncherAppMonitor;
+import com.android.launcher3.folder.GridFolder;
+import com.android.launcher3.folder.GridFolderController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * An icon that can appear on in the workspace representing an {@link Folder}.

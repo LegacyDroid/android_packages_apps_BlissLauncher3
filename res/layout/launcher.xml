@@ -34,7 +34,7 @@
             android:contentDescription="@string/home_screen"
             />
 
-        <foundation.e.bliss.blur.BlurBackgroundView
+        <com.android.launcher3.blur.BlurBackgroundView
             android:id="@+id/blur_layer"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
@@ -63,7 +63,7 @@
             android:layout_gravity="bottom|center_horizontal"
             android:theme="@style/HomeScreenElementTheme" />
 
-        <foundation.e.bliss.widgets.SwipeSearchContainer
+        <com.android.launcher3.widgets.SwipeSearchContainer
             android:id="@+id/swipe_search_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -84,7 +84,7 @@
                     android:id="@+id/used_apps_layout"
                     layout="@layout/layout_used_apps" />
             </LinearLayout>
-        </foundation.e.bliss.widgets.SwipeSearchContainer>
+        </com.android.launcher3.widgets.SwipeSearchContainer>
 
         <include
             android:id="@+id/drop_target_bar"

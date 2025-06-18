@@ -319,7 +319,7 @@
 
 
     <dimen name="folder_cell_x_padding">9dp</dimen>
-    <dimen name="folder_cell_y_padding">6dp</dimen>
+    <dimen name="folder_cell_y_padding">10dp</dimen>
     <!-- label text size = workspace text size multiplied by this scale -->
     <dimen name="folder_label_text_scale">1.14</dimen>
     <dimen name="folder_footer_height_default">56dp</dimen>
@@ -578,4 +578,13 @@
     <!-- App Title Pill -->
     <dimen name="app_title_pill_horizontal_padding">4dp</dimen>
     <dimen name="app_title_pill_round_rect_padding">2dp</dimen>
+
+    <dimen name="grid_folder_content_padding">12dp</dimen>
+    <dimen name="grid_folder_footer_height">32dp</dimen>
+    <dimen name="widget_page_inset_padding">10dp</dimen>
+    <dimen name="widget_page_all_padding">4dp</dimen>
+    <dimen name="widget_page_top_bottom_padding">6dp</dimen>
+    <dimen name="default_widget_corner_radius">15dp</dimen>
+
+    <dimen name="settingslib_preferred_minimum_touch_target">48dp</dimen>
 </resources>

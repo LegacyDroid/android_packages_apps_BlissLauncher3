@@ -28,7 +28,7 @@ import com.android.launcher3.Reorderable
 import com.android.launcher3.Workspace
 import com.android.launcher3.util.MultiTranslateDelegate.INDEX_REORDER_BOUNCE_OFFSET
 import com.android.launcher3.util.Thunk
-import foundation.e.bliss.multimode.MultiModeController
+import com.android.launcher3.multimode.MultiModeController
 import kotlin.math.abs
 import kotlin.math.atan
 import kotlin.math.cos

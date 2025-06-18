@@ -89,7 +89,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Stack;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 public class CellLayout extends ViewGroup {
     private static final String TAG = "CellLayout";

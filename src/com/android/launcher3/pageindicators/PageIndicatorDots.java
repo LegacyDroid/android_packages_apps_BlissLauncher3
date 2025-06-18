@@ -52,7 +52,7 @@ import com.android.launcher3.Utilities;
 import com.android.launcher3.folder.Folder;
 import com.android.launcher3.util.Themes;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * {@link PageIndicator} which shows dots per page. The active page is shown with the current

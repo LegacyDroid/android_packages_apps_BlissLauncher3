@@ -74,7 +74,7 @@ import com.android.launcher3.widget.custom.CustomWidgetManager;
 import java.util.Locale;
 import java.util.Objects;
 
-import foundation.e.bliss.LauncherAppMonitor;
+import com.android.launcher3.LauncherAppMonitor;
 
 public class LauncherAppState implements SafeCloseable {
 

@@ -92,8 +92,8 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.util.List;
 
-import foundation.e.bliss.multimode.MultiModeController;
-import foundation.e.bliss.utils.BlissDbUtils;
+import com.android.launcher3.multimode.MultiModeController;
+import com.android.launcher3.utils.BlissDbUtils;
 
 /**
  * Utility class which maintains an instance of Launcher database and provides utility methods

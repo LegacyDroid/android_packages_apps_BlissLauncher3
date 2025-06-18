@@ -28,7 +28,7 @@ import androidx.annotation.VisibleForTesting;
 import com.android.launcher3.BuildConfig;
 import com.android.launcher3.Flags;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * Defines a set of flags used to control various launcher behaviors.

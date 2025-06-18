@@ -78,7 +78,7 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import foundation.e.bliss.folder.GridFolder;
+import com.android.launcher3.folder.GridFolder;
 
 /**
  * Class for handling clicks on workspace and all-apps items

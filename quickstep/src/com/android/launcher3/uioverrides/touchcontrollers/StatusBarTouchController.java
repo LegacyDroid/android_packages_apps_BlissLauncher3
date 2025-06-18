@@ -42,7 +42,7 @@ import com.android.quickstep.SystemUiProxy;
 
 import java.io.PrintWriter;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * TouchController for handling touch events that get sent to the StatusBar. Once the

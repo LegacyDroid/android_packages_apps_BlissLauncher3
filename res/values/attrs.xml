@@ -103,6 +103,12 @@
         <attr name="centerVertically" format="boolean" />
     </declare-styleable>
 
+    <declare-styleable name="BlurLayout">
+        <attr name="blurCornerRadius" format="dimension" />
+        <attr name="blurOverlayColor" format="color" />
+        <attr name="blurOverlayOffset" format="integer" />
+    </declare-styleable>
+
     <!-- BubbleTextView specific attributes. -->
     <declare-styleable name="FolderIconPreview">
         <attr name="folderPreviewColor" />

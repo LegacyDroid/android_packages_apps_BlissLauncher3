@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.android.launcher3">
 
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
@@ -10,7 +11,7 @@
     <application android:icon="@mipmap/ic_launcher">
 
         <activity
-            android:name="foundation.e.bliss.widgets.WidgetsActivity"
+            android:name="com.android.launcher3.widgets.WidgetsActivity"
             android:autoRemoveFromRecents="true"
             android:clearTaskOnLaunch="true"
             android:excludeFromRecents="true"
@@ -20,7 +21,7 @@
 
         <!-- Dummy receiver for the migration of weather app -->
         <receiver
-            android:name="foundation.e.blisslauncher.features.weather.WeatherAppWidgetProvider"
+            android:name="com.android.launcher3.features.weather.WeatherAppWidgetProvider"
             android:exported="false"
             android:label="@string/app_name"
             tools:ignore="Instantiatable">
@@ -34,7 +35,7 @@
 
 
         <service
-            android:name="foundation.e.blisslauncher.features.notification.NotificationService"
+            android:name="com.android.launcher3.features.notification.NotificationService"
             android:label="@string/notification_dots_service_title"
             android:exported="true"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">

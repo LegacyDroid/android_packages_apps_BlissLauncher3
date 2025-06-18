@@ -36,7 +36,7 @@ import static com.android.launcher3.util.PackageManagerHelper.isSystemApp;
 import static com.android.launcher3.util.ShortcutUtil.getShortcutIdIfPinnedShortcut;
 import static com.android.launcher3.util.ShortcutUtil.isDeepShortcut;
 
-import static foundation.e.bliss.utils.BlissUtilsKt.getUninstallTarget;
+import static com.android.launcher3.utils.BlissUtilsKt.getUninstallTarget;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -113,9 +113,9 @@ import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
 
-import foundation.e.bliss.LauncherAppMonitor;
-import foundation.e.bliss.multimode.MultiModeController;
-import foundation.e.bliss.wobble.UninstallButtonRenderer;
+import com.android.launcher3.LauncherAppMonitor;
+import com.android.launcher3.multimode.MultiModeController;
+import com.android.launcher3.wobble.UninstallButtonRenderer;
 
 /**
  * TextView that draws a bubble behind the text. We cannot use a LineBackgroundSpan

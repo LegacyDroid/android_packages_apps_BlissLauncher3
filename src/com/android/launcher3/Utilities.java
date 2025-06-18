@@ -100,9 +100,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Predicate;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * Various utilities shared amongst the Launcher's classes.

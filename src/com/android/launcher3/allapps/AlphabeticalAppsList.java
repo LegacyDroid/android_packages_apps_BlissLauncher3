@@ -50,7 +50,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import foundation.e.bliss.LauncherAppMonitor;
+import com.android.launcher3.LauncherAppMonitor;
 
 /**
  * The alphabetically sorted list of applications.

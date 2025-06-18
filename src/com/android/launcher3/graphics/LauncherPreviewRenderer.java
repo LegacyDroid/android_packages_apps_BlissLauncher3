@@ -107,8 +107,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import foundation.e.bliss.LauncherAppMonitor;
-import foundation.e.bliss.multimode.MultiModeController;
+import com.android.launcher3.LauncherAppMonitor;
+import com.android.launcher3.multimode.MultiModeController;
 
 /**
  * Utility class for generating the preview of Launcher for a given InvariantDeviceProfile.

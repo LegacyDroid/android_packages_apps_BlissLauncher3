@@ -77,7 +77,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import foundation.e.bliss.utils.BlissDbUtils;
+import com.android.launcher3.utils.BlissDbUtils;
 
 /**
  * All the data stored in-memory and managed by the LauncherModel
