@@ -1,0 +1,110 @@
+//
+// Copyright (C) 2025 MURENA SAS
+//
+
+// All libs based on https://gitlab.e.foundation/e/os/BlissLauncher3/-/blob/3423-a15-astudio/gradle/libs.versions.toml?ref_type=heads
+
+android_library_import {
+    name: "timber",
+    aars:  ["timber.aar"],
+}
+
+android_library_import {
+    name: "e-telemetry",
+    aars:  ["telemetry.aar"],
+}
+
+java_import {
+    name: "okhttp-me",
+    jars: [
+        "okhttp.jar",
+    ],
+}
+
+java_import {
+    name: "okhttp-log",
+    jars: [
+        "logging-interceptor.jar",
+    ],
+}
+
+java_import {
+    name: "converter-gson",
+    jars: [
+        "converter-gson.jar",
+    ],
+}
+
+java_import {
+    name: "librxkotlin",
+    jars: [
+        "rxkotlin.jar",
+    ],
+}
+
+java_import {
+    name: "librxjava",
+    jars: [
+        "rxjava.jar",
+    ],
+}
+
+java_import {
+    name: "libretrofit",
+    jars: [
+        "retrofit.jar",
+    ],
+}
+
+android_library_import {
+    name: "sentry-android-ndk",
+    aars: ["sentry/sentry-android-ndk-6.16.0/sentry-android-ndk-release.aar"],
+}
+
+java_import {
+    name: "sentry-core",
+    jars: ["sentry/sentry-6.16.0/sentry-6.16.0.jar"],
+}
+
+android_library_import {
+    name: "sentry-android",
+    aars: ["sentry/sentry-android-6.16.0/sentry-android-release.aar"],
+}
+
+android_library_import {
+    name: "sentry-android-timber",
+    aars: ["sentry/sentry-android-timber-6.16.0/sentry-android-timber-release.aar"],
+}
+
+android_library_import {
+    name: "sentry-android-core",
+    aars: ["sentry/sentry-android-core-6.16.0/sentry-android-core-release.aar"],
+}
+
+java_library {
+    name: "sentry-libs",
+    static_libs: [
+        "sentry-android-ndk",
+        "sentry-core",
+        "sentry-android",
+        "sentry-android-timber",
+        "sentry-android-core",
+    ],
+    sdk_version: "current",
+}
+
+java_library {
+    name: "BlissLauncher3-libs",
+    static_libs: [
+        "timber",
+        "e-telemetry",
+        "okhttp-me",
+        "okhttp-log",
+        "converter-gson",
+        "librxkotlin",
+        "librxjava",
+        "libretrofit",
+        "sentry-libs",
+    ],
+    sdk_version: "current",
+}
