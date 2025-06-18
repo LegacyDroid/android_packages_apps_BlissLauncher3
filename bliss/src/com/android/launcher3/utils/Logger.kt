@@ -18,7 +18,6 @@
 package com.android.launcher3.utils
 
 import android.util.Log as AndroidLog
-import com.android.launcher3.BuildConfig
 import timber.log.Timber
 
 object Logger {

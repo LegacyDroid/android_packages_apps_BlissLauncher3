@@ -38,6 +38,7 @@ import com.android.launcher3.ExtendedEditText
 import com.android.launcher3.ExtendedEditText.OnBackKeyListener
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.Launcher
+import com.android.launcher3.LauncherAppMonitor
 import com.android.launcher3.R
 import com.android.launcher3.allapps.AllAppsStore.OnUpdateListener
 import com.android.launcher3.allapps.BaseAllAppsAdapter.AdapterItem
@@ -45,7 +46,6 @@ import com.android.launcher3.allapps.search.DefaultAppSearchAlgorithm
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.search.SearchCallback
 import com.android.launcher3.testing.shared.ResourceUtils
-import com.android.launcher3.LauncherAppMonitor
 import com.android.launcher3.utils.Logger
 import com.android.launcher3.widgets.SwipeSearchContainer
 import java.util.Timer

@@ -18,8 +18,6 @@
 package com.android.launcher3.folder
 
 import android.content.Context
-import com.android.launcher3.folder.ClippedFolderIconLayoutRule
-import com.android.launcher3.folder.Folder
 import com.android.launcher3.BaseController
 import com.android.launcher3.LauncherAppMonitor
 import com.android.launcher3.LauncherAppMonitorCallback

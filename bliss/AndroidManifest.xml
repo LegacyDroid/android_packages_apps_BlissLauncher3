@@ -11,7 +11,7 @@
     <application android:icon="@mipmap/ic_launcher">
 
         <activity
-            android:name="com.android.launcher3.widgets.WidgetsActivity"
+            android:name="foundation.e.blisslauncher.widgets.WidgetsActivity"
             android:autoRemoveFromRecents="true"
             android:clearTaskOnLaunch="true"
             android:excludeFromRecents="true"
@@ -21,7 +21,7 @@
 
         <!-- Dummy receiver for the migration of weather app -->
         <receiver
-            android:name="com.android.launcher3.features.weather.WeatherAppWidgetProvider"
+            android:name="foundation.e.blisslauncher.features.weather.WeatherAppWidgetProvider"
             android:exported="false"
             android:label="@string/app_name"
             tools:ignore="Instantiatable">
@@ -35,7 +35,7 @@
 
 
         <service
-            android:name="com.android.launcher3.features.notification.NotificationService"
+            android:name="foundation.e.blisslauncher.features.notification.NotificationService"
             android:label="@string/notification_dots_service_title"
             android:exported="true"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">

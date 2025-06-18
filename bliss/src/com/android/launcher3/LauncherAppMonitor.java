@@ -33,11 +33,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.android.launcher3.LauncherPrefChangeListener;
-import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.model.data.AppInfo;
-import com.android.launcher3.InvariantDeviceProfile;
-import com.android.launcher3.Launcher;
 import com.android.launcher3.util.MainThreadInitializedObject;
 import com.android.launcher3.util.SafeCloseable;
 

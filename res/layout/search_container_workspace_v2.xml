@@ -33,7 +33,7 @@
                 layout="@layout/layout_used_apps" />
 
             <fragment
-                android:name="com.android.launcher3.widgets.WidgetContainer$WidgetFragment"
+                android:name="foundation.e.blisslauncher.widgets.WidgetContainer$WidgetFragment"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:tag="qsb_view"

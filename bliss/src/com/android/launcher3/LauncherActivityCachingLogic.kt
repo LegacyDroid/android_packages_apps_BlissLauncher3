@@ -25,7 +25,6 @@ import android.os.Build.VERSION
 import android.os.UserHandle
 import android.util.Log
 import com.android.launcher3.Flags.useNewIconForArchivedApps
-import com.android.launcher3.R
 import com.android.launcher3.icons.BaseIconFactory.IconOptions
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.IconProvider

@@ -22,7 +22,6 @@ import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.database.sqlite.SQLiteDatabase
 import android.os.UserHandle
-import com.android.launcher3.Launcher
 import com.android.launcher3.model.data.AppInfo
 import java.io.FileDescriptor
 import java.io.PrintWriter

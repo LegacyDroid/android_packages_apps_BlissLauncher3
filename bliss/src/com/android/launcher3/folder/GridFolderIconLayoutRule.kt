@@ -19,8 +19,6 @@ package com.android.launcher3.folder
 
 import android.content.Context
 import com.android.launcher3.R
-import com.android.launcher3.folder.ClippedFolderIconLayoutRule
-import com.android.launcher3.folder.PreviewItemDrawingParams
 
 class GridFolderIconLayoutRule(context: Context) : ClippedFolderIconLayoutRule() {
     private val mGridCountX: Int

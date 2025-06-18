@@ -18,15 +18,15 @@
 package com.android.launcher3.multimode
 
 import android.content.Context
-import com.android.launcher3.InvariantDeviceProfile
-import com.android.launcher3.LauncherPrefs
-import com.android.launcher3.model.data.AppInfo
-import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.BaseController
+import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppMonitor
 import com.android.launcher3.LauncherAppMonitorCallback
+import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.blur.BlurWallpaperProvider
+import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.preferences.BlissPrefs
+import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
