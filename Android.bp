@@ -37,6 +37,8 @@ java_defaults {
 filegroup {
     name: "launcher-src",
     srcs: [
+        "bliss/src/**/*.java",
+        "bliss/src/**/*.kt",
         "src/**/*.java",
         "src/**/*.kt",
     ],
@@ -370,7 +372,9 @@ android_library {
         "launcher_compose_defaults",
     ],
     srcs: [],
-    resource_dirs: ["res"],
+    resource_dirs: [
+        "res"
+    ],
     static_libs: [
         "LauncherPluginLib",
         "launcher_quickstep_log_protos_lite",
@@ -519,6 +523,59 @@ android_library {
     use_resource_processor: false,
 }
 
+android_library_import {
+    name: "timber",
+    aars:  ["libs/timber.aar"],
+}
+
+
+java_import {
+    name: "okhttp-me",
+    jars: [
+        "libs/okhttp.jar",
+    ],
+}
+
+java_import {
+    name: "okhttp-log",
+    jars: [
+        "libs/logging-interceptor.jar",
+    ],
+}
+
+java_import {
+    name: "converter-gson",
+    jars: [
+        "libs/converter-gson.jar",
+    ],
+}
+
+android_library_import {
+    name: "hoko-blur",
+    aars:  ["libs/hoko-blur.aar"],
+}
+
+java_import {
+    name: "librxkotlin",
+    jars: [
+        "libs/rxkotlin.jar",
+    ],
+}
+
+java_import {
+    name: "librxjava",
+    jars: [
+        "libs/rxjava.jar",
+    ],
+}
+
+java_import {
+    name: "libretrofit",
+    jars: [
+        "libs/retrofit.jar",
+    ],
+}
+
 // Library with all the source code and dependencies for building Quickstep
 android_library {
     name: "Launcher3QuickStepLib",
@@ -543,10 +600,22 @@ android_library {
     static_libs: [
         "SystemUI-statsd",
         "QuickstepResLib",
+        "elib",
+        "timber",
+        "okhttp-me",
+        "converter-gson",
+        "okhttp-log",
+        "hoko-blur",
+        "rxjava",
+        "librxjava",
+        "librxkotlin",
+        "gson",
+        "libretrofit",
     ],
     manifest: "quickstep/AndroidManifest.xml",
     platform_apis: true,
     plugins: ["dagger2-compiler"],
+    kotlincflags: ["-Xjvm-default=all"],
     min_sdk_version: "current",
     // TODO(b/319712088): re-enable use_resource_processor
     use_resource_processor: false,
@@ -583,6 +652,7 @@ android_app {
     resource_dirs: ["quickstep/res"],
 
     additional_manifests: [
+        "bliss/AndroidManifest.xml",
         "quickstep/AndroidManifest-launcher.xml",
         "AndroidManifest-common.xml",
     ],
