@@ -13,7 +13,7 @@ It is the default launcher for [/e/OS](https://e.foundation/e-os/).
   ```
 
 - To build this project, we need the following jars inside the `libs` folder from our AOSP build directory:
-- We need to build the `TrebuchetQuickStep and Launcher3QuickStepLib` module using `m TrebuchetQuickStep Launcher3QuickStepLib` and then copy the jars from the following directories:
+- We need to build the `TrebuchetQuickStep` module using `m TrebuchetQuickStep` and then copy the jars from the following directories:
 
   - **framework.jar**: `out/soong/.intermediates/frameworks/base/framework/android_common/turbine-combined/framework.jar`
 
