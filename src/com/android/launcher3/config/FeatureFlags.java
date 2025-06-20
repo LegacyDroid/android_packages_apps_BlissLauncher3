@@ -150,10 +150,6 @@ public final class FeatureFlags {
         return ENABLE_TASKBAR_PINNING.get() || Flags.enableTaskbarPinning();
     }
 
-    public static boolean enableAllAppsButtonInTaskbar() {
-        return false;
-    }
-
     // Aconfig migration complete for ENABLE_APP_PAIRS.
     public static final BooleanFlag ENABLE_APP_PAIRS = getDebugFlag(274189428,
             "ENABLE_APP_PAIRS", DISABLED,

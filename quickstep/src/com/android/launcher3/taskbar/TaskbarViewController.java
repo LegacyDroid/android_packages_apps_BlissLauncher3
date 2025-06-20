@@ -369,7 +369,6 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         return mTaskbarView.getIconViews();
     }
 
-    @Nullable
     public View getAllAppsButtonView() {
         return mTaskbarView.getAllAppsButtonContainer();
     }
@@ -435,10 +434,6 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     }
 
     private void updateTaskbarIconTranslationXForPinning() {
-        if (mTaskbarView.getAllAppsButtonContainer() == null) {
-            return;
-        }
-
         View[] iconViews = mTaskbarView.getIconViews();
         float scale = mTaskbarIconTranslationXForPinning.value;
         float transientTaskbarAllAppsOffset = mActivity.getResources().getDimension(
