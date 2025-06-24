@@ -9,6 +9,7 @@ plugins {
     alias libs.plugins.ksp
     alias libs.plugins.bliss.spotless
     alias libs.plugins.bliss.githooks
+    id 'org.jetbrains.kotlin.plugin.compose' version "2.1.10"
 }
 
 afterEvaluate {
@@ -104,6 +105,7 @@ android {
     buildTypes {
         debug {
             minifyEnabled false
+            shrinkResources false
             signingConfig signingConfigs.platformConfig
         }
 
@@ -138,13 +140,13 @@ android {
     sourceSets {
         main {
             res.srcDirs = ['res', 'libs_systemui/animationlib/res', 'libs_systemui/iconloaderlib/res']
-            java.srcDirs = ['src', 'tests/multivalentTests/shared']
+            java.srcDirs = [ 'compose/facade/enabled', 'compose/facade/core', 'compose/features', 'src', 'tests/multivalentTests/shared']
             manifest.srcFile 'AndroidManifest-common.xml'
             proto.srcDirs = ['protos/', 'quickstep/protos_overrides/']
         }
 
         bliss {
-            java.srcDirs = ['bliss/src', 'quickstep/dagger', 'quickstep/src_protolog']
+            java.srcDirs = ['bliss/src', 'quickstep/src_protolog']
             res.srcDirs = ['bliss/res', 'bliss/res_overrides']
             manifest.srcFile "bliss/AndroidManifest.xml"
             assets.srcDirs 'bliss/assets'
@@ -156,7 +158,8 @@ android {
 
         withQuickstep {
             res.srcDirs = ['quickstep/res', 'quickstep/recents_ui_overrides/res']
-            java.srcDirs = ['quickstep/src', 'quickstep/recents_ui_overrides/src']
+            java.srcDirs = ['quickstep/src', 'quickstep/dagger', 'quickstep/recents_ui_overrides/src']
+            kotlin.srcDirs = ['quickstep/compose/facade/core', 'quickstep/compose/facade/enabled', 'quickstep/compose/facade/features']
             manifest.srcFile "quickstep/AndroidManifest.xml"
         }
     }
@@ -168,11 +171,14 @@ android {
 
     buildFeatures {
         buildConfig true
+        compose true
+        resValues true
     }
 
     tasks.withType(KotlinCompile).configureEach {
         kotlinOptions {
             freeCompilerArgs += ["-Xjvm-default=all"]
+            jvmTarget = "17"
         }
     }
 
@@ -227,6 +233,22 @@ dependencies {
     implementation libs.androidx.slice.view
     implementation libs.androidx.preference
     implementation libs.androidx.window
+
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.ui
+    implementation libs.androidx.ui.util
+    debugImplementation libs.androidx.ui.tooling
+    implementation libs.androidx.ui.tooling.preview
+    implementation libs.androidx.ui.text.google.fonts
+    implementation libs.androidx.foundation
+    implementation libs.androidx.material.icons.extended
+    implementation libs.androidx.material
+    implementation libs.androidx.runtime.livedata
+    implementation libs.androidx.material3
+    implementation libs.androidx.material3.window.size.class1
+    implementation libs.androidx.activity.compose
+    implementation libs.androidx.lifecycle.viewmodel.compose
+    implementation libs.androidx.navigation.compose
 
     implementation libs.google.protobuf.javalite
     implementation libs.google.material
