@@ -14,5 +14,3 @@ local.properties
 build/
 .DS_Store
 libs/Launcher3QuickStepLib.jar
-blissWithQuickstep
-blissWithoutQuickstep
