@@ -1,4 +1,0 @@
-[submodule "libs_systemui"]
-	path = libs_systemui
-	url = https://gitlab.e.foundation/e/os/android_frameworks_libs_systemui
-	branch = a15
