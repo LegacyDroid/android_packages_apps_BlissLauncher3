@@ -104,6 +104,7 @@ import static com.android.launcher3.util.ItemInfoMatcher.forFolderMatch;
 import static com.android.launcher3.util.SettingsCache.TOUCHPAD_NATURAL_SCROLLING;
 
 import static foundation.e.bliss.widgets.BlissAppWidgetHost.REQUEST_CONFIGURE_APPWIDGET;
+import static foundation.e.lib.telemetry.BuildConfig.BLISS_SENTRY_DSN;
 
 import android.Manifest;
 import android.animation.Animator;
@@ -464,12 +465,10 @@ public class Launcher extends StatefulActivity<LauncherState>
     protected void onCreate(Bundle savedInstanceState) {
         Logger.plant();
 
-        if (!BuildConfig.DEBUG) {
-            try {
-                Telemetry.init(BuildConfig.SENTRY_DSN, getApplication(), true);
-            } catch (Exception e) {
-                Logger.e(TAG, "Failed to initialize Sentry");
-            }
+        try {
+            Telemetry.init(BLISS_SENTRY_DSN, getApplication(), true);
+        } catch (Exception e) {
+            Logger.e(TAG, "Failed to initialize Sentry");
         }
 
         mStartupLatencyLogger = createStartupLatencyLogger(
