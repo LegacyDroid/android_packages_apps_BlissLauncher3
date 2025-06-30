@@ -310,6 +310,7 @@ import foundation.e.bliss.widgets.RoundedWidgetView;
 import foundation.e.bliss.widgets.WidgetContainer;
 import foundation.e.bliss.widgets.WidgetsDbHelper;
 import foundation.e.lib.telemetry.Telemetry;
+import foundation.e.lib.telemetry.BuildConfig;
 import timber.log.Timber;
 
 /**
@@ -464,12 +465,10 @@ public class Launcher extends StatefulActivity<LauncherState>
     protected void onCreate(Bundle savedInstanceState) {
         Logger.plant();
 
-        if (!BuildConfig.DEBUG) {
-            try {
-                Telemetry.init(BuildConfig.SENTRY_DSN, getApplication(), true);
-            } catch (Exception e) {
-                Logger.e(TAG, "Failed to initialize Sentry");
-            }
+        try {
+            Telemetry.init(BuildConfig.BLISS_SENTRY_DSN, getApplication(), true);
+        } catch (Exception e) {
+            Logger.e(TAG, "Failed to initialize Sentry");
         }
 
         mStartupLatencyLogger = createStartupLatencyLogger(
