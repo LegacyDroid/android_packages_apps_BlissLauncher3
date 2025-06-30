@@ -17,7 +17,9 @@
 package com.android.launcher3;
 
 public final class BuildConfig {
-    public static final String APPLICATION_ID = "com.android.launcher3";
+    public static final String APPLICATION_ID = "foundation.e.blisslauncher";
+
+    public static final boolean DEBUG = false;
 
     public static final boolean IS_STUDIO_BUILD = false;
 
@@ -30,6 +32,8 @@ public final class BuildConfig {
      * Flag to control various developer centric features
      */
     public static final boolean IS_DEBUG_DEVICE = false;
+
+    public static final String SENTRY_DSN = "null";
 
     // Flag to control widgets support in Launcher
     public static final boolean WIDGETS_ENABLED = true;
