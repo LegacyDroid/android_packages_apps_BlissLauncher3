@@ -162,13 +162,13 @@ android {
     sourceSets {
         main {
             res.srcDirs = ['res', 'libs_systemui/animationlib/res', 'libs_systemui/iconloaderlib/res']
-            java.srcDirs = ['src', 'tests/multivalentTests/shared']
+            java.srcDirs = ['src', 'compose/core', 'compose/disabled', 'tests/multivalentTests/shared']
             manifest.srcFile 'AndroidManifest-common.xml'
             proto.srcDirs = ['protos/', 'quickstep/protos_overrides/']
         }
 
         bliss {
-            java.srcDirs = ['bliss/src', 'quickstep/dagger', 'quickstep/src_protolog']
+            java.srcDirs = ['bliss/src', 'quickstep/dagger', 'quickstep/compose/core','quickstep/compose/disabled', 'quickstep/src_protolog']
             res.srcDirs = ['bliss/res', 'studio_res']
             manifest.srcFile "bliss/AndroidManifest.xml"
             assets.srcDirs 'bliss/assets'
@@ -252,6 +252,7 @@ dependencies {
     implementation libs.androidx.slice.view
     implementation libs.androidx.preference
     implementation libs.androidx.window
+    implementation(libs.androidx.ui)
 
     implementation libs.google.protobuf.javalite
     implementation libs.google.material
