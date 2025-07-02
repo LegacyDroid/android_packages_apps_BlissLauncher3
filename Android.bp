@@ -588,7 +588,7 @@ android_app {
         "TrebuchetQuickStep",
     ],
     required: [
-        "privapp_whitelist_com.android.launcher3",
+        "privapp_whitelist_foundation.e.blisslauncher3.xml",
         "launcher.quickstep.protolog.pb",
     ],
 
