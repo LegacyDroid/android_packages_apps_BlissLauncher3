@@ -17,12 +17,10 @@
  */
 package foundation.e.bliss.blur
 
-import android.content.Context
 import android.graphics.Bitmap
-import com.hoko.blur.HokoBlur
+import androidx.core.graphics.scale
 
-class BlurWallpaperFilter(private val context: Context) :
-    WallpaperFilter<BlurWallpaperProvider.BlurSizes> {
+class BlurWallpaperFilter() : WallpaperFilter<BlurWallpaperProvider.BlurSizes> {
 
     override fun apply(
         wallpaper: Bitmap
@@ -61,12 +59,7 @@ class BlurWallpaperFilter(private val context: Context) :
                 // Make mutable copy in case we need to return source
                 Bitmap.createBitmap(wallpaper)
             } else {
-                Bitmap.createScaledBitmap(
-                    wallpaper,
-                    wallpaper.width / config.scale,
-                    wallpaper.height / config.scale,
-                    true
-                )
+                wallpaper.scale(wallpaper.width / config.scale, wallpaper.height / config.scale)
             }
 
         // Bypass blur processor if we don't need to blur (hotseat)
@@ -75,12 +68,11 @@ class BlurWallpaperFilter(private val context: Context) :
             return source
         }
 
-        return HokoBlur.with(context)
-            .scheme(HokoBlur.SCHEME_NATIVE)
-            .mode(HokoBlur.MODE_STACK)
-            .radius(config.radius)
-            .forceCopy(false)
-            .processor()
-            .blur(source)
+        val blurred = StackBlur.blur(source, config.radius)
+        if (source != wallpaper) {
+            source.recycle()
+        }
+
+        return blurred
     }
 }
