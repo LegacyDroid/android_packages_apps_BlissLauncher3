@@ -155,8 +155,6 @@ android {
         }
 
         configureEach {
-            resValue "string", "quickstep_component", "${applicationId}/com.android.launcher3.uioverrides.QuickstepLauncher"
-            resValue "string", "launcher_component", "${applicationId}/com.android.launcher3.Launcher"
             buildConfigField("String", "SENTRY_DSN", "\"${System.getenv("SENTRY_DSN")}\"")
         }
     }
@@ -171,7 +169,7 @@ android {
 
         bliss {
             java.srcDirs = ['bliss/src', 'quickstep/dagger', 'quickstep/src_protolog']
-            res.srcDirs = ['bliss/res', 'bliss/res_overrides', 'studio_res']
+            res.srcDirs = ['bliss/res', 'studio_res']
             manifest.srcFile "bliss/AndroidManifest.xml"
             assets.srcDirs 'bliss/assets'
         }
