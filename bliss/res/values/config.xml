@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="default_single_mode">true</bool>
+
+    <integer name="grid_folder_icon_rows">3</integer>
+    <integer name="grid_folder_icon_columns">3</integer>
+    <integer name="grid_folder_app_icon_size_percentage">22</integer>
+</resources>
