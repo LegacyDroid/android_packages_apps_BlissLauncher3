@@ -67,7 +67,7 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
     private val mUpdateRunnable = Runnable { updateWallpaper() }
 
-    private val wallpaperFilter = BlurWallpaperFilter(context)
+    private val wallpaperFilter = BlurWallpaperFilter()
     private var applyTask: WallpaperFilter.ApplyTask<BlurSizes>? = null
 
     private var updatePending = false

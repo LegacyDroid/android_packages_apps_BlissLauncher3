@@ -21,7 +21,6 @@ elib = "0.0.1-alpha11"
 google-material = "1.12.0"
 google-protobuf = "0.9.4"
 google-protobuf-javalite = "4.30.2"
-hoko-blur = "1.5.3"
 reactivex-rxkotlin3 = "3.0.1"
 spotless = "6.25.0"
 spotless-plugin = "1.0"
@@ -61,7 +60,6 @@ timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 elib = { module = "foundation.e:elib", version.ref = "elib" }
 google-material = { module = "com.google.android.material:material", version.ref = "google-material" }
 google-protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "google-protobuf-javalite" }
-hoko-blur = { module = "io.github.hokofly:hoko-blur", version.ref = "hoko-blur" }
 reactivex-rxkotlin3 = { module = "io.reactivex.rxjava3:rxkotlin", version.ref = "reactivex-rxkotlin3" }
 
 square-retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "square-retrofit" }
