@@ -230,12 +230,13 @@ tasks.register("makeReleaseJar", Jar) {
     from(zipTree("libs/classes.jar")) {
         include("**/*.class")
         exclude(
-                "android/**", "androidx/**", "com/airbnb/**",
+                "android/support/v4/**", "androidx/**", "com/airbnb/**",
                 "com/android/launcher3/**", "com/android/quickstep/**",
                 "com/google/**", "kotlin/**", "kotlinx/**",
                 "META-INF/**", "okio/**", "org/**", "_COROUTINE/**",
                 "dagger/**", "javax/**", "com/android/systemui/contextualeducation/**",
-                "com/android/app/animation/**"
+                "com/android/app/animation/**", "okhttp3/**", "io/sentry/**", "io/reactivex/rxjava3/**",
+                "retrofit2/**", "timber/**", "foundation/**"
         )
     }
 }
