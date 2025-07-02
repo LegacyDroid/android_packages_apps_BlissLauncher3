@@ -9,8 +9,9 @@ WallpaperPicker/gen/
 WallpaperPicker/.project.properties
 bin/
 .idea/
-local.properties
 .gradle/
+local.properties
+gradle/
 build/
+gradlew*
 .DS_Store
-libs/Launcher3QuickStepLib.jar
