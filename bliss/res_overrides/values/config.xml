@@ -4,8 +4,8 @@
     <string name="launcher_activity_logic_class" translatable="false">foundation.e.bliss.LauncherActivityCachingLogic</string>
 
     <string-array name="filtered_components">
-        <item>@string/quickstep_component</item>
-        <item>@string/launcher_component</item>
+        <item>foundation.e.blisslauncher/com.android.launcher3.uioverrides.QuickstepLauncher</item>
+        <item>foundation.e.blisslauncher/com.android.launcher3.Launcher</item>
     </string-array>
 
     <bool name="default_single_mode">true</bool>
