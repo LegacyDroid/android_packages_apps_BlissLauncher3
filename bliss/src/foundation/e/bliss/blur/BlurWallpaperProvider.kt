@@ -67,7 +67,7 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
     private val mUpdateRunnable = Runnable { updateWallpaper() }
 
-    private val wallpaperFilter = BlurWallpaperFilter(context)
+    private val wallpaperFilter = BlurWallpaperFilter()
     private var applyTask: WallpaperFilter.ApplyTask<BlurSizes>? = null
 
     private var updatePending = false
@@ -300,13 +300,13 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
         const val TAG = "BlurWallpaperProvider"
 
-        @JvmField val blurConfigBackground = BlurConfig({ it.background }, 2, 8)
+        @JvmField val blurConfigBackground = BlurConfig({ it.background }, scale = 2, radius = 8)
 
-        @JvmField val blurConfigDock = BlurConfig({ it.dock }, 1, 0)
+        @JvmField val blurConfigDock = BlurConfig({ it.dock }, scale = 1, radius = 0)
 
-        @JvmField val blurConfigAppGroup = BlurConfig({ it.appGroup }, 6, 8)
+        @JvmField val blurConfigAppGroup = BlurConfig({ it.appGroup }, scale = 6, radius = 8)
 
-        @JvmField val blurConfigWidget = BlurConfig({ it.widget }, 6, 10)
+        @JvmField val blurConfigWidget = BlurConfig({ it.widget }, scale = 6, radius = 10)
 
         var isEnabled: Boolean = false
     }
