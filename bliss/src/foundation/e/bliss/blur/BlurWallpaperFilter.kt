@@ -19,7 +19,8 @@ package foundation.e.bliss.blur
 
 import android.content.Context
 import android.graphics.Bitmap
-import com.hoko.blur.HokoBlur
+import android.graphics.Canvas
+import com.android.launcher3.taskbar.BlurredBitmapDrawable
 
 class BlurWallpaperFilter(private val context: Context) :
     WallpaperFilter<BlurWallpaperProvider.BlurSizes> {
@@ -56,31 +57,30 @@ class BlurWallpaperFilter(private val context: Context) :
     }
 
     private fun blur(wallpaper: Bitmap, config: BlurWallpaperProvider.BlurConfig): Bitmap {
-        val source =
-            if (config.scale == 1) {
-                // Make mutable copy in case we need to return source
-                Bitmap.createBitmap(wallpaper)
-            } else {
-                Bitmap.createScaledBitmap(
-                    wallpaper,
-                    wallpaper.width / config.scale,
-                    wallpaper.height / config.scale,
-                    true
-                )
-            }
+        val source = if (config.scale == 1) {
+            Bitmap.createBitmap(wallpaper)
+        } else {
+            Bitmap.createScaledBitmap(
+                wallpaper,
+                wallpaper.width / config.scale,
+                wallpaper.height / config.scale,
+                true
+            )
+        }
 
-        // Bypass blur processor if we don't need to blur (hotseat)
-        // This will only happen if the input is full resolution (scale = 1) and blur radius = 0
         if (config.radius == 0 && config.scale == 1) {
             return source
         }
+        return applyBlur(source, config.radius.toFloat())
+    }
 
-        return HokoBlur.with(context)
-            .scheme(HokoBlur.SCHEME_NATIVE)
-            .mode(HokoBlur.MODE_STACK)
-            .radius(config.radius)
-            .forceCopy(false)
-            .processor()
-            .blur(source)
+    private fun applyBlur(bitmap: Bitmap, radius: Float): Bitmap {
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+
+        val blurredDrawable = BlurredBitmapDrawable(bitmap, radius)
+        blurredDrawable.setBounds(0, 0, bitmap.width, bitmap.height)
+        blurredDrawable.draw(canvas)
+        return output
     }
 }

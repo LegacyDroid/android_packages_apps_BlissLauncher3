@@ -35,11 +35,6 @@ java_import {
     ],
 }
 
-android_library_import {
-    name: "hoko-blur",
-    aars:  ["hoko-blur.aar"],
-}
-
 java_import {
     name: "librxkotlin",
     jars: [
@@ -106,7 +101,6 @@ java_library {
         "okhttp-me",
         "okhttp-log",
         "converter-gson",
-        "hoko-blur",
         "librxkotlin",
         "librxjava",
         "libretrofit",
