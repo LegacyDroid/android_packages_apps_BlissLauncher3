@@ -2,93 +2,99 @@
 // Copyright (C) 2025 MURENA SAS
 //
 
-// All libs based on https://gitlab.e.foundation/e/os/BlissLauncher3/-/blob/3423-a15-astudio/gradle/libs.versions.toml?ref_type=heads
-
+// https://repo1.maven.org/maven2/com/jakewharton/timber/timber/5.0.1/timber-5.0.1.aar
 android_library_import {
-    name: "timber",
-    aars:  ["timber.aar"],
+    name: "timber-5.0.1",
+    aars:  ["timber-5.0.1.aar"],
 }
 
+// https://github.com/getsentry/sentry-java/releases/tag/8.15.1
+android_library_import {
+    name: "sentry-android-core-release",
+    aars:  ["sentry-android-core-release.aar"],
+}
+
+// https://github.com/getsentry/sentry-java/releases/tag/8.15.1
+android_library_import {
+    name: "sentry-android-timber-release",
+    aars:  ["sentry-android-timber-release.aar"],
+}
+
+// https://github.com/getsentry/sentry-java/releases/tag/8.15.1
+android_library_import {
+    name: "sentry-android-release",
+    aars:  ["sentry-android-release.aar"],
+}
+
+// https://gitlab.e.foundation/e/os/e-telemetry
 android_library_import {
     name: "e-telemetry",
-    aars:  ["telemetry.aar"],
+    aars:  ["telemetry-1.0.0-release.aar"],
 }
 
+// https://github.com/getsentry/sentry-java/releases/tag/8.15.1
 java_import {
-    name: "okhttp-me",
+    name: "sentry-8.15.1",
     jars: [
-        "okhttp.jar",
+        "sentry-8.15.1.jar",
     ],
 }
 
+// https://repo1.maven.org/maven2/com/squareup/okhttp3/okhttp/4.12.0/okhttp-4.12.0.jar
 java_import {
-    name: "okhttp-log",
+    name: "okhttp-4.12.0",
     jars: [
-        "logging-interceptor.jar",
+        "okhttp-4.12.0.jar",
     ],
 }
 
+// https://repo1.maven.org/maven2/com/squareup/okhttp3/logging-interceptor/4.12.0/logging-interceptor-4.12.0.jar
 java_import {
-    name: "converter-gson",
+    name: "logging-interceptor-4.12.0",
     jars: [
-        "converter-gson.jar",
+        "logging-interceptor-4.12.0.jar",
     ],
 }
 
+// https://repo1.maven.org/maven2/com/squareup/retrofit2/converter-gson/3.0.0/converter-gson-3.0.0.jar
 java_import {
-    name: "librxkotlin",
+    name: "converter-gson-3.0.0",
     jars: [
-        "rxkotlin.jar",
+        "converter-gson-3.0.0.jar",
     ],
 }
 
+// https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-rx2/1.9.0/kotlinx-coroutines-rx2-1.9.0.jar
 java_import {
-    name: "librxjava",
+    name: "kotlinx-coroutines-rx2-1.9.0",
     jars: [
-        "rxjava.jar",
+        "kotlinx-coroutines-rx2-1.9.0.jar",
     ],
 }
 
+// https://repo1.maven.org/maven2/io/reactivex/rxjava3/rxjava/3.1.10/rxjava-3.1.10.jar
 java_import {
-    name: "libretrofit",
+    name: "rxjava-3.1.10",
     jars: [
-        "retrofit.jar",
+        "rxjava-3.1.10.jar",
     ],
 }
 
-android_library_import {
-    name: "sentry-android-ndk",
-    aars: ["sentry/sentry-android-ndk-6.16.0/sentry-android-ndk-release.aar"],
-}
-
+// https://repo1.maven.org/maven2/com/squareup/retrofit2/retrofit/2.11.0/retrofit-2.11.0.jar
 java_import {
-    name: "sentry-core",
-    jars: ["sentry/sentry-6.16.0/sentry-6.16.0.jar"],
-}
-
-android_library_import {
-    name: "sentry-android",
-    aars: ["sentry/sentry-android-6.16.0/sentry-android-release.aar"],
-}
-
-android_library_import {
-    name: "sentry-android-timber",
-    aars: ["sentry/sentry-android-timber-6.16.0/sentry-android-timber-release.aar"],
-}
-
-android_library_import {
-    name: "sentry-android-core",
-    aars: ["sentry/sentry-android-core-6.16.0/sentry-android-core-release.aar"],
+    name: "retrofit-2.11.0",
+    jars: [
+        "retrofit-2.11.0.jar",
+    ],
 }
 
 java_library {
     name: "sentry-libs",
     static_libs: [
-        "sentry-android-ndk",
-        "sentry-core",
-        "sentry-android",
-        "sentry-android-timber",
-        "sentry-android-core",
+        "sentry-android-core-release",
+        "sentry-android-timber-release",
+        "sentry-android-release",
+        "sentry-8.15.1",
     ],
     sdk_version: "current",
 }
@@ -96,14 +102,14 @@ java_library {
 java_library {
     name: "BlissLauncher3-libs",
     static_libs: [
-        "timber",
+        "timber-5.0.1",
         "e-telemetry",
-        "okhttp-me",
-        "okhttp-log",
-        "converter-gson",
-        "librxkotlin",
-        "librxjava",
-        "libretrofit",
+        "okhttp-4.12.0",
+        "logging-interceptor-4.12.0",
+        "converter-gson-3.0.0",
+        "kotlinx-coroutines-rx2-1.9.0",
+        "rxjava-3.1.10",
+        "retrofit-2.11.0",
         "sentry-libs",
     ],
     sdk_version: "current",
