@@ -18,11 +18,10 @@
 package foundation.e.bliss.utils
 
 import android.util.Log as AndroidLog
-import com.android.launcher3.BuildConfig
 import timber.log.Timber
 
 object Logger {
-    private val isDebug = BuildConfig.DEBUG
+    private val isDebug = false
 
     @JvmStatic fun plant() = Timber.plant(Timber.DebugTree())
 
