@@ -96,8 +96,34 @@ android {
     }
 
     applicationVariants.configureEach { variant ->
+        // APK renaming
         variant.outputs.configureEach { output ->
-            outputFileName = "BlissLauncher-a15-${variant.buildType.name}.apk"
+            output.outputFileName = "BlissLauncher-a15-${variant.buildType.name}.apk"
+        }
+
+        def variantNameCap = variant.name.capitalize()
+        def taskName = "filterAndroidPrvFor${variantNameCap}"
+        def filteredResDir = "$rootDir/build/filteredRes/${variant.name}"
+
+        // Collect real res folders
+        def resDirs = variant.sourceSets*.res.srcDirs.flatten().unique().findAll { it.exists() }
+
+        // Python script task
+        tasks.register(taskName, Exec) {
+            description = "Filter androidprv: from XMLs for ${variant.name}"
+            group = "preprocessing"
+            commandLine = ["python3", "filter_androidprv.py", filteredResDir] + resDirs*.absolutePath
+        }
+
+        // Update resource folders for this variant
+        variant.sourceSets.each { sourceSet ->
+            def updatedDirs = [file(filteredResDir)] + sourceSet.res.srcDirs
+            sourceSet.res.setSrcDirs(updatedDirs)
+        }
+
+        // Ensure script runs before resources are merged
+        tasks.named("merge${variantNameCap}Resources").configure {
+            dependsOn(taskName)
         }
     }
 
@@ -145,7 +171,7 @@ android {
 
         bliss {
             java.srcDirs = ['bliss/src', 'quickstep/dagger', 'quickstep/src_protolog']
-            res.srcDirs = ['bliss/res', 'bliss/res_overrides']
+            res.srcDirs = ['bliss/res', 'bliss/res_overrides', 'studio_res']
             manifest.srcFile "bliss/AndroidManifest.xml"
             assets.srcDirs 'bliss/assets'
         }
