@@ -150,7 +150,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
                         mTaskbarInAppDisplayProgressMultiProp.get(i).getValue();
             }
             // Ensure nav buttons react to our latest state if necessary.
-            mControllers.navbarButtonsViewController.updateNavButtonTranslations();
+            mControllers.navbarButtonsViewController.updateNavButtonTranslations(true);
         }
     }
 

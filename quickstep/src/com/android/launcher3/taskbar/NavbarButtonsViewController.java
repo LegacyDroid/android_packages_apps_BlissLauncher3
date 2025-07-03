@@ -963,7 +963,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
             handleSetupUi();
         }
         updateButtonLayoutSpacing();
-        updateNavButtonTranslations(true);
+        updateNavButtonTranslations();
     }
 
     private void handleSetupUi() {
@@ -1126,7 +1126,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                 public void onGlobalLayout() {
                     // Remove the listener to avoid multiple calls
                     mNavButtonContainer.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                    updateNavButtonTranslations();
+                    updateNavButtonTranslations(true);
                 }
             });
         }
