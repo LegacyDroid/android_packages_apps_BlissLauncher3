@@ -317,9 +317,8 @@
     <dimen name="page_indicator_dot_size">8dp</dimen>
     <dimen name="page_indicator_size">10dp</dimen>
 
-
     <dimen name="folder_cell_x_padding">9dp</dimen>
-    <dimen name="folder_cell_y_padding">6dp</dimen>
+    <dimen name="folder_cell_y_padding">10dp</dimen>
     <!-- label text size = workspace text size multiplied by this scale -->
     <dimen name="folder_label_text_scale">1.14</dimen>
     <dimen name="folder_footer_height_default">56dp</dimen>

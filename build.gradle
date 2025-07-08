@@ -96,8 +96,34 @@ android {
     }
 
     applicationVariants.configureEach { variant ->
+        // APK renaming
         variant.outputs.configureEach { output ->
-            outputFileName = "BlissLauncher-a15-${variant.buildType.name}.apk"
+            output.outputFileName = "BlissLauncher-a15-${variant.buildType.name}.apk"
+        }
+
+        def variantNameCap = variant.name.capitalize()
+        def taskName = "filterAndroidPrvFor${variantNameCap}"
+        def filteredResDir = "$rootDir/build/filteredRes/${variant.name}"
+
+        // Collect real res folders
+        def resDirs = variant.sourceSets*.res.srcDirs.flatten().unique().findAll { it.exists() }
+
+        // Python script task
+        tasks.register(taskName, Exec) {
+            description = "Filter androidprv: from XMLs for ${variant.name}"
+            group = "preprocessing"
+            commandLine = ["python3", "filter_androidprv.py", filteredResDir] + resDirs*.absolutePath
+        }
+
+        // Update resource folders for this variant
+        variant.sourceSets.each { sourceSet ->
+            def updatedDirs = [file(filteredResDir)] + sourceSet.res.srcDirs
+            sourceSet.res.setSrcDirs(updatedDirs)
+        }
+
+        // Ensure script runs before resources are merged
+        tasks.named("merge${variantNameCap}Resources").configure {
+            dependsOn(taskName)
         }
     }
 
@@ -129,8 +155,6 @@ android {
         }
 
         configureEach {
-            resValue "string", "quickstep_component", "${applicationId}/com.android.launcher3.uioverrides.QuickstepLauncher"
-            resValue "string", "launcher_component", "${applicationId}/com.android.launcher3.Launcher"
             buildConfigField("String", "SENTRY_DSN", "\"${System.getenv("SENTRY_DSN")}\"")
         }
     }
@@ -138,14 +162,14 @@ android {
     sourceSets {
         main {
             res.srcDirs = ['res', 'libs_systemui/animationlib/res', 'libs_systemui/iconloaderlib/res']
-            java.srcDirs = ['src', 'tests/multivalentTests/shared']
+            java.srcDirs = ['src', 'compose/core', 'compose/disabled', 'tests/multivalentTests/shared']
             manifest.srcFile 'AndroidManifest-common.xml'
             proto.srcDirs = ['protos/', 'quickstep/protos_overrides/']
         }
 
         bliss {
-            java.srcDirs = ['bliss/src', 'quickstep/dagger', 'quickstep/src_protolog']
-            res.srcDirs = ['bliss/res', 'bliss/res_overrides']
+            java.srcDirs = ['bliss/src', 'quickstep/dagger', 'quickstep/compose/core','quickstep/compose/disabled', 'quickstep/src_protolog']
+            res.srcDirs = ['bliss/res', 'studio_res']
             manifest.srcFile "bliss/AndroidManifest.xml"
             assets.srcDirs 'bliss/assets'
         }
@@ -206,12 +230,13 @@ tasks.register("makeReleaseJar", Jar) {
     from(zipTree("libs/classes.jar")) {
         include("**/*.class")
         exclude(
-                "android/**", "androidx/**", "com/airbnb/**",
+                "android/support/v4/**", "androidx/**", "com/airbnb/**",
                 "com/android/launcher3/**", "com/android/quickstep/**",
                 "com/google/**", "kotlin/**", "kotlinx/**",
                 "META-INF/**", "okio/**", "org/**", "_COROUTINE/**",
                 "dagger/**", "javax/**", "com/android/systemui/contextualeducation/**",
-                "com/android/app/animation/**"
+                "com/android/app/animation/**", "okhttp3/**", "io/sentry/**", "io/reactivex/rxjava3/**",
+                "retrofit2/**", "timber/**", "foundation/**"
         )
     }
 }
@@ -227,11 +252,11 @@ dependencies {
     implementation libs.androidx.slice.view
     implementation libs.androidx.preference
     implementation libs.androidx.window
+    implementation(libs.androidx.ui)
 
     implementation libs.google.protobuf.javalite
     implementation libs.google.material
     implementation libs.reactivex.rxkotlin3
-    implementation libs.hoko.blur
     implementation libs.elib
     implementation libs.e.telemetry
     implementation libs.timber

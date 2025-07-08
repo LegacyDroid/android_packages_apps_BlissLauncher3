@@ -102,6 +102,7 @@ import static com.android.launcher3.testing.shared.TestProtocol.LAUNCHER_ACTIVIT
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.ItemInfoMatcher.forFolderMatch;
 import static com.android.launcher3.util.SettingsCache.TOUCHPAD_NATURAL_SCROLLING;
+import static foundation.e.lib.telemetry.BuildConfig.BLISS_SENTRY_DSN;
 
 import static foundation.e.bliss.widgets.BlissAppWidgetHost.REQUEST_CONFIGURE_APPWIDGET;
 
@@ -466,7 +467,7 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         if (!BuildConfig.DEBUG) {
             try {
-                Telemetry.init(BuildConfig.SENTRY_DSN, getApplication(), true);
+                Telemetry.init(BLISS_SENTRY_DSN, getApplication(), true);
             } catch (Exception e) {
                 Logger.e(TAG, "Failed to initialize Sentry");
             }
