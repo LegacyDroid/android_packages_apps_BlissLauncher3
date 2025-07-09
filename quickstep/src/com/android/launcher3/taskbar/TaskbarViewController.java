@@ -649,7 +649,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         setter.setFloat(mTaskbarNavButtonTranslationYForInAppDisplay, VALUE, offsetY, interpolator);
 
         int collapsedHeight = mActivity.getDefaultTaskbarWindowSize();
-        int expandedHeight = Math.max(collapsedHeight, taskbarDp.taskbarHeight + offsetY);
+        int expandedHeight = Math.max(collapsedHeight, taskbarDp.taskbarHeight);
         setter.addOnFrameListener(anim -> mActivity.setTaskbarWindowSize(
                 anim.getAnimatedFraction() > 0 ? expandedHeight : collapsedHeight));
 
