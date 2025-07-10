@@ -602,6 +602,10 @@ android_app {
 
     aaptflags: [
         "--rename-manifest-package foundation.e.blisslauncher",
+        "--version-name",
+        "3.1.2",
+        "--version-code",
+        "3000010",
     ],
 
     manifest: "quickstep/AndroidManifest.xml",
