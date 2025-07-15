@@ -17,24 +17,23 @@
  */
 package foundation.e.bliss.suggestions.qwant
 
-import android.util.Log
-import foundation.e.bliss.suggestions.RetrofitService
-import foundation.e.bliss.suggestions.SuggestionProvider
-import foundation.e.bliss.suggestions.SuggestionsResult
+import foundation.e.bliss.suggestions.BaseSuggestionProvider
 
-class QwantProvider : SuggestionProvider {
+class QwantProvider : BaseSuggestionProvider() {
+    override val tag = TAG
+    override val url = "https://api.qwant.com/api/suggest/?q={query}"
 
-    private val suggestionService: QwantApi
-        get() = RetrofitService.getInstance(QwantApi.BASE_URL).create(QwantApi::class.java)
-
-    override suspend fun query(query: String): SuggestionsResult {
-        val result = suggestionService.query(query)
-        Log.d("QwantProvider", "Result: $result")
-        return SuggestionsResult(query).apply {
-            networkItems =
-                if (result.status == "success") {
-                    result.data?.items?.map { it.value }?.take(3) ?: emptyList()
-                } else emptyList()
+    override fun parseResponse(body: String): List<String> {
+        val result = jsonParser.decodeFromString<QwantResult>(body)
+        return if (result.status == SUCCESS_STATUS) {
+            result.data?.items?.mapNotNull { it.value } ?: emptyList()
+        } else {
+            emptyList()
         }
+    }
+
+    companion object {
+        private const val SUCCESS_STATUS = "success"
+        private const val TAG = "QwantProvider"
     }
 }
