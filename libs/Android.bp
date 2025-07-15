@@ -56,14 +56,6 @@ java_import {
     ],
 }
 
-// https://repo1.maven.org/maven2/com/squareup/retrofit2/converter-gson/3.0.0/converter-gson-3.0.0.jar
-java_import {
-    name: "converter-gson-3.0.0",
-    jars: [
-        "converter-gson-3.0.0.jar",
-    ],
-}
-
 // https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-rx2/1.9.0/kotlinx-coroutines-rx2-1.9.0.jar
 java_import {
     name: "kotlinx-coroutines-rx2-1.9.0",
@@ -77,14 +69,6 @@ java_import {
     name: "rxjava-3.1.10",
     jars: [
         "rxjava-3.1.10.jar",
-    ],
-}
-
-// https://repo1.maven.org/maven2/com/squareup/retrofit2/retrofit/2.11.0/retrofit-2.11.0.jar
-java_import {
-    name: "retrofit-2.11.0",
-    jars: [
-        "retrofit-2.11.0.jar",
     ],
 }
 
@@ -106,10 +90,8 @@ java_library {
         "e-telemetry",
         "okhttp-4.12.0",
         "logging-interceptor-4.12.0",
-        "converter-gson-3.0.0",
         "kotlinx-coroutines-rx2-1.9.0",
         "rxjava-3.1.10",
-        "retrofit-2.11.0",
         "sentry-libs",
     ],
     sdk_version: "current",

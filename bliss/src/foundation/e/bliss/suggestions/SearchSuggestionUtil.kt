@@ -24,7 +24,6 @@ import foundation.e.bliss.suggestions.duckduckgo.DuckDuckGoProvider
 import foundation.e.bliss.suggestions.qwant.QwantProvider
 
 object SearchSuggestionUtil {
-
     fun getSuggestionProvider(context: Context): SuggestionProvider {
         return with(defaultSearchEngine(context)) {
             when {

@@ -17,6 +17,9 @@
  */
 package foundation.e.bliss.suggestions.duckduckgo
 
-import androidx.annotation.Keep
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-@Keep data class DuckDuckGoResult(val phrase: String)
+@Suppress("PROVIDED_RUNTIME_TOO_LOW")
+@Serializable
+data class DuckDuckGoResult(@SerialName("phrase") val phrase: String? = null)

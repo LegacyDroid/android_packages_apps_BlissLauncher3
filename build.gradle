@@ -9,6 +9,7 @@ plugins {
     alias libs.plugins.ksp
     alias libs.plugins.bliss.spotless
     alias libs.plugins.bliss.githooks
+    alias libs.plugins.kotlin.serialization
 }
 
 afterEvaluate {
@@ -266,10 +267,9 @@ dependencies {
     implementation libs.elib
     implementation libs.e.telemetry
     implementation libs.timber
-    implementation libs.square.gson
     implementation libs.square.logging
     implementation libs.square.okhttp
-    implementation libs.square.retrofit
+    implementation libs.kotlinx.serialization.json
 
     implementation libs.dagger
     ksp libs.dagger.compiler
