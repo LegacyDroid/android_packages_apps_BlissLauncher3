@@ -95,6 +95,11 @@ android {
         }
     }
 
+    // Cleanup task to delete the filteredRes directory once before all filtering
+    tasks.register("cleanFilteredRes", Delete) {
+        delete "$rootDir/build/filteredRes"
+    }
+
     applicationVariants.configureEach { variant ->
         // APK renaming
         variant.outputs.configureEach { output ->
@@ -112,6 +117,7 @@ android {
         tasks.register(taskName, Exec) {
             description = "Filter androidprv: from XMLs for ${variant.name}"
             group = "preprocessing"
+            dependsOn("cleanFilteredRes") // ensure filteredRes dir is cleaned first
             commandLine = ["python3", "filter_androidprv.py", filteredResDir] + resDirs*.absolutePath
         }
 
