@@ -17,23 +17,27 @@
  */
 package foundation.e.bliss.suggestions.qwant
 
-import androidx.annotation.Keep
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
-@Keep
+@Suppress("PROVIDED_RUNTIME_TOO_LOW")
+@Serializable
 data class QwantData(
-    @SerializedName("items") val items: List<QwantItem>,
-    @SerializedName("special") val special: List<Any>,
+    @SerialName("items") val items: List<QwantItem> = emptyList(),
+    @SerialName("special") val special: List<JsonElement> = emptyList(),
 )
 
-@Keep
+@Suppress("PROVIDED_RUNTIME_TOO_LOW")
+@Serializable
 data class QwantItem(
-    @SerializedName("value") val value: String? = null,
-    @SerializedName("suggestType") val suggestType: Int? = null,
+    @SerialName("value") val value: String? = null,
+    @SerialName("suggestType") val suggestType: Int? = null,
 )
 
-@Keep
+@Suppress("PROVIDED_RUNTIME_TOO_LOW")
+@Serializable
 data class QwantResult(
-    @SerializedName("status") val status: String? = null,
-    @SerializedName("data") val data: QwantData? = null,
+    @SerialName("status") val status: String? = null,
+    @SerialName("data") val data: QwantData? = null,
 )

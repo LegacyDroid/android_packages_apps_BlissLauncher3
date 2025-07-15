@@ -17,24 +17,18 @@
  */
 package foundation.e.bliss.suggestions.duckduckgo
 
-import android.util.Log
-import foundation.e.bliss.suggestions.RetrofitService
-import foundation.e.bliss.suggestions.SuggestionProvider
-import foundation.e.bliss.suggestions.SuggestionsResult
+import foundation.e.bliss.suggestions.BaseSuggestionProvider
 
-class DuckDuckGoProvider : SuggestionProvider {
-    private val suggestionService: DuckDuckGoApi
-        get() =
-            RetrofitService.getInstance(DuckDuckGoApi.BASE_URL).create(DuckDuckGoApi::class.java)
+class DuckDuckGoProvider : BaseSuggestionProvider() {
+    override val tag = TAG
+    override val url = "https://duckduckgo.com/ac/?q={query}"
 
-    override suspend fun query(query: String): SuggestionsResult {
-        val result = kotlin.runCatching { suggestionService.query(query) }
-        Log.d("DuckDuckGoProvider", "Result: $result")
-        val suggestions = SuggestionsResult(query)
-        return if (result.isSuccess) {
-            suggestions.apply {
-                networkItems = result.getOrNull()?.map { it?.phrase }?.take(3) ?: emptyList()
-            }
-        } else suggestions.apply { networkItems = emptyList() }
+    override fun parseResponse(body: String): List<String> {
+        val results = jsonParser.decodeFromString<List<DuckDuckGoResult>>(body)
+        return results.mapNotNull { it.phrase }
+    }
+
+    companion object {
+        private const val TAG = "DuckDuckGoProvider"
     }
 }
