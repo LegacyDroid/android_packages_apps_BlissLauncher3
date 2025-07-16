@@ -17,8 +17,8 @@
  */
 package foundation.e.bliss.utils
 
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.subjects.PublishSubject
+import io.reactivex.Observable
+import io.reactivex.subjects.PublishSubject
 
 class ObservableList<T : Any> {
     val list: MutableList<T>

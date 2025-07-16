@@ -66,7 +66,7 @@ import foundation.e.bliss.utils.ObservableList
 import foundation.e.bliss.utils.OnDataChangedListener
 import foundation.e.bliss.utils.disableComponent
 import foundation.e.bliss.widgets.BlissAppWidgetHost.Companion.REQUEST_CONFIGURE_APPWIDGET
-import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.disposables.Disposable
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

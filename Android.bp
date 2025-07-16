@@ -552,6 +552,7 @@ android_library {
         "SystemUI-statsd",
         "QuickstepResLib",
         "kotlinx_serialization_json",
+        "kotlinx-coroutines-android",
         "BlissLauncher3-libs",
         "elib",
         "rxjava",
