@@ -5,4 +5,6 @@
     <integer name="grid_folder_icon_rows">3</integer>
     <integer name="grid_folder_icon_columns">3</integer>
     <integer name="grid_folder_app_icon_size_percentage">22</integer>
+    <integer name="bodyFontFamilyMediumWeight">500</integer>
+    <integer name="bodyFontFamilyWeight">400</integer>
 </resources>

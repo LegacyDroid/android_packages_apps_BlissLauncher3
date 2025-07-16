@@ -502,7 +502,7 @@ public class DeviceProfile {
         } else {
             taskbarIconSize = pxFromDp(ResourcesCompat.getFloat(res, R.dimen.taskbar_icon_size),
                     mMetrics);
-            taskbarHeight = res.getDimensionPixelSize(R.dimen.taskbar_size);
+            taskbarHeight = res.getDimensionPixelSize(com.android.internal.R.dimen.taskbar_frame_height);
             stashedTaskbarHeight = res.getDimensionPixelSize(R.dimen.taskbar_stashed_size);
             taskbarBottomMargin = 0;
             startAlignTaskbar = inv.startAlignTaskbar[mTypeIndex];
@@ -545,7 +545,7 @@ public class DeviceProfile {
                 // When depth is 0, wallpaper zoom is set to maxWallpaperScale.
                 // When depth is 1, wallpaper zoom is set to 1.
                 // For depth to achieve zoom set to maxWallpaperScale * workspaceContentScale:
-                float maxWallpaperScale = res.getFloat(R.dimen.config_wallpaperMaxScale);
+                float maxWallpaperScale = res.getFloat(com.android.internal.R.dimen.config_wallpaperMaxScale);
                 bottomSheetDepth = Utilities.mapToRange(maxWallpaperScale * workspaceContentScale,
                         maxWallpaperScale, 1f, 0f, 1f, LINEAR);
             }
@@ -996,7 +996,7 @@ public class DeviceProfile {
 
         hotseatBarBottomSpacePx += mInfo.cutout.bottom;
         hotseatBarBottomSpacePx += (areNavButtonsInline && FORCE_LAYOUT_ALL_HOTSEAT_ICONS
-                ? context.getResources().getDimensionPixelSize(R.dimen.taskbar_size)
+                ? context.getResources().getDimensionPixelSize(com.android.internal.R.dimen.taskbar_frame_height)
                 : 0);
 
         // Ensure there is enough space for folder icons, which have a slightly larger radius.
