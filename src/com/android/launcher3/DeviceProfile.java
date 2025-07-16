@@ -1463,7 +1463,8 @@ public class DeviceProfile {
 
         float hotseatIconsTotalPx = iconSizePx * numShownHotseatIcons;
         int hotseatBorderSpacePx = (int) (hotseatWidthPx - hotseatIconsTotalPx) / numBorders;
-        return Math.min(hotseatBorderSpacePx, mMaxHotseatIconSpacePx);
+        int result = Math.min(hotseatBorderSpacePx, mMaxHotseatIconSpacePx);
+        return Math.max(result, 0);
     }
 
     /**
