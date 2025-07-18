@@ -11,19 +11,19 @@ android_library_import {
 // https://github.com/getsentry/sentry-java/releases/tag/8.15.1
 android_library_import {
     name: "sentry-android-core-release",
-    aars:  ["sentry-android-core-release.aar"],
+    aars:  ["sentry/sentry-android-core-release.aar"],
 }
 
 // https://github.com/getsentry/sentry-java/releases/tag/8.15.1
 android_library_import {
     name: "sentry-android-timber-release",
-    aars:  ["sentry-android-timber-release.aar"],
+    aars:  ["sentry/sentry-android-timber-release.aar"],
 }
 
 // https://github.com/getsentry/sentry-java/releases/tag/8.15.1
 android_library_import {
     name: "sentry-android-release",
-    aars:  ["sentry-android-release.aar"],
+    aars:  ["sentry/sentry-android-release.aar"],
 }
 
 // https://gitlab.e.foundation/e/os/e-telemetry
@@ -36,7 +36,7 @@ android_library_import {
 java_import {
     name: "sentry-8.15.1",
     jars: [
-        "sentry-8.15.1.jar",
+        "sentry/sentry-8.15.1.jar",
     ],
 }
 
@@ -44,7 +44,7 @@ java_import {
 java_import {
     name: "okhttp-4.12.0",
     jars: [
-        "okhttp-4.12.0.jar",
+        "squareup/okhttp-4.12.0.jar",
     ],
 }
 
@@ -52,39 +52,7 @@ java_import {
 java_import {
     name: "logging-interceptor-4.12.0",
     jars: [
-        "logging-interceptor-4.12.0.jar",
-    ],
-}
-
-// https://repo1.maven.org/maven2/com/squareup/retrofit2/converter-gson/3.0.0/converter-gson-3.0.0.jar
-java_import {
-    name: "converter-gson-3.0.0",
-    jars: [
-        "converter-gson-3.0.0.jar",
-    ],
-}
-
-// https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-rx2/1.9.0/kotlinx-coroutines-rx2-1.9.0.jar
-java_import {
-    name: "kotlinx-coroutines-rx2-1.9.0",
-    jars: [
-        "kotlinx-coroutines-rx2-1.9.0.jar",
-    ],
-}
-
-// https://repo1.maven.org/maven2/io/reactivex/rxjava3/rxjava/3.1.10/rxjava-3.1.10.jar
-java_import {
-    name: "rxjava-3.1.10",
-    jars: [
-        "rxjava-3.1.10.jar",
-    ],
-}
-
-// https://repo1.maven.org/maven2/com/squareup/retrofit2/retrofit/2.11.0/retrofit-2.11.0.jar
-java_import {
-    name: "retrofit-2.11.0",
-    jars: [
-        "retrofit-2.11.0.jar",
+        "squareup/logging-interceptor-4.12.0.jar",
     ],
 }
 
@@ -102,15 +70,11 @@ java_library {
 java_library {
     name: "BlissLauncher3-libs",
     static_libs: [
-        "timber-5.0.1",
         "e-telemetry",
+        "sentry-libs",
+        "timber-5.0.1",
         "okhttp-4.12.0",
         "logging-interceptor-4.12.0",
-        "converter-gson-3.0.0",
-        "kotlinx-coroutines-rx2-1.9.0",
-        "rxjava-3.1.10",
-        "retrofit-2.11.0",
-        "sentry-libs",
     ],
     sdk_version: "current",
 }

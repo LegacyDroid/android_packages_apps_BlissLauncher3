@@ -9,6 +9,7 @@ plugins {
     alias libs.plugins.ksp
     alias libs.plugins.bliss.spotless
     alias libs.plugins.bliss.githooks
+    alias libs.plugins.kotlin.serialization
 }
 
 afterEvaluate {
@@ -43,8 +44,8 @@ allprojects {
     }
 }
 
-var appVersionCode = 3000010
-var appVersion = "3.1.2"
+var appVersionCode = 3010030
+var appVersion = "3.1.3"
 
 def versionPropsFile = file('local.properties')
 Properties versionProps = new Properties()
@@ -95,6 +96,11 @@ android {
         }
     }
 
+    // Cleanup task to delete the filteredRes directory once before all filtering
+    tasks.register("cleanFilteredRes", Delete) {
+        delete "$rootDir/build/filteredRes"
+    }
+
     applicationVariants.configureEach { variant ->
         // APK renaming
         variant.outputs.configureEach { output ->
@@ -112,6 +118,7 @@ android {
         tasks.register(taskName, Exec) {
             description = "Filter androidprv: from XMLs for ${variant.name}"
             group = "preprocessing"
+            dependsOn("cleanFilteredRes") // ensure filteredRes dir is cleaned first
             commandLine = ["python3", "filter_androidprv.py", filteredResDir] + resDirs*.absolutePath
         }
 
@@ -260,10 +267,9 @@ dependencies {
     implementation libs.elib
     implementation libs.e.telemetry
     implementation libs.timber
-    implementation libs.square.gson
     implementation libs.square.logging
     implementation libs.square.okhttp
-    implementation libs.square.retrofit
+    implementation libs.kotlinx.serialization.json
 
     implementation libs.dagger
     ksp libs.dagger.compiler
