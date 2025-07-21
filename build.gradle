@@ -71,7 +71,7 @@ def getVersionCode = { ->
 
 android {
     namespace "com.android.launcher3"
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
 
@@ -210,11 +210,9 @@ android {
     lint {
         abortOnError true
         checkReleaseBuilds false
+        disable 'LogNotTimber'
     }
 
-    lintOptions {
-        disable "LogNotTimber"
-    }
 
     addFrameworkJar('framework.jar')
 

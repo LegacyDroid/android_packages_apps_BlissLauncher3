@@ -122,7 +122,7 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
         DeviceProfile deviceProfile = mActivity.getDeviceProfile();
         Resources resources = mActivity.getResources();
         if (mActivity.isPhoneGestureNavMode() || mActivity.isTinyTaskbar()) {
-            mTaskbarSize = resources.getDimensionPixelSize(R.dimen.taskbar_phone_size);
+            mTaskbarSize = resources.getDimensionPixelSize(com.android.internal.R.dimen.navigation_bar_frame_height);
             mStashedHandleWidth =
                     resources.getDimensionPixelSize(R.dimen.taskbar_stashed_small_screen);
         } else {

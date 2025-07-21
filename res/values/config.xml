@@ -170,9 +170,6 @@
     <integer name="config_allAppsOpenDuration">600</integer>
     <integer name="config_allAppsCloseDuration">300</integer>
 
-    <!-- The max scale for the wallpaper when it's zoomed in -->
-    <item name="config_wallpaperMaxScale" format="float" type="dimen">0</item>
-
     <!-- Whether the floating rotation button should be on the left/right in the device's natural
          orientation -->
     <bool name="floating_rotation_button_position_left">true</bool>

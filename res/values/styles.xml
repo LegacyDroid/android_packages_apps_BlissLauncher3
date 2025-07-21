@@ -307,7 +307,7 @@
     </style>
 
     <style name="BaseIconRoot" parent="@android:style/TextAppearance.DeviceDefault.DialogWindowTitle">
-        <item name="android:fontFamily">@*android:string/config_bodyFontFamilyMedium</item>
+        <item name="android:textFontWeight">@integer/bodyFontFamilyMediumWeight</item>
     </style>
 
     <style name="BaseIconUnBounded" parent="BaseIconRoot">
@@ -378,7 +378,7 @@
     <style name="DropTargetButton" parent="DropTargetButtonBase" />
 
     <style name="TextHeadline" parent="@android:style/TextAppearance.DeviceDefault.DialogWindowTitle">
-        <item name="android:fontFamily">@*android:string/config_bodyFontFamilyMedium</item>
+        <item name="android:textFontWeight">@integer/bodyFontFamilyMediumWeight</item>
     </style>
 
     <style name="PrimaryHeadline" parent="@android:style/TextAppearance.DeviceDefault.DialogWindowTitle"/>

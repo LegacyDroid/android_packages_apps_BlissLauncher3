@@ -132,7 +132,6 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
 
     private final Rect mTempRect = new Rect();
 
-    private static final boolean NAV_TRANSLATION_DISABLED = true;
     private static final int FLAG_SWITCHER_SHOWING = 1 << 0;
     private static final int FLAG_IME_VISIBLE = 1 << 1;
     private static final int FLAG_ROTATION_BUTTON_VISIBLE = 1 << 2;
@@ -239,9 +238,6 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
     private final RecentsHitboxExtender mHitboxExtender = new RecentsHitboxExtender();
     private ImageView mRecentsButton;
     private Space mSpace;
-    private int mWindowWidth;
-    private int mWindowHeight;
-    private boolean mIsInHome = true;
 
     private TaskbarTransitions mTaskbarTransitions;
     private @BarTransitions.TransitionMode int mTransitionMode;
@@ -268,15 +264,6 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
 
         if (mContext.isPhoneMode()) {
             mTaskbarTransitions = new TaskbarTransitions(mContext, mNavButtonsView);
-        }
-        boolean isLandscape = context.getDeviceProfile().isLandscape;
-        Point window = DisplayController.INSTANCE.get(context).getInfo().currentSize;
-        if (isLandscape) {
-            mWindowWidth = window.y;
-            mWindowHeight = window.x;
-        } else {
-            mWindowWidth = window.x;
-            mWindowHeight = window.y;
         }
     }
 
@@ -768,22 +755,29 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                 .start();
     }
 
-    private float getTranslationForNavContainer() {
+    private float getTranslationForNavContainer(boolean isInHome) {
+        DeviceProfile deviceProfile = mContext.getDeviceProfile();
         Resources res = mContext.getResources();
-        int endSpacing = mContext.getDeviceProfile().inv.inlineNavButtonsEndSpacing;
-        int navMarginEnd = (int) res.getDimension(endSpacing);
+        boolean isLandscape = deviceProfile.isLandscape;
+        Point window = DisplayController.INSTANCE.get(mContext).getInfo().currentSize;
+        int mWindowWidth = isLandscape ? window.y : window.x;
+        int mWindowHeight = isLandscape ? window.x : window.y;
+
+        int endSpacingId = deviceProfile.inv.inlineNavButtonsEndSpacing;
+        int navMarginEnd = (int) res.getDimension(endSpacingId);
+
         int contextualWidth = mEndContextualContainer.getWidth();
-        // If contextual buttons are showing, we check if the end margin is enough for the
-        // contextual button to be showing - if not, move the nav buttons over a smidge
         if (isA11yButtonPersistent() && navMarginEnd < contextualWidth) {
-            // Additional spacing, eat up half of space between last icon and nav button
             navMarginEnd += res.getDimensionPixelSize(R.dimen.taskbar_hotseat_nav_spacing) / 2;
         }
-        boolean isLandscape = mContext.getDeviceProfile().isLandscape;
-        return ((float) (isLandscape ? mWindowHeight : mWindowWidth) / 2)
-                - ((float) mNavButtonContainer.getMeasuredWidth() / 2) - navMarginEnd;
-    }
 
+        int containerWidth = mNavButtonContainer.getMeasuredWidth();
+        int centerOffset = isInHome && isLandscape
+                ? mWindowHeight / 2
+                : mWindowWidth / 2;
+
+        return centerOffset - (containerWidth / 2f) - navMarginEnd;
+    }
 
     /**
      * Sets the translationY of the nav buttons based on the current device state.
@@ -793,22 +787,33 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
     }
 
     public void updateNavButtonTranslations(boolean force) {
-        if (mContext.isPhoneButtonNavMode() || NAV_TRANSLATION_DISABLED) {
-            if (mWindowWidth != 0) {
-                TaskbarUIController uiController = mControllers.uiController;
-                final boolean isInHome = (uiController instanceof LauncherTaskbarUIController
-                        && ((LauncherTaskbarUIController) uiController).isInHome());
-                if (isInHome != mIsInHome || force) {
-                    mIsInHome = isInHome;
-                    float translation = getTranslationForNavContainer();
-                    setAnimatedTranslationNavContainerX(isInHome ? 0 : translation);
-                }
+        DeviceProfile deviceProfile = mContext.getDeviceProfile();
+        TaskbarUIController uiController = mControllers.uiController;
+
+        boolean isInHome = uiController instanceof LauncherTaskbarUIController
+                && ((LauncherTaskbarUIController) uiController).isInHome();
+        boolean isTabletWithButtons = deviceProfile.isTablet && !deviceProfile.isGestureMode;
+
+        if (mContext.isPhoneButtonNavMode() || isTabletWithButtons) {
+            float translation = 0;
+
+            if (isInHome || force) {
+                translation = -getTranslationForNavContainer(true);
+            } else if (deviceProfile.isLandscape) {
+                translation = getTranslationForNavContainer(false);
             }
+
+            // Override any translation if not in home
+            if (!isInHome || (mContext.isPhoneMode() && !deviceProfile.isGestureMode)) {
+                translation = 0;
+            }
+
+            setAnimatedTranslationNavContainerX(translation);
             return;
         }
+
         final float normalTranslationY = mTaskbarNavButtonTranslationY.value;
         final float imeAdjustmentTranslationY = mTaskbarNavButtonTranslationYForIme.value;
-        TaskbarUIController uiController = mControllers.uiController;
         final float inAppDisplayAdjustmentTranslationY =
                 (uiController instanceof LauncherTaskbarUIController
                         && ((LauncherTaskbarUIController) uiController).shouldUseInAppLayout())

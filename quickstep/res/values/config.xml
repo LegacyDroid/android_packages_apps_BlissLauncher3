@@ -60,11 +60,6 @@
     <item type="id" name="action_move_to_top_or_left" />
     <item type="id" name="action_move_to_bottom_or_right" />
 
-    <!-- The max scale for the wallpaper when it's zoomed in -->
-    <item name="config_wallpaperMaxScale" format="float" type="dimen">
-        @*android:dimen/config_wallpaperMaxScale
-    </item>
-
     <string name="setup_wizard_pkg" translatable="false" />
 
     <!-- This is a float because it is converted to dp later in DeviceProfile -->
