@@ -18,7 +18,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:launcher="http://schemas.android.com/apk/res-auto">
 
-    <SwitchPreferenceCompat
+    <SwitchPreference
         android:defaultValue="false"
         android:key="pref_workspace_lock"
         android:persistent="true"
@@ -36,7 +36,7 @@
       LAUNCHER_ADD_NEW_APPS_TO_HOME_SCREEN_ENABLED(613)
       LAUNCHER_ADD_NEW_APPS_TO_HOME_SCREEN_DISABLED(614)
     -->
-    <SwitchPreferenceCompat
+    <SwitchPreference
         android:key="pref_add_icon_to_home"
         android:title="@string/auto_add_shortcuts_label"
         android:summary="@string/auto_add_shortcuts_description"
@@ -49,7 +49,7 @@
       LAUNCHER_HOME_SCREEN_ROTATION_ENABLED(615)
       LAUNCHER_HOME_SCREEN_ROTATION_DISABLED(616)
     -->
-    <SwitchPreferenceCompat
+    <SwitchPreference
         android:key="pref_allowRotation"
         android:title="@string/allow_rotation_title"
         android:summary="@string/allow_rotation_desc"
@@ -58,14 +58,14 @@
         launcher:logIdOn="615"
         launcher:logIdOff="616" />
 
-    <SwitchPreferenceCompat
+    <SwitchPreference
         android:defaultValue="@bool/default_single_mode"
         android:key="pref_single_layer"
         android:persistent="true"
         android:title="Enable single layer mode"
         launcher:isPreferenceVisible="false" />
 
-    <SwitchPreferenceCompat
+    <SwitchPreference
         android:defaultValue="true"
         android:key="pref_notif_count"
         android:persistent="true"
