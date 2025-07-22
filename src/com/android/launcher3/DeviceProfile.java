@@ -1202,8 +1202,29 @@ public class DeviceProfile {
         float workspaceCellPaddingY = getCellSize().y - iconSizePx - iconDrawablePaddingPx
                 - iconTextHeight;
 
-        // We want enough space so that the text is closer to its corresponding icon.
-        if (workspaceCellPaddingY < iconTextHeight) {
+        android.util.Log.d("DeviceProfile", "hideWorkspaceLabelsIfNotEnoughSpace: " +
+                "cellSize.y=" + getCellSize().y +
+                ", iconSizePx=" + iconSizePx +
+                ", iconDrawablePaddingPx=" + iconDrawablePaddingPx +
+                ", iconTextSizePx=" + iconTextSizePx +
+                ", iconTextHeight=" + iconTextHeight +
+                ", workspaceCellPaddingY=" + workspaceCellPaddingY +
+                ", isTablet=" + isTablet +
+                ", isGestural=" + isGestural());
+
+        boolean shouldHideLabels = false;
+//
+//        if (isTablet && !isGestural()) {
+//            if (workspaceCellPaddingY < 20) {
+//                shouldHideLabels = true;
+//            } else {
+//                shouldHideLabels = workspaceCellPaddingY < 40;
+//            }
+//        }
+        shouldHideLabels = workspaceCellPaddingY < iconTextHeight;
+        android.util.Log.d("DeviceProfile", "shouldHideLabels=" + shouldHideLabels);
+
+        if (shouldHideLabels) {
             iconTextSizePx = 0;
             iconDrawablePaddingPx = 0;
             cellHeightPx = getIconSizeWithOverlap(iconSizePx);
@@ -1424,7 +1445,7 @@ public class DeviceProfile {
             updateAllAppsIconSize(scale, context.getResources());
         }
         updateAllAppsContainerWidth();
-        if (isVerticalLayout && !mIsResponsiveGrid) {
+        if ((isVerticalLayout && !mIsResponsiveGrid) || (isTablet && !isGestural())) {
             hideWorkspaceLabelsIfNotEnoughSpace();
         }
         if ((Flags.enableTwolineToggle()
