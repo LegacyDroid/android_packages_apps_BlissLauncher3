@@ -85,6 +85,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
     private lateinit var mWidgetLinearLayout: LinearLayout
     private lateinit var mRecyclerView: RecyclerView
     private lateinit var mWidgetAdapter: StaggeredAdapter
+    private var lastOrientation: Int = Configuration.ORIENTATION_UNDEFINED
 
     private val mResizeContainerRect = Rect()
     private val mInsetPadding =
@@ -122,6 +123,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
             context.startActivity(intent)
         }
 
+        lastOrientation = resources.configuration.orientation
         mRecyclerView = findViewWithTag("wrapper_children")
         mWidgetAdapter = mRecyclerView.adapter as StaggeredAdapter
         mWidgetAdapter.addOnDataChangedListener(this)
@@ -132,20 +134,19 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
 
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)
-        reloadStaggeredLayout()
+
+        // Reload layout if orientation has changed
+        newConfig?.let {
+            if (it.orientation != lastOrientation) {
+                lastOrientation = it.orientation
+                reloadStaggeredLayout()
+            }
+        }
     }
 
     fun reloadStaggeredLayout() {
         updatePadding()
-        val spanCount =
-            if (
-                mLauncher != null &&
-                    (mLauncher.deviceProfile.isTablet || mLauncher.deviceProfile.isLandscape)
-            ) {
-                2
-            } else {
-                1
-            }
+        val spanCount = getSpanCount(mLauncher)
         mRecyclerView.layoutManager =
             NoScrollStaggeredLayoutManager(spanCount, StaggeredGridLayoutManager.VERTICAL)
     }
@@ -355,15 +356,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
         ): View {
             widgetsDbHelper = WidgetsDbHelper.getInstance(context)
             widgetsAdapter = StaggeredAdapter()
-            val spanCount =
-                if (
-                    launcher != null &&
-                        (launcher.deviceProfile.isTablet || launcher.deviceProfile.isLandscape)
-                ) {
-                    2
-                } else {
-                    1
-                }
+            val spanCount = getSpanCount(launcher)
             recyclerView =
                 RecyclerView(context, null).apply {
                     tag = "wrapper_children"
@@ -701,6 +694,15 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
                     ?.windowInsets
                     ?.getInsets(WindowInsets.Type.systemBars())
             return windowInsets ?: Insets.NONE
+        }
+
+        fun getSpanCount(launcher: Launcher?): Int {
+            val profile = launcher?.deviceProfile ?: return 1
+            return when {
+                profile.isTablet -> 2
+                profile.isPhone && profile.isLandscape -> 2
+                else -> 1
+            }
         }
     }
 }
