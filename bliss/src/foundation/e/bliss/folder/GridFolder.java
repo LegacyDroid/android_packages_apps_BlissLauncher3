@@ -258,6 +258,10 @@ public class GridFolder extends Folder implements OnAlarmListener {
     }
 
     private void showOrHideDesktop(Launcher launcher, boolean hide) {
+        showOrHideDesktop(launcher, hide, 50);
+    }
+
+    private void showOrHideDesktop(Launcher launcher, boolean hide, long duration) {
         if (isAnimating)
             return;
 
@@ -266,8 +270,14 @@ public class GridFolder extends Folder implements OnAlarmListener {
         Workspace<?> workspace = launcher.getWorkspace();
         if (workspace != null) {
             play(set, getAnimator(workspace, 1f, 0f, hide));
+            if (workspace.getPageAt(workspace.getCurrentPage()) != null) {
+                play(set, getAnimator(workspace.getPageAt(workspace.getCurrentPage()), 1f, 0f, hide));
+            }
+            if (workspace.getHotseat() != null) {
+                play(set, getAnimator(workspace.getHotseat(), 1f, 0f, hide));
+            }
             if (workspace.getPageIndicator() != null) {
-                play(set, getAnimator(workspace.getPageIndicator(), 1f, 0f, hide));
+                play(set, getAnimator(workspace.getPageIndicator(), 1f, 0f, hide), 0);
                 if (!hide && launcher.isInState(LauncherState.SPRING_LOADED)) {
                     workspace.showPageIndicatorAtCurrentScroll();
                 }
@@ -281,17 +291,16 @@ public class GridFolder extends Folder implements OnAlarmListener {
             if (qsb != null) {
                 play(set, getAnimator(qsb, 1f, 0f, hide));
             }
-
         }
 
         ScrimView scrimView = launcher.findViewById(R.id.scrim_view);
         if (scrimView != null) {
-            play(set, getAnimator(scrimView, 1f, 0f, hide));
+            play(set, getAnimator(scrimView, 1f, 0f, hide), duration);
         }
 
         BlurBackgroundView blur = launcher.mBlurLayer;
         if (blur != null) {
-            play(set, getAnimator(blur, 0f, 1f, hide));
+            play(set, getAnimator(blur, 0f, 1f, hide), duration);
         }
         set.addListener(new AnimatorListenerAdapter() {
             @Override
@@ -391,8 +400,12 @@ public class GridFolder extends Folder implements OnAlarmListener {
     }
 
     private void play(AnimatorSet as, Animator a) {
+        play(as, a, 50);
+    }
+
+    private void play(AnimatorSet as, Animator a, long duration) {
         a.setStartDelay(a.getStartDelay());
-        a.setDuration(0);
+        a.setDuration(duration);
         as.play(a);
     }
 }
