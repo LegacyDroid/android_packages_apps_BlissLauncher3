@@ -403,8 +403,8 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mIconContainer.setClipToPadding(false);
         
         int estimatedIconSize = 80;
-        int density = (int) getResources().getDisplayMetrics().density;
-        int minContainerWidth = 8 * estimatedIconSize * density;
+        float density = getResources().getDisplayMetrics().density;
+        int minContainerWidth = Math.round(8 * estimatedIconSize * density);
         mIconContainer.setMinimumWidth(minContainerWidth);
 
         mIconScrollView.setHorizontalScrollBarEnabled(false);
@@ -475,7 +475,10 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         idealWidth += (2 * containerPadding);
         
         int finalWidth = Math.min(idealWidth, availableWidth);
-        return finalWidth;
+        
+        // Ensure we return a positive, reasonable width
+        int minWidth = iconSize + (2 * containerPadding);
+        return Math.max(finalWidth, minWidth);
     }
 
 
@@ -642,23 +645,27 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             mQsb.setVisibility(View.INVISIBLE);
         }
         
-        if (mShouldEnableScrolling && mIconContainer != null && mIconScrollView.getParent() == null) {
+        if (mShouldEnableScrolling && mIconContainer != null && mIconScrollView != null && mIconScrollView.getParent() == null) {
             int maxVisibleWidth = calculateScrollViewWidth();
-            if (maxVisibleWidth < 200) {
-                maxVisibleWidth = 600;
+            if (maxVisibleWidth <= 0) {
+                // Fallback to minimum reasonable width based on device metrics
+                int minIconSize = mIconTouchSize + 2 * mItemMarginLeftRight;
+                int fallbackIconCount = Math.min(MAX_VISIBLE_ICONS_PORTRAIT, 4);
+                maxVisibleWidth = fallbackIconCount * minIconSize;
             }
             
             FrameLayout.LayoutParams scrollParams = new FrameLayout.LayoutParams(
                     maxVisibleWidth, FrameLayout.LayoutParams.MATCH_PARENT);
-            scrollParams.gravity = Gravity.TOP | Gravity.START; // Remove CENTER_VERTICAL
+            scrollParams.gravity = Gravity.CENTER_VERTICAL | Gravity.START;
             scrollParams.leftMargin = 0;
             scrollParams.topMargin = 0;
             scrollParams.rightMargin = 0;
             
-            mIconScrollView.setMinimumWidth(maxVisibleWidth);
-            mIconScrollView.requestLayout();
-
-            addView(mIconScrollView, scrollParams);
+            if (mIconScrollView != null) {
+                mIconScrollView.setMinimumWidth(maxVisibleWidth);
+                mIconScrollView.requestLayout();
+                addView(mIconScrollView, scrollParams);
+            }
         }
     }
 
@@ -735,8 +742,14 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     private void updateHotseatItems(ItemInfo[] hotseatItemInfos) {
         int numViewsAnimated = 0;
         
-        mLastHotseatIconCount = hotseatItemInfos.length;
-        updateScrollingBehavior();
+        // Update icon count and check if scrolling behavior needs to change
+        int newHotseatCount = hotseatItemInfos != null ? hotseatItemInfos.length : 0;
+        boolean countChanged = mLastHotseatIconCount != newHotseatCount;
+        mLastHotseatIconCount = newHotseatCount;
+        
+        if (countChanged) {
+            updateScrollingBehavior();
+        }
         
         if (mShouldEnableScrolling && mIconContainer != null) {
             mIconContainer.removeAllViews();
@@ -839,9 +852,14 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     }
 
     private void updateRecents(List<GroupTask> recentTasks) {
-        mLastRecentTaskCount = recentTasks.size();
-        // Check if scrolling behavior needs to change based on new icon count
-        updateScrollingBehavior();
+        // Update recent task count and check if scrolling behavior needs to change
+        int newRecentCount = recentTasks != null ? recentTasks.size() : 0;
+        boolean countChanged = mLastRecentTaskCount != newRecentCount;
+        mLastRecentTaskCount = newRecentCount;
+        
+        if (countChanged) {
+            updateScrollingBehavior();
+        }
         
         // At this point, the all apps button has not been added as a child view, but needs to be
         // accounted for when comparing current icon count to max number of icons.
@@ -1149,7 +1167,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         
         if (mShouldEnableScrolling && mIconScrollView != null && mIconScrollView.getParent() == this) {
             int scrollWidth = calculateScrollViewWidth();
-            mIconScrollView.layout(0, mIconScrollView.getTop(), scrollWidth, mIconScrollView.getBottom());
+            if (scrollWidth > 0) {
+                mIconScrollView.layout(0, mIconScrollView.getTop(), scrollWidth, mIconScrollView.getBottom());
+            }
         }
     }
 
