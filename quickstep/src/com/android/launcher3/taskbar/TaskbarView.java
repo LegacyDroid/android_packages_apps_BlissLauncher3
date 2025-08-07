@@ -123,8 +123,6 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     private boolean mShouldRepositionNavButtons = false;
     @Nullable private HorizontalScrollView mIconScrollView;
     @Nullable private LinearLayout mIconContainer;
-    private static final int SCROLL_THRESHOLD = 7;
-    private static final int MAX_VISIBLE_ICONS_PORTRAIT = 6;
 
     private int mNextViewIndex;
 
@@ -344,7 +342,22 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     @Override
     public void onDeviceProfileChanged(DeviceProfile dp) {
         mShouldTryStartAlign = mActivityContext.shouldStartAlignTaskbar();
+        
+        // Force re-evaluation of scrolling behavior on device profile changes
+        // This handles display size changes from Settings
+        boolean wasScrolling = mShouldEnableScrolling;
         updateScrollingBehavior();
+        
+        // If scrolling state changed, we need to re-layout the icons
+        if (wasScrolling != mShouldEnableScrolling) {
+            // Request layout to handle the scrolling state change
+            post(() -> {
+                requestLayout();
+                if (mControllerCallbacks != null) {
+                    mControllerCallbacks.notifyIconLayoutBoundsChanged();
+                }
+            });
+        }
     }
 
     private void updateScrollingBehavior() {
@@ -367,15 +380,84 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         return mLastHotseatIconCount + mLastRecentTaskCount;
     }
 
+    /**
+     * Calculates the maximum number of icons that can fit in the taskbar without scrolling.
+     * This replicates the layout calculation logic from updateItemsLayout.
+     */
+    private int calculateMaxFittableIcons() {
+        // Return a safe default if callbacks are not yet initialized
+        if (mControllerCallbacks == null) {
+            return 6; // Conservative default to avoid scrolling during initialization
+        }
+        
+        DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
+        int availableWidth = deviceProfile.widthPx;
+        
+        int defaultEdgeMargin =
+                (int) getResources().getDimension(deviceProfile.inv.inlineNavButtonsEndSpacing);
+        int spaceForBubbleBar =
+                Math.round(mControllerCallbacks.getBubbleBarMaxCollapsedWidthIfVisible());
+
+        // Calculate reserved space (similar to updateItemsLayout logic)
+        int leftReservedSpace = Math.max(defaultEdgeMargin + spaceForBubbleBar, deviceProfile.hotseatBarEndOffset);
+        int rightReservedSpace = Math.max(
+                defaultEdgeMargin + (mShouldTryStartAlign ? 0 : spaceForBubbleBar),
+                mShouldTryStartAlign ? 0 : deviceProfile.hotseatBarEndOffset);
+        
+        if (mShouldRepositionNavButtons) {
+            leftReservedSpace = Math.min(leftReservedSpace, defaultEdgeMargin + spaceForBubbleBar);
+            rightReservedSpace = deviceProfile.hotseatBarEndOffset;
+        }
+        
+        availableWidth -= leftReservedSpace;
+        availableWidth -= rightReservedSpace;
+
+        // The space taken by an item icon
+        int iconSize = 2 * mItemMarginLeftRight + mIconTouchSize;
+        
+        // Account for additional icons (divider, all apps button, etc.)
+        int additionalIcons = 0;
+        if (mTaskbarDividerContainer != null) {
+            availableWidth -= iconSize - 4 * mItemMarginLeftRight;
+            additionalIcons++;
+        }
+        
+        if (mAllAppsButtonContainer != null) {
+            boolean forceTransientTaskbarSize =
+                    enableTaskbarPinning() && !mActivityContext.isThreeButtonNav();
+            availableWidth -= iconSize - (int) getResources().getDimension(
+                    mAllAppsButtonContainer.getAllAppsButtonTranslationXOffset(
+                            forceTransientTaskbarSize || DisplayController.isTransientTaskbar(mActivityContext)));
+            additionalIcons++;
+        }
+
+        // Calculate maximum icons that can fit
+        int maxIcons = Math.max(0, availableWidth / iconSize);
+        
+        // Return the number accounting for additional icons, but ensure it's at least 1
+        return Math.max(1, maxIcons - additionalIcons);
+    }
+
     private boolean shouldEnableIconScrolling() {
+        // Don't enable scrolling if callbacks are not yet initialized
+        if (mControllerCallbacks == null) {
+            return false;
+        }
+        
         Resources resources = getResources();
         Configuration config = resources.getConfiguration();
         boolean isPortrait = config.orientation == Configuration.ORIENTATION_PORTRAIT;
         boolean isThreeButtonNav = mActivityContext.isThreeButtonNav();
         boolean isTablet = mActivityContext.getDeviceProfile().isTablet;
         
+        if (!isPortrait || !isThreeButtonNav || !isTablet) {
+            return false;
+        }
+        
         int totalIconCount = getTotalIconCount();
-        return isPortrait && isThreeButtonNav && isTablet && totalIconCount > SCROLL_THRESHOLD;
+        int maxFittableIcons = calculateMaxFittableIcons();
+        
+        return totalIconCount > maxFittableIcons;
     }
 
     private void enableIconScrolling() {
@@ -457,6 +539,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     }
 
     private int calculateScrollViewWidth() {
+        // Return a default width if callbacks are not yet initialized
+        if (mControllerCallbacks == null) {
+            return mIconTouchSize * 4; // Safe default for 4 icons
+        }
+        
         DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
         int screenWidth = deviceProfile.widthPx;
         int navButtonSpace = deviceProfile.hotseatBarEndOffset;
@@ -467,7 +554,8 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         
         int iconSize = 2 * mItemMarginLeftRight + mIconTouchSize;
         int totalIcons = getTotalIconCount();
-        int visibleIcons = Math.min(totalIcons, MAX_VISIBLE_ICONS_PORTRAIT);
+        int maxFittableIcons = calculateMaxFittableIcons();
+        int visibleIcons = Math.min(totalIcons, maxFittableIcons);
         
         int idealWidth = visibleIcons * iconSize;
         
@@ -537,6 +625,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mControllerCallbacks = callbacks;
         mIconClickListener = mControllerCallbacks.getIconOnClickListener();
         mIconLongClickListener = mControllerCallbacks.getIconOnLongClickListener();
+        
+        // Now that callbacks are initialized, re-evaluate scrolling behavior
+        updateScrollingBehavior();
 
         if (mAllAppsButtonContainer != null) {
             mAllAppsButtonContainer.setUpCallbacks(callbacks);
@@ -650,7 +741,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             if (maxVisibleWidth <= 0) {
                 // Fallback to minimum reasonable width based on device metrics
                 int minIconSize = mIconTouchSize + 2 * mItemMarginLeftRight;
-                int fallbackIconCount = Math.min(MAX_VISIBLE_ICONS_PORTRAIT, 4);
+                int fallbackIconCount = Math.min(calculateMaxFittableIcons(), 4);
                 maxVisibleWidth = fallbackIconCount * minIconSize;
             }
             
