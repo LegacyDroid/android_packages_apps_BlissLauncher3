@@ -427,15 +427,20 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                     enableTaskbarPinning() && !mActivityContext.isThreeButtonNav();
             availableWidth -= iconSize - (int) getResources().getDimension(
                     mAllAppsButtonContainer.getAllAppsButtonTranslationXOffset(
-                            forceTransientTaskbarSize || DisplayController.isTransientTaskbar(mActivityContext)));
+                            forceTransientTaskbarSize || isTransientTaskbar()));
             additionalIcons++;
         }
 
         // Calculate maximum icons that can fit
-        int maxIcons = Math.max(0, availableWidth / iconSize);
+        // Use floorDiv to match the original calculation and add additional icons
+        // (since they take less space than regular icons)
+        int result = Math.floorDiv(availableWidth, iconSize) + additionalIcons;
         
-        // Return the number accounting for additional icons, but ensure it's at least 1
-        return Math.max(1, maxIcons - additionalIcons);
+        // Debug logging to help verify calculations
+        android.util.Log.d("TaskbarScrollView", "calculateMaxFittableIcons: availableWidth=" + availableWidth + 
+                ", iconSize=" + iconSize + ", additionalIcons=" + additionalIcons + ", result=" + result);
+        
+        return result;
     }
 
     private boolean shouldEnableIconScrolling() {
@@ -457,7 +462,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         int totalIconCount = getTotalIconCount();
         int maxFittableIcons = calculateMaxFittableIcons();
         
-        return totalIconCount > maxFittableIcons;
+        boolean shouldScroll = totalIconCount > maxFittableIcons;
+        android.util.Log.d("TaskbarScrollView", "shouldEnableIconScrolling: totalIcons=" + totalIconCount + 
+                ", maxFittable=" + maxFittableIcons + ", shouldScroll=" + shouldScroll);
+        
+        return shouldScroll;
     }
 
     private void enableIconScrolling() {
