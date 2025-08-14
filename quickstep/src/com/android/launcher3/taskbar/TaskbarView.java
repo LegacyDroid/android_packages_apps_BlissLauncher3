@@ -493,10 +493,8 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mIconContainer.setClipChildren(false);
         mIconContainer.setClipToPadding(false);
         
-        int estimatedIconSize = 80;
-        float density = getResources().getDisplayMetrics().density;
-        int minContainerWidth = Math.round(8 * estimatedIconSize * density);
-        mIconContainer.setMinimumWidth(minContainerWidth);
+        // Initial container width will be set when icons are added
+        updateScrollContainerWidth();
 
         mIconScrollView.setHorizontalScrollBarEnabled(false);
         mIconScrollView.setOverScrollMode(View.OVER_SCROLL_NEVER);
@@ -576,6 +574,30 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // Ensure we return a positive, reasonable width
         int minWidth = iconSize + (2 * containerPadding);
         return Math.max(finalWidth, minWidth);
+    }
+
+    /**
+     * Updates the scroll container width to fit the actual icon count, preventing empty scroll space
+     */
+    private void updateScrollContainerWidth() {
+        if (mIconContainer == null) return;
+        
+        int actualIconCount = getTotalIconCount();
+        if (actualIconCount == 0) {
+            mIconContainer.setMinimumWidth(0);
+            return;
+        }
+        
+        int iconSize = 2 * mItemMarginLeftRight + mIconTouchSize;
+        int containerPadding = getResources().getDimensionPixelSize(R.dimen.taskbar_icon_spacing);
+        int actualContainerWidth = actualIconCount * iconSize + (2 * containerPadding);
+        
+        // Set minimum width to exact content size to prevent empty scroll areas
+        mIconContainer.setMinimumWidth(actualContainerWidth);
+        mIconContainer.requestLayout();
+        
+        android.util.Log.d("TaskbarScrollView", "updateScrollContainerWidth: iconCount=" + actualIconCount + 
+                ", containerWidth=" + actualContainerWidth);
     }
 
 
@@ -949,6 +971,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         while (isNextViewInSection(ItemInfo.class)) {
             removeAndRecycle(getChildAt(mNextViewIndex));
         }
+        
+        // Update container width after all hotseat icons are added
+        if (mShouldEnableScrolling) {
+            updateScrollContainerWidth();
+        }
     }
 
     private void updateRecents(List<GroupTask> recentTasks) {
@@ -1064,6 +1091,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         while (isNextViewInSection(GroupTask.class)) {
             removeAndRecycle(getChildAt(mNextViewIndex));
+        }
+        
+        // Update container width after all recent icons are added
+        if (mShouldEnableScrolling) {
+            updateScrollContainerWidth();
         }
     }
 
