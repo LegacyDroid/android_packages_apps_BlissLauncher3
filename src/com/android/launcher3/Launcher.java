@@ -3203,6 +3203,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         set.play(ObjectAnimator.ofFloat(swipeSearchContainer, View.TRANSLATION_Y, 0))
                 .with(ObjectAnimator.ofFloat(mBlurLayer, View.ALPHA, 1f))
                 .with(ObjectAnimator.ofFloat(mWorkspace, View.ALPHA, 0f))
+                .with(ObjectAnimator.ofFloat(mWorkspace.getPageAt(mWorkspace.getCurrentPage()), View.ALPHA, 0f))
                 .with(ObjectAnimator.ofFloat(mWorkspace.mPageIndicator, View.ALPHA, 0f))
                 .with(ObjectAnimator.ofFloat(mHotseat, View.ALPHA, 0f));
         set.setDuration(300);
@@ -3246,6 +3247,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         set.play(ObjectAnimator.ofFloat(swipeSearchContainer, View.TRANSLATION_Y, -swipeSearchContainer.getHeight()))
                 .with(ObjectAnimator.ofFloat(mWorkspace, View.ALPHA, 1f))
                 .with(ObjectAnimator.ofFloat(mWorkspace.mPageIndicator, View.ALPHA, 1f))
+                .with(ObjectAnimator.ofFloat(mWorkspace.getPageAt(mWorkspace.getCurrentPage()), View.ALPHA, 1f))
                 .with(ObjectAnimator.ofFloat(mHotseat, View.ALPHA, 1f))
                 .with(ObjectAnimator.ofFloat(mBlurLayer, View.ALPHA, 0f));
         set.setDuration(300);
