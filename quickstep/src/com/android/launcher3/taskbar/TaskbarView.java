@@ -347,17 +347,19 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // This handles display size changes from Settings
         boolean wasScrolling = mShouldEnableScrolling;
         updateScrollingBehavior();
-        
-        // If scrolling state changed, we need to re-layout the icons
-        if (wasScrolling != mShouldEnableScrolling) {
-            // Request layout to handle the scrolling state change
-            post(() -> {
-                requestLayout();
-                if (mControllerCallbacks != null) {
-                    mControllerCallbacks.notifyIconLayoutBoundsChanged();
-                }
-            });
+
+        // If scrolling state did not change, no need to re-layout the icons
+        if (wasScrolling == mShouldEnableScrolling) {
+            return;
         }
+
+        // Request layout to handle the scrolling state change
+        post(() -> {
+            requestLayout();
+            if (mControllerCallbacks != null) {
+                mControllerCallbacks.notifyIconLayoutBoundsChanged();
+            }
+        });
     }
 
     private void updateScrollingBehavior() {
