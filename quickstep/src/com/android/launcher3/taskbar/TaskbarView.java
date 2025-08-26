@@ -123,6 +123,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     private boolean mShouldRepositionNavButtons = false;
     @Nullable private HorizontalScrollView mIconScrollView;
     @Nullable private LinearLayout mIconContainer;
+    
+    // Scroll controller for future refactoring
+    private TaskbarScrollController mScrollController;
 
     private int mNextViewIndex;
 
@@ -194,6 +197,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // then we scale and translate the icons to match persistent taskbar designs, so we use
         // taskbar icon size from current device profile to calculate correct item padding.
         mItemPadding = (mIconTouchSize - mActivityContext.getDeviceProfile().taskbarIconSize) / 2;
+        
+        // Initialize scroll controller (for future migration)
+        mScrollController = new TaskbarScrollController(mActivityContext, this, 
+                mIconTouchSize, mItemMarginLeftRight);
+        
         mFolderLeaveBehindColor = Themes.getAttrColor(mActivityContext,
                 android.R.attr.textColorTertiary);
 
