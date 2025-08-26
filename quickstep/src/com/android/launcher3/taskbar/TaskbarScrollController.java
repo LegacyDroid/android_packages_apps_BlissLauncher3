@@ -105,8 +105,14 @@ public class TaskbarScrollController {
 
     /**
      * Determines if icon scrolling should be enabled based on current conditions.
+     * This exactly replicates your original working logic.
      */
     private boolean shouldEnableIconScrolling() {
+        // Don't enable scrolling if TaskbarView is not yet fully initialized
+        if (!mTaskbarView.isInitialized()) {
+            return false;
+        }
+        
         Resources resources = mTaskbarView.getResources();
         Configuration config = resources.getConfiguration();
         boolean isPortrait = config.orientation == Configuration.ORIENTATION_PORTRAIT;
@@ -122,9 +128,7 @@ public class TaskbarScrollController {
         
         boolean shouldScroll = totalIconCount > maxFittableIcons;
         android.util.Log.d("TaskbarScrollView", "shouldEnableIconScrolling: totalIcons=" + totalIconCount + 
-                ", maxFittable=" + maxFittableIcons + ", shouldScroll=" + shouldScroll + 
-                ", isPortrait=" + isPortrait + ", isThreeButtonNav=" + isThreeButtonNav + 
-                ", isTablet=" + isTablet);
+                ", maxFittable=" + maxFittableIcons + ", shouldScroll=" + shouldScroll);
         
         return shouldScroll;
     }

@@ -233,6 +233,13 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     }
 
     /**
+     * Returns whether TaskbarView is fully initialized (callbacks are set).
+     */
+    public boolean isInitialized() {
+        return mControllerCallbacks != null;
+    }
+
+    /**
      * Calculates the maximum number of icons that can fit in the taskbar without scrolling.
      * This replicates the layout calculation logic from updateItemsLayout.
      */
