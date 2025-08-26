@@ -72,9 +72,14 @@ public class TaskbarScrollController {
     public void updateScrollingBehavior() {
         boolean shouldEnableScrolling = shouldEnableIconScrolling();
         
+        android.util.Log.d("TaskbarScrollView", "updateScrollingBehavior: shouldEnable=" + shouldEnableScrolling + 
+                ", wasEnabled=" + mShouldEnableScrolling);
+        
         if (shouldEnableScrolling && !mShouldEnableScrolling) {
+            android.util.Log.d("TaskbarScrollView", "Enabling scroll view");
             enableIconScrolling();
         } else if (!shouldEnableScrolling && mShouldEnableScrolling) {
+            android.util.Log.d("TaskbarScrollView", "Disabling scroll view");
             disableIconScrolling();
         }
         
@@ -108,13 +113,29 @@ public class TaskbarScrollController {
         boolean isThreeButtonNav = mActivityContext.isThreeButtonNav();
         boolean isTablet = mActivityContext.getDeviceProfile().isTablet;
         
+        if (!isPortrait || !isThreeButtonNav || !isTablet) {
+            return false;
+        }
+        
         int totalIconCount = getTotalIconCount();
+        int maxFittableIcons = calculateMaxFittableIcons();
         
+        boolean shouldScroll = totalIconCount > maxFittableIcons;
         android.util.Log.d("TaskbarScrollView", "shouldEnableIconScrolling: totalIcons=" + totalIconCount + 
+                ", maxFittable=" + maxFittableIcons + ", shouldScroll=" + shouldScroll + 
                 ", isPortrait=" + isPortrait + ", isThreeButtonNav=" + isThreeButtonNav + 
-                ", isTablet=" + isTablet + ", threshold=" + SCROLL_THRESHOLD);
+                ", isTablet=" + isTablet);
         
-        return isPortrait && isThreeButtonNav && isTablet && totalIconCount > SCROLL_THRESHOLD;
+        return shouldScroll;
+    }
+
+    /**
+     * Calculates the maximum number of icons that can fit in the taskbar without scrolling.
+     * This uses the TaskbarView's existing calculation method.
+     */
+    private int calculateMaxFittableIcons() {
+        // Use TaskbarView's own calculation method which has access to all the required fields
+        return mTaskbarView.calculateMaxFittableIcons();
     }
 
     /**
@@ -128,24 +149,6 @@ public class TaskbarScrollController {
         LayoutInflater inflater = LayoutInflater.from(mActivityContext);
         mIconScrollView = (HorizontalScrollView) inflater.inflate(R.layout.taskbar_scroll_view, null);
         mIconContainer = mIconScrollView.findViewById(R.id.taskbar_icon_container);
-        
-        // Override touch handling for the scroll view
-        mIconScrollView = new HorizontalScrollView(mActivityContext) {
-            @Override
-            public boolean onInterceptTouchEvent(MotionEvent ev) {
-                return super.onInterceptTouchEvent(ev);
-            }
-            
-            @Override
-            public boolean onTouchEvent(MotionEvent ev) {
-                return super.onTouchEvent(ev);
-            }
-        };
-        
-        // Re-inflate and get container after creating custom scroll view
-        View scrollContent = inflater.inflate(R.layout.taskbar_scroll_view, mIconScrollView, false);
-        mIconContainer = scrollContent.findViewById(R.id.taskbar_icon_container);
-        mIconScrollView.addView(scrollContent);
         
         // Set minimum width for container
         int estimatedIconSize = 80;
@@ -272,6 +275,7 @@ public class TaskbarScrollController {
      */
     public boolean addIconToContainer(View iconView, int itemPadding) {
         if (mShouldEnableScrolling && mIconContainer != null) {
+            android.util.Log.d("TaskbarScrollView", "Adding icon to scroll container");
             iconView.setPadding(itemPadding, itemPadding, itemPadding, itemPadding);
             LinearLayout.LayoutParams scrollLp = new LinearLayout.LayoutParams(
                     mIconTouchSize, mIconTouchSize);
@@ -280,6 +284,8 @@ public class TaskbarScrollController {
             mIconContainer.addView(iconView, scrollLp);
             return true; // Indicates icon was added to scroll container
         }
+        android.util.Log.d("TaskbarScrollView", "Adding icon to main container (scrolling=" + mShouldEnableScrolling + 
+                ", container=" + (mIconContainer != null) + ")");
         return false; // Indicates icon should be added to main container
     }
 
