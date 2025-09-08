@@ -29,7 +29,7 @@ android_library_import {
 // https://gitlab.e.foundation/e/os/e-telemetry
 android_library_import {
     name: "e-telemetry",
-    aars:  ["telemetry-1.0.0-release.aar"],
+    aars:  ["telemetry-1.0.1-release.aar"],
 }
 
 // https://github.com/getsentry/sentry-java/releases/tag/8.15.1
