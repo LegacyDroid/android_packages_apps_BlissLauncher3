@@ -1061,11 +1061,14 @@ public class DeviceProfile {
           needed in gestural navigation by taskbar and navbar classes. Thus, we decouple them here.
          */
 
+        boolean isPortrait = availableWidthPx < availableHeightPx;
+
         // The side space should be what is defined in InvariantDeviceProfile
         int dockInlineNavButtonsEndSpacingPx = res.getDimensionPixelSize(inv.inlineNavButtonsEndSpacing);
-        int dockHotseatBarEndOffset = 3 * res.getDimensionPixelSize(R.dimen.taskbar_nav_buttons_size)
-                + 2 * res.getDimensionPixelSize(R.dimen.taskbar_button_space_inbetween)
-                + dockInlineNavButtonsEndSpacingPx;
+        int dockHotseatBarEndOffset = (isPortrait ? 0 : (
+                3 * res.getDimensionPixelSize(R.dimen.taskbar_nav_buttons_size)
+                        + 2 * res.getDimensionPixelSize(R.dimen.taskbar_button_space_inbetween)
+                        + dockInlineNavButtonsEndSpacingPx));
         int sideSpacePx = dockInlineNavButtonsEndSpacingPx;
         int maxHotseatWidthPx = availableWidthPx - sideSpacePx - (dockHotseatBarEndOffset / 4);
         int maxHotseatIconsWidthPx = maxHotseatWidthPx - (isQsbInline ? hotseatQsbWidth : 0);
