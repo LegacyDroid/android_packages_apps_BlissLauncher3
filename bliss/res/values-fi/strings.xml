@@ -13,11 +13,18 @@
   ~
   ~ You should have received a copy of the GNU General Public License
   ~  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-  -->
-<resources>
+  --><resources>
     <string name="edit">Muokkaa</string>
     <string name="search">Hae</string>
     <string name="suggestions">Ehdotukset</string>
     <string name="cancel">Peruuta</string>
     <string name="untitled_folder">Nimetön</string>
+    <string name="maps">Kartat</string>
+    <string name="uninstall_app">Haluatko poistaa tämän sovelluksen?</string>
+    <string name="widget_no_resize">Tämän pienoisohjelman kokoa ei voi muuttaa</string>
+    <string name="widget_add">Lisää</string>
+    <string name="widget_remove">Poista</string>
+    <string name="remove_widgets">Poista pienoisohjelmia</string>
+    <string name="show_notification_count">Näytä ilmoitusten lukumäärä</string>
+    <string name="add_to_widget_Screen">Lisää pienoisohjelmien näytölle</string>
 </resources>
