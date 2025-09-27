@@ -16,7 +16,7 @@
   --><resources>
     <string name="edit">Muokkaa</string>
     <string name="search">Hae</string>
-    <string name="suggestions">Ehdotukset</string>
+    <string name="suggestions">EHDOTUKSET</string>
     <string name="cancel">Peruuta</string>
     <string name="untitled_folder">Nimetön</string>
     <string name="maps">Kartat</string>
