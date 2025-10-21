@@ -470,6 +470,14 @@ android_library {
     ],
 }
 
+prebuilt_etc {
+    name: "privapp_whitelist_foundation.e.blisslauncher",
+    system_ext_specific: true,
+    sub_dir: "permissions",
+    src: "foundation.e.blisslauncher.xml",
+    filename_from_src: true,
+}
+
 // Extra privileged permission whitelist for Launcher3 app.
 prebuilt_etc {
     name: "privapp_whitelist_com.android.launcher3-extra",
@@ -646,7 +654,7 @@ android_library {
 
 // Build rule for Quickstep app.
 android_app {
-    name: "Launcher3QuickStep",
+    name: "BlissLauncher3",
     static_libs: ["Launcher3QuickStepLib"],
     optimize: {
         proguard_flags_files: [":launcher-proguard-rules"],
@@ -654,6 +662,7 @@ android_app {
         shrink_resources: true,
     },
 
+    certificate: "platform",
     platform_apis: true,
     min_sdk_version: "current",
     target_sdk_version: "current",
@@ -665,10 +674,10 @@ android_app {
         "Launcher2",
         "Launcher3",
         "QuickSearchBox",
+        "Launcher3QuickStep",
     ],
     required: [
-        "privapp_whitelist_com.android.launcher3",
-        "privapp_whitelist_com.android.launcher3-extra",
+        "privapp_whitelist_foundation.e.blisslauncher",
         "launcher.quickstep.protolog.pb",
     ],
 
@@ -679,11 +688,29 @@ android_app {
         "AndroidManifest-common.xml",
     ],
 
+    aaptflags: [
+        "--rename-manifest-package foundation.e.blisslauncher",
+    ],
+
     manifest: "quickstep/AndroidManifest.xml",
     jacoco: {
         include_filter: ["com.android.launcher3.*"],
     },
 
+}
+
+phony {
+    name: "Launcher3QuickStep",
+    required: [
+        "BlissLauncher3",
+    ],
+}
+
+phony {
+    name: "Launcher3QuickStepGo",
+    required: [
+        "BlissLauncher3Go",
+    ],
 }
 
 // Build rule for Launcher3 Go app with quickstep for Android Go devices.
@@ -731,10 +758,11 @@ android_app {
 }
 
 android_app {
-    name: "Launcher3QuickStepGo",
+    name: "BlissLauncher3Go",
     static_libs: ["Launcher3GoLib"],
     resource_dirs: [],
 
+    certificate: "platform",
     platform_apis: true,
     min_sdk_version: "current",
     target_sdk_version: "current",
@@ -752,17 +780,21 @@ android_app {
         "Launcher2",
         "Launcher3",
         "Launcher3QuickStep",
+        "Launcher3QuickStepGo",
         "QuickSearchBox",
     ],
     required: [
-        "privapp_whitelist_com.android.launcher3",
-        "privapp_whitelist_com.android.launcher3-extra",
+        "privapp_whitelist_foundation.e.blisslauncher",
     ],
 
     additional_manifests: [
         "go/AndroidManifest.xml",
         "go/AndroidManifest-launcher.xml",
         "AndroidManifest-common.xml",
+    ],
+
+    aaptflags: [
+        "--rename-manifest-package foundation.e.blisslauncher",
     ],
 
     manifest: "quickstep/AndroidManifest.xml",
