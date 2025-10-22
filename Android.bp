@@ -403,6 +403,7 @@ android_library {
         "jsr330",
         "com_android_systemui_shared_flags_lib",
         "org.lineageos.platform",
+        "elib",
     ],
     manifest: "AndroidManifest-common.xml",
     sdk_version: "current",
@@ -627,6 +628,10 @@ android_app {
 
     aaptflags: [
         "--rename-manifest-package foundation.e.blisslauncher",
+        "--version-name",
+        "3.1.2",
+        "--version-code",
+        "3010020",
     ],
 
     manifest: "quickstep/AndroidManifest.xml",
@@ -732,6 +737,10 @@ android_app {
 
     aaptflags: [
         "--rename-manifest-package foundation.e.blisslauncher",
+        "--version-name",
+        "3.1.2",
+        "--version-code",
+        "3010020",
     ],
 
     manifest: "quickstep/AndroidManifest.xml",
