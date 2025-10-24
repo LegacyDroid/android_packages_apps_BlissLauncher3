@@ -932,7 +932,7 @@ public class DeviceProfile {
 
         return mIsScalableGrid
                 ? pxFromDp(idp.horizontalMargin[mTypeIndex], mMetrics)
-                : res.getDimensionPixelSize(R.dimen.dynamic_grid_left_right_margin);
+                : res.getDimensionPixelSize(R.dimen.dynamic_grid_cell_border_spacing);
     }
 
     private void calculateAndSetWorkspaceVerticalPadding(Context context,
