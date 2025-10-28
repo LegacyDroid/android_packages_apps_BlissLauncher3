@@ -70,6 +70,7 @@ import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.DisplayController.Info;
+import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.Partner;
 import com.android.launcher3.util.ResourceHelper;
 import com.android.launcher3.util.SimpleBroadcastReceiver;
@@ -92,6 +93,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+
+import lineageos.providers.LineageSettings;
 
 @LauncherAppSingleton
 public class InvariantDeviceProfile {
@@ -1449,9 +1452,14 @@ public class InvariantDeviceProfile {
                     R.styleable.ProfileDisplayOption_horizontalMarginTwoPanelPortrait,
                     horizontalMargin[INDEX_DEFAULT]);
 
+            WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
+            boolean noHintGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON && LineageSettings.System.getInt(
+                    context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
+
             hotseatBarBottomSpace[INDEX_DEFAULT] = a.getFloat(
                     R.styleable.ProfileDisplayOption_hotseatBarBottomSpace,
-                    ResourcesCompat.getFloat(res, R.dimen.hotseat_bar_bottom_space_default));
+                    noHintGesture ? ResourcesCompat.getFloat(res, R.dimen.hotseat_qsb_space_default)
+                            : ResourcesCompat.getFloat(res, R.dimen.hotseat_bar_bottom_space_default));
             hotseatBarBottomSpace[INDEX_LANDSCAPE] = a.getFloat(
                     R.styleable.ProfileDisplayOption_hotseatBarBottomSpaceLandscape,
                     hotseatBarBottomSpace[INDEX_DEFAULT]);
