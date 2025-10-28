@@ -2018,7 +2018,7 @@ public class DeviceProfile {
             int iconExtraSpacePx = iconSizePx - getIconVisibleSizePx(iconSizePx);
             int sideSpacing = (availableWidthPx - (hotseatQsbWidth + iconExtraSpacePx)) / 2;
             hotseatBarPadding.set(sideSpacing,
-                    0,
+                    getHotseatBarTopPadding(),
                     sideSpacing,
                     getHotseatBarBottomPadding());
         } else {
@@ -2032,7 +2032,7 @@ public class DeviceProfile {
             hotseatBarPadding.set(
                     hotseatAdjustment + workspacePadding.left + cellLayoutPaddingPx.left
                             + mInsets.left,
-                    0,
+                    getHotseatBarTopPadding(),
                     hotseatAdjustment + workspacePadding.right + cellLayoutPaddingPx.right
                             + mInsets.right,
                     getHotseatBarBottomPadding());
@@ -2104,15 +2104,30 @@ public class DeviceProfile {
      * Returns the number of pixels the hotseat is translated from the bottom of the screen.
      */
     private int getHotseatBarBottomPadding() {
-        WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
-        boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
-
         if (isTaskbarPresent || isQsbInline) { // QSB on top or inline
             return hotseatBarBottomSpacePx - (Math.abs(hotseatCellHeightPx - iconSizePx) / 2);
         } else {
-            int size = hotseatBarSizePx - hotseatCellHeightPx;
-            return isFullyGesture ? size / 4 : Math.round(size / 1.5f);
+            return hotseatBarSizePx - hotseatCellHeightPx;
         }
+    }
+
+    /**
+     * Returns the number of pixels the hotseat is translated from the top of the screen.
+     */
+    private int getHotseatBarTopPadding() {
+        float topPadding = 0;
+        if (isPhone) {
+            WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
+            boolean isThreeButtonNav = wm.getNavigationMode(context) == NavigationMode.THREE_BUTTONS;
+
+            int dimenRes = isThreeButtonNav
+                    ? R.dimen.hotseat_bar_top_space_default_three_button
+                    : R.dimen.hotseat_bar_top_space_default;
+
+            topPadding = ResourcesCompat.getFloat(context.getResources(), dimenRes);
+        }
+
+        return Math.round(topPadding);
     }
 
     /**
