@@ -66,6 +66,12 @@ android {
         targetSdkVersion 36
         versionCode getVersionCode()
         versionName appVersion
+
+        buildConfigField "boolean", "IS_STUDIO_BUILD", "false"
+        buildConfigField "boolean", "QSB_ON_FIRST_SCREEN", "false"
+        buildConfigField "boolean", "WIDGET_ON_FIRST_SCREEN", "false"
+        buildConfigField "boolean", "WIDGETS_ENABLED", "true"
+        buildConfigField "boolean", "NOTIFICATION_DOTS_ENABLED", "true"
     }
 
     signingConfigs {
@@ -96,11 +102,15 @@ android {
         }
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
 
     buildTypes {
         debug {
             minifyEnabled = false
             signingConfig = signingConfigs.platformConfig
+            buildConfigField "boolean", "IS_DEBUG_DEVICE", "true"
         }
 
         release {
@@ -108,6 +118,7 @@ android {
             shrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard.flags", "proguard-rules.pro")
             signingConfig = signingConfigs.platformConfig
+            buildConfigField "boolean", "IS_DEBUG_DEVICE", "false"
         }
     }
 
@@ -135,7 +146,6 @@ android {
                     'libs_systemui/tracinglib/core/src',
                     'shared/src',
                     'src',
-                    'src_build_config',
                     'tests/multivalentTests/shared'
             ]
             manifest.srcFile 'AndroidManifest-common.xml'
