@@ -31,7 +31,6 @@
                 android:hint="@string/search"
                 android:imeOptions="actionSearch"
                 android:importantForAutofill="no"
-                android:inputType="text"
                 android:maxLines="1"
                 android:padding="8dp"
                 android:textColor="@color/e_primary_text_color_dark"
