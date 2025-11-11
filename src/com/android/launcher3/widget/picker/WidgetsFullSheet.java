@@ -72,6 +72,7 @@ import com.android.launcher3.views.SpringRelativeLayout;
 import com.android.launcher3.views.StickyHeaderLayout;
 import com.android.launcher3.widget.BaseWidgetSheet;
 import com.android.launcher3.widget.WidgetCell;
+import com.android.launcher3.widget.WidgetTableRow;
 import com.android.launcher3.widget.model.WidgetsListBaseEntry;
 import com.android.launcher3.widget.picker.model.data.WidgetPickerData;
 import com.android.launcher3.widget.picker.search.SearchModeListener;
@@ -1072,6 +1073,9 @@ public class WidgetsFullSheet extends BaseWidgetSheet
     }
 
     public void onClick(View v) {
+        if (v instanceof WidgetTableRow) {
+            return;
+        }
         if (isEditMode) {
             WidgetFragment.onWidgetClick(mActivityContext, v, close -> {
                 handleClose(false);

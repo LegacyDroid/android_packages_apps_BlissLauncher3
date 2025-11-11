@@ -514,24 +514,37 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) : FrameLayout(cont
 
             @JvmStatic
             fun onWidgetClick(context: Context, view: View, closeSheet: (Boolean) -> Unit) {
-                val tag =
-                    when {
-                        view is WidgetCell -> {
-                            view.getTag()
-                        }
-                        view.parent is WidgetCell -> {
-                            (view.parent as WidgetCell).tag
-                        }
-                        else -> null
-                    }
 
+                val cell =
+                    when (view) {
+                        is WidgetCell -> view
+                        else -> {
+                            var p = view.parent
+                            while (p is View) {
+                                if (p is WidgetCell) {
+                                    break
+                                }
+                                p = p.parent
+                            }
+                            p as? WidgetCell
+                        }
+                    } ?: return
+
+                val tag = cell.tag
                 if (tag is PendingAddShortcutInfo) {
-                    Toast.makeText(context, "Please select a widget", Toast.LENGTH_SHORT).show()
-                } else {
-                    closeSheet(true)
-                    val widget = (view.parent as WidgetCell).tag as PendingAddItemInfo
-                    defaultWidgets.add(widget.componentName)
+                    Toast.makeText(
+                            context,
+                            context.getString(R.string.select_a_widget),
+                            Toast.LENGTH_SHORT,
+                        )
+                        .show()
+                    return
                 }
+
+                closeSheet(true)
+
+                val widget = tag as PendingAddItemInfo
+                defaultWidgets.add(widget.componentName)
             }
 
             @JvmStatic
