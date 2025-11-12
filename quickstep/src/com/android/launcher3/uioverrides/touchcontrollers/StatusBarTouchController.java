@@ -37,6 +37,7 @@ import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
+import com.android.launcher3.Workspace;
 import com.android.launcher3.util.TouchController;
 import com.android.quickstep.SystemUiProxy;
 
@@ -184,7 +185,7 @@ public class StatusBarTouchController implements TouchController {
         }
 
         if (MultiModeController.isSingleLayerMode()
-                && mLauncher.getWorkspace().getCurrentPage() == 0) {
+                && mLauncher.getWorkspace().getCurrentPage() == Workspace.WIDGET_PAGE) {
             return false;
         }
 

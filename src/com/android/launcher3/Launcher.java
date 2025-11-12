@@ -1228,7 +1228,7 @@ public class Launcher extends StatefulActivity<LauncherState>
                 });
 
         // Re-apply state if its widgets page
-        if (mWorkspace.getCurrentPage() == 0) {
+        if (mWorkspace.getCurrentPage() == Workspace.WIDGET_PAGE) {
             mStateManager.reapplyState(true);
         }
     }
@@ -2533,7 +2533,7 @@ public class Launcher extends StatefulActivity<LauncherState>
                 && info.user.equals(user)
                 && TextUtils.equals(info.getTargetPackage(), packageName);
 
-        if (mWorkspace.getDestinationPage() == 0) {
+        if (mWorkspace.getDestinationPage() == Workspace.WIDGET_PAGE) {
             return null;
         }
 

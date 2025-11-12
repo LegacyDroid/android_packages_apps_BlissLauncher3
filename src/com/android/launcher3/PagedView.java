@@ -1980,7 +1980,7 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
                 : AccessibilityNodeInfo.AccessibilityAction.ACTION_PAGE_RIGHT);
         }
         if (getCurrentPage() > 0
-                || (getCurrentPage() == 0 && primaryScroll != getScrollForPage(0))) {
+                || (getCurrentPage() == Workspace.WIDGET_PAGE && primaryScroll != getScrollForPage(0))) {
             info.addAction(pagesFlipped ?
                     AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD
                     : AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_BACKWARD);

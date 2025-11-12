@@ -44,6 +44,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.R;
 import com.android.launcher3.ShortcutAndWidgetContainer;
 import com.android.launcher3.Utilities;
+import com.android.launcher3.Workspace;
 import com.android.launcher3.anim.PropertyResetListener;
 import com.android.launcher3.apppairs.AppPairIcon;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
@@ -377,7 +378,7 @@ public class FolderAnimationManager {
     private void addPreviewItemAnimators(AnimatorSet animatorSet, final float folderScale,
             int previewItemOffsetX, int previewItemOffsetY) {
         ClippedFolderIconLayoutRule rule = mFolderIcon.getLayoutRule();
-        boolean isOnFirstPage = mFolder.mContent.getCurrentPage() == 0;
+        boolean isOnFirstPage = mFolder.mContent.getCurrentPage() == Workspace.WIDGET_PAGE;
         final List<View> itemsInPreview = getPreviewIconsOnPage(
                 isOnFirstPage ? 0 : mFolder.mContent.getCurrentPage());
         final int numItemsInPreview = itemsInPreview.size();

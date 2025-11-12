@@ -189,6 +189,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
     private static final int ADJACENT_SCREEN_DROP_DURATION = 300;
 
+    public static final int WIDGET_PAGE = 0;
     public static final int DEFAULT_PAGE = 1;
 
     private final int mAllAppsIconSize;
