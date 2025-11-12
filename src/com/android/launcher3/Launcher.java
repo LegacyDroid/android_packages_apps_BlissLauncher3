@@ -1226,6 +1226,11 @@ public class Launcher extends StatefulActivity<LauncherState>
                                 isImeVisible ? SHOW : HIDE);
                     }
                 });
+
+        // Re-apply state if its widgets page
+        if (mWorkspace.getCurrentPage() == 0) {
+            mStateManager.reapplyState(true);
+        }
     }
 
     private void logStopAndResume(boolean isResume) {
