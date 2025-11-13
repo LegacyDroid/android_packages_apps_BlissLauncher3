@@ -28,6 +28,6 @@
     <string name="widget_remove">Удалить</string>
     <string name="remove_widgets">Удалить виджеты</string>
     <string name="show_notification_count">Показать количество уведомлений</string>
-    <string name="add_to_widget_Screen">Добавить на -1 экран</string>
+    <string name="add_to_widget_Screen">Добавить на экран виджетов</string>
     <string name="maps">Карты</string>
 </resources>
