@@ -35,15 +35,10 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
     private val mAppMonitorCallback: LauncherAppMonitorCallback =
         object : LauncherAppMonitorCallback {
             override fun onLoadAllAppsEnd(apps: ArrayList<AppInfo?>?) {
+                val launcher = monitor.launcher ?: return
+                val model = launcher.model ?: return
                 MODEL_EXECUTOR.submit(
-                    VerifyIdleAppTask(
-                        context,
-                        apps,
-                        null,
-                        null,
-                        false,
-                        monitor.launcher.model.mBgDataModel,
-                    )
+                    VerifyIdleAppTask(context, apps, null, null, false, model.mBgDataModel)
                 )
             }
 
