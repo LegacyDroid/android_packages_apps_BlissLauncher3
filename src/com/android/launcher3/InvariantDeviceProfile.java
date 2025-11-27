@@ -1455,11 +1455,10 @@ public class InvariantDeviceProfile {
             WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
             boolean noHintGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON && LineageSettings.System.getInt(
                     context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
-            boolean isTablet = grid.deviceCategory == TYPE_TABLET;
 
             hotseatBarBottomSpace[INDEX_DEFAULT] = a.getFloat(
                     R.styleable.ProfileDisplayOption_hotseatBarBottomSpace,
-                    noHintGesture || isTablet ? ResourcesCompat.getFloat(res, R.dimen.hotseat_qsb_space_default)
+                    noHintGesture ? ResourcesCompat.getFloat(res, R.dimen.hotseat_qsb_space_default)
                             : ResourcesCompat.getFloat(res, R.dimen.hotseat_bar_bottom_space_default));
             hotseatBarBottomSpace[INDEX_LANDSCAPE] = a.getFloat(
                     R.styleable.ProfileDisplayOption_hotseatBarBottomSpaceLandscape,
