@@ -2069,7 +2069,6 @@ public class DeviceProfile {
                 hotseatBarPadding.left = startSpacing;
                 hotseatBarPadding.right = endSpacing;
             }
-
         } else if (mIsScalableGrid) {
             int iconExtraSpacePx = iconSizePx - getIconVisibleSizePx(iconSizePx);
             int sideSpacing = (availableWidthPx - (hotseatQsbWidth + iconExtraSpacePx)) / 2;
@@ -2091,7 +2090,7 @@ public class DeviceProfile {
             hotseatBarPadding.set(
                     hotseatAdjustment + workspacePadding.left + cellLayoutPaddingPx.left
                             + mInsets.left,
-                    isNoHintGesture ? (hotseatBarSizePx - hotseatCellHeightPx) / 2 : 0,
+                    getHotseatBarTopPadding(),
                     hotseatAdjustment + workspacePadding.right + cellLayoutPaddingPx.right
                             + mInsets.right,
                     isNoHintGesture ? getHotseatBarBottomPadding() - (getHotseatBarBottomPadding() / 2)
@@ -2165,27 +2164,30 @@ public class DeviceProfile {
      * Returns the number of pixels the hotseat is translated from the bottom of the screen.
      */
     private int getHotseatBarBottomPadding() {
-        WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
-        boolean isFullyGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
         int heightDifference = Math.abs(hotseatCellHeightPx - iconSizePx);
+        int taskbarOffset = (int) ResourcesCompat.getFloat(
+                context.getResources(),
+                R.dimen.hotseat_bar_bottom_space_default_taskbar
+        );
         if (isTaskbarPresent) { // QSB on top or inline
             if (isGestural()) {
-                if (isLandscape) {
-                    return -1;
-                } else {
-                    return heightDifference / 5;
-                }
+                return taskbarOffset;
             } else {
+                if (isTablet) {
+                    heightDifference += taskbarOffset;
+                }
                 return hotseatBarBottomSpacePx - heightDifference;
             }
         } else {
             if (isNoHintGesture) {
-                return (int) (Math.abs(hotseatBarSizePx - iconSizePx) / 2.2f);
+                return Math.abs(hotseatBarSizePx - iconSizePx);
             }
-            return hotseatBarBottomSpacePx + (int) ((isGestural() ? .75f : 2f)
-                    * heightDifference);
-        }
+            if (!isGestural()) {
+                heightDifference += taskbarOffset;
+            }
 
+            return hotseatBarBottomSpacePx + heightDifference;
+        }
     }
 
     /**
@@ -2193,6 +2195,7 @@ public class DeviceProfile {
      */
     private int getHotseatBarTopPadding() {
         float topPadding = 0;
+
         if (isPhone) {
             WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
             boolean isThreeButtonNav = wm.getNavigationMode(context) == NavigationMode.THREE_BUTTONS;
@@ -2349,10 +2352,6 @@ public class DeviceProfile {
     public boolean isGestural() {
         WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
         return wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
-    }
-
-    public static boolean isGestural(Context context) {
-        return DisplayController.getNavigationMode(context).equals(NavigationMode.NO_BUTTON);
     }
 
     private String pxToDpStr(String name, float value) {

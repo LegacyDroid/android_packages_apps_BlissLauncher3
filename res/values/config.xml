@@ -84,6 +84,8 @@
     <dimen name="hotseat_bar_bottom_space_default">48</dimen>
     <dimen name="hotseat_bar_top_space_default">42</dimen>
     <dimen name="hotseat_bar_top_space_default_three_button">24</dimen>
+    <dimen name="hotseat_bar_bottom_space_default_three_button">64</dimen>
+    <dimen name="hotseat_bar_bottom_space_default_taskbar">12</dimen>
     <dimen name="hotseat_qsb_space_default">0</dimen>
 
     <!-- Whether to enable background preloading of task thumbnails. -->

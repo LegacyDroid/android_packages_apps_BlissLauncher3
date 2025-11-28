@@ -1469,13 +1469,24 @@ public class InvariantDeviceProfile {
                     horizontalMargin[INDEX_DEFAULT]);
 
             WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
-            boolean noHintGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON && LineageSettings.System.getInt(
+            boolean isGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
+            boolean noHintGesture = isGesture && LineageSettings.System.getInt(
                     context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
+            float hotseatBarBottom = ResourcesCompat.getFloat(res, R.dimen.hotseat_qsb_space_default);
+            boolean isTablet = grid.deviceCategory == TYPE_TABLET;
+            if (isTablet && isGesture) {
+                hotseatBarBottom = ResourcesCompat.getFloat(res, R.dimen.hotseat_bar_top_space_default_three_button);
+            } else if (noHintGesture || !isTablet) {
+                hotseatBarBottom = ResourcesCompat.getFloat(res, R.dimen.hotseat_bar_bottom_space_default);
+            }
+
+            if (!isGesture && !isTablet) {
+                hotseatBarBottom = ResourcesCompat.getFloat(res, R.dimen.hotseat_bar_bottom_space_default_three_button);
+            }
 
             hotseatBarBottomSpace[INDEX_DEFAULT] = a.getFloat(
                     R.styleable.ProfileDisplayOption_hotseatBarBottomSpace,
-                    noHintGesture ? ResourcesCompat.getFloat(res, R.dimen.hotseat_qsb_space_default)
-                            : ResourcesCompat.getFloat(res, R.dimen.hotseat_bar_bottom_space_default));
+                    hotseatBarBottom);
             hotseatBarBottomSpace[INDEX_LANDSCAPE] = a.getFloat(
                     R.styleable.ProfileDisplayOption_hotseatBarBottomSpaceLandscape,
                     hotseatBarBottomSpace[INDEX_DEFAULT]);
