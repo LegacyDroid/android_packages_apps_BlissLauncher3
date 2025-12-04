@@ -2172,6 +2172,10 @@ public class Launcher extends StatefulActivity<LauncherState>
             return result;
         }
 
+        if (swipeSearchContainer != null && swipeSearchContainer.getVisibility() == View.VISIBLE) {
+            hideSwipeSearchContainer();
+        }
+
         RunnableList result = super.startActivitySafely(v, intent, item);
         if (result != null && v instanceof BubbleTextView) {
             // This is set to the view that launched the activity that navigated the user away
