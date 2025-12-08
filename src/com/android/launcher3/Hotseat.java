@@ -24,6 +24,7 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.provider.Settings;
 import android.util.AttributeSet;
@@ -52,8 +53,6 @@ import java.io.PrintWriter;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import foundation.e.bliss.blur.BlurViewDelegate;
-import foundation.e.bliss.blur.BlurWallpaperProvider;
 import foundation.e.bliss.blur.OffsetParent;
 import foundation.e.bliss.folder.GridFolder;
 
@@ -84,10 +83,10 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
     // Ratio of empty space, qsb should take up to appear visually centered.
     public static final float QSB_CENTER_FACTOR = .325f;
     private static final int BUBBLE_BAR_ADJUSTMENT_ANIMATION_DURATION_MS = 250;
+    private final Paint mTintPaint;
 
     private final OffsetParent.OffsetParentDelegate offsetParentDelegate =
             new OffsetParent.OffsetParentDelegate();
-    public final BlurViewDelegate mBlurDelegate;
 
     @ViewDebug.ExportedProperty(category = "launcher")
     private boolean mHasVerticalHotseat;
@@ -114,9 +113,10 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
     public Hotseat(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat, this, false);
-        mBlurDelegate = new BlurViewDelegate(this, BlurWallpaperProvider.blurConfigDock, attrs);
-        drawBlur = true;
+        drawBlur = false;
         setWillNotDraw(false);
+        mTintPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mTintPaint.setColor(context.getColor(R.color.hotseat_overlay_tint));
         addView(mQsb);
         mIconsAlphaChannels = new MultiValueAlpha(getShortcutsAndWidgets(),
                 ALPHA_CHANNEL_CHANNELS_COUNT);
@@ -296,12 +296,7 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
     }
 
     public void setBlurAlpha(int alpha) {
-        if (alpha > 255) {
-            alpha = 255;
-        } else if (alpha < 0) {
-            alpha = 0;
-        }
-        mBlurDelegate.setBlurAlpha(alpha);
+        // Disable
     }
 
     @Override
@@ -418,8 +413,9 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (mBlurDelegate != null && drawBlur) {
-            mBlurDelegate.draw(canvas);
+        int tintColor = mTintPaint.getColor();
+        if ((tintColor >>> 24) != 0) {
+            canvas.drawRect(0, 0, getWidth(), getHeight(), mTintPaint);
         }
         super.onDraw(canvas);
     }
