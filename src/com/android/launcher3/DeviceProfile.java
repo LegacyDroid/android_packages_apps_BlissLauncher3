@@ -1742,7 +1742,22 @@ public class DeviceProfile {
     }
 
     public void updateInsets(Rect insets) {
+        if (mInsets.equals(insets)) {
+            return;
+        }
+        boolean bottomChanged = mInsets.bottom != insets.bottom;
         mInsets.set(insets);
+        if (bottomChanged) {
+            int hotseatIconSizePx;
+            if (mIsResponsiveGrid) {
+                hotseatIconSizePx = mResponsiveWorkspaceCellSpec != null
+                        ? mResponsiveWorkspaceCellSpec.getIconSize()
+                        : pxFromDp(inv.iconSize[mTypeIndex], mMetrics);
+            } else {
+                hotseatIconSizePx = pxFromDp(inv.iconSize[mTypeIndex], mMetrics);
+            }
+            updateHotseatSizes(hotseatIconSizePx);
+        }
     }
 
     /**
