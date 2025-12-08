@@ -1494,6 +1494,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     @Override
     public void onOverlayScrollChanged(float scroll) {
         mOverlayProgress = Utilities.boundToRange(scroll, 0, 1);
+        mLauncher.mBlurLayer.setAlpha(mOverlayProgress);
         if (Float.compare(mOverlayProgress, 1f) == 0) {
             if (!mOverlayShown) {
                 mOverlayShown = true;
