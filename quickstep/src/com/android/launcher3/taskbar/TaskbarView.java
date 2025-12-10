@@ -104,7 +104,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     @Nullable private FolderIcon mLeaveBehindFolderIcon;
 
     // Only non-null when device supports having an All Apps button.
-    private final TaskbarAllAppsButtonContainer mAllAppsButtonContainer;
+    @Nullable private TaskbarAllAppsButtonContainer mAllAppsButtonContainer;
 
     // Only non-null when device supports having a Divider button.
     @Nullable private TaskbarDividerContainer mTaskbarDividerContainer;
@@ -129,7 +129,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     private int mMaxNumIcons = 0;
     private int mIdealNumIcons = 0;
 
-    private final int mAllAppsButtonTranslationOffset;
+    private int mAllAppsButtonTranslationOffset = 0;
 
     private int mNumStaticViews;
 
@@ -191,10 +191,13 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // Needed to draw folder leave-behind when opening one.
         setWillNotDraw(false);
 
-        mAllAppsButtonContainer = new TaskbarAllAppsButtonContainer(context);
-        mAllAppsButtonTranslationOffset = (int) getResources().getDimension(
-                mAllAppsButtonContainer.getAllAppsButtonTranslationXOffset(
-                        mActivityContext.isTransientTaskbar()));
+
+        if (FeatureFlags.ENABLE_TASKBAR_ALLAPPS.get()) {
+            mAllAppsButtonContainer = new TaskbarAllAppsButtonContainer(context);
+            mAllAppsButtonTranslationOffset = (int) getResources().getDimension(
+                    mAllAppsButtonContainer.getAllAppsButtonTranslationXOffset(
+                            mActivityContext.isTransientTaskbar()));
+        }
 
         if (enableTaskbarPinning() || enableRecentsInTaskbar()) {
             mTaskbarDividerContainer = new TaskbarDividerContainer(context);
@@ -243,12 +246,14 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         // All apps icon takes less space compared to normal icon size, reserve space for the icon
         // separately.
-        boolean forceTransientTaskbarSize =
-                enableTaskbarPinning() && !mActivityContext.isThreeButtonNav();
-        availableWidth -= iconSize - (int) getResources().getDimension(
-                mAllAppsButtonContainer.getAllAppsButtonTranslationXOffset(
-                        forceTransientTaskbarSize || mActivityContext.isTransientTaskbar()));
-        ++additionalIcons;
+        if (mAllAppsButtonContainer != null) {
+            boolean forceTransientTaskbarSize =
+                    enableTaskbarPinning() && !mActivityContext.isThreeButtonNav();
+            availableWidth -= iconSize - (int) getResources().getDimension(
+                    mAllAppsButtonContainer.getAllAppsButtonTranslationXOffset(
+                            forceTransientTaskbarSize || mActivityContext.isTransientTaskbar()));
+            ++additionalIcons;
+        }
 
         return Math.floorDiv(availableWidth, iconSize) + additionalIcons;
     }
@@ -276,8 +281,10 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
      * initially and avoid removing them during updates.
      */
     private int addStaticViews() {
-        int numStaticViews = 1;
-        addView(mAllAppsButtonContainer);
+        int numStaticViews = 0;
+        if (mAllAppsButtonContainer != null) {
+            addView(mAllAppsButtonContainer);
+        }
         if (mActivityContext.getDeviceProfile().isQsbInline) {
             addView(mQsb, mIsRtl ? 1 : 0);
             mQsb.setVisibility(View.INVISIBLE);
@@ -349,7 +356,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mIconClickListener = mControllerCallbacks.getIconOnClickListener();
         mIconLongClickListener = mControllerCallbacks.getIconOnLongClickListener();
 
-        mAllAppsButtonContainer.setUpCallbacks(callbacks);
+        if (mAllAppsButtonContainer != null) {
+            mAllAppsButtonContainer.setUpCallbacks(callbacks);
+        }
         if (mTaskbarDividerContainer != null
                 && mActivityContext.getTaskbarFeatureEvaluator().getSupportsPinningPopup()) {
             mTaskbarDividerContainer.setUpCallbacks(callbacks);
@@ -403,7 +412,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mNextViewIndex = 0;
         mAddedDividerForRecents = false;
 
-        removeView(mAllAppsButtonContainer);
+        if (mAllAppsButtonContainer != null) {
+            removeView(mAllAppsButtonContainer);
+        }
 
         if (mTaskbarDividerContainer != null) {
             removeView(mTaskbarDividerContainer);
@@ -422,7 +433,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         updateRecents(recentTasks, hotseatItemInfos.length);
 
-        addView(mAllAppsButtonContainer, mIsRtl ? hotseatItemInfos.length : 0);
+        if (mAllAppsButtonContainer != null) {
+            addView(mAllAppsButtonContainer, mIsRtl ? hotseatItemInfos.length : 0);
+        }
 
         // If there are no recent tasks, add divider after All Apps (unless it's the only view).
         if (!mAddedDividerForRecents
@@ -471,7 +484,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         }
 
         // Recents divider takes priority.
-        if (!mAddedDividerForRecents && !mActivityContext.isInDesktopMode()) {
+        if (mAllAppsButtonContainer != null && !mAddedDividerForRecents && !mActivityContext.isInDesktopMode()) {
             updateAllAppsDivider();
         }
     }
@@ -494,6 +507,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     }
 
     private void updateAllAppsDivider() {
+        if (mTaskbarDividerContainer == null) return;
         // Index where All Apps divider would be if it is already in Taskbar.
         final int expectedAllAppsDividerIndex =
                 mIsRtl ? getChildCount() - mNumStaticViews - 1 : mNumStaticViews;
@@ -864,7 +878,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // layout completion (by `TaskbarViewController`). Offset the icon end by the same amount
         // when laying out icons, so the taskbar content remains centered after all apps button
         // translation.
-        if (layoutRtl) {
+        if (mAllAppsButtonContainer != null && layoutRtl) {
             iconEnd += mAllAppsButtonTranslationOffset;
         }
 
@@ -906,7 +920,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // taskbar background. Done for ltr layout only - for rtl layout, the offset needs to be
         // adjusted on the right, which is done by offsetting `iconEnd` after setting
         // `mIconLayoutBounds.right`.
-        if (!layoutRtl) {
+        if (mAllAppsButtonContainer != null && !layoutRtl) {
             mIconLayoutBounds.left += mAllAppsButtonTranslationOffset;
         }
 
@@ -990,7 +1004,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         // The all apps button container gets offset horizontally, reducing the overall taskbar
         // view size.
-        iconLayoutBoundsWidth -= mAllAppsButtonTranslationOffset;
+        if (mAllAppsButtonContainer != null) {
+            iconLayoutBoundsWidth -= mAllAppsButtonTranslationOffset;
+        }
 
         return iconLayoutBoundsWidth;
     }

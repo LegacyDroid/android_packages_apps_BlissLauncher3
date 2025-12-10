@@ -524,6 +524,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     }
 
     void updateTaskbarIconTranslationXForPinning(boolean updateShiftXForBubbleBar) {
+        if (mTaskbarView.getAllAppsButtonContainer() == null) return;
         View[] iconViews = mTaskbarView.getIconViews();
         float scale = mTaskbarIconTranslationXForPinning.value;
         float transientTaskbarAllAppsOffset = mActivity.getResources().getDimension(
