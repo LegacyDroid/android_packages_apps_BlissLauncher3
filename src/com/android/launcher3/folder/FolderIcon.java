@@ -657,8 +657,12 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
             mDotParams.scale = Math.max(0, mDotScale - mBackground.getAcceptScaleProgress());
             mDotParams.dotColor = getContext().getResources()
                     .getColor(R.color.notification_dot_bg, getContext().getTheme());
+            mDotParams.shadowDotColor = getContext().getResources()
+                    .getColor(R.color.notification_dot_shadow, getContext().getTheme());
             mDotParams.leftAlign = true;
-            mDotRenderer.draw(canvas, mDotParams, mDotInfo == null ? -1 : mDotInfo.getNotificationCount());
+            mDotRenderer.draw(canvas, mDotParams,
+                    mDotInfo == null ? -1 : mDotInfo.getNotificationCount(),
+                    mActivity.getDeviceProfile().isTablet, false);
         }
     }
 
