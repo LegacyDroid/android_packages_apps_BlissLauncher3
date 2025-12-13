@@ -37,12 +37,15 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.AttributeSet;
 import android.view.DisplayCutout;
+import android.view.Gravity;
 import android.view.InputDevice;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
+import android.widget.LinearLayout;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
@@ -114,6 +117,12 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
     // Only non-null when device supports having a Taskbar Overflow button.
     @Nullable private TaskbarOverflowView mTaskbarOverflowView;
+
+    // Scrolling for portrait 3-button mode  
+    private boolean mShouldEnableScrolling = false;
+    private boolean mShouldRepositionNavButtons = false;
+    @Nullable private HorizontalScrollView mIconScrollView;
+    @Nullable private LinearLayout mIconContainer;
 
     private int mNextViewIndex;
 
@@ -190,6 +199,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         // Needed to draw folder leave-behind when opening one.
         setWillNotDraw(false);
+        
+        setClipChildren(true);
+        setClipToPadding(true);
 
         if (FeatureFlags.enableAllAppsButtonInTaskbar()) {
             mAllAppsButtonContainer = new TaskbarAllAppsButtonContainer(context);
@@ -213,6 +225,8 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         mNumStaticViews = taskbarRecentsLayoutTransition() && !mActivityContext.isPhoneMode()
                 ? addStaticViews() : 0;
+        
+        updateScrollingBehavior();
     }
 
     /**
@@ -228,11 +242,20 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         // Reserve space required for edge margins, or for navbar if shown. If task bar needs to be
         // center aligned with nav bar shown, reserve space on both sides.
-        availableWidth -=
-                Math.max(defaultEdgeMargin + spaceForBubbleBar, deviceProfile.hotseatBarEndOffset);
-        availableWidth -= Math.max(
+        // In portrait 3-button mode, reduce the reserved space on the left
+        int leftReservedSpace = Math.max(defaultEdgeMargin + spaceForBubbleBar, deviceProfile.hotseatBarEndOffset);
+        int rightReservedSpace = Math.max(
                 defaultEdgeMargin + (mShouldTryStartAlign ? 0 : spaceForBubbleBar),
                 mShouldTryStartAlign ? 0 : deviceProfile.hotseatBarEndOffset);
+        
+        if (mShouldRepositionNavButtons) {
+            // In portrait 3-button mode, minimize left space and move nav buttons to the right
+            leftReservedSpace = Math.min(leftReservedSpace, defaultEdgeMargin + spaceForBubbleBar);
+            rightReservedSpace = deviceProfile.hotseatBarEndOffset; // Full nav button space on right
+        }
+        
+        availableWidth -= leftReservedSpace;
+        availableWidth -= rightReservedSpace;
 
         // The space taken by an item icon used during layout.
         int iconSize = 2 * mItemMarginLeftRight + mIconTouchSize;
@@ -319,7 +342,266 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     @Override
     public void onDeviceProfileChanged(DeviceProfile dp) {
         mShouldTryStartAlign = mActivityContext.shouldStartAlignTaskbar();
+        
+        // Force re-evaluation of scrolling behavior on device profile changes
+        // This handles display size changes from Settings
+        boolean wasScrolling = mShouldEnableScrolling;
+        updateScrollingBehavior();
+
+        // If scrolling state did not change, no need to re-layout the icons
+        if (wasScrolling == mShouldEnableScrolling) {
+            return;
+        }
+
+        // Request layout to handle the scrolling state change
+        post(() -> {
+            requestLayout();
+            if (mControllerCallbacks != null) {
+                mControllerCallbacks.notifyIconLayoutBoundsChanged();
+            }
+        });
     }
+
+    private void updateScrollingBehavior() {
+        boolean shouldEnableScrolling = shouldEnableIconScrolling();
+        
+        if (shouldEnableScrolling && !mShouldEnableScrolling) {
+            enableIconScrolling();
+        } else if (!shouldEnableScrolling && mShouldEnableScrolling) {
+            disableIconScrolling();
+        }
+        
+        mShouldEnableScrolling = shouldEnableScrolling;
+        mShouldRepositionNavButtons = shouldEnableScrolling; // Same condition for both
+    }
+
+    private int mLastHotseatIconCount = 0;
+    private int mLastRecentTaskCount = 0;
+    
+    private int getTotalIconCount() {
+        return mLastHotseatIconCount + mLastRecentTaskCount;
+    }
+
+    /**
+     * Calculates the maximum number of icons that can fit in the taskbar without scrolling.
+     * This replicates the layout calculation logic from updateItemsLayout.
+     */
+    private int calculateMaxFittableIcons() {
+        // Return a safe default if callbacks are not yet initialized
+        if (mControllerCallbacks == null) {
+            return 6; // Conservative default to avoid scrolling during initialization
+        }
+        
+        DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
+        int availableWidth = deviceProfile.widthPx;
+        
+        int defaultEdgeMargin =
+                (int) getResources().getDimension(deviceProfile.inv.inlineNavButtonsEndSpacing);
+        int spaceForBubbleBar =
+                Math.round(mControllerCallbacks.getBubbleBarMaxCollapsedWidthIfVisible());
+
+        // Calculate reserved space (similar to updateItemsLayout logic)
+        int leftReservedSpace = Math.max(defaultEdgeMargin + spaceForBubbleBar, deviceProfile.hotseatBarEndOffset);
+        int rightReservedSpace = Math.max(
+                defaultEdgeMargin + (mShouldTryStartAlign ? 0 : spaceForBubbleBar),
+                mShouldTryStartAlign ? 0 : deviceProfile.hotseatBarEndOffset);
+        
+        if (mShouldRepositionNavButtons) {
+            leftReservedSpace = Math.min(leftReservedSpace, defaultEdgeMargin + spaceForBubbleBar);
+            rightReservedSpace = deviceProfile.hotseatBarEndOffset;
+        }
+        
+        availableWidth -= leftReservedSpace;
+        availableWidth -= rightReservedSpace;
+
+        // The space taken by an item icon
+        int iconSize = 2 * mItemMarginLeftRight + mIconTouchSize;
+        
+        // Account for additional icons (divider, all apps button, etc.)
+        int additionalIcons = 0;
+        if (mTaskbarDividerContainer != null) {
+            availableWidth -= iconSize - 4 * mItemMarginLeftRight;
+            additionalIcons++;
+        }
+        
+        if (mAllAppsButtonContainer != null) {
+            boolean forceTransientTaskbarSize =
+                    enableTaskbarPinning() && !mActivityContext.isThreeButtonNav();
+            availableWidth -= iconSize - (int) getResources().getDimension(
+                    mAllAppsButtonContainer.getAllAppsButtonTranslationXOffset(
+                            forceTransientTaskbarSize || isTransientTaskbar()));
+            additionalIcons++;
+        }
+
+        // Calculate maximum icons that can fit
+        // Use floorDiv to match the original calculation and add additional icons
+        // (since they take less space than regular icons)
+        int result = Math.floorDiv(availableWidth, iconSize) + additionalIcons;
+        
+        // Debug logging to help verify calculations
+        android.util.Log.d("TaskbarScrollView", "calculateMaxFittableIcons: availableWidth=" + availableWidth + 
+                ", iconSize=" + iconSize + ", additionalIcons=" + additionalIcons + ", result=" + result);
+        
+        return result;
+    }
+
+    private boolean shouldEnableIconScrolling() {
+        // Don't enable scrolling if callbacks are not yet initialized
+        if (mControllerCallbacks == null) {
+            return false;
+        }
+        
+        Resources resources = getResources();
+        Configuration config = resources.getConfiguration();
+        boolean isPortrait = config.orientation == Configuration.ORIENTATION_PORTRAIT;
+        boolean isThreeButtonNav = mActivityContext.isThreeButtonNav();
+        boolean isTablet = mActivityContext.getDeviceProfile().isTablet;
+        
+        if (!isPortrait || !isThreeButtonNav || !isTablet) {
+            return false;
+        }
+        
+        int totalIconCount = getTotalIconCount();
+        int maxFittableIcons = calculateMaxFittableIcons();
+        
+        boolean shouldScroll = totalIconCount > maxFittableIcons;
+        android.util.Log.d("TaskbarScrollView", "shouldEnableIconScrolling: totalIcons=" + totalIconCount + 
+                ", maxFittable=" + maxFittableIcons + ", shouldScroll=" + shouldScroll);
+        
+        return shouldScroll;
+    }
+
+    private void enableIconScrolling() {
+        if (mIconScrollView != null) return;
+        removeExistingIconViews();
+        
+        // Create scroll view and container for icons only
+        mIconScrollView = new HorizontalScrollView(mActivityContext) {
+            @Override
+            public boolean onInterceptTouchEvent(MotionEvent ev) {
+                return super.onInterceptTouchEvent(ev);
+            }
+            
+            @Override
+            public boolean onTouchEvent(MotionEvent ev) {
+                return super.onTouchEvent(ev);
+            }
+        };
+        mIconContainer = new LinearLayout(mActivityContext);
+        mIconContainer.setOrientation(LinearLayout.HORIZONTAL);
+        mIconContainer.setGravity(Gravity.CENTER_VERTICAL);
+        int containerPadding = getResources().getDimensionPixelSize(R.dimen.taskbar_icon_spacing);
+        mIconContainer.setPadding(containerPadding, 0, containerPadding, 0);
+        mIconContainer.setClipChildren(false);
+        mIconContainer.setClipToPadding(false);
+        
+        // Initial container width will be set when icons are added
+        updateScrollContainerWidth();
+
+        mIconScrollView.setHorizontalScrollBarEnabled(false);
+        mIconScrollView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        mIconScrollView.setFocusable(true);
+        mIconScrollView.setFocusableInTouchMode(true);
+        mIconScrollView.setScrollbarFadingEnabled(true);
+        
+        mIconScrollView.setHorizontalFadingEdgeEnabled(true);
+        int fadeLength = getResources().getDimensionPixelSize(R.dimen.taskbar_icon_spacing) * 2;
+        mIconScrollView.setFadingEdgeLength(fadeLength);
+        
+        mIconScrollView.setClickable(true);
+        mIconScrollView.setLongClickable(false);
+        mIconScrollView.setClipChildren(true);
+        mIconScrollView.setClipToPadding(true);
+        
+        HorizontalScrollView.LayoutParams containerParams = new HorizontalScrollView.LayoutParams(
+                HorizontalScrollView.LayoutParams.WRAP_CONTENT,
+                HorizontalScrollView.LayoutParams.MATCH_PARENT);
+        mIconScrollView.addView(mIconContainer, containerParams);
+        
+        // Add scroll view to taskbar with constrained width
+        int maxVisibleWidth = calculateScrollViewWidth();
+        FrameLayout.LayoutParams scrollParams = new FrameLayout.LayoutParams(
+                maxVisibleWidth, FrameLayout.LayoutParams.MATCH_PARENT);
+        scrollParams.gravity = Gravity.CENTER_VERTICAL | Gravity.START;
+        scrollParams.leftMargin = getResources().getDimensionPixelSize(R.dimen.taskbar_icon_spacing);
+    }
+    
+    private void removeExistingIconViews() {
+        // This is needed when switching from non-scroll mode to scroll mode
+        for (int i = getChildCount() - 1; i >= 0; i--) {
+            View child = getChildAt(i);
+            if (child.getTag() instanceof ItemInfo || child instanceof com.android.launcher3.BubbleTextView) {
+                removeViewAt(i);
+            }
+        }
+    }
+    
+    private void disableIconScrolling() {
+        if (mIconScrollView != null && mIconScrollView.getParent() != null) {
+            removeView(mIconScrollView);
+        }
+        if (mIconContainer != null) {
+            mIconContainer.removeAllViews();
+        }
+        mIconScrollView = null;
+        mIconContainer = null;
+    }
+
+    private int calculateScrollViewWidth() {
+        // Return a default width if callbacks are not yet initialized
+        if (mControllerCallbacks == null) {
+            return mIconTouchSize * 4; // Safe default for 4 icons
+        }
+        
+        DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
+        int screenWidth = deviceProfile.widthPx;
+        int navButtonSpace = deviceProfile.hotseatBarEndOffset;
+        int safetyMargin = getResources().getDimensionPixelSize(R.dimen.taskbar_icon_spacing) * 2;
+        int reservedSpace = navButtonSpace + safetyMargin;
+        
+        int availableWidth = screenWidth - reservedSpace;
+        
+        int iconSize = 2 * mItemMarginLeftRight + mIconTouchSize;
+        int totalIcons = getTotalIconCount();
+        int maxFittableIcons = calculateMaxFittableIcons();
+        int visibleIcons = Math.min(totalIcons, maxFittableIcons);
+        
+        int idealWidth = visibleIcons * iconSize;
+        
+        int containerPadding = getResources().getDimensionPixelSize(R.dimen.taskbar_icon_spacing);
+        idealWidth += (2 * containerPadding);
+        
+        int finalWidth = Math.min(idealWidth, availableWidth);
+        
+        // Ensure we return a positive, reasonable width
+        int minWidth = iconSize + (2 * containerPadding);
+        return Math.max(finalWidth, minWidth);
+    }
+
+    /**
+     * Updates the scroll container width to fit the actual icon count, preventing empty scroll space
+     */
+    private void updateScrollContainerWidth() {
+        if (mIconContainer == null) return;
+        
+        int actualIconCount = getTotalIconCount();
+        if (actualIconCount == 0) {
+            mIconContainer.setMinimumWidth(0);
+            return;
+        }
+        
+        int iconSize = 2 * mItemMarginLeftRight + mIconTouchSize;
+        int containerPadding = getResources().getDimensionPixelSize(R.dimen.taskbar_icon_spacing);
+        int actualContainerWidth = actualIconCount * iconSize + (2 * containerPadding);
+        
+        // Set minimum width to exact content size to prevent empty scroll areas
+        mIconContainer.setMinimumWidth(actualContainerWidth);
+        mIconContainer.requestLayout();
+        
+        android.util.Log.d("TaskbarScrollView", "updateScrollContainerWidth: iconCount=" + actualIconCount + 
+                ", containerWidth=" + actualContainerWidth);
+    }
+
 
     @Override
     public boolean performAccessibilityActionInternal(int action, Bundle arguments) {
@@ -376,6 +658,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mControllerCallbacks = callbacks;
         mIconClickListener = mControllerCallbacks.getIconOnClickListener();
         mIconLongClickListener = mControllerCallbacks.getIconOnLongClickListener();
+        
+        // Now that callbacks are initialized, re-evaluate scrolling behavior
+        updateScrollingBehavior();
 
         if (mAllAppsButtonContainer != null) {
             mAllAppsButtonContainer.setUpCallbacks(callbacks);
@@ -483,6 +768,29 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             // Always set QSB to invisible after re-adding.
             mQsb.setVisibility(View.INVISIBLE);
         }
+        
+        if (mShouldEnableScrolling && mIconContainer != null && mIconScrollView != null && mIconScrollView.getParent() == null) {
+            int maxVisibleWidth = calculateScrollViewWidth();
+            if (maxVisibleWidth <= 0) {
+                // Fallback to minimum reasonable width based on device metrics
+                int minIconSize = mIconTouchSize + 2 * mItemMarginLeftRight;
+                int fallbackIconCount = Math.min(calculateMaxFittableIcons(), 4);
+                maxVisibleWidth = fallbackIconCount * minIconSize;
+            }
+            
+            FrameLayout.LayoutParams scrollParams = new FrameLayout.LayoutParams(
+                    maxVisibleWidth, FrameLayout.LayoutParams.MATCH_PARENT);
+            scrollParams.gravity = Gravity.CENTER_VERTICAL | Gravity.START;
+            scrollParams.leftMargin = 0;
+            scrollParams.topMargin = 0;
+            scrollParams.rightMargin = 0;
+            
+            if (mIconScrollView != null) {
+                mIconScrollView.setMinimumWidth(maxVisibleWidth);
+                mIconScrollView.requestLayout();
+                addView(mIconScrollView, scrollParams);
+            }
+        }
     }
 
     private void updateItemsWithLayoutTransition(
@@ -557,6 +865,19 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
     private void updateHotseatItems(ItemInfo[] hotseatItemInfos) {
         int numViewsAnimated = 0;
+        
+        // Update icon count and check if scrolling behavior needs to change
+        int newHotseatCount = hotseatItemInfos != null ? hotseatItemInfos.length : 0;
+        boolean countChanged = mLastHotseatIconCount != newHotseatCount;
+        mLastHotseatIconCount = newHotseatCount;
+        
+        if (countChanged) {
+            updateScrollingBehavior();
+        }
+        
+        if (mShouldEnableScrolling && mIconContainer != null) {
+            mIconContainer.removeAllViews();
+        }
 
         for (ItemInfo hotseatItemInfo : hotseatItemInfos) {
             // Replace any Hotseat views with the appropriate type if it's not already that type.
@@ -614,9 +935,19 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 } else {
                     hotseatView = inflate(expectedLayoutResId);
                 }
-                LayoutParams lp = new LayoutParams(mIconTouchSize, mIconTouchSize);
                 hotseatView.setPadding(mItemPadding, mItemPadding, mItemPadding, mItemPadding);
-                addView(hotseatView, mNextViewIndex, lp);
+                
+                // Add to scroll container if scrolling is enabled, otherwise add to main view
+                if (mShouldEnableScrolling && mIconContainer != null) {
+                    LinearLayout.LayoutParams scrollLp = new LinearLayout.LayoutParams(
+                            mIconTouchSize, mIconTouchSize);
+                    scrollLp.setMarginStart(mItemMarginLeftRight);
+                    scrollLp.setMarginEnd(mItemMarginLeftRight);
+                    mIconContainer.addView(hotseatView, scrollLp);
+                } else {
+                    LayoutParams lp = new LayoutParams(mIconTouchSize, mIconTouchSize);
+                    addView(hotseatView, mNextViewIndex, lp);
+                }
             }
 
             // Apply the Hotseat ItemInfos, or hide the view if there is none for a given index.
@@ -632,15 +963,33 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             if (enableCursorHoverStates()) {
                 setHoverListenerForIcon(hotseatView);
             }
-            mNextViewIndex++;
+            
+            // Only increment mNextViewIndex if icon was added to main view, not scroll container
+            if (!(mShouldEnableScrolling && mIconContainer != null)) {
+                mNextViewIndex++;
+            }
         }
 
         while (isNextViewInSection(ItemInfo.class)) {
             removeAndRecycle(getChildAt(mNextViewIndex));
         }
+        
+        // Update container width after all hotseat icons are added
+        if (mShouldEnableScrolling) {
+            updateScrollContainerWidth();
+        }
     }
 
     private void updateRecents(List<GroupTask> recentTasks) {
+        // Update recent task count and check if scrolling behavior needs to change
+        int newRecentCount = recentTasks != null ? recentTasks.size() : 0;
+        boolean countChanged = mLastRecentTaskCount != newRecentCount;
+        mLastRecentTaskCount = newRecentCount;
+        
+        if (countChanged) {
+            updateScrollingBehavior();
+        }
+        
         // At this point, the all apps button has not been added as a child view, but needs to be
         // accounted for when comparing current icon count to max number of icons.
         int nonTaskIconsToBeAdded = 1;
@@ -713,9 +1062,19 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             if (recentIcon == null) {
                 // TODO(b/343289567 and b/316004172): support app pairs and desktop mode.
                 recentIcon = inflate(expectedLayoutResId);
-                LayoutParams lp = new LayoutParams(mIconTouchSize, mIconTouchSize);
                 recentIcon.setPadding(mItemPadding, mItemPadding, mItemPadding, mItemPadding);
-                addView(recentIcon, mNextViewIndex, lp);
+                
+                // Add to scroll container if scrolling is enabled, otherwise add to main view
+                if (mShouldEnableScrolling && mIconContainer != null) {
+                    LinearLayout.LayoutParams scrollLp = new LinearLayout.LayoutParams(
+                            mIconTouchSize, mIconTouchSize);
+                    scrollLp.setMarginStart(mItemMarginLeftRight);
+                    scrollLp.setMarginEnd(mItemMarginLeftRight);
+                    mIconContainer.addView(recentIcon, scrollLp);
+                } else {
+                    LayoutParams lp = new LayoutParams(mIconTouchSize, mIconTouchSize);
+                    addView(recentIcon, mNextViewIndex, lp);
+                }
             }
 
             if (recentIcon instanceof BubbleTextView btv) {
@@ -725,11 +1084,20 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             if (enableCursorHoverStates()) {
                 setHoverListenerForIcon(recentIcon);
             }
-            mNextViewIndex++;
+            
+            // Only increment mNextViewIndex if icon was added to main view, not scroll container
+            if (!(mShouldEnableScrolling && mIconContainer != null)) {
+                mNextViewIndex++;
+            }
         }
 
         while (isNextViewInSection(GroupTask.class)) {
             removeAndRecycle(getChildAt(mNextViewIndex));
+        }
+        
+        // Update container width after all recent icons are added
+        if (mShouldEnableScrolling) {
+            updateScrollContainerWidth();
         }
     }
 
@@ -808,7 +1176,16 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         int navSpaceNeeded = deviceProfile.hotseatBarEndOffset;
         int centerAlignIconEnd = (right + left + spaceNeeded) / 2;
         int iconEnd = centerAlignIconEnd;
-        if (mShouldTryStartAlign) {
+        
+        if (mShouldRepositionNavButtons) {
+            // In portrait 3-button mode, start align icons to the left
+            int startSpacingPx = deviceProfile.inlineNavButtonsEndSpacingPx;
+            if (layoutRtl) {
+                iconEnd = right - startSpacingPx;
+            } else {
+                iconEnd = startSpacingPx + spaceNeeded;
+            }
+        } else if (mShouldTryStartAlign) {
             int startSpacingPx = deviceProfile.inlineNavButtonsEndSpacingPx;
             if (mControllerCallbacks.isBubbleBarEnabledInPersistentTaskbar()
                     && mBubbleBarLocation != null
@@ -920,6 +1297,13 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         if (!sTmpRect.equals(mIconLayoutBounds)) {
             mControllerCallbacks.notifyIconLayoutBoundsChanged();
+        }
+        
+        if (mShouldEnableScrolling && mIconScrollView != null && mIconScrollView.getParent() == this) {
+            int scrollWidth = calculateScrollViewWidth();
+            if (scrollWidth > 0) {
+                mIconScrollView.layout(0, mIconScrollView.getTop(), scrollWidth, mIconScrollView.getBottom());
+            }
         }
     }
 
