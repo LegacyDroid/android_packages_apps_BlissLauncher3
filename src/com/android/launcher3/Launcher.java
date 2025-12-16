@@ -1392,6 +1392,10 @@ public class Launcher extends StatefulActivity<LauncherState>
         mAppMonitor.onLauncherPreResume();
         super.onResume();
 
+        if (getDeviceProfile().isPhone) {
+            BlurWallpaperProvider.Companion.getInstance(this).orientationChanged();
+        }
+
         if (mDeferOverlayCallbacks) {
             scheduleDeferredCheck();
         } else {

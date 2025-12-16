@@ -76,9 +76,17 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
     private var lastOffset = 0.5f
 
+    private val displayInfoChangeListener =
+        DisplayController.DisplayInfoChangeListener { _, _, flags ->
+            if ((flags and DisplayController.CHANGE_ROTATION) != 0) {
+                orientationChanged()
+            }
+        }
+
     init {
         isEnabled = getEnabledStatus()
         updateAsync()
+        DisplayController.INSTANCE.get(context).addChangeListener(displayInfoChangeListener)
     }
 
     private fun getEnabledStatus() = mWallpaperManager.wallpaperInfo == null
@@ -311,5 +319,9 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
         var isEnabled: Boolean = false
     }
 
-    override fun close() {}
+    override fun close() {
+        DisplayController.INSTANCE.executeIfCreated {
+            it.removeChangeListener(displayInfoChangeListener)
+        }
+    }
 }
