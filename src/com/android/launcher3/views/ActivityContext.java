@@ -517,8 +517,7 @@ public interface ActivityContext extends SavedStateRegistryOwner {
     }
 
     default CellPosMapper getCellPosMapper() {
-        DeviceProfile dp = getDeviceProfile();
-        return new CellPosMapper(dp.isVerticalBarLayout(), dp.numShownHotseatIcons);
+        return CellPosMapper.DEFAULT;
     }
 
     /** Set to manage objects that can be cleaned up along with the context */

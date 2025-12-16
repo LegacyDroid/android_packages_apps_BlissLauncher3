@@ -51,6 +51,7 @@ import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -84,7 +85,12 @@ import com.android.launcher3.widget.WidgetImageView;
 import com.android.launcher3.widget.WidgetManagerHelper;
 import com.android.launcher3.widget.WidgetSections;
 
+import java.util.Objects;
 import java.util.function.Supplier;
+
+import foundation.e.bliss.multimode.MultiModeController;
+import foundation.e.bliss.utils.BlissConstants;
+import foundation.e.bliss.widgets.WidgetContainer.WidgetFragment;
 
 /**
  * Activity to show pin widget dialog.
@@ -151,9 +157,20 @@ public class AddItemActivity extends BaseActivity
         switch (mRequest.getRequestType()) {
             case PinItemRequest.REQUEST_TYPE_SHORTCUT:
                 targetApp = setupShortcut();
+                if (Objects.requireNonNull(mRequest.getShortcutInfo())
+                        .getPackage().equals(BlissConstants.APPS_PACKAGE)) {
+                    finish();
+                    onPlaceAutomaticallyClick();
+                    return;
+                }
                 break;
             case PinItemRequest.REQUEST_TYPE_APPWIDGET:
                 targetApp = setupWidget();
+                if (MultiModeController.isSingleLayerMode()) {
+                    ((Button) findViewById(R.id.add_to_workspace))
+                            .setText(getString(R.string.add_to_widget_Screen));
+                    ((TextView)findViewById(R.id.widget_drag_instruction)).setVisibility(View.GONE);
+                }
                 break;
             default:
                 targetApp = null;
@@ -175,6 +192,11 @@ public class AddItemActivity extends BaseActivity
                 R.id.widget_preview_container);
         previewContainer.setOnTouchListener(this);
         previewContainer.setOnLongClickListener(this);
+
+        if (MultiModeController.isSingleLayerMode()) {
+            previewContainer.setOnTouchListener(null);
+            previewContainer.setOnLongClickListener(null);
+        }
 
         // savedInstanceState is null when the activity is created the first time (i.e., avoids
         // duplicate logging during rotation)
@@ -331,13 +353,19 @@ public class AddItemActivity extends BaseActivity
      */
     public void onCancelClick(View v) {
         logCommand(LAUNCHER_ADD_EXTERNAL_ITEM_CANCELLED);
-        mSlideInView.close(/* animate= */ true);
+        if (mSlideInView != null) {
+            mSlideInView.close(/* animate= */ true);
+        }
+    }
+
+    public void onPlaceAutomaticallyClick(View v) {
+        onPlaceAutomaticallyClick();
     }
 
     /**
      * Called when place-automatically button is clicked.
      */
-    public void onPlaceAutomaticallyClick(View v) {
+    public void onPlaceAutomaticallyClick() {
         if (mRequest.getRequestType() == PinItemRequest.REQUEST_TYPE_SHORTCUT) {
             ShortcutInfo shortcutInfo = mRequest.getShortcutInfo();
             ItemInstallQueue.INSTANCE.get(this).queueItem(shortcutInfo);
@@ -348,12 +376,23 @@ public class AddItemActivity extends BaseActivity
                 label = shortcutInfo.getShortLabel();
             }
             sendWidgetAddedToScreenAccessibilityEvent(label.toString());
-            mSlideInView.close(/* animate= */ true);
+            if (mSlideInView != null) {
+                mSlideInView.close(/* animate= */ true);
+            }
+            return;
+        }
+
+        AppWidgetProviderInfo widgetProviderInfo = mRequest.getAppWidgetProviderInfo(this);
+        if (MultiModeController.isSingleLayerMode() && widgetProviderInfo != null) {
+            WidgetFragment.onWidgetAdded(widgetProviderInfo.provider);
+            logCommand(LAUNCHER_ADD_EXTERNAL_ITEM_PLACED_AUTOMATICALLY);
+            if (mSlideInView != null) {
+                mSlideInView.close(/* animate= */ true);
+            }
             return;
         }
 
         mPendingBindWidgetId = mAppWidgetHolder.allocateAppWidgetId();
-        AppWidgetProviderInfo widgetProviderInfo = mRequest.getAppWidgetProviderInfo(this);
         boolean success = mAppWidgetManager.bindAppWidgetIdIfAllowed(
                 mPendingBindWidgetId, widgetProviderInfo, mWidgetOptions);
         if (success) {
@@ -373,7 +412,9 @@ public class AddItemActivity extends BaseActivity
         mWidgetOptions.putInt(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId);
         mRequest.accept(mWidgetOptions);
         logCommand(LAUNCHER_ADD_EXTERNAL_ITEM_PLACED_AUTOMATICALLY);
-        mSlideInView.close(/* animate= */ true);
+        if (mSlideInView != null) {
+            mSlideInView.close(/* animate= */ true);
+        }
     }
 
     @Override
@@ -388,7 +429,9 @@ public class AddItemActivity extends BaseActivity
     @Override
     public void onBackPressed() {
         logCommand(LAUNCHER_ADD_EXTERNAL_ITEM_BACK);
-        mSlideInView.close(/* animate= */ true);
+        if (mSlideInView != null) {
+            mSlideInView.close(/* animate= */ true);
+        }
     }
 
     @Override

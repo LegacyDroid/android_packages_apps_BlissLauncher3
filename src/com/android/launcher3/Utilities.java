@@ -103,6 +103,10 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import foundation.e.bliss.multimode.MultiModeController;
+
+import foundation.e.bliss.multimode.MultiModeController;
+
 /**
  * Various utilities shared amongst the Launcher's classes.
  */
@@ -638,7 +642,8 @@ public final class Utilities {
         Drawable mainIcon = null;
 
         Drawable badge = null;
-        if ((info instanceof ItemInfoWithIcon iiwi) && !iiwi.getMatchingLookupFlag().useLowRes()) {
+        if ((info instanceof ItemInfoWithIcon iiwi) && !iiwi.getMatchingLookupFlag().useLowRes()
+                && !MultiModeController.isSingleLayerMode()) {
             badge = iiwi.bitmap.getBadgeDrawable(context, useTheme, getIconShapeOrNull(context));
         }
 
@@ -665,12 +670,16 @@ public final class Utilities {
                         appState.getInvariantDeviceProfile().fillResIconDpi);
                 // Only fetch badge if the icon is on workspace
                 if (info.id != ItemInfo.NO_ID && badge == null) {
-                    badge = appState.getIconCache().getShortcutInfoBadge(si).newIcon(
-                            context,
-                            ThemeManager.INSTANCE.get(context).isIconThemeEnabled()
-                                    ? FLAG_THEMED : 0,
-                            getIconShapeOrNull(context)
-                    );
+                    if (MultiModeController.isSingleLayerMode()) {
+                        badge = new ColorDrawable(Color.TRANSPARENT);
+                    } else {
+                        badge = appState.getIconCache().getShortcutInfoBadge(si).newIcon(
+                                context,
+                                ThemeManager.INSTANCE.get(context).isIconThemeEnabled()
+                                        ? FLAG_THEMED : 0,
+                                getIconShapeOrNull(context)
+                        );
+                    }
                 }
             }
         } else if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_FOLDER) {
@@ -721,7 +730,7 @@ public final class Utilities {
                             .applyBitmapInfoFlags(FlagOp.NO_OP)
                     )
                     .getBadgeDrawable(context, useTheme, getIconShapeOrNull(context));
-            if (badge == null) {
+            if (badge == null || MultiModeController.isSingleLayerMode()) {
                 badge = new ColorDrawable(Color.TRANSPARENT);
             }
         }

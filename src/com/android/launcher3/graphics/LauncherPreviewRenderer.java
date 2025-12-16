@@ -133,6 +133,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import foundation.e.bliss.LauncherAppMonitor;
+import foundation.e.bliss.multimode.MultiModeController;
+
 /**
  * Utility class for generating the preview of Launcher for a given InvariantDeviceProfile.
  * Steps:
@@ -188,6 +191,8 @@ public class LauncherPreviewRenderer extends BaseContext
                 // Use null the DB file so that we use a new in-memory DB
                 InvariantDeviceProfile.INSTANCE.get(this).dbFile = null;
             }
+
+            LauncherAppMonitor.getInstance(this);
         }
 
         private void emptyDbDir() {
@@ -271,6 +276,7 @@ public class LauncherPreviewRenderer extends BaseContext
 
         mHotseat = mRootView.findViewById(R.id.hotseat);
         mHotseat.resetLayout(false);
+        mHotseat.drawBlur = false;
 
         mLauncherWidgetSpanInfo = launcherWidgetSpanInfo == null ? new SparseArray<>() :
                 launcherWidgetSpanInfo;
@@ -603,7 +609,8 @@ public class LauncherPreviewRenderer extends BaseContext
         }
 
         // Add first page QSB
-        if (FeatureFlags.QSB_ON_FIRST_SCREEN && dataModel.isFirstPagePinnedItemEnabled
+        if (!MultiModeController.isSingleLayerMode()
+                && FeatureFlags.QSB_ON_FIRST_SCREEN.get() && dataModel.isFirstPagePinnedItemEnabled
                 && !SHOULD_SHOW_FIRST_PAGE_WIDGET) {
             CellLayout firstScreen = mWorkspaceScreens.get(FIRST_SCREEN_ID);
             View qsb = mHomeElementInflater.inflate(R.layout.qsb_preview, firstScreen, false);

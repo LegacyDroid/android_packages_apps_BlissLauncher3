@@ -30,8 +30,8 @@ import com.android.launcher3.widget.picker.WidgetRecommendationCategory.DEFAULT_
 
 /** Widget data for display in the widget picker. */
 data class WidgetPickerData(
-    val allWidgets: List<WidgetsListBaseEntry> = listOf(),
-    val defaultWidgets: List<WidgetsListBaseEntry> = listOf(),
+    val allWidgets: List<WidgetsListBaseEntry> = mutableListOf(),
+    val defaultWidgets: List<WidgetsListBaseEntry> = mutableListOf(),
     val recommendations: Map<WidgetRecommendationCategory, List<WidgetItem>> = mapOf(),
 )
 

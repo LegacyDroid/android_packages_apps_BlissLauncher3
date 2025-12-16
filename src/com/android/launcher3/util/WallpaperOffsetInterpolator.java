@@ -19,6 +19,8 @@ import com.android.app.animation.Interpolators;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.Workspace;
 
+import foundation.e.bliss.blur.BlurWallpaperProvider;
+
 /**
  * Utility class to handle wallpaper scrolling along with workspace.
  */
@@ -38,7 +40,7 @@ public class WallpaperOffsetInterpolator {
 
     private boolean mRegistered = false;
     private IBinder mWindowToken;
-    private boolean mWallpaperIsLiveWallpaper;
+    private static boolean mWallpaperIsLiveWallpaper;
 
     private boolean mLockedToDefaultPage;
     private int mNumScreens;
@@ -213,8 +215,15 @@ public class WallpaperOffsetInterpolator {
             // Updating the boolean on a background thread is fine as the assignments are atomic
             mWallpaperIsLiveWallpaper = WallpaperManager.getInstance(mWorkspace.getContext())
                     .getWallpaperInfo() != null;
+            setIsLiveWallpaper(mWorkspace.getContext());
+            BlurWallpaperProvider.Companion.getInstance(mWorkspace.getContext()).updateAsync();
             updateOffset();
         });
+    }
+
+    public static void setIsLiveWallpaper(Context context) {
+        BlurWallpaperProvider.Companion.getInstance(context).setLiveWallpaper(
+                mWallpaperIsLiveWallpaper);
     }
 
     private static final int MSG_START_ANIMATION = 1;
@@ -236,10 +245,13 @@ public class WallpaperOffsetInterpolator {
         private float mFinalOffset;
         private float mOffsetX;
 
+        private Context mContext;
+
         public OffsetHandler(Context context) {
             super(UI_HELPER_EXECUTOR.getLooper());
             mInterpolator = Interpolators.DECELERATE_1_5;
             mWM = WallpaperManager.getInstance(context);
+            mContext = context;
         }
 
         @Override
@@ -305,6 +317,9 @@ public class WallpaperOffsetInterpolator {
         private void setOffsetSafely(IBinder token) {
             try {
                 mWM.setWallpaperOffsets(token, mCurrentOffset, 0.5f);
+                WallpaperOffsetInterpolator.setIsLiveWallpaper(mContext);
+                BlurWallpaperProvider.Companion.getInstance(mContext)
+                        .setWallpaperOffset(mCurrentOffset);
             } catch (IllegalArgumentException e) {
                 Log.e(TAG, "Error updating wallpaper offset: " + e);
             }

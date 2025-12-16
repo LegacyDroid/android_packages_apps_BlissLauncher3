@@ -28,6 +28,8 @@ import androidx.annotation.VisibleForTesting;
 import com.android.launcher3.BuildConfig;
 import com.android.launcher3.Flags;
 
+import foundation.e.bliss.multimode.MultiModeController;
+
 /**
  * Defines a set of flags used to control various launcher behaviors.
  * <p>
@@ -50,7 +52,11 @@ public final class FeatureFlags {
      * @deprecated Use {@link BuildConfig#QSB_ON_FIRST_SCREEN} directly
      */
     @Deprecated
-    public static final boolean QSB_ON_FIRST_SCREEN = BuildConfig.QSB_ON_FIRST_SCREEN;
+    public static class QSB_ON_FIRST_SCREEN {
+        public static boolean get() {
+            return MultiModeController.isSingleLayerMode();
+        }
+    }
 
     /**
      * Feature flag to handle define config changes dynamically instead of killing the process.
@@ -90,7 +96,7 @@ public final class FeatureFlags {
 
     // TODO(Block 14): Cleanup flags
     public static final BooleanFlag NOTIFY_CRASHES = getDebugFlag(270393108, "NOTIFY_CRASHES",
-            DISABLED, "Sends a notification whenever launcher encounters an uncaught exception.");
+            ENABLED, "Sends a notification whenever launcher encounters an uncaught exception.");
 
     public static final boolean ENABLE_TASKBAR_NAVBAR_UNIFICATION =
             enableTaskbarNavbarUnification() && (!isPhone() || enableTaskbarOnPhones());
@@ -213,6 +219,10 @@ public final class FeatureFlags {
     public static boolean enableResponsiveWorkspace() {
         return ENABLE_RESPONSIVE_WORKSPACE.get() || Flags.enableResponsiveWorkspace();
     }
+
+    public static final BooleanFlag ENABLE_TASKBAR_ALLAPPS = getDebugFlag(-1,
+            "ENABLE_TASKBAR_ALLAPPS", DISABLED,
+            "Enables all apps button in taskbar");
 
     public static BooleanFlag getDebugFlag(
             int bugId, String key, BooleanFlag flagState, String description) {

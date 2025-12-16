@@ -11,7 +11,8 @@ bin/
 .idea/
 .gradle/
 local.properties
-gradle/
 build/
-gradlew*
 .DS_Store
+libs/Launcher3QuickStepLib.jar
+blissWithQuickstep
+blissWithoutQuickstep

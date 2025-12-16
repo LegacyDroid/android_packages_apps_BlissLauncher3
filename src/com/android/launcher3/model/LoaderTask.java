@@ -123,6 +123,8 @@ import java.util.concurrent.CancellationException;
 
 import javax.inject.Named;
 
+import foundation.e.bliss.LauncherAppMonitor;
+
 /**
  * Runnable for the thread that loads the contents of the launcher:
  *   - workspace icons
@@ -301,7 +303,9 @@ public class LoaderTask implements Runnable {
             sendFirstScreenActiveInstallsBroadcast();
 
             // Take a break
-            waitForIdle();
+            if (transaction.isModelLoaded()) {
+                waitForIdle();
+            }
             logASplit("step 1 loading workspace complete");
             verifyNotStopped();
 
@@ -313,6 +317,9 @@ public class LoaderTask implements Runnable {
             } finally {
                 Trace.endSection();
             }
+
+            LauncherAppMonitor.getInstanceNoCreate()
+                    .onLoadAllAppsEnd(new ArrayList<>(mBgAllAppsList.data));
             logASplit("loadAllApps finished");
 
             verifyNotStopped();
@@ -333,7 +340,9 @@ public class LoaderTask implements Runnable {
                     mModel::onPackageIconsUpdated);
 
             // Take a break
-            waitForIdle();
+            if (transaction.isModelLoaded()) {
+                waitForIdle();
+            }
             logASplit("step 2 loading AllApps complete");
             verifyNotStopped();
 
@@ -353,7 +362,9 @@ public class LoaderTask implements Runnable {
                     (pkgs, user) -> { });
 
             // Take a break
-            waitForIdle();
+            if (transaction.isModelLoaded()) {
+                waitForIdle();
+            }
             logASplit("step 3 loading all shortcuts complete");
             verifyNotStopped();
 
@@ -440,7 +451,7 @@ public class LoaderTask implements Runnable {
         }
         logASplit("loadWorkspace finished");
 
-        mBgDataModel.isFirstPagePinnedItemEnabled = FeatureFlags.QSB_ON_FIRST_SCREEN
+        mBgDataModel.isFirstPagePinnedItemEnabled = FeatureFlags.QSB_ON_FIRST_SCREEN.get()
                 && (!enableSmartspaceRemovalToggle()
                 || LauncherPrefs.getPrefs(mContext).getBoolean(SMARTSPACE_ON_HOME_SCREEN, true));
     }

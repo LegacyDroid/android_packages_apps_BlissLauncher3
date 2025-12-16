@@ -78,6 +78,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.inject.Inject;
 
+import foundation.e.bliss.LauncherAppMonitor;
+
 /**
  * Utility class to cache properties of default display to avoid a system RPC on every call.
  */
@@ -437,6 +439,7 @@ public class DisplayController implements DesktopVisibilityListener {
                             flags);
                 }
                 perDisplayInfo.notifyListeners(newInfo, flags);
+                LauncherAppMonitor.getInstanceNoCreate().onUIConfigChanged();
             });
         }
     }

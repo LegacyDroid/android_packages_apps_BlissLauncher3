@@ -23,7 +23,9 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -32,9 +34,11 @@ import android.view.View;
 import android.view.ViewDebug;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import com.android.launcher3.folder.Folder;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 
 import com.android.launcher3.ShortcutAndWidgetContainer.TranslationProvider;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
@@ -49,10 +53,15 @@ import java.io.PrintWriter;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+import foundation.e.bliss.blur.BlurViewDelegate;
+import foundation.e.bliss.blur.BlurWallpaperProvider;
+import foundation.e.bliss.blur.OffsetParent;
+import foundation.e.bliss.folder.GridFolder;
+
 /**
  * View class that represents the bottom row of the home screen.
  */
-public class Hotseat extends CellLayout implements Insettable {
+public class Hotseat extends CellLayout implements Insettable, OffsetParent {
 
     public static final int ALPHA_CHANNEL_TASKBAR_ALIGNMENT = 0;
     public static final int ALPHA_CHANNEL_PREVIEW_RENDERER = 1;
@@ -77,6 +86,10 @@ public class Hotseat extends CellLayout implements Insettable {
     public static final float QSB_CENTER_FACTOR = .325f;
     private static final int BUBBLE_BAR_ADJUSTMENT_ANIMATION_DURATION_MS = 250;
 
+    private final OffsetParent.OffsetParentDelegate offsetParentDelegate =
+            new OffsetParent.OffsetParentDelegate();
+    public final BlurViewDelegate mBlurDelegate;
+
     @ViewDebug.ExportedProperty(category = "launcher")
     private boolean mHasVerticalHotseat;
     private Workspace<?> mWorkspace;
@@ -89,6 +102,7 @@ public class Hotseat extends CellLayout implements Insettable {
     private final MultiPropertyFactory mIconsTranslationXFactory;
 
     private final View mQsb;
+    public boolean drawBlur;
 
     public Hotseat(Context context) {
         this(context, null);
@@ -101,6 +115,9 @@ public class Hotseat extends CellLayout implements Insettable {
     public Hotseat(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat, this, false);
+        mBlurDelegate = new BlurViewDelegate(this, BlurWallpaperProvider.blurConfigDock, attrs);
+        drawBlur = true;
+        setWillNotDraw(false);
         addView(mQsb);
         mIconsAlphaChannels = new MultiValueAlpha(getShortcutsAndWidgets(),
                 ALPHA_CHANNEL_CHANNELS_COUNT);
@@ -286,6 +303,15 @@ public class Hotseat extends CellLayout implements Insettable {
         return false;
     }
 
+    public void setBlurAlpha(int alpha) {
+        if (alpha > 255) {
+            alpha = 255;
+        } else if (alpha < 0) {
+            alpha = 0;
+        }
+        mBlurDelegate.setBlurAlpha(alpha);
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         // See comment in #onInterceptTouchEvent
@@ -313,11 +339,18 @@ public class Hotseat extends CellLayout implements Insettable {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        DeviceProfile dp = mActivity.getDeviceProfile();
+
+        if (dp.isTablet || dp.isLandscape) {
+            MarginLayoutParams lp = ((MarginLayoutParams) getLayoutParams());
+            lp.leftMargin = -(dp.edgeMarginPx);
+            lp.rightMargin = -(dp.edgeMarginPx);
+            setLayoutParams(lp);
+        }
         super.onLayout(changed, l, t, r, b);
 
         int qsbMeasuredWidth = mQsb.getMeasuredWidth();
         int left;
-        DeviceProfile dp = mActivity.getDeviceProfile();
         if (dp.isQsbInline) {
             int qsbSpace = dp.hotseatBorderSpace;
             left = Utilities.isRtl(getResources()) ? r - getPaddingRight() + qsbSpace
@@ -330,6 +363,14 @@ public class Hotseat extends CellLayout implements Insettable {
         int bottom = b - t - dp.getQsbOffsetY();
         int top = bottom - dp.hotseatQsbHeight;
         mQsb.layout(left, top, right, bottom);
+
+        // Setting name is hardcoded here to prevent recompilation of
+        // framework jar for studio build
+        Settings.Secure.putInt(getContext().getContentResolver(),
+                "bliss_launcher_dock_width",
+                dp.isVerticalBarLayout()
+                        ? getWidth() - dp.getExtraStatusBarPadding()
+                        : 0);
     }
 
     /**
@@ -383,4 +424,71 @@ public class Hotseat extends CellLayout implements Insettable {
         );
     }
 
+    @Override
+    protected void onDraw(Canvas canvas) {
+        if (mBlurDelegate != null && drawBlur) {
+            mBlurDelegate.draw(canvas);
+        }
+        super.onDraw(canvas);
+    }
+
+    public Workspace<?> getWorkspace() {
+        return mWorkspace;
+    }
+
+    // To reduce notifyOffsetChanged() calls
+    public void setForcedTranslationXY(float translationX, float translationY){
+        super.setTranslationX(translationX);
+        super.setTranslationY(translationY);
+        offsetParentDelegate.notifyOffsetChanged();
+    }
+
+    @Override
+    public float getOffsetX() {
+        return getTranslationX();
+    }
+
+    @Override
+    public float getOffsetY() {
+        return getTranslationY();
+    }
+
+    @Override
+    public void setTranslationX(float translationX) {
+        super.setTranslationX(translationX);
+        offsetParentDelegate.notifyOffsetChanged();
+    }
+
+    @Override
+    public void setTranslationY(float translationY) {
+        offsetParentDelegate.notifyOffsetChanged();
+    }
+
+    @Override
+    public boolean getNeedWallpaperScroll() {
+        return true;
+    }
+
+    @Override
+    public void addOnOffsetChangeListener(@NonNull OnOffsetChangeListener listener) {
+        offsetParentDelegate.addOnOffsetChangeListener(listener);
+    }
+
+    @Override
+    public void removeOnOffsetChangeListener(@NonNull OnOffsetChangeListener listener) {
+        offsetParentDelegate.removeOnOffsetChangeListener(listener);
+    }
+
+    @Override
+    public void setAlpha(float alpha) {
+        Folder folder = Folder.getOpen(mActivity);
+        if (folder instanceof GridFolder) {
+            GridFolder gridFolder = (GridFolder) folder;
+            if (gridFolder.isAnimating()) {
+                super.setAlpha(alpha);
+            }
+        } else {
+            super.setAlpha(alpha);
+        }
+    }
 }

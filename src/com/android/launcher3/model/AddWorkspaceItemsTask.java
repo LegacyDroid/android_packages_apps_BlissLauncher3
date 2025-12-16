@@ -29,7 +29,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.LauncherModel.CallbackTask;
-import com.android.launcher3.LauncherModel.ModelUpdateTask;
+import com.android.launcher3.ModelUpdateTask;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.logging.FileLog;
@@ -64,6 +64,24 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
     @NonNull
     private final WorkspaceItemSpaceFinder mItemSpaceFinder;
 
+    private boolean mAnimated = true;
+    private static boolean mIgnoreLoaded = false;
+
+    @Override
+    public boolean isIgnoreLoaded() {
+        return mIgnoreLoaded;
+    }
+
+    public AddWorkspaceItemsTask(List<Pair<ItemInfo, Object>> itemList, boolean ignoreLoaded,
+                                 @NonNull final WorkspaceItemSpaceFinder itemSpaceFinder) {
+        this(itemList, itemSpaceFinder);
+        mIgnoreLoaded = ignoreLoaded;
+    }
+
+    public void setEnableAnimated(boolean animated) {
+        mAnimated = animated;
+    }
+
     /**
      * @param itemList items to add on the workspace
      * @param itemSpaceFinder inject WorkspaceItemSpaceFinder dependency for testing
@@ -73,7 +91,6 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
         mItemList = itemList;
         mItemSpaceFinder = itemSpaceFinder;
     }
-
 
     @Override
     public void execute(@NonNull ModelTaskController taskController, @NonNull BgDataModel dataModel,
@@ -93,6 +110,13 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
             for (Pair<ItemInfo, Object> entry : mItemList) {
                 ItemInfo item = entry.first;
                 if (item.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPLICATION) {
+                    // Don't add webapk before we load system app icons
+                    if (!isIgnoreLoaded() && mItemList.size() < 5 &&
+                            Objects.requireNonNull(item.getTargetPackage()).startsWith(
+                                    "foundation.e.webapk")) {
+                        continue;
+                    }
+
                     // Short-circuit this logic if the icon exists somewhere on the workspace
                     if (shortcutExists(dataModel, item.getIntent(), item.user)) {
                         continue;
@@ -100,7 +124,8 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
 
                     // b/139663018 Short-circuit this logic if the icon is a system app
                     if (new ApplicationInfoWrapper(context,
-                            Objects.requireNonNull(item.getIntent())).isSystem()) {
+                            Objects.requireNonNull(item.getIntent())).isSystem()
+                            && !isIgnoreLoaded()) {
                         continue;
                     }
 

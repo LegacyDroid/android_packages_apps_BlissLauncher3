@@ -55,6 +55,8 @@ import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider.Widget
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import foundation.e.bliss.multimode.MultiModeController;
+
 /**
  * Base class for various widgets popup
  */
@@ -139,7 +141,7 @@ public abstract class BaseWidgetSheet extends AbstractSlideInView<BaseActivity>
     }
 
     @Override
-    public final void onClick(View v) {
+    public void onClick(View v) {
         WidgetCell wc;
         if (v instanceof WidgetCell view) {
             wc = view;

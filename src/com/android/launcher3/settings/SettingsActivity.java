@@ -24,6 +24,7 @@ import static com.android.launcher3.BuildConfig.IS_DEBUG_DEVICE;
 import static com.android.launcher3.BuildConfig.IS_STUDIO_BUILD;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_MULTI_DISPLAY;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_TABLET;
+import static com.android.launcher3.SessionCommitReceiver.ADD_ICON_PREFERENCE_KEY;
 import static com.android.launcher3.states.RotationHelper.ALLOW_ROTATION_PREFERENCE_KEY;
 
 import android.app.Activity;
@@ -50,6 +51,7 @@ import androidx.preference.PreferenceFragmentCompat.OnPreferenceStartScreenCallb
 import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceGroup.PreferencePositionCallback;
 import androidx.preference.PreferenceScreen;
+import androidx.preference.SwitchPreference;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.launcher3.BuildConfig;
@@ -57,11 +59,12 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherFiles;
 import com.android.launcher3.R;
-import com.android.launcher3.lineage.LineageUtils;
-import com.android.launcher3.lineage.trust.TrustAppsActivity;
 import com.android.launcher3.states.RotationHelper;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.SettingsCache;
+
+import foundation.e.bliss.multimode.MultiModeController;
+import foundation.e.bliss.preferences.BlissPrefs;
 
 /**
  * Settings activity for Launcher. Currently implements the following setting: Allow rotation
@@ -85,13 +88,6 @@ public class SettingsActivity extends FragmentActivity
 
     private static final int DELAY_HIGHLIGHT_DURATION_MILLIS = 600;
     public static final String SAVE_HIGHLIGHTED_KEY = "android:preference_highlighted";
-
-    private static final String KEY_MINUS_ONE = "pref_enable_minus_one";
-    private static final String SEARCH_PACKAGE = "com.google.android.googlequicksearchbox";
-    public static final String KEY_TRUST_APPS = "pref_trust_apps";
-
-    private static final String KEY_SUGGESTIONS = "pref_suggestions";
-    private static final String SUGGESTIONS_PACKAGE = "com.google.android.as";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -312,6 +308,8 @@ public class SettingsActivity extends FragmentActivity
                     if (info.isTablet(info.realBounds)) {
                         // Launcher supports rotation by default. No need to show this setting.
                         return false;
+                    } else {
+                        preference.setVisible(false);
                     }
                     if (!getContext().getResources().getBoolean(
                             com.android.internal.R.bool.config_supportAutoRotation)) {
@@ -348,20 +346,20 @@ public class SettingsActivity extends FragmentActivity
                             }
                     );
                     return !info.isTablet(info.realBounds);
-                case KEY_MINUS_ONE:
-                    return LineageUtils.isPackageEnabled(getActivity(), SEARCH_PACKAGE);
-                case KEY_TRUST_APPS:
-                    preference.setOnPreferenceClickListener(p -> {
-                        LineageUtils.showLockScreen(getActivity(),
-                                getString(R.string.trust_apps_manager_name), () -> {
-                            Intent intent = new Intent(getActivity(), TrustAppsActivity.class);
-                            startActivity(intent);
-                        });
-                        return true;
-                    });
+                case BlissPrefs.PREF_SINGLE_LAYER_MODE:
+                    boolean isSingleLayer = MultiModeController.isSingleLayerMode();
+                    preference.setDefaultValue(isSingleLayer);
+                    ((SwitchPreference) preference).setChecked(isSingleLayer);
                     return true;
-                case KEY_SUGGESTIONS:
-                    return LineageUtils.isPackageEnabled(getActivity(), SUGGESTIONS_PACKAGE);
+
+                case ADD_ICON_PREFERENCE_KEY:
+                    return !MultiModeController.isSingleLayerMode();
+
+                case BlissPrefs.PREF_NOTIF_COUNT:
+                    boolean showCount = MultiModeController.isNotifCountEnabled();
+                    preference.setDefaultValue(showCount);
+                    ((SwitchPreference) preference).setChecked(showCount);
+                    return true;
             }
             return true;
         }

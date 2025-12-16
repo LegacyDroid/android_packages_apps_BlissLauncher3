@@ -19,15 +19,11 @@ package com.android.launcher3;
 import static com.android.launcher3.GridType.GRID_TYPE_ANY;
 import static com.android.launcher3.GridType.GRID_TYPE_NON_ONE_GRID;
 import static com.android.launcher3.GridType.GRID_TYPE_ONE_GRID;
-import static com.android.launcher3.LauncherPrefs.ALLAPPS_THEMED_ICONS;
 import static com.android.launcher3.LauncherPrefs.DB_FILE;
-import static com.android.launcher3.LauncherPrefs.DRAWER_OPEN_KEYBOARD;
 import static com.android.launcher3.LauncherPrefs.ENABLE_TWOLINE_ALLAPPS_TOGGLE;
 import static com.android.launcher3.LauncherPrefs.FIXED_LANDSCAPE_MODE;
 import static com.android.launcher3.LauncherPrefs.GRID_NAME;
 import static com.android.launcher3.LauncherPrefs.NON_FIXED_LANDSCAPE_GRID_NAME;
-import static com.android.launcher3.LauncherPrefs.SHOW_DESKTOP_LABELS;
-import static com.android.launcher3.LauncherPrefs.SHOW_DRAWER_LABELS;
 import static com.android.launcher3.Utilities.dpiFromPx;
 import static com.android.launcher3.testing.shared.ResourceUtils.INVALID_RESOURCE_HANDLE;
 import static com.android.launcher3.util.DisplayController.CHANGE_DENSITY;
@@ -39,6 +35,7 @@ import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.content.res.XmlResourceParser;
@@ -74,6 +71,7 @@ import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.DisplayController.Info;
+import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.Partner;
 import com.android.launcher3.util.ResourceHelper;
 import com.android.launcher3.util.SimpleBroadcastReceiver;
@@ -96,6 +94,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+
+import lineageos.providers.LineageSettings;
 
 @LauncherAppSingleton
 public class InvariantDeviceProfile {
@@ -151,6 +151,8 @@ public class InvariantDeviceProfile {
      */
     public int numRows;
     public int numColumns;
+    public int numRowsFixed;
+    public int numColumnsFixed;
     public int numSearchContainerColumns;
 
     /**
@@ -304,11 +306,6 @@ public class InvariantDeviceProfile {
             } else if (ENABLE_TWOLINE_ALLAPPS_TOGGLE.getSharedPrefKey().equals(key)
                     && enableTwoLinesInAllApps != prefs.get(ENABLE_TWOLINE_ALLAPPS_TOGGLE)) {
                 onConfigChanged(context);
-            } else if (ALLAPPS_THEMED_ICONS.getSharedPrefKey().equals(key) ||
-                    DRAWER_OPEN_KEYBOARD.getSharedPrefKey().equals(key) ||
-                    SHOW_DESKTOP_LABELS.getSharedPrefKey().equals(key) ||
-                    SHOW_DRAWER_LABELS.getSharedPrefKey().equals(key)) {
-                onConfigChanged(context);
             }
         };
         prefs.addListener(prefListener, FIXED_LANDSCAPE_MODE, ENABLE_TWOLINE_ALLAPPS_TOGGLE);
@@ -380,7 +377,9 @@ public class InvariantDeviceProfile {
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         GridOption closestProfile = displayOption.grid;
         numRows = closestProfile.numRows;
+        numRowsFixed = closestProfile.numRows;
         numColumns = closestProfile.numColumns;
+        numColumnsFixed = closestProfile.numColumns;
         numSearchContainerColumns = closestProfile.numSearchContainerColumns;
         dbFile = closestProfile.dbFile;
         gridType = closestProfile.gridType;
@@ -416,6 +415,15 @@ public class InvariantDeviceProfile {
         inlineNavButtonsEndSpacing = closestProfile.inlineNavButtonsEndSpacing;
 
         iconSize = displayOption.iconSizes;
+        for (WindowBounds bounds : displayInfo.supportedBounds) {
+            boolean isTablet = displayInfo.isTablet(bounds);
+            if (isTablet) {
+                Configuration config = new Configuration(context.getResources().getConfiguration());
+                iconSize[INDEX_DEFAULT] *= config.smallestScreenWidthDp < 660 ? 1.15f : 1.4f;
+                iconSize[INDEX_LANDSCAPE] *= config.smallestScreenWidthDp < 660 ? 1.15f : 1.4f;
+                break;
+            }
+        }
         float maxIconSize = iconSize[0];
         for (int i = 1; i < iconSize.length; i++) {
             maxIconSize = Math.max(maxIconSize, iconSize[i]);
@@ -791,6 +799,8 @@ public class InvariantDeviceProfile {
             if (numRows > 0 && numColumns > 0) {
                 this.numRows = numRows;
                 this.numColumns = numColumns;
+                this.numRowsFixed = numRows;
+                this.numColumnsFixed = numColumns;
             }
             if (iconSizePx > 0) {
                 this.iconSize[InvariantDeviceProfile.INDEX_DEFAULT] =
@@ -1458,9 +1468,25 @@ public class InvariantDeviceProfile {
                     R.styleable.ProfileDisplayOption_horizontalMarginTwoPanelPortrait,
                     horizontalMargin[INDEX_DEFAULT]);
 
+            WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
+            boolean isGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
+            boolean noHintGesture = isGesture && LineageSettings.System.getInt(
+                    context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
+            float hotseatBarBottom = ResourcesCompat.getFloat(res, R.dimen.hotseat_qsb_space_default);
+            boolean isTablet = grid.deviceCategory == TYPE_TABLET;
+            if (isTablet && isGesture) {
+                hotseatBarBottom = ResourcesCompat.getFloat(res, R.dimen.hotseat_bar_top_space_default_three_button);
+            } else if (noHintGesture || !isTablet) {
+                hotseatBarBottom = ResourcesCompat.getFloat(res, R.dimen.hotseat_bar_bottom_space_default);
+            }
+
+            if (!isGesture && !isTablet) {
+                hotseatBarBottom = ResourcesCompat.getFloat(res, R.dimen.hotseat_bar_bottom_space_default_three_button);
+            }
+
             hotseatBarBottomSpace[INDEX_DEFAULT] = a.getFloat(
                     R.styleable.ProfileDisplayOption_hotseatBarBottomSpace,
-                    ResourcesCompat.getFloat(res, R.dimen.hotseat_bar_bottom_space_default));
+                    hotseatBarBottom);
             hotseatBarBottomSpace[INDEX_LANDSCAPE] = a.getFloat(
                     R.styleable.ProfileDisplayOption_hotseatBarBottomSpaceLandscape,
                     hotseatBarBottomSpace[INDEX_DEFAULT]);

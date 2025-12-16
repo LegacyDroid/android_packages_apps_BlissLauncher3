@@ -81,7 +81,7 @@ public class WorkspaceItemSpaceFinder {
         int screenCount = workspaceScreens.size();
         // First check the preferred screen.
         IntSet screensToExclude = new IntSet();
-        if (FeatureFlags.QSB_ON_FIRST_SCREEN
+        if (FeatureFlags.QSB_ON_FIRST_SCREEN.get()
                 && !SHOULD_SHOW_FIRST_PAGE_WIDGET) {
             screensToExclude.add(FIRST_SCREEN_ID);
         }
@@ -115,7 +115,7 @@ public class WorkspaceItemSpaceFinder {
 
     private boolean findNextAvailableIconSpaceInScreen(
             ArrayList<ItemInfo> occupiedPos, int[] xy, int spanX, int spanY) {
-        GridOccupancy occupied = new GridOccupancy(mIDP.numColumns, mIDP.numRows);
+        GridOccupancy occupied = new GridOccupancy(mIDP.numColumnsFixed, mIDP.numRowsFixed);
         if (occupiedPos != null) {
             for (ItemInfo r : occupiedPos) {
                 occupied.markCells(r, true);

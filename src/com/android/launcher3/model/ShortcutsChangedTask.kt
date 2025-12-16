@@ -18,7 +18,7 @@ package com.android.launcher3.model
 import android.content.pm.ShortcutInfo
 import android.os.UserHandle
 import com.android.launcher3.Flags
-import com.android.launcher3.LauncherModel.ModelUpdateTask
+import com.android.launcher3.ModelUpdateTask
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT
 import com.android.launcher3.icons.CacheableShortcutInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo

@@ -124,6 +124,7 @@ import com.android.launcher3.apppairs.AppPairIcon;
 import com.android.launcher3.appprediction.PredictionRowView;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.desktop.DesktopRecentsTransitionController;
+import com.android.launcher3.folder.Folder;
 import com.android.launcher3.hybridhotseat.HotseatPredictionController;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.StatsLogManager;
@@ -194,7 +195,6 @@ import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.views.TaskView;
 import com.android.systemui.animation.back.FlingOnBackAnimationCallback;
-import com.android.systemui.plugins.shared.LauncherOverlayManager;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.unfold.RemoteUnfoldSharedComponent;
@@ -291,11 +291,6 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     public static QuickstepLauncher getLauncher(Context context) {
         return fromContext(context);
-    }
-
-    @Override
-    protected LauncherOverlayManager getDefaultOverlay() {
-        return new OverlayCallbackImpl(this);
     }
 
     @Override
@@ -534,6 +529,12 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         }
         if (state == NORMAL && !inTransition) {
             ((RecentsView) getOverviewPanel()).setSwipeDownShouldLaunchApp(false);
+
+            // Close any opened folder
+            Folder folder = Folder.getOpen(this);
+            if (folder != null && folder.isOpen() && !folder.isFolderWobbling()) {
+                folder.close(false);
+            }
         }
     }
 
@@ -1478,7 +1479,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             if (v != null && activeRecyclerView.computeVerticalScrollOffset() > 0) {
                 RectF locationBounds = new RectF();
                 FloatingIconView.getLocationBoundsForView(this, v, false, locationBounds,
-                        new Rect());
+                        new Rect(), true);
                 if (locationBounds.top < getAppsView().getHeaderBottom()) {
                     // Icon is covered by scrim, return null to play fallback animation.
                     return null;

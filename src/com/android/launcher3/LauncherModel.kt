@@ -55,6 +55,7 @@ import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.util.Preconditions
+import foundation.e.bliss.LauncherAppMonitor
 import java.io.FileDescriptor
 import java.io.PrintWriter
 import java.util.concurrent.CancellationException
@@ -82,7 +83,7 @@ constructor(
     lifecycle: DaggerSingletonTracker,
     val modelDelegate: ModelDelegate,
     private val mBgAllAppsList: AllAppsList,
-    private val mBgDataModel: BgDataModel,
+    val mBgDataModel: BgDataModel,
     private val loaderFactory: LoaderTaskFactory,
     private val binderFactory: BaseLauncherBinderFactory,
     private val spaceFinderFactory: Provider<WorkspaceItemSpaceFinder>,
@@ -139,11 +140,34 @@ constructor(
         enqueueModelUpdateTask(AddWorkspaceItemsTask(itemList, spaceFinderFactory.get()))
     }
 
+    /**
+     * Adds the provided items to the workspace.
+     */
+    fun addAndBindAddedWorkspaceItems(
+        itemList: List<Pair<ItemInfo?, Any?>?>,
+        animated: Boolean, ignoreLoaded: Boolean
+    ) {
+        callbacks.forEach { it.preAddApps() }
+        val sortedItemList = if (ignoreLoaded) {
+            itemList
+                .filterNotNull()
+                .sortedBy { it.first?.title?.toString()?.lowercase() ?: "" }
+        } else {
+            itemList
+        }
+        addAndBindAddedWorkspaceItems(sortedItemList)
+        val addWorkspaceItemsTask =
+            AddWorkspaceItemsTask(sortedItemList, ignoreLoaded, spaceFinderFactory.get())
+        addWorkspaceItemsTask.setEnableAnimated(animated)
+        enqueueModelUpdateTask(addWorkspaceItemsTask)
+    }
+
     fun getWriter(
+        hasVerticalHotseat: Boolean,
         verifyChanges: Boolean,
         cellPosMapper: CellPosMapper?,
         owner: BgDataModel.Callbacks?,
-    ) = ModelWriter(context, this, mBgDataModel, verifyChanges, cellPosMapper, owner)
+    ) = ModelWriter(context, this, mBgDataModel, hasVerticalHotseat, verifyChanges, cellPosMapper, owner)
 
     /** Called when the icon for an app changes, outside of package event */
     @WorkerThread
@@ -170,6 +194,7 @@ constructor(
 
     fun reloadStringCache() {
         enqueueModelUpdateTask(ReloadStringCacheTask(this.modelDelegate))
+        LauncherAppMonitor.getInstanceNoCreate().onReceive()
     }
 
     /**
@@ -216,6 +241,8 @@ constructor(
                 )
             }
         }
+
+        LauncherAppMonitor.getInstanceNoCreate().onReceive()
     }
 
     /**
@@ -373,6 +400,10 @@ constructor(
             }
         }
 
+        fun isModelLoaded(): Boolean {
+            return mModelLoaded
+        }
+
         override fun close() {
             synchronized(mLock) {
                 // If we are still the last one to be scheduled, remove ourselves.
@@ -419,7 +450,7 @@ constructor(
             return
         }
         MODEL_EXECUTOR.execute {
-            if (!isModelLoaded()) {
+            if (!isModelLoaded() && !task.isIgnoreLoaded) {
                 // Loader has not yet run.
                 return@execute
             }
@@ -433,10 +464,6 @@ constructor(
      */
     fun interface CallbackTask {
         fun execute(callbacks: BgDataModel.Callbacks)
-    }
-
-    fun interface ModelUpdateTask {
-        fun execute(taskController: ModelTaskController, dataModel: BgDataModel, apps: AllAppsList)
     }
 
     fun updateAndBindWorkspaceItem(si: WorkspaceItemInfo, info: ShortcutInfo) {

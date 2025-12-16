@@ -38,7 +38,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
     var pagesToBindSynchronously = LIntSet()
 
     private var isFirstPagePinnedItemEnabled =
-        (BuildConfig.QSB_ON_FIRST_SCREEN && !enableSmartspaceRemovalToggle())
+        (FeatureFlags.QSB_ON_FIRST_SCREEN.get() && !enableSmartspaceRemovalToggle())
 
     var stringCache: StringCache? = null
 
@@ -135,7 +135,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         val currentPage =
             if (pagesBoundFirst != null && !pagesBoundFirst.isEmpty)
                 launcher.workspace.getPageIndexForScreenId(pagesBoundFirst.array[0])
-            else PagedView.INVALID_PAGE
+            else Workspace.DEFAULT_PAGE
         // When undoing the removal of the last item on a page, return to that page.
         // Since we are just resetting the current page without user interaction,
         // override the previous page so we don't log the page switch.
@@ -377,6 +377,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
                 isFirstPagePinnedItemEnabled &&
                     !SHOULD_SHOW_FIRST_PAGE_WIDGET &&
                     screenId == WorkspaceLayoutManager.FIRST_SCREEN_ID
+                        || FeatureFlags.QSB_ON_FIRST_SCREEN.get() && screenId == Workspace.SECOND_SCREEN_ID
             }
             .forEach { screenId ->
                 launcher.workspace.insertNewWorkspaceScreenBeforeEmptyScreen(screenId)

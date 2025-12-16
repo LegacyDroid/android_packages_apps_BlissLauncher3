@@ -27,11 +27,13 @@ import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.VectorDrawable;
 import android.os.Handler;
 import android.os.Looper;
@@ -47,10 +49,13 @@ import android.view.animation.OvershootInterpolator;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.content.res.AppCompatResources;
 
 import com.android.launcher3.Insettable;
+import com.android.launcher3.Launcher;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
+import com.android.launcher3.folder.Folder;
 import com.android.launcher3.util.Themes;
 
 import java.util.function.Consumer;
@@ -84,7 +89,7 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
     private static final int PAGE_INDICATOR_ALPHA = 255;
     private static final int DOT_ALPHA = 128;
     private static final float DOT_ALPHA_FRACTION = 0.5f;
-    private static final int DOT_GAP_FACTOR = 4;
+    private static final float DOT_GAP_FACTOR = 3.5f;
     private static final int VISIBLE_ALPHA = 255;
     private static final int INVISIBLE_ALPHA = 0;
     private Paint mPaginationPaint;
@@ -131,8 +136,8 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
     private final float mGapWidth;
     private final float mCircleGap;
     private final boolean mIsRtl;
-    private final VectorDrawable mArrowRight;
-    private final VectorDrawable mArrowLeft;
+    private VectorDrawable mArrowRight;
+    private VectorDrawable mArrowLeft;
     private final Rect mArrowRightBounds = new Rect();
     private final Rect mArrowLeftBounds = new Rect();
 
@@ -178,7 +183,7 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
 
         mPaginationPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaginationPaint.setStyle(Style.FILL);
-        mPaginationPaint.setColor(Themes.getAttrColor(context, R.attr.pageIndicatorDotColor));
+        mPaginationPaint.setColor(Color.WHITE);
         mDotRadius = getResources().getDimension(R.dimen.page_indicator_dot_size) / 2;
         mGapWidth = getResources().getDimension(R.dimen.page_indicator_gap_width);
         mCircleGap = (enableLauncherVisualRefresh())
@@ -186,8 +191,15 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
                 : DOT_GAP_FACTOR * mDotRadius;
         setOutlineProvider(new MyOutlineProver());
         mIsRtl = Utilities.isRtl(getResources());
-        mArrowRight = (VectorDrawable) getResources().getDrawable(R.drawable.ic_chevron_end);
-        mArrowLeft = (VectorDrawable) getResources().getDrawable(R.drawable.ic_chevron_start);
+        Drawable dRight = AppCompatResources.getDrawable(context, R.drawable.ic_chevron_end);
+        Drawable dLeft  = AppCompatResources.getDrawable(context, R.drawable.ic_chevron_start);
+
+        if (dRight instanceof VectorDrawable) {
+            mArrowRight = (VectorDrawable) dRight;
+        }
+        if (dLeft instanceof VectorDrawable) {
+            mArrowLeft = (VectorDrawable) dLeft;
+        }
     }
 
     @Override
@@ -212,6 +224,10 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
 
         if (mIsRtl) {
             currentScroll = totalScroll - currentScroll;
+        }
+
+        if (currentScroll == 0) {
+            return;
         }
 
         mTotalScroll = totalScroll;
@@ -272,6 +288,19 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
     private void hideAfterDelay() {
         mDelayedPaginationFadeHandler.removeCallbacksAndMessages(null);
         mDelayedPaginationFadeHandler.postDelayed(mHidePaginationRunnable, PAGINATION_FADE_DELAY);
+    }
+
+
+    @Override
+    public void setAlpha(float alpha) {
+        Launcher launcher = Launcher.getLauncher(getContext());
+        if (launcher.getWorkspace().getPageIndicator() == this) {
+            if (Folder.getOpen(launcher) == null) {
+                super.setAlpha(alpha);
+            }
+        } else {
+            super.setAlpha(alpha);
+        }
     }
 
     private void animatePaginationToAlpha(int alpha) {
@@ -738,6 +767,14 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
                 );
             }
         }
+    }
+
+    @Override
+    public void setTranslationY(float translationY) {
+    }
+
+    public void  setForcedTranslationY(float translationY) {
+        super.setTranslationY(translationY);
     }
 
     /**

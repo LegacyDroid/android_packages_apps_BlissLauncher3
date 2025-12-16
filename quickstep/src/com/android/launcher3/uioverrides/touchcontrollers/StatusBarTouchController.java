@@ -25,8 +25,10 @@ import static com.android.launcher3.MotionEventsUtils.isTrackpadScroll;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SWIPE_DOWN_WORKSPACE_NOTISHADE_OPEN;
 
 import android.graphics.PointF;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
@@ -35,10 +37,13 @@ import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
+import com.android.launcher3.Workspace;
 import com.android.launcher3.util.TouchController;
 import com.android.quickstep.SystemUiProxy;
 
 import java.io.PrintWriter;
+
+import foundation.e.bliss.multimode.MultiModeController;
 
 /**
  * TouchController for handling touch events that get sent to the StatusBar. Once the
@@ -75,8 +80,12 @@ public class StatusBarTouchController implements TouchController {
     }
 
     private void dispatchTouchEvent(MotionEvent ev) {
-        if (mSystemUiProxy.isActive()) {
-            mLastAction = ev.getActionMasked();
+        mLastAction = ev.getActionMasked();
+        if (MultiModeController.isSingleLayerMode()) {
+            if (ev.getAction() == ACTION_UP) {
+                mLauncher.toggleSwipeSearchState();
+            }
+        } else if (mSystemUiProxy.isActive()) {
             mSystemUiProxy.onStatusBarTouchEvent(ev);
         }
     }
@@ -91,8 +100,16 @@ public class StatusBarTouchController implements TouchController {
             if (!mCanIntercept) {
                 return false;
             }
+
             mDownEvents.clear();
             mDownEvents.put(pid, new PointF(ev.getX(), ev.getY()));
+
+            if (MultiModeController.isSingleLayerMode() && mLauncher.swipeSearchContainer != null &&
+                    mLauncher.swipeSearchContainer.getVisibility() == View.VISIBLE &&
+                    ev.getY(idx) > mLauncher.swipeSearchContainer.getHeight()) {
+                setWindowSlippery(true);
+                return true;
+            }
         } else if (ev.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
             // Check!! should only set it only when threshold is not entered.
             mDownEvents.put(pid, new PointF(ev.getX(idx), ev.getY(idx)));
@@ -106,7 +123,9 @@ public class StatusBarTouchController implements TouchController {
             // Currently input dispatcher will not do touch transfer if there are more than
             // one touch pointer. Hence, even if slope passed, only set the slippery flag
             // when there is single touch event. (context: InputDispatcher.cpp line 1445)
-            if (dy > mTouchSlop && dy > Math.abs(dx) && ev.getPointerCount() == 1) {
+            if (dy > mTouchSlop && dy > Math.abs(dx) && ev.getPointerCount() == 1 &&
+                    (!MultiModeController.isSingleLayerMode() ||
+                            mLauncher.swipeSearchContainer.getVisibility() == View.GONE)) {
                 ev.setAction(ACTION_DOWN);
                 dispatchTouchEvent(ev);
                 setWindowSlippery(true);
@@ -164,6 +183,12 @@ public class StatusBarTouchController implements TouchController {
                 return false;
             }
         }
+
+        if (MultiModeController.isSingleLayerMode()
+                && mLauncher.getWorkspace().getCurrentPage() == Workspace.WIDGET_PAGE) {
+            return false;
+        }
+
         return SystemUiProxy.INSTANCE.get(mLauncher).isActive();
     }
 }

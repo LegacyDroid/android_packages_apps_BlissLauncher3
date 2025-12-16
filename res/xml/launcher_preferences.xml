@@ -18,7 +18,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:launcher="http://schemas.android.com/apk/res-auto">
 
-    <SwitchPreferenceCompat
+    <SwitchPreference
         android:defaultValue="false"
         android:key="pref_workspace_lock"
         android:persistent="true"
@@ -36,7 +36,7 @@
       LAUNCHER_ADD_NEW_APPS_TO_HOME_SCREEN_ENABLED(613)
       LAUNCHER_ADD_NEW_APPS_TO_HOME_SCREEN_DISABLED(614)
     -->
-    <SwitchPreferenceCompat
+    <SwitchPreference
         android:key="pref_add_icon_to_home"
         android:title="@string/auto_add_shortcuts_label"
         android:summary="@string/auto_add_shortcuts_description"
@@ -49,7 +49,7 @@
       LAUNCHER_HOME_SCREEN_ROTATION_ENABLED(615)
       LAUNCHER_HOME_SCREEN_ROTATION_DISABLED(616)
     -->
-    <SwitchPreferenceCompat
+    <SwitchPreference
         android:key="pref_allowRotation"
         android:title="@string/allow_rotation_title"
         android:summary="@string/allow_rotation_desc"
@@ -58,49 +58,16 @@
         launcher:logIdOn="615"
         launcher:logIdOff="616" />
 
-    <SwitchPreferenceCompat
+    <SwitchPreference
+        android:defaultValue="@bool/default_single_mode"
+        android:key="pref_single_layer"
+        android:persistent="true"
+        android:title="Enable single layer mode"
+        launcher:isPreferenceVisible="false" />
+
+    <SwitchPreference
         android:defaultValue="true"
-        android:key="pref_enable_minus_one"
-        android:summary="@string/pref_show_google_now_summary"
-        android:title="@string/title_show_google_app" />
-
-    <Preference
-        android:key="pref_trust_apps"
-        android:title="@string/trust_apps_manager_name" />
-
-    <androidx.preference.PreferenceScreen
-        android:key="pref_suggestions"
-        android:title="@string/pref_suggestions_title"
-        android:summary="@string/pref_suggestions_summary"
-        android:persistent="false">
-
-        <intent android:action="android.settings.ACTION_CONTENT_SUGGESTIONS_SETTINGS" />
-    </androidx.preference.PreferenceScreen>
-
-    <SwitchPreferenceCompat
-        android:key="pref_drawer_open_keyboard"
-        android:title="@string/drawer_open_keyboard_title"
-        android:summary="@string/drawer_open_keyboard_summary"
-        android:defaultValue="false"
-        android:persistent="true" />
-
-    <SwitchPreferenceCompat
-        android:key="pref_allapps_themed_icons"
-        android:title="@string/pref_themed_icons_title"
-        android:summary="@string/pref_themed_icons_summary"
-        android:defaultValue="false"
-        android:persistent="true" />
-
-    <SwitchPreferenceCompat
-        android:key="pref_desktop_show_labels"
-        android:title="@string/desktop_show_labels"
-        android:defaultValue="true"
-        android:persistent="true" />
-
-    <SwitchPreferenceCompat
-        android:key="pref_drawer_show_labels"
-        android:title="@string/drawer_show_labels"
-        android:defaultValue="true"
-        android:persistent="true" />
-
+        android:key="pref_notif_count"
+        android:persistent="true"
+        android:title="@string/show_notification_count" />
 </androidx.preference.PreferenceScreen>

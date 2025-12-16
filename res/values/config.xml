@@ -82,6 +82,10 @@
     <!-- Scalable Grid configuration -->
     <!-- This is a float because it is converted to dp later in DeviceProfile -->
     <dimen name="hotseat_bar_bottom_space_default">48</dimen>
+    <dimen name="hotseat_bar_top_space_default">42</dimen>
+    <dimen name="hotseat_bar_top_space_default_three_button">24</dimen>
+    <dimen name="hotseat_bar_bottom_space_default_three_button">64</dimen>
+    <dimen name="hotseat_bar_bottom_space_default_taskbar">12</dimen>
     <dimen name="hotseat_qsb_space_default">0</dimen>
 
     <!-- Whether to enable background preloading of task thumbnails. -->
@@ -151,7 +155,10 @@
         <item>@dimen/swipe_up_max_velocity</item>
     </array>
 
-    <string-array name="filtered_components" ></string-array>
+    <string-array name="filtered_components">
+        <item>foundation.e.blisslauncher/com.android.launcher3.uioverrides.QuickstepLauncher</item>
+        <item>foundation.e.blisslauncher/com.android.launcher3.Launcher</item>
+    </string-array>
 
     <!-- Swipe back to home related -->
     <dimen name="swipe_back_window_scale_x_margin">10dp</dimen>

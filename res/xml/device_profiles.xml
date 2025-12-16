@@ -27,7 +27,7 @@
         launcher:numHotseatIcons="2"
         launcher:dbFile="launcher_2_by_2.db"
         launcher:defaultLayoutId="@xml/default_workspace_2x2"
-        launcher:deviceCategory="phone" >
+        launcher:deviceCategory="" >
 
         <display-option
             launcher:name="Super Short Stubby"
@@ -65,7 +65,7 @@
         launcher:numHotseatIcons="3"
         launcher:dbFile="launcher_3_by_3.db"
         launcher:defaultLayoutId="@xml/default_workspace_3x3"
-        launcher:deviceCategory="phone" >
+        launcher:deviceCategory="" >
 
         <display-option
             launcher:name="Super Short Stubby"
@@ -103,7 +103,7 @@
         launcher:numExtendedHotseatIcons="6"
         launcher:dbFile="launcher_4_by_5.db"
         launcher:inlineNavButtonsEndSpacing="@dimen/taskbar_button_margin_split"
-        launcher:defaultLayoutId="@xml/default_workspace_4x5"
+        launcher:defaultLayoutId="@xml/e_default_workspace_4x5"
         launcher:deviceCategory="phone|multi_display" >
 
         <display-option
@@ -111,7 +111,7 @@
             launcher:minWidthDps="275"
             launcher:minHeightDps="420"
             launcher:iconImageSize="65"
-            launcher:iconTextSize="13.0"
+            launcher:iconTextSize="12.0"
             launcher:allAppsBorderSpace="16"
             launcher:allAppsCellHeight="104"
             launcher:startAlignTaskbar="true"
@@ -123,7 +123,7 @@
             launcher:minWidthDps="255"
             launcher:minHeightDps="450"
             launcher:iconImageSize="65"
-            launcher:iconTextSize="13.0"
+            launcher:iconTextSize="12.0"
             launcher:allAppsBorderSpace="16"
             launcher:allAppsCellHeight="104"
             launcher:startAlignTaskbar="true"
@@ -135,7 +135,7 @@
             launcher:minWidthDps="296"
             launcher:minHeightDps="491.33"
             launcher:iconImageSize="65"
-            launcher:iconTextSize="13.0"
+            launcher:iconTextSize="12.0"
             launcher:allAppsBorderSpace="16"
             launcher:allAppsCellHeight="104"
             launcher:startAlignTaskbar="true"
@@ -147,7 +147,7 @@
             launcher:minWidthDps="359"
             launcher:minHeightDps="567"
             launcher:iconImageSize="65"
-            launcher:iconTextSize="13.0"
+            launcher:iconTextSize="12.0"
             launcher:allAppsBorderSpace="16"
             launcher:allAppsCellHeight="104"
             launcher:startAlignTaskbar="true"
@@ -159,7 +159,7 @@
             launcher:minWidthDps="335"
             launcher:minHeightDps="567"
             launcher:iconImageSize="65"
-            launcher:iconTextSize="13.0"
+            launcher:iconTextSize="12.0"
             launcher:allAppsBorderSpace="16"
             launcher:allAppsCellHeight="104"
             launcher:startAlignTaskbar="true"
@@ -179,7 +179,7 @@
         launcher:dbFile="launcher.db"
         launcher:inlineNavButtonsEndSpacing="@dimen/taskbar_button_margin_split"
         launcher:defaultLayoutId="@xml/default_workspace_5x5"
-        launcher:deviceCategory="phone|multi_display" >
+        launcher:deviceCategory="multi_display" >
 
         <display-option
             launcher:name="Large Phone"
@@ -220,21 +220,21 @@
     </grid-option>
 
     <grid-option
-        launcher:name="5_by_6"
+        launcher:name="4_by_6"
         launcher:numRows="6"
-        launcher:numColumns="5"
-        launcher:numFolderRows="5"
-        launcher:numFolderColumns="4"
-        launcher:numHotseatIcons="5"
-        launcher:dbFile="launcher_5_by_6.db"
-        launcher:defaultLayoutId="@xml/default_workspace_5x6"
+        launcher:numColumns="4"
+        launcher:numFolderRows="3"
+        launcher:numFolderColumns="3"
+        launcher:numHotseatIcons="4"
+        launcher:dbFile="launcher_4_by_6.db"
+        launcher:defaultLayoutId="@xml/e_default_workspace_4x5"
         launcher:deviceCategory="phone|multi_display" >
 
         <display-option
             launcher:name="Large Phone"
             launcher:minWidthDps="406"
             launcher:minHeightDps="694"
-            launcher:iconImageSize="56"
+            launcher:iconImageSize="65"
             launcher:iconTextSize="12.0"
             launcher:allAppsBorderSpace="16"
             launcher:allAppsCellHeight="104"
@@ -253,7 +253,7 @@
         launcher:numHotseatIcons="5"
         launcher:dbFile="launcher_5_by_7.db"
         launcher:defaultLayoutId="@xml/default_workspace_5x7"
-        launcher:deviceCategory="phone|multi_display" >
+        launcher:deviceCategory="multi_display" >
 
         <display-option
             launcher:name="Large Phone"
@@ -270,19 +270,19 @@
     </grid-option>
 
     <grid-option
-        launcher:name="6_by_5"
-        launcher:numRows="5"
-        launcher:numColumns="6"
+        launcher:name="4_by_6"
+        launcher:numRows="6"
+        launcher:numColumns="4"
         launcher:numSearchContainerColumns="3"
         launcher:numFolderRows="3"
         launcher:numFolderColumns="3"
-        launcher:numHotseatIcons="6"
+        launcher:numHotseatIcons="8"
         launcher:numAllAppsColumns="6"
         launcher:isScalable="true"
         launcher:inlineNavButtonsEndSpacing="@dimen/taskbar_button_margin_6_5"
         launcher:devicePaddingId="@xml/paddings_6x5"
         launcher:dbFile="launcher_6_by_5.db"
-        launcher:defaultLayoutId="@xml/default_workspace_6x5"
+        launcher:defaultLayoutId="@xml/default_workspace_4x6_tablet"
         launcher:deviceCategory="tablet" >
 
         <display-option
@@ -310,8 +310,6 @@
             launcher:allAppsBorderSpaceHorizontal="8"
             launcher:allAppsBorderSpaceVertical="16"
             launcher:allAppsBorderSpaceLandscape="16"
-            launcher:hotseatBarBottomSpace="76"
-            launcher:hotseatBarBottomSpaceLandscape="40"
             launcher:startAlignTaskbar="true"
             launcher:startAlignTaskbarLandscape="true"
             launcher:canBeDefault="true" />
@@ -327,7 +325,7 @@
         launcher:numHotseatIcons="6"
         launcher:dbFile="launcher_6_by_6.db"
         launcher:defaultLayoutId="@xml/default_workspace_6x6"
-        launcher:deviceCategory="phone|multi_display" >
+        launcher:deviceCategory="multi_display" >
 
         <display-option
             launcher:name="Large Phone"

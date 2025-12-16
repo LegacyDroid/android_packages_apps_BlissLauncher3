@@ -30,6 +30,8 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.RectF;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.HapticFeedbackConstants;
 import android.view.InputDevice;
@@ -39,6 +41,7 @@ import android.view.View.OnTouchListener;
 import android.view.ViewConfiguration;
 
 import com.android.launcher3.AbstractFloatingView;
+import com.android.launcher3.BubbleTextView;
 import com.android.launcher3.CellLayout;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
@@ -48,6 +51,7 @@ import com.android.launcher3.logger.LauncherAtom;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.launcher3.util.TouchUtil;
+import com.android.launcher3.views.FloatingIconView;
 
 /**
  * Helper class to handle touch on empty space in workspace and show options popup on long press
@@ -87,9 +91,9 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
 
     @Override
     public boolean onTouch(View view, MotionEvent ev) {
+        int action = ev.getActionMasked();
         mGestureDetector.onTouchEvent(ev);
 
-        int action = ev.getActionMasked();
         if (action == ACTION_DOWN) {
             // Check if we can handle long press.
             boolean handleLongPress = canHandleLongPress();
@@ -159,6 +163,9 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
                         (CellLayout) mWorkspace.getChildAt(mWorkspace.getCurrentPage());
                 if (currentPage != null) {
                     mWorkspace.onWallpaperTap(ev);
+                    if (mWorkspace.isWobbling()) {
+                        mWorkspace.wobbleLayouts(false /* wobble */);
+                    }
                 }
             }
         }

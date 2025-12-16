@@ -20,10 +20,12 @@ import static android.provider.BaseColumns._ID;
 import static com.android.launcher3.LauncherPrefs.DB_FILE;
 import static com.android.launcher3.LauncherPrefs.NO_DB_FILES_RESTORED;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER;
+import static com.android.launcher3.LauncherSettings.Favorites.E_TABLE_NAME;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR;
 import static com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME;
 import static com.android.launcher3.LauncherSettings.Favorites.addTableToDb;
+import static com.android.launcher3.provider.LauncherDbUtils.copyTable;
 import static com.android.launcher3.provider.LauncherDbUtils.tableExists;
 
 import android.content.ContentValues;
@@ -71,6 +73,9 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import foundation.e.bliss.multimode.MultiModeController;
+import foundation.e.bliss.utils.BlissDbUtils;
+
 /**
  * Utility class which maintains an instance of Launcher database and provides utility methods
  * around it.
@@ -79,9 +84,16 @@ import javax.inject.Inject;
 public class ModelDbController {
     private static final String TAG = "ModelDbController";
 
-    private static final String EMPTY_DATABASE_CREATED = "EMPTY_DATABASE_CREATED";
+    private static final String EMPTY_DATABASE_CREATED = getEmptyDatabaseCreated();
+    private static final String E_EMPTY_DATABASE_CREATED = "EMPTY_DATABASE_CREATED";
+    private static final String E_EMPTY_DATABASE_CREATED_ALL = "EMPTY_DATABASE_CREATED_ALL";
+
     public static final String EXTRA_DB_NAME = "db_name";
     public static final String DATA_TYPE_DB_FILE = "database_file";
+
+    private static String getEmptyDatabaseCreated() {
+        return MultiModeController.isSingleLayerMode() ? E_EMPTY_DATABASE_CREATED_ALL : E_EMPTY_DATABASE_CREATED;
+    }
 
     protected DatabaseHelper mOpenHelper;
 
@@ -214,7 +226,13 @@ public class ModelDbController {
 
         addModifiedTime(values);
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-        return db.update(TABLE_NAME, values, selection, selectionArgs);
+        int count = 0;
+        if (tableExists(db, TABLE_NAME)) {
+            count = db.update(TABLE_NAME, values, selection, selectionArgs);
+        } else if (tableExists(db, E_TABLE_NAME)) {
+            count = db.update(E_TABLE_NAME, values, selection, selectionArgs);
+        }
+        return count;
     }
 
     /**
@@ -605,6 +623,15 @@ public class ModelDbController {
      */
     @WorkerThread
     public synchronized void loadDefaultFavoritesIfNecessary() {
+        if (BlissDbUtils.migrateDataFromDb(mContext, mOpenHelper)) {
+            SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+            copyTable(db, Favorites.E_TABLE_NAME_ALL,
+                    db, Favorites.E_TABLE_NAME, mContext);
+            mOpenHelper.updateItemId();
+            clearFlagEmptyDbCreated();
+            return;
+        }
+
         createDbIfNotExists();
 
         if (mPrefs.get(getEmptyDbCreatedKey())) {
@@ -631,6 +658,8 @@ public class ModelDbController {
                     mOpenHelper.loadFavorites(mOpenHelper.getWritableDatabase(),
                             getDefaultLayoutParser(widgetHolder));
                 }
+                copyTable(mOpenHelper.getReadableDatabase(), Favorites.E_TABLE_NAME_ALL,
+                        mOpenHelper.getWritableDatabase(), Favorites.E_TABLE_NAME, mContext);
                 clearFlagEmptyDbCreated();
             } finally {
                 widgetHolder.destroy();

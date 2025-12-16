@@ -32,6 +32,7 @@ import static com.android.launcher3.LauncherState.FLAG_HOTSEAT_INACCESSIBLE;
 import static com.android.launcher3.LauncherState.HINT_STATE;
 import static com.android.launcher3.LauncherState.HOTSEAT_ICONS;
 import static com.android.launcher3.LauncherState.NORMAL;
+import static com.android.launcher3.LauncherState.SPRING_LOADED;
 import static com.android.launcher3.LauncherState.WORKSPACE_PAGE_INDICATOR;
 import static com.android.launcher3.anim.PropertySetter.NO_ANIM_PROPERTY_SETTER;
 import static com.android.launcher3.config.FeatureFlags.FOLDABLE_SINGLE_PAGE;
@@ -59,6 +60,7 @@ import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.anim.PropertySetter;
 import com.android.launcher3.anim.SpringAnimationBuilder;
+import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.graphics.Scrim;
 import com.android.launcher3.graphics.SysUiScrim;
 import com.android.launcher3.states.EditModeState;
@@ -66,6 +68,8 @@ import com.android.launcher3.states.SpringLoadedState;
 import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.util.DynamicResource;
 import com.android.systemui.plugins.ResourceProvider;
+
+import foundation.e.bliss.multimode.MultiModeController;
 
 /**
  * Manages the animations between each of the workspace states.
@@ -159,6 +163,18 @@ public class WorkspaceStateTransitionAnimation {
                 workspaceFadeInterpolator);
         float hotseatIconsAlpha = (elements & HOTSEAT_ICONS) != 0 ? 1 : 0;
         propertySetter.setViewAlpha(hotseat, hotseatIconsAlpha, hotseatFadeInterpolator);
+
+        if (MultiModeController.isSingleLayerMode() && FeatureFlags.QSB_ON_FIRST_SCREEN.get()) {
+            propertySetter.setViewAlpha(
+                    mWorkspace.getFirstPagePinnedItem(),
+                    state == SPRING_LOADED ? FIRST_PAGE_PINNED_WIDGET_DISABLED_ALPHA : 1,
+                    workspaceFadeInterpolator);
+            propertySetter.addEndListener(success -> {
+                if (success) {
+                    mWorkspace.getFirstPagePinnedItem().setClickable(state != SPRING_LOADED);
+                }
+            });
+        }
 
         // Update the accessibility flags for hotseat based on launcher state.
         hotseat.setImportantForAccessibility(

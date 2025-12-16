@@ -38,6 +38,7 @@ import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.DisplayController
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
+import foundation.e.bliss.preferences.BlissPrefs
 
 /**
  * Manages Launcher [SharedPreferences] through [Item] instances.
@@ -243,10 +244,6 @@ constructor(@ApplicationContext private val encryptedContext: Context) {
         @JvmField
         val ENABLE_TWOLINE_ALLAPPS_TOGGLE = backedUpItem("pref_enable_two_line_toggle", false)
         @JvmField val WORKSPACE_LOCK = backedUpItem("pref_workspace_lock", false)
-        @JvmField val ALLAPPS_THEMED_ICONS = backedUpItem("pref_allapps_themed_icons", false)
-        @JvmField val DRAWER_OPEN_KEYBOARD = backedUpItem("pref_drawer_open_keyboard", false)
-        @JvmField val SHOW_DESKTOP_LABELS = backedUpItem("pref_desktop_show_labels", true)
-        @JvmField val SHOW_DRAWER_LABELS = backedUpItem("pref_drawer_show_labels", true)
         @JvmField val PROMISE_ICON_IDS = backedUpItem(InstallSessionHelper.PROMISE_ICON_IDS, "")
         @JvmField val WORK_EDU_STEP = backedUpItem("showed_work_profile_edu", 0)
         @JvmField
@@ -329,6 +326,12 @@ constructor(@ApplicationContext private val encryptedContext: Context) {
         @JvmField
         val RECONFIGURABLE_WIDGET_EDUCATION_TIP_SEEN =
             backedUpItem("launcher.reconfigurable_widget_education_tip_seen", false)
+
+        @JvmField
+        val IS_SINGLE_LAYER_ENABLED = backedUpItem(BlissPrefs.PREF_SINGLE_LAYER_MODE, true)
+
+        @JvmField
+        val IS_NOTIF_COUNT_ENABLED = backedUpItem(BlissPrefs.PREF_NOTIF_COUNT, true)
 
         @JvmStatic
         fun <T> backedUpItem(

@@ -46,6 +46,7 @@ import com.android.launcher3.util.SettingsCache.NOTIFICATION_BADGING_URI
 import com.android.launcher3.util.SettingsCache.PRIVATE_SPACE_HIDE_WHEN_LOCKED_URI
 import com.android.launcher3.util.SimpleBroadcastReceiver
 import com.android.launcher3.widget.custom.CustomWidgetManager
+import foundation.e.bliss.LauncherAppMonitor
 import javax.inject.Inject
 
 /** Utility class for initializing all model callbacks */
@@ -136,6 +137,9 @@ constructor(
         lifeCycle.addCloseable {
             settingsCache.unregister(NOTIFICATION_BADGING_URI, notificationChanges)
         }
+
+        val appMonitor = LauncherAppMonitor.getInstance(context)
+        appMonitor.onAppCreated(context)
 
         // removable smartspace
         if (Flags.enableSmartspaceRemovalToggle()) {

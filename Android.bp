@@ -38,6 +38,8 @@ java_defaults {
 filegroup {
     name: "launcher-src",
     srcs: [
+        "bliss/src/**/*.java",
+        "bliss/src/**/*.kt",
         "src/**/*.java",
         "src/**/*.kt",
     ],
@@ -364,13 +366,6 @@ java_library {
     min_sdk_version: min_launcher3_sdk_version,
 }
 
-java_import {
-    name: "libGoogleFeed",
-    jars: [
-        "libs/libGoogleFeed.jar",
-    ],
-}
-
 // Library with all the dependencies for building Launcher3
 android_library {
     name: "Launcher3ResLib",
@@ -378,7 +373,13 @@ android_library {
         "launcher_compose_defaults",
     ],
     srcs: [],
-    resource_dirs: ["res"],
+    resource_dirs: [
+        "bliss/res",
+        "res",
+    ],
+    kotlin_plugins: [
+        "kotlin-serialize-compiler-plugin",
+    ],
     static_libs: [
         "LauncherPluginLib",
         "launcher_quickstep_log_protos_lite",
@@ -404,13 +405,26 @@ android_library {
         "androidx.lifecycle_lifecycle-runtime-ktx",
         "kotlinx_coroutines_android",
         "kotlinx_coroutines",
+        "kotlinx_serialization_json",
         "com_android_launcher3_flags_lib",
         "com_android_wm_shell_flags_lib",
         "dagger2",
         "jsr330",
         "com_android_systemui_shared_flags_lib",
-        "libGoogleFeed",
         "org.lineageos.platform",
+        "elib",
+        "e-telemetry",
+        "hoko-blur-1.5.5",
+        "logging-interceptor-5.3.0",
+        "okhttp-jvm-5.3.0",
+        "rxjava",
+        "sentry-8.16.0",
+        "sentry-android-core-release",
+        "sentry-android-release",
+        "sentry-android-timber-release",
+        "sentry-android-ndk-8.16.0",
+        "sentry-native-ndk-0.8.4",
+        "timber-5.0.1",
     ],
     manifest: "AndroidManifest-common.xml",
     sdk_version: "current",
@@ -421,6 +435,14 @@ android_library {
     flags_packages: [
         "com_android_launcher3_flags",
     ],
+}
+
+prebuilt_etc {
+    name: "privapp_whitelist_foundation.e.blisslauncher",
+    system_ext_specific: true,
+    sub_dir: "permissions",
+    src: "foundation.e.blisslauncher.xml",
+    filename_from_src: true,
 }
 
 // Extra privileged permission whitelist for Launcher3 app.
@@ -591,7 +613,7 @@ android_library {
 
 // Build rule for Quickstep app.
 android_app {
-    name: "Launcher3QuickStep",
+    name: "BlissLauncher3",
     static_libs: ["Launcher3QuickStepLib"],
     optimize: {
         proguard_flags_files: [":launcher-proguard-rules"],
@@ -599,9 +621,11 @@ android_app {
         shrink_resources: true,
     },
 
+    certificate: "platform",
     platform_apis: true,
     min_sdk_version: "current",
     target_sdk_version: "current",
+    use_embedded_native_libs: true,
 
     privileged: true,
     system_ext_specific: true,
@@ -610,18 +634,27 @@ android_app {
         "Launcher2",
         "Launcher3",
         "QuickSearchBox",
+        "Launcher3QuickStep",
     ],
     required: [
-        "privapp_whitelist_com.android.launcher3",
-        "privapp_whitelist_com.android.launcher3-extra",
+        "privapp_whitelist_foundation.e.blisslauncher",
         "launcher.quickstep.protolog.pb",
     ],
 
     resource_dirs: ["quickstep/res"],
 
     additional_manifests: [
+        "bliss/AndroidManifest.xml",
         "quickstep/AndroidManifest-launcher.xml",
         "AndroidManifest-common.xml",
+    ],
+
+    aaptflags: [
+        "--rename-manifest-package foundation.e.blisslauncher",
+        "--version-name",
+        "3.1.2",
+        "--version-code",
+        "3010020",
     ],
 
     manifest: "quickstep/AndroidManifest.xml",
@@ -629,6 +662,20 @@ android_app {
         include_filter: ["com.android.launcher3.*"],
     },
 
+}
+
+phony {
+    name: "Launcher3QuickStep",
+    required: [
+        "BlissLauncher3",
+    ],
+}
+
+phony {
+    name: "Launcher3QuickStepGo",
+    required: [
+        "BlissLauncher3Go",
+    ],
 }
 
 // Build rule for Launcher3 Go app with quickstep for Android Go devices.
@@ -676,13 +723,15 @@ android_app {
 }
 
 android_app {
-    name: "Launcher3QuickStepGo",
+    name: "BlissLauncher3Go",
     static_libs: ["Launcher3GoLib"],
     resource_dirs: [],
 
+    certificate: "platform",
     platform_apis: true,
     min_sdk_version: "current",
     target_sdk_version: "current",
+    use_embedded_native_libs: true,
 
     optimize: {
         proguard_flags_files: ["proguard.flags"],
@@ -697,17 +746,26 @@ android_app {
         "Launcher2",
         "Launcher3",
         "Launcher3QuickStep",
+        "Launcher3QuickStepGo",
         "QuickSearchBox",
     ],
     required: [
-        "privapp_whitelist_com.android.launcher3",
-        "privapp_whitelist_com.android.launcher3-extra",
+        "privapp_whitelist_foundation.e.blisslauncher",
     ],
 
     additional_manifests: [
+        "bliss/AndroidManifest.xml",
         "go/AndroidManifest.xml",
         "go/AndroidManifest-launcher.xml",
         "AndroidManifest-common.xml",
+    ],
+
+    aaptflags: [
+        "--rename-manifest-package foundation.e.blisslauncher",
+        "--version-name",
+        "3.1.2",
+        "--version-code",
+        "3010020",
     ],
 
     manifest: "quickstep/AndroidManifest.xml",

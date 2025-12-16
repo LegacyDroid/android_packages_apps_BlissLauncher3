@@ -38,7 +38,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.android.launcher3.Flags;
-import com.android.launcher3.LauncherModel.ModelUpdateTask;
+import com.android.launcher3.ModelUpdateTask;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.icons.IconCache;

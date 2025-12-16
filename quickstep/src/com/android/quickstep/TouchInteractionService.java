@@ -133,6 +133,8 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import foundation.e.bliss.LauncherAppMonitor;
+
 /**
  * Service connected by system-UI for handling touch interaction.
  */
@@ -611,6 +613,7 @@ public class TouchInteractionService extends Service {
                 new DesktopAppLaunchTransitionManager(this, SystemUiProxy.INSTANCE.get(this));
         mDesktopAppLaunchTransitionManager.registerTransitions();
         mInputConsumer = InputConsumerController.getRecentsAnimationInputConsumer();
+        LauncherAppMonitor.getInstance(this);
 
         // Call runOnUserUnlocked() before any other callbacks to ensure everything is initialized.
         LockedUserState.get(this).runOnUserUnlocked(mUserUnlockedRunnable);
@@ -688,6 +691,7 @@ public class TouchInteractionService extends Service {
     public void onUserUnlocked() {
         Log.d(TAG, "onUserUnlocked: userId=" + getUserId()
                 + " instance=" + System.identityHashCode(this));
+        LauncherAppMonitor.getInstance(this);
         mOverviewComponentObserver = OverviewComponentObserver.INSTANCE.get(this);
         SystemUiProxy systemUiProxy = SystemUiProxy.INSTANCE.get(this);
         mOverviewCommandHelper = new OverviewCommandHelper(this,
