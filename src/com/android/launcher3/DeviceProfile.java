@@ -1742,7 +1742,13 @@ public class DeviceProfile {
     }
 
     public void updateInsets(Rect insets) {
-        mInsets.set(insets);
+        if (!mInsets.equals(insets)) {
+            mInsets.set(insets);
+            // Recalculate hotseat spacing
+            if (iconSizePx > 0) {
+                updateHotseatSizes(iconSizePx);
+            }
+        }
     }
 
     /**
