@@ -990,7 +990,11 @@ public class DeviceProfile {
                 hotseatBarBottomSpacePx = mInsets.bottom + minQsbMargin;
 
             } else {
-                hotseatBarBottomSpacePx = hotseatBarBottomSpace;
+                if (!isGestureMode && mInsets.bottom < minQsbMargin) {
+                    hotseatBarBottomSpacePx = minQsbMargin;
+                } else {
+                    hotseatBarBottomSpacePx = hotseatBarBottomSpace;
+                }
             }
         }
 
