@@ -18,12 +18,17 @@ package com.android.launcher3;
 
 import static com.android.launcher3.LauncherAnimUtils.VIEW_TRANSLATE_X;
 import static com.android.launcher3.util.MultiTranslateDelegate.INDEX_BUBBLE_ADJUSTMENT_ANIM;
+import static com.android.app.animation.Interpolators.LINEAR;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.app.WallpaperColors;
+import android.app.WallpaperManager;
 import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.provider.Settings;
 import android.util.AttributeSet;
@@ -46,14 +51,16 @@ import com.android.launcher3.util.MultiPropertyFactory;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.launcher3.util.MultiTranslateDelegate;
 import com.android.launcher3.util.MultiValueAlpha;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.views.ActivityContext;
+import com.android.launcher3.util.OnColorHintListener;
+import com.android.launcher3.util.WallpaperColorHints;
+import androidx.core.graphics.ColorUtils;
 
 import java.io.PrintWriter;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import foundation.e.bliss.blur.BlurViewDelegate;
-import foundation.e.bliss.blur.BlurWallpaperProvider;
 import foundation.e.bliss.blur.OffsetParent;
 import foundation.e.bliss.folder.GridFolder;
 
@@ -84,10 +91,11 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
     // Ratio of empty space, qsb should take up to appear visually centered.
     public static final float QSB_CENTER_FACTOR = .325f;
     private static final int BUBBLE_BAR_ADJUSTMENT_ANIMATION_DURATION_MS = 250;
+    private final Paint mBasePaint;
+    private final Paint mTintPaint;
 
     private final OffsetParent.OffsetParentDelegate offsetParentDelegate =
             new OffsetParent.OffsetParentDelegate();
-    public final BlurViewDelegate mBlurDelegate;
 
     @ViewDebug.ExportedProperty(category = "launcher")
     private boolean mHasVerticalHotseat;
@@ -102,6 +110,8 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
 
     private final View mQsb;
     public boolean drawBlur;
+    private WallpaperColorHints mWallpaperColorHints;
+    private final OnColorHintListener mColorHintsListener = this::applyWallpaperTint;
 
     public Hotseat(Context context) {
         this(context, null);
@@ -114,9 +124,12 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
     public Hotseat(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat, this, false);
-        mBlurDelegate = new BlurViewDelegate(this, BlurWallpaperProvider.blurConfigDock, attrs);
-        drawBlur = true;
+        drawBlur = false;
         setWillNotDraw(false);
+        mBasePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mBasePaint.setColor(Color.argb(38, 255, 255, 255)); // Semi-transparent white base
+        mTintPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mTintPaint.setColor(context.getColor(R.color.hotseat_overlay_tint_light));
         addView(mQsb);
         mIconsAlphaChannels = new MultiValueAlpha(getShortcutsAndWidgets(),
                 ALPHA_CHANNEL_CHANNELS_COUNT);
@@ -127,6 +140,7 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
         mIconsTranslationXFactory = new MultiPropertyFactory<>(getShortcutsAndWidgets(),
                 VIEW_TRANSLATE_X, ICONS_TRANSLATION_X_CHANNELS_COUNT, Float::sum);
         mQsbAlphaChannels = new MultiValueAlpha(mQsb, ALPHA_CHANNEL_CHANNELS_COUNT);
+        applyWallpaperTint(WallpaperColorHints.get(context).getHints());
     }
 
     /** Provides translation X for hotseat icons for the channel. */
@@ -283,6 +297,23 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
     }
 
     @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        mWallpaperColorHints = WallpaperColorHints.get(getContext());
+        mWallpaperColorHints.registerOnColorHintsChangedListener(mColorHintsListener);
+        applyWallpaperTint(mWallpaperColorHints.getHints());
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (mWallpaperColorHints != null) {
+            mWallpaperColorHints.unregisterOnColorsChangedListener(mColorHintsListener);
+            mWallpaperColorHints = null;
+        }
+    }
+
+    @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         // We allow horizontal workspace scrolling from within the Hotseat. We do this by delegating
         // touch intercept the Workspace, and if it intercepts, delegating touch to the Workspace
@@ -296,12 +327,7 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
     }
 
     public void setBlurAlpha(int alpha) {
-        if (alpha > 255) {
-            alpha = 255;
-        } else if (alpha < 0) {
-            alpha = 0;
-        }
-        mBlurDelegate.setBlurAlpha(alpha);
+        // Disable
     }
 
     @Override
@@ -418,10 +444,50 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (mBlurDelegate != null && drawBlur) {
-            mBlurDelegate.draw(canvas);
+        int baseColor = mBasePaint.getColor();
+        if ((baseColor >>> 24) != 0) {
+            canvas.drawRect(0, 0, getWidth(), getHeight(), mBasePaint);
+        }
+
+        int tintColor = mTintPaint.getColor();
+        if ((tintColor >>> 24) != 0) {
+            canvas.drawRect(0, 0, getWidth(), getHeight(), mTintPaint);
         }
         super.onDraw(canvas);
+    }
+
+    private void applyWallpaperTint(int colorHints) {
+        int wallpaperColor = getWallpaperPrimaryColor(colorHints);
+        float luminance = Color.luminance(wallpaperColor);
+        boolean prefersLightOverlay =
+                (colorHints & WallpaperColors.HINT_SUPPORTS_DARK_TEXT) != 0 || luminance < 0.5f;
+
+        int baseColor = prefersLightOverlay ? Color.WHITE : Color.BLACK;
+        float baseAlpha = prefersLightOverlay ? 0.08f : 0.20f;
+        mBasePaint.setColor(ColorUtils.setAlphaComponent(baseColor, Math.round(baseAlpha * 255)));
+
+        int contrastTarget = prefersLightOverlay ? Color.WHITE : Color.BLACK;
+        int blended = ColorUtils.blendARGB(wallpaperColor, contrastTarget, 0.20f);
+        float alpha = prefersLightOverlay
+                ? Utilities.mapToRange(luminance, 0f, 1f, 0.15f, 0.08f, LINEAR)
+                : Utilities.mapToRange(luminance, 0f, 1f, 0.12f, 0.18f, LINEAR);
+
+        alpha = Utilities.boundToRange(alpha, 0.08f, 0.18f);
+        int color = ColorUtils.setAlphaComponent(blended, Math.round(alpha * 255));
+        mTintPaint.setColor(color);
+        invalidate();
+    }
+
+    private int getWallpaperPrimaryColor(int colorHints) {
+        WallpaperManager wm = WallpaperManager.getInstance(getContext());
+        WallpaperColors colors = wm.getWallpaperColors(WallpaperManager.FLAG_SYSTEM);
+        if (colors != null && colors.getPrimaryColor() != null) {
+            return colors.getPrimaryColor().toArgb();
+        }
+        // Fallback: keep behavior aligned with hints.
+        return (colorHints & WallpaperColors.HINT_SUPPORTS_DARK_TEXT) != 0
+                ? getContext().getColor(R.color.hotseat_overlay_tint_dark)
+                : getContext().getColor(R.color.hotseat_overlay_tint_light);
     }
 
     public Workspace<?> getWorkspace() {
