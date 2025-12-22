@@ -1392,6 +1392,10 @@ public class Launcher extends StatefulActivity<LauncherState>
         mAppMonitor.onLauncherPreResume();
         super.onResume();
 
+        if (getDeviceProfile().isPhone) {
+            BlurWallpaperProvider.Companion.getInstance(this).orientationChanged();
+        }
+
         if (mDeferOverlayCallbacks) {
             scheduleDeferredCheck();
         } else {
@@ -2682,6 +2686,10 @@ public class Launcher extends StatefulActivity<LauncherState>
      * Informs us that the overlay (-1 screen, typically), has either become visible or invisible.
      */
     public void onOverlayVisibilityChanged(boolean visible) {
+        // Ensure blur is reset when overlay becomes invisible
+        if (!visible && mBlurLayer != null) {
+            mBlurLayer.setAlpha(0f);
+        }
         getStatsLogManager().logger()
                 .withSrcState(LAUNCHER_STATE_HOME)
                 .withDstState(LAUNCHER_STATE_HOME)

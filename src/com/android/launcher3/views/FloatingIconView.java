@@ -242,7 +242,7 @@ public class FloatingIconView extends FrameLayout implements
 
     private static void getLocationBoundsForView(Launcher launcher, View v, boolean isOpening,
             RectF outRect) {
-        getLocationBoundsForView(launcher, v, isOpening, outRect, new Rect(), true);
+        getLocationBoundsForView(launcher, v, isOpening, outRect, new Rect(), !isOpening);
     }
 
     /**

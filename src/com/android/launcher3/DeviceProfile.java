@@ -990,7 +990,11 @@ public class DeviceProfile {
                 hotseatBarBottomSpacePx = mInsets.bottom + minQsbMargin;
 
             } else {
-                hotseatBarBottomSpacePx = hotseatBarBottomSpace;
+                if (!isGestural() && mInsets.bottom < minQsbMargin) {
+                    hotseatBarBottomSpacePx = minQsbMargin;
+                } else {
+                    hotseatBarBottomSpacePx = hotseatBarBottomSpace;
+                }
             }
         }
 
@@ -1742,7 +1746,14 @@ public class DeviceProfile {
     }
 
     public void updateInsets(Rect insets) {
-        mInsets.set(insets);
+        if (!mInsets.equals(insets)) {
+            mInsets.set(insets);
+            // Recalculate hotseat sizes and spacing
+            if (iconSizePx > 0) {
+                updateHotseatSizes(iconSizePx);
+                recalculateHotseatWidthAndBorderSpace();
+            }
+        }
     }
 
     /**
@@ -1994,6 +2005,7 @@ public class DeviceProfile {
             hotseatIconSizePx = (int) (hotseatIconSizePx / 1.2f);
         }
         updateHotseatSizes(hotseatIconSizePx);
+        recalculateHotseatWidthAndBorderSpace();
         Rect hotseatBarPadding = new Rect();
         boolean isFullyGesture = isGestural();
         if (isVerticalBarLayout()) {

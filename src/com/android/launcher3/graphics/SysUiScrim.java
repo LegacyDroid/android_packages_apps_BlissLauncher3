@@ -37,6 +37,8 @@ import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.testing.shared.ResourceUtils;
+import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.ScreenOnTracker;
 import com.android.launcher3.util.ScreenOnTracker.ScreenOnListener;
 import com.android.launcher3.util.Themes;
@@ -169,8 +171,11 @@ public class SysUiScrim implements View.OnAttachStateChangeListener {
      */
     public void onInsetsChanged(Rect insets) {
         DeviceProfile dp = mContainer.getDeviceProfile();
+        NavigationMode navMode = DisplayController.getNavigationMode(mContainer.getContext());
         mDrawTopScrim = insets.top > 0;
-        mDrawBottomScrim = !dp.isVerticalBarLayout() && !dp.isGestureMode && !dp.isTaskbarPresent;
+        mDrawBottomScrim = !dp.isVerticalBarLayout()
+                && !navMode.hasGestures
+                && !dp.isTaskbarPresent;
     }
 
     @Override

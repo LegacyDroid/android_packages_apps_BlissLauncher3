@@ -321,6 +321,19 @@ public class GridFolder extends Folder implements OnAlarmListener {
             }
 
             @Override
+            public void onAnimationCancel(Animator animation) {
+                super.onAnimationCancel(animation);
+                isAnimating = false;
+                // Reset blur to expected final state when animation is cancelled
+                if (blur != null) {
+                    blur.setAlpha(hide ? 0f : 1f);
+                }
+                if (!hide && hotseat != null) {
+                    hotseat.setVisibility(VISIBLE);
+                }
+            }
+
+            @Override
             public void onAnimationStart(Animator animation) {
                 super.onAnimationStart(animation);
                 isAnimating = true;
