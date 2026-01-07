@@ -163,9 +163,6 @@ abstract class LauncherPrefs : SafeCloseable {
         @JvmField
         val IS_NOTIF_COUNT_ENABLED = backedUpItem(BlissPrefs.PREF_NOTIF_COUNT, true)
 
-        @JvmField
-        val IS_SINGLE_LAYER_ENABLED = backedUpItem(BlissPrefs.PREF_SINGLE_LAYER_MODE, true)
-
         @JvmStatic
         fun <T> backedUpItem(
             sharedPrefKey: String,

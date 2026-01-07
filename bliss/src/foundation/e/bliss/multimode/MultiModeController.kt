@@ -64,9 +64,6 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
 
             override fun onAppSharedPreferenceChanged(key: String?) {
                 when (key) {
-                    BlissPrefs.PREF_SINGLE_LAYER_MODE -> {
-                        monitor.launcher?.model?.forceReload()
-                    }
                     BlissPrefs.PREF_NOTIF_COUNT -> idp.onConfigChanged(context)
                     else -> Unit
                 }
@@ -110,12 +107,7 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
         private const val TAG = "MultiModeController"
         private lateinit var prefs: LauncherPrefs
 
-        @JvmStatic
-        val isSingleLayerMode
-            get() =
-                if (::prefs.isInitialized) {
-                    prefs.get(LauncherPrefs.IS_SINGLE_LAYER_ENABLED)
-                } else true
+        @JvmStatic val isSingleLayerMode = true
 
         @JvmStatic
         val isNotifCountEnabled

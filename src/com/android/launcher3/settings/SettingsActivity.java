@@ -361,12 +361,6 @@ public class SettingsActivity extends FragmentActivity
                     });
                     return true;
 
-                case BlissPrefs.PREF_SINGLE_LAYER_MODE:
-                    boolean isSingleLayer = MultiModeController.isSingleLayerMode();
-                    preference.setDefaultValue(isSingleLayer);
-                    ((SwitchPreference) preference).setChecked(isSingleLayer);
-                    return true;
-
                 case ADD_ICON_PREFERENCE_KEY:
                     return !MultiModeController.isSingleLayerMode();
 
