@@ -358,8 +358,6 @@ object BlissDbUtils {
             put("cellY", 0)
             put("container", favorite.container)
             put("icon", null as ByteArray?)
-            put("iconPackage", null as String?)
-            put("iconResource", null as String?)
             put("intent", null as String?)
             put("itemType", ITEM_TYPE_APPLICATION)
             put("modified", System.currentTimeMillis())

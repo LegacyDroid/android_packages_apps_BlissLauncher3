@@ -5,7 +5,9 @@
   "version" : 32,
   "downgrade_to_31" : [
     "ALTER TABLE favorites ADD COLUMN iconPackage TEXT;",
-    "ALTER TABLE favorites ADD COLUMN iconResource TEXT;"
+    "ALTER TABLE favorites ADD COLUMN iconResource TEXT;",
+    "ALTER TABLE favorites_all ADD COLUMN iconPackage TEXT;",
+    "ALTER TABLE favorites_all ADD COLUMN iconResource TEXT;"
   ],
   "downgrade_to_30" : [],
   "downgrade_to_29" : [],
@@ -13,6 +15,10 @@
     "ALTER TABLE favorites RENAME TO temp_favorites;",
     "CREATE TABLE favorites(_id INTEGER PRIMARY KEY, title TEXT, intent TEXT, container INTEGER, screen INTEGER, cellX INTEGER, cellY INTEGER, spanX INTEGER, spanY INTEGER, itemType INTEGER, appWidgetId INTEGER NOT NULL DEFAULT - 1, iconPackage TEXT, iconResource TEXT, icon BLOB, appWidgetProvider TEXT, modified INTEGER NOT NULL DEFAULT 0, restored INTEGER NOT NULL DEFAULT 0, profileId INTEGER DEFAULT 0, rank INTEGER NOT NULL DEFAULT 0, options INTEGER NOT NULL DEFAULT 0);",
     "INSERT INTO favorites SELECT _id, title, intent, container, screen, cellX, cellY, spanX, spanY, itemType, appWidgetId, iconPackage, iconResource, icon, appWidgetProvider, modified, restored, profileId, rank, options FROM temp_favorites;",
+    "DROP TABLE temp_favorites;",
+    "ALTER TABLE favorites_all RENAME TO temp_favorites;",
+    "CREATE TABLE favorites_all(_id INTEGER PRIMARY KEY, title TEXT, intent TEXT, container INTEGER, screen INTEGER, cellX INTEGER, cellY INTEGER, spanX INTEGER, spanY INTEGER, itemType INTEGER, appWidgetId INTEGER NOT NULL DEFAULT - 1, iconPackage TEXT, iconResource TEXT, icon BLOB, appWidgetProvider TEXT, modified INTEGER NOT NULL DEFAULT 0, restored INTEGER NOT NULL DEFAULT 0, profileId INTEGER DEFAULT 0, rank INTEGER NOT NULL DEFAULT 0, options INTEGER NOT NULL DEFAULT 0);",
+    "INSERT INTO favorites_all SELECT _id, title, intent, container, screen, cellX, cellY, spanX, spanY, itemType, appWidgetId, iconPackage, iconResource, icon, appWidgetProvider, modified, restored, profileId, rank, options FROM temp_favorites;",
     "DROP TABLE temp_favorites;"
   ],
   "downgrade_to_27" : [
@@ -28,6 +34,10 @@
     "ALTER TABLE favorites RENAME TO temp_favorites;",
     "CREATE TABLE favorites(_id INTEGER PRIMARY KEY, title TEXT, intent TEXT, container INTEGER, screen INTEGER, cellX INTEGER, cellY INTEGER, spanX INTEGER, spanY INTEGER, itemType INTEGER, appWidgetId INTEGER NOT NULL DEFAULT - 1, iconPackage TEXT, iconResource TEXT, icon BLOB, appWidgetProvider TEXT, modified INTEGER NOT NULL DEFAULT 0, restored INTEGER NOT NULL DEFAULT 0, profileId INTEGER DEFAULT 0, rank INTEGER NOT NULL DEFAULT 0);",
     "INSERT INTO favorites SELECT _id, title, intent, container, screen, cellX, cellY, spanX, spanY, itemType, appWidgetId, iconPackage, iconResource, icon, appWidgetProvider, modified, restored, profileId, rank FROM temp_favorites;",
+    "DROP TABLE temp_favorites;",
+    "ALTER TABLE favorites_all RENAME TO temp_favorites;",
+    "CREATE TABLE favorites_all(_id INTEGER PRIMARY KEY, title TEXT, intent TEXT, container INTEGER, screen INTEGER, cellX INTEGER, cellY INTEGER, spanX INTEGER, spanY INTEGER, itemType INTEGER, appWidgetId INTEGER NOT NULL DEFAULT - 1, iconPackage TEXT, iconResource TEXT, icon BLOB, appWidgetProvider TEXT, modified INTEGER NOT NULL DEFAULT 0, restored INTEGER NOT NULL DEFAULT 0, profileId INTEGER DEFAULT 0, rank INTEGER NOT NULL DEFAULT 0);",
+    "INSERT INTO favorites_all SELECT _id, title, intent, container, screen, cellX, cellY, spanX, spanY, itemType, appWidgetId, iconPackage, iconResource, icon, appWidgetProvider, modified, restored, profileId, rank FROM temp_favorites;",
     "DROP TABLE temp_favorites;"
   ]
 
