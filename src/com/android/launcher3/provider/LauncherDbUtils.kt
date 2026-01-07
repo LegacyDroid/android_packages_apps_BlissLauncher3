@@ -136,15 +136,22 @@ object LauncherDbUtils {
         db.run { execSQL("UPDATE $toTable SET cellY = cellY + $x") }
     }
 
+    @JvmStatic
+    fun migrateLegacyShortcuts(context: Context, db: SQLiteDatabase) {
+        // We have two tables that needs to be migrated.
+        migrateLegacyShortcuts(context, db, LauncherSettings.Favorites.E_TABLE_NAME)
+        migrateLegacyShortcuts(context, db, LauncherSettings.Favorites.E_TABLE_NAME_ALL)
+    }
+
     /**
      * Migrates the legacy shortcuts to deep shortcuts pinned under Launcher. Removes any invalid
      * shortcut or any shortcut which requires some permission to launch
      */
     @JvmStatic
-    fun migrateLegacyShortcuts(context: Context, db: SQLiteDatabase) {
+    fun migrateLegacyShortcuts(context: Context, db: SQLiteDatabase, tableName: String) {
         val c =
             db.query(
-                LauncherSettings.Favorites.TABLE_NAME,
+                tableName,
                 null,
                 "itemType = 1",
                 null,
@@ -226,7 +233,7 @@ object LauncherDbUtils {
                     )
                 }
             db.update(
-                LauncherSettings.Favorites.TABLE_NAME,
+                tableName,
                 update,
                 "_id = ?",
                 arrayOf(lc.id.toString()),
@@ -235,7 +242,7 @@ object LauncherDbUtils {
         lc.close()
         if (deletedShortcuts.isEmpty.not()) {
             db.delete(
-                /* table = */ LauncherSettings.Favorites.TABLE_NAME,
+                /* table = */ tableName,
                 /* whereClause = */ Utilities.createDbSelectionQuery(
                     LauncherSettings.Favorites._ID,
                     deletedShortcuts.array,
@@ -246,9 +253,9 @@ object LauncherDbUtils {
 
         // Drop the unused columns
         db.run {
-            execSQL("ALTER TABLE ${LauncherSettings.Favorites.TABLE_NAME} DROP COLUMN iconPackage;")
+            execSQL("ALTER TABLE $tableName DROP COLUMN iconPackage;")
             execSQL(
-                "ALTER TABLE ${LauncherSettings.Favorites.TABLE_NAME} DROP COLUMN iconResource;"
+                "ALTER TABLE $tableName DROP COLUMN iconResource;"
             )
         }
     }
