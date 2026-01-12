@@ -1312,6 +1312,12 @@ public class CellLayout extends ViewGroup {
             return bestXY;
         }
 
+        // For tablets to ignore occupied cells
+        if (ignoreOccupied && mActivity.getDeviceProfile().isTablet &&
+                spanX == 1 && spanY == 1 && minSpanX == 1 && minSpanY == 1) {
+            return findNearestAreaForTabletReordering(relativeXPos, relativeYPos, result);
+        }
+
         for (int y = 0; y < countY - (minSpanY - 1); y++) {
             inner:
             for (int x = 0; x < countX - (minSpanX - 1); x++) {
@@ -1767,6 +1773,50 @@ public class CellLayout extends ViewGroup {
     public int[] findNearestAreaIgnoreOccupied(int pixelX, int pixelY, int spanX, int spanY,
             int[] result) {
         return findNearestArea(pixelX, pixelY, spanX, spanY, spanX, spanY, true, result, null);
+    }
+
+    /**
+     * Tablet method for finding nearest area during reordering.
+     * Uses relative positioning within cells with threshold-based adjustment.
+     */
+    public int[] findNearestAreaForTabletReordering(int pixelX, int pixelY, int[] result) {
+        final int[] bestXY = result != null ? result : new int[2];
+
+        // Padding
+        final int adjustedX = pixelX - getPaddingLeft();
+        final int adjustedY = pixelY - getPaddingTop();
+
+        // Cell dimensions
+        final int totalWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+        final int totalHeight = getHeight() - getPaddingTop() - getPaddingBottom();
+        final int effectiveCellWidth = totalWidth / Math.max(1, mCountX);
+        final int effectiveCellHeight = totalHeight / Math.max(1, mCountY);
+
+        // Cell position
+        int cellX = Math.max(0, Math.min(mCountX - 1, adjustedX / effectiveCellWidth));
+        int cellY = Math.max(0, Math.min(mCountY - 1, adjustedY / effectiveCellHeight));
+
+        // Relative position within the cell
+        final float relativeX = (float)(adjustedX % effectiveCellWidth) / effectiveCellWidth;
+        final float relativeY = (float)(adjustedY % effectiveCellHeight) / effectiveCellHeight;
+        final float tabletThreshold = 0.35f;
+
+        // Adjust cell position based on relative position
+        if (relativeX < tabletThreshold && cellX > 0) {
+            cellX--;
+        } else if (relativeX > (1.0f - tabletThreshold) && cellX < mCountX - 1) {
+            cellX++;
+        }
+
+        if (relativeY < tabletThreshold && cellY > 0) {
+            cellY--;
+        } else if (relativeY > (1.0f - tabletThreshold) && cellY < mCountY - 1) {
+            cellY++;
+        }
+
+        bestXY[0] = cellX;
+        bestXY[1] = cellY;
+        return bestXY;
     }
 
     boolean existsEmptyCell() {
