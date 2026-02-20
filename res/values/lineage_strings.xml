@@ -62,6 +62,7 @@
     <string name="pref_suggestions_summary">For app drawer &amp; home screen suggestions</string>
 
     <!-- Additional shape options in customization picker -->
+    <string name="sharp_square_shape_title">Sharp square</string>
     <string name="pebble_shape_title">Pebble</string>
     <string name="vessel_shape_title">Vessel</string>
     <string name="pure_square_shape_title">Pure square</string>
