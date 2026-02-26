@@ -416,6 +416,7 @@ android_library {
         "e-telemetry",
         "hoko-blur-1.5.5",
         "logging-interceptor-5.3.0",
+        "okio-jvm-3.16.2",
         "okhttp-jvm-5.3.0",
         "rxjava",
         "sentry-8.16.0",
