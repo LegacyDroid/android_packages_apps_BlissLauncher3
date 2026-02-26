@@ -470,6 +470,9 @@ android_app {
         ":launcher-src_no_quickstep",
         ":launcher-build-config",
     ],
+    kotlin_plugins: [
+        "kotlin-serialize-compiler-plugin",
+    ],
 
     optimize: {
         proguard_flags_files: [":launcher-proguard-rules"],
@@ -563,6 +566,9 @@ android_library {
         "androidx.room_room-compiler-plugin",
         "dagger2-compiler",
     ],
+    kotlin_plugins: [
+        "kotlin-serialize-compiler-plugin",
+    ],
     manifest: "quickstep/AndroidManifest.xml",
     additional_manifests: [
         "go/AndroidManifest.xml",
@@ -604,6 +610,9 @@ android_library {
     manifest: "quickstep/AndroidManifest.xml",
     platform_apis: true,
     plugins: ["dagger2-compiler"],
+    kotlin_plugins: [
+        "kotlin-serialize-compiler-plugin",
+    ],
     min_sdk_version: "current",
     // TODO(b/319712088): re-enable use_resource_processor
     use_resource_processor: false,
