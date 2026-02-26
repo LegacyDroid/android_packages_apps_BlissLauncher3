@@ -31,6 +31,14 @@ java_import {
     ],
 }
 
+// https://repo1.maven.org/maven2/com/squareup/okio/okio-jvm/3.16.2/okio-jvm-3.16.2.jar
+java_import {
+    name: "okio-jvm-3.16.2",
+    jars: [
+        "squareup/okio-jvm-3.16.2.jar",
+    ],
+}
+
 // https://github.com/getsentry/sentry-java/releases/tag/8.16.0
 android_library_import {
     name: "sentry-android-core-release",

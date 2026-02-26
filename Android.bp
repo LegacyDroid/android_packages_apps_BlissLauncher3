@@ -416,6 +416,7 @@ android_library {
         "e-telemetry",
         "hoko-blur-1.5.5",
         "logging-interceptor-5.3.0",
+        "okio-jvm-3.16.2",
         "okhttp-jvm-5.3.0",
         "rxjava",
         "sentry-8.16.0",
@@ -468,6 +469,9 @@ android_app {
         ":launcher-src",
         ":launcher-src_no_quickstep",
         ":launcher-build-config",
+    ],
+    kotlin_plugins: [
+        "kotlin-serialize-compiler-plugin",
     ],
 
     optimize: {
@@ -562,6 +566,9 @@ android_library {
         "androidx.room_room-compiler-plugin",
         "dagger2-compiler",
     ],
+    kotlin_plugins: [
+        "kotlin-serialize-compiler-plugin",
+    ],
     manifest: "quickstep/AndroidManifest.xml",
     additional_manifests: [
         "go/AndroidManifest.xml",
@@ -603,6 +610,9 @@ android_library {
     manifest: "quickstep/AndroidManifest.xml",
     platform_apis: true,
     plugins: ["dagger2-compiler"],
+    kotlin_plugins: [
+        "kotlin-serialize-compiler-plugin",
+    ],
     min_sdk_version: "current",
     // TODO(b/319712088): re-enable use_resource_processor
     use_resource_processor: false,
