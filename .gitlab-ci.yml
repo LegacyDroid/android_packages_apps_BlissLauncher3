@@ -8,8 +8,14 @@ variables:
   TEST_APK: "BlissLauncher-a15-test.apk"
 
 stages:
+  - auto-merge-main
   - build
   - gitlab_release
+
+include:
+  - project: 'e/templates'
+    ref: master
+    file: '/gitlab-ci/.gitlab-ci-auto-merge-main.yml'
 
 before_script:
   - export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
