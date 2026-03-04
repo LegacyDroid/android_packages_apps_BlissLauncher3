@@ -15,5 +15,5 @@
     <string name="widget_remove">Kaldır</string>
     <string name="remove_widgets">Widget\'ları Kaldır</string>
     <string name="show_notification_count">Bildirim sayısını göster</string>
-    <string name="add_to_widget_Screen">-1 ekranına ekle</string>
+    <string name="add_to_widget_Screen">Widget ekranına ekle</string>
 </resources>
