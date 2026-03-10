@@ -48,7 +48,6 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
     var wallpapers: BlurSizes? = null
         private set(value) {
             if (field != value) {
-                field?.recycle()
                 field = value
             }
         }
@@ -56,7 +55,6 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
     var placeholder: Bitmap? = null
         private set(value) {
             if (field != value) {
-                field?.recycle()
                 field = value
             }
         }

@@ -37,11 +37,18 @@ internal constructor(
     private val blurPaint = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG)
     private var blurBitmap: Bitmap? = null
         set(value) {
-            if (field != value) {
-                field = value
-                blurPaint.shader =
-                    value?.let { BitmapShader(it, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP) }
-            }
+            val safeBitmap = value?.takeUnless { it.isRecycled }
+            if (field == safeBitmap) return
+
+            field = safeBitmap
+            blurPaint.shader =
+                safeBitmap?.let {
+                    try {
+                        BitmapShader(it, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+                    } catch (_: IllegalStateException) {
+                        null
+                    }
+                }
         }
 
     private val blurBounds = RectF()
@@ -54,11 +61,15 @@ internal constructor(
         if (width <= 0 || height <= 0) return
         if (blurAlpha == 0) return
         val wallpapers = blurWallpaperProvider.wallpapers
-        blurBitmap = wallpapers?.let { config.getDrawable(it) }
+        blurBitmap = wallpapers?.let { config.getDrawable(it) }?.takeUnless { it.isRecycled }
         val scale = config.scale.toFloat()
 
         if (blurBitmap == null) {
-            blurBitmap = blurWallpaperProvider.placeholder
+            blurBitmap = blurWallpaperProvider.placeholder?.takeUnless { it.isRecycled }
+        }
+
+        if (blurPaint.shader == null) {
+            return
         }
 
         val left = blurBounds.left + offsetX
