@@ -57,6 +57,8 @@ import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.widget.model.WidgetsListBaseEntriesBuilder;
 import com.android.launcher3.widget.model.WidgetsListBaseEntry;
 
+import foundation.e.bliss.multimode.MultiModeController;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -369,9 +371,11 @@ public class BaseLauncherBinder {
             executeCallbacksTask(c -> c.finishBindingItems(currentScreenIds), pendingExecutor);
             pendingExecutor.execute(
                     () -> {
-                        MODEL_EXECUTOR.setThreadPriority(Process.THREAD_PRIORITY_DEFAULT);
-                        ItemInstallQueue.INSTANCE.get(mApp.getContext())
-                                .resumeModelPush(FLAG_LOADER_RUNNING);
+                        if (!MultiModeController.isSingleLayerMode()) {
+                            MODEL_EXECUTOR.setThreadPriority(Process.THREAD_PRIORITY_DEFAULT);
+                            ItemInstallQueue.INSTANCE.get(mApp.getContext())
+                                    .resumeModelPush(FLAG_LOADER_RUNNING);
+                        }
                     });
         }
 

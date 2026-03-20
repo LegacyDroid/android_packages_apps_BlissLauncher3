@@ -20,6 +20,7 @@ package foundation.e.bliss.multimode
 import android.content.Context
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherPrefs
+import com.android.launcher3.model.ItemInstallQueue
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import foundation.e.bliss.BaseController
@@ -60,6 +61,8 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
                     onLoadAllAppsEnd(it)
                     cachedApps = null
                 }
+                ItemInstallQueue.INSTANCE.get(context)
+                    .resumeModelPush(ItemInstallQueue.FLAG_LOADER_RUNNING)
             }
 
             override fun onAppSharedPreferenceChanged(key: String?) {
@@ -90,6 +93,8 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
         }
 
     init {
+        ItemInstallQueue.INSTANCE.get(context).pauseModelPush(ItemInstallQueue.FLAG_LOADER_RUNNING)
+
         prefs = LauncherPrefs.get(context)
         monitor.registerCallback(mAppMonitorCallback)
     }

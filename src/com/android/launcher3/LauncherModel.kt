@@ -133,8 +133,7 @@ class LauncherModel(
 
     /** Adds the provided items to the workspace. */
     fun addAndBindAddedWorkspaceItems(itemList: List<Pair<ItemInfo?, Any?>?>) {
-        callbacks.forEach { it.preAddApps() }
-        enqueueModelUpdateTask(AddWorkspaceItemsTask(itemList))
+        addAndBindAddedWorkspaceItems(itemList, animated = true, ignoreLoaded = false)
     }
 
     /**
@@ -152,7 +151,6 @@ class LauncherModel(
         } else {
             itemList
         }
-        enqueueModelUpdateTask(AddWorkspaceItemsTask(sortedItemList))
         val addWorkspaceItemsTask =
             AddWorkspaceItemsTask(sortedItemList, ignoreLoaded)
         addWorkspaceItemsTask.setEnableAnimated(animated)
