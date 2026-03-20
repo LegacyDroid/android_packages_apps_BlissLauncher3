@@ -136,8 +136,7 @@ constructor(
 
     /** Adds the provided items to the workspace. */
     fun addAndBindAddedWorkspaceItems(itemList: List<Pair<ItemInfo?, Any?>?>) {
-        callbacks.forEach { it.preAddApps() }
-        enqueueModelUpdateTask(AddWorkspaceItemsTask(itemList, spaceFinderFactory.get()))
+        addAndBindAddedWorkspaceItems(itemList, animated = true, ignoreLoaded = false)
     }
 
     /**
@@ -155,7 +154,6 @@ constructor(
         } else {
             itemList
         }
-        addAndBindAddedWorkspaceItems(sortedItemList)
         val addWorkspaceItemsTask =
             AddWorkspaceItemsTask(sortedItemList, ignoreLoaded, spaceFinderFactory.get())
         addWorkspaceItemsTask.setEnableAnimated(animated)

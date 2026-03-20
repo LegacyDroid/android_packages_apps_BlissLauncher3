@@ -60,6 +60,7 @@ import com.android.launcher3.widget.model.WidgetsListBaseEntry;
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
+import foundation.e.bliss.multimode.MultiModeController;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -355,8 +356,11 @@ public class BaseLauncherBinder {
             executeCallbacksTask(c -> c.bindStringCache(cacheClone), pendingExecutor);
 
             executeCallbacksTask(c -> c.finishBindingItems(currentScreenIds), pendingExecutor);
-            pendingExecutor.execute(() -> ItemInstallQueue.INSTANCE.get(mContext)
-                    .resumeModelPush(FLAG_LOADER_RUNNING));
+            if (!MultiModeController.isSingleLayerMode()) {
+                pendingExecutor.execute(() -> ItemInstallQueue.INSTANCE.get(mContext)
+                        .resumeModelPush(FLAG_LOADER_RUNNING));
+
+            }
         }
 
         /**
