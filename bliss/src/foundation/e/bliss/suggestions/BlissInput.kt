@@ -23,9 +23,9 @@ import android.content.Intent
 import android.graphics.Color
 import android.util.AttributeSet
 import android.view.DragEvent
-import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -112,12 +112,14 @@ class BlissInput(context: Context, attrs: AttributeSet) :
                 }
             }
 
-            setOnKeyListener { _, keyCode, _ ->
-                if (keyCode == KeyEvent.KEYCODE_ENTER) {
+            mSearchInput.setOnEditorActionListener { _, actionId, event ->
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                     clearFocus()
-                    openSearch(text.toString())
+                    openSearch(mSearchInput.text.toString())
+                    true
+                } else {
+                    false
                 }
-                true
             }
 
             setOnFocusChangeListener { _, hasFocus ->
