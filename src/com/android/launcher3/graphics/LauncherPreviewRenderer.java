@@ -48,6 +48,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.Size;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
@@ -147,6 +148,8 @@ import foundation.e.bliss.multimode.MultiModeController;
 public class LauncherPreviewRenderer extends BaseContext
         implements ActivityContext, WorkspaceLayoutManager, LayoutInflater.Factory2 {
 
+    private static final String TAG = "LauncherPreviewRenderer";
+
     /**
      * Context used just for preview. It also provides a few objects (e.g. UserCache) just for
      * preview purposes.
@@ -207,7 +210,9 @@ public class LauncherPreviewRenderer extends BaseContext
             deleteSharedPreferences(mPrefName);
             if (mDbDir != null) {
                 emptyDbDir();
-                mDbDir.delete();
+                if (!mDbDir.delete()) {
+                    Log.w(TAG, "Failed to delete preview db dir: " + mDbDir);
+                }
             }
         }
 

@@ -467,7 +467,8 @@ public class SwipePipToHomeAnimator extends RectFSpringAnim {
                 } else if (mFromRotation == Surface.ROTATION_90) {
                     mSourceRectHint.offset(mDisplayCutoutInsets.left, mDisplayCutoutInsets.top);
                 } else if (mFromRotation == Surface.ROTATION_270) {
-                    mAppBounds.inset(mDisplayCutoutInsets);
+                    mAppBounds.inset(mDisplayCutoutInsets.left, mDisplayCutoutInsets.top,
+                            mDisplayCutoutInsets.right, mDisplayCutoutInsets.bottom);
                 }
             }
             return new SwipePipToHomeAnimator(mContext, mTaskId, mActivityInfo, mAppIconSizePx,

@@ -249,7 +249,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
             }
         } else {
             IntSparseArrayMap<ItemInfo> itemsIdMap;
-            synchronized (mDataModel) {
+            synchronized (mDataModel.mLock) {
                 itemsIdMap = mDataModel.itemsIdMap.clone();
             }
             InstanceId instanceId = new InstanceIdSequence().newInstanceId();
@@ -282,7 +282,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
                     (i, eventList) -> {
                         InstanceId instanceId = new InstanceIdSequence().newInstanceId();
                         IntSparseArrayMap<ItemInfo> itemsIdMap;
-                        synchronized (mDataModel) {
+                        synchronized (mDataModel.mLock) {
                             itemsIdMap = mDataModel.itemsIdMap.clone();
                         }
 
@@ -371,21 +371,25 @@ public class QuickstepModelDelegate extends ModelDelegate {
             return;
         }
 
-        registerPredictor(mAllAppsState, apm.createAppPredictionSession(
-                new AppPredictionContext.Builder(mContext)
-                        .setUiSurface("home")
-                        .setPredictedTargetCount(mIDP.numDatabaseAllAppsColumns)
-                        .build()));
+        try {
+            registerPredictor(mAllAppsState, apm.createAppPredictionSession(
+                    new AppPredictionContext.Builder(mContext)
+                            .setUiSurface("home")
+                            .setPredictedTargetCount(mIDP.numDatabaseAllAppsColumns)
+                            .build()));
 
-        // TODO: get bundle
-        registerHotseatPredictor(apm, mContext);
+            // TODO: get bundle
+            registerHotseatPredictor(apm, mContext);
 
-        registerWidgetsPredictor(apm.createAppPredictionSession(
-                new AppPredictionContext.Builder(mContext)
-                        .setUiSurface("widgets")
-                        .setExtras(getBundleForWidgetsOnWorkspace(mContext, mDataModel))
-                        .setPredictedTargetCount(NUM_OF_RECOMMENDED_WIDGETS_PREDICATION)
-                        .build()));
+            registerWidgetsPredictor(apm.createAppPredictionSession(
+                    new AppPredictionContext.Builder(mContext)
+                            .setUiSurface("widgets")
+                            .setExtras(getBundleForWidgetsOnWorkspace(mContext, mDataModel))
+                            .setPredictedTargetCount(NUM_OF_RECOMMENDED_WIDGETS_PREDICATION)
+                            .build()));
+        } catch (SecurityException e) {
+            Log.w(TAG, "Cannot create prediction session, missing PACKAGE_USAGE_STATS", e);
+        }
     }
 
     @WorkerThread

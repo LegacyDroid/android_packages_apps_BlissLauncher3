@@ -13,6 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.LineageSettingsCompat
+ *     (relocated from com.android.launcher3.util by Migration04, hence
+ *     the previously-implicit same-package reference now needs an import)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 
 package com.android.launcher3.util;
 
@@ -27,6 +37,8 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+
+import foundation.e.bliss.compat.platform.LineageSettingsCompat;
 
 import androidx.annotation.UiThread;
 
@@ -162,14 +174,20 @@ public class SettingsCache extends ContentObserver {
     private boolean updateValue(Uri keyUri, int defaultValue) {
         String key = keyUri.getLastPathSegment();
         boolean newVal;
-        if (keyUri.toString().startsWith(SYSTEM_URI_PREFIX)) {
-            newVal = Settings.System.getInt(mResolver, key, defaultValue) == 1;
-        } else if (keyUri.toString().startsWith(GLOBAL_URI_PREFIX)) {
-            newVal = Settings.Global.getInt(mResolver, key, defaultValue) == 1;
-        } else if (keyUri.toString().startsWith(LINEAGE_SYSTEM_URI_PREFIX)) {
-            newVal = LineageSettings.System.getInt(mResolver, key, defaultValue) == 1;
-        } else { // SETTING_SECURE
-            newVal = Settings.Secure.getInt(mResolver, key, defaultValue) == 1;
+        try {
+            if (keyUri.toString().startsWith(SYSTEM_URI_PREFIX)) {
+                newVal = Settings.System.getInt(mResolver, key, defaultValue) == 1;
+            } else if (keyUri.toString().startsWith(GLOBAL_URI_PREFIX)) {
+                newVal = Settings.Global.getInt(mResolver, key, defaultValue) == 1;
+            } else if (keyUri.toString().startsWith(LINEAGE_SYSTEM_URI_PREFIX)) {
+                newVal = LineageSettingsCompat.getSystemInt(mResolver, key, defaultValue) == 1;
+            } else { // SETTING_SECURE
+                newVal = Settings.Secure.getInt(mResolver, key, defaultValue) == 1;
+            }
+        } catch (SecurityException e) {
+            // @hide settings are restricted to system apps since Android S.
+            // Return the default value for sideloaded/non-system builds.
+            newVal = defaultValue == 1;
         }
 
         mKeyCache.put(keyUri, newVal);

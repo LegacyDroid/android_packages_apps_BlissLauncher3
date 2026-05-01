@@ -256,7 +256,7 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
                 }
             } else if (currentScroll > pageToRightScroll - scrollThreshold) {
                 // scroll is far enough from left page to go to the right page
-                animateToPosition(pageToLeft + 1);
+                animateToPosition((float) pageToLeft + 1);
                 if (mShouldAutoHide) {
                     hideAfterDelay();
                 }
@@ -580,9 +580,9 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
                     mArrowLeft.setAlpha(alpha);
                     int size = (int) (mGapWidth * 4);
                     mArrowLeftBounds.left = (int) (sTempRect.left - mGapWidth - size);
-                    mArrowLeftBounds.top = (int) (y - size / 2);
+                    mArrowLeftBounds.top = (int) (y - size / 2.0);
                     mArrowLeftBounds.right = (int) (sTempRect.left - mGapWidth);
-                    mArrowLeftBounds.bottom = (int) (y + size / 2);
+                    mArrowLeftBounds.bottom = (int) (y + size / 2.0);
                     mArrowLeft.setBounds(mArrowLeftBounds);
                     mArrowLeft.draw(canvas);
                 }
@@ -648,9 +648,9 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
                     mArrowRight.setAlpha(alpha);
                     int size = (int) (mGapWidth * 4);
                     mArrowRightBounds.left = (int) sTempRect.left;
-                    mArrowRightBounds.top = (int) (y - size / 2);
+                    mArrowRightBounds.top = (int) (y - size / 2.0);
                     mArrowRightBounds.right = (int) (int) (sTempRect.left + size);
-                    mArrowRightBounds.bottom = (int) (y + size / 2);
+                    mArrowRightBounds.bottom = (int) (y + size / 2.0);
                     mArrowRight.setBounds(mArrowRightBounds);
                     mArrowRight.draw(canvas);
                 }

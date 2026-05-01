@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar
 
 import android.content.Context
 import com.android.launcher3.statehandlers.DesktopVisibilityController
+import foundation.e.bliss.compat.platform.DisplayIdCompat
 import com.android.launcher3.statehandlers.DesktopVisibilityController.TaskbarDesktopModeListener
 import com.android.launcher3.taskbar.TaskbarBackgroundRenderer.Companion.MAX_ROUNDNESS
 
@@ -49,7 +58,7 @@ class TaskbarDesktopModeController(
 
     fun shouldShowDesktopTasksInTaskbar(): Boolean {
         val activityContext = taskbarControllers.taskbarActivityContext
-        return isInDesktopMode(context.displayId) ||
+        return isInDesktopMode(DisplayIdCompat.getDisplayId(context)) ||
             activityContext.showDesktopTaskbarForFreeformDisplay() ||
             (activityContext.showLockedTaskbarOnHome() &&
                 taskbarControllers.taskbarStashController.isOnHome)

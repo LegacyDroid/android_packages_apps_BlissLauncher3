@@ -802,10 +802,10 @@ public class CellLayout extends ViewGroup {
             CellLayoutLayoutParams params, boolean markCells) {
         final CellLayoutLayoutParams lp = params;
 
-        // Hotseat icons - remove text
+        // Set text visibility based on container type and user preferences
         if (child instanceof BubbleTextView) {
             BubbleTextView bubbleChild = (BubbleTextView) child;
-            bubbleChild.setTextVisibility(mContainerType != HOTSEAT);
+            bubbleChild.setTextVisibility(bubbleChild.shouldTextBeVisible());
         }
 
         child.setScaleX(DEFAULT_SCALE);
@@ -1157,8 +1157,8 @@ public class CellLayout extends ViewGroup {
             MultiTranslateDelegate mtd = item.getTranslateDelegate();
             float initPreviewOffsetX = mtd.getTranslationX(INDEX_REORDER_PREVIEW_OFFSET).getValue();
             float initPreviewOffsetY = mtd.getTranslationY(INDEX_REORDER_PREVIEW_OFFSET).getValue();
-            final float finalPreviewOffsetX = newX - oldX;
-            final float finalPreviewOffsetY = newY - oldY;
+            final float finalPreviewOffsetX = (float) newX - oldX;
+            final float finalPreviewOffsetY = (float) newY - oldY;
 
             // Exit early if we're not actually moving the view
             if (finalPreviewOffsetX == 0 && finalPreviewOffsetY == 0
@@ -1398,7 +1398,8 @@ public class CellLayout extends ViewGroup {
                     }
                 }
                 validRegions.push(currentRect);
-                double distance = Math.hypot(cellXY[0] - relativeXPos,  cellXY[1] - relativeYPos);
+                double distance = Math.hypot((double) cellXY[0] - relativeXPos,
+                        (double) cellXY[1] - relativeYPos);
 
                 if ((distance <= bestDistance && !contained) ||
                         currentRect.contains(bestRect)) {
@@ -1912,8 +1913,16 @@ public class CellLayout extends ViewGroup {
     }
 
     public void markCellsAsOccupiedForView(View view) {
+        // Bliss: when ALLOW_WIDGET_OVERLAP is on, widgets are placed without
+        // claiming occupancy so other items can share the cells visually.
+        boolean overlapAllowed = false;
+        try {
+            overlapAllowed = LauncherPrefs.get(getContext())
+                    .get(LauncherPrefs.ALLOW_WIDGET_OVERLAP);
+        } catch (Throwable ignored) { /* keep strict */ }
         if (view instanceof LauncherAppWidgetHostView
                 && view.getTag() instanceof LauncherAppWidgetInfo) {
+            if (overlapAllowed) return;
             LauncherAppWidgetInfo info = (LauncherAppWidgetInfo) view.getTag();
             CellPos pos = mActivity.getCellPosMapper().mapModelToPresenter(info);
             mOccupied.markCells(pos.cellX, pos.cellY, info.spanX, info.spanY, true);

@@ -86,6 +86,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import foundation.e.bliss.multimode.MultiModeController;
+import foundation.e.bliss.preferences.AppNameOverrides;
 
 /**
  * Cache of application icons.  Icons can be made from any thread.
@@ -596,6 +597,20 @@ public class IconCache extends BaseIconCache {
         info.bitmap = entry.bitmap;
         // Clear any previously set appTitle, if the packageOverride is no longer valid
         info.appTitle = null;
+
+        // Apply user-supplied per-app rename (Lawnchair-imported or set in BlissLauncher).
+        // We override info.title rather than entry.title so the IconCache stays canonical.
+        try {
+            String overrideName = AppNameOverrides.getOverride(
+                    context, info.getTargetComponent(), info.user);
+            if (overrideName != null && !overrideName.isEmpty()) {
+                info.title = overrideName;
+                info.contentDescription = overrideName;
+            }
+        } catch (Exception e) {
+            // Never let an override lookup break the icon pipeline
+            Log.w(TAG, "AppNameOverrides lookup failed: " + e.getMessage());
+        }
         if (entry.bitmap == null) {
             // TODO: entry.bitmap can never be null, so this should not happen at all.
             Log.wtf(TAG, "Cannot find bitmap from the cache, default icon was loaded.");

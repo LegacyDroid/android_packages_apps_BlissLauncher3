@@ -55,8 +55,11 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                     latch.countDown();
                 });
                 try {
-                    latch.await(2, TimeUnit.SECONDS);
+                    if (!latch.await(2, TimeUnit.SECONDS)) {
+                        throw new RuntimeException("Timed out waiting for recent tasks");
+                    }
                 } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     throw new RuntimeException(e);
                 }
                 response.putStringArrayList(TestProtocol.TEST_INFO_RESPONSE_FIELD,
@@ -249,7 +252,10 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                     })).get();
             countDownLatch.await();
             MAIN_EXECUTOR.execute(helper::onDestroy);
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }
     }

@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.util;
 
 import static android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM;
@@ -20,6 +29,7 @@ import static android.view.Display.DEFAULT_DISPLAY;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.os.Build;
 import android.util.ArrayMap;
 import android.view.DisplayCutout;
 import android.view.Surface;
@@ -33,8 +43,8 @@ import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.util.window.CachedDisplayInfo;
 import com.android.launcher3.util.window.WindowManagerProxy;
 import com.android.quickstep.SystemUiProxy;
-import com.android.window.flags.Flags;
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat;
 
 import java.util.List;
 import java.util.Set;
@@ -58,6 +68,9 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
 
     @Override
     public Rect getCurrentBounds(Context displayInfoContext) {
+        if (Build.VERSION.SDK_INT < 36) {
+            return super.getCurrentBounds(displayInfoContext);
+        }
         return displayInfoContext.getResources().getConfiguration().windowConfiguration
                 .getMaxBounds();
     }
@@ -79,10 +92,13 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
 
     @Override
     public boolean showLockedTaskbarOnHome(Context displayInfoContext) {
-        if (!DesktopModeStatus.canEnterDesktopMode(displayInfoContext)) {
+        if (Build.VERSION.SDK_INT < 36) {
             return false;
         }
-        if (!DesktopModeStatus.enterDesktopByDefaultOnFreeformDisplay(displayInfoContext)) {
+        if (!DesktopModeStatusCompat.canEnterDesktopMode(displayInfoContext)) {
+            return false;
+        }
+        if (!DesktopModeStatusCompat.enterDesktopByDefaultOnFreeformDisplay(displayInfoContext)) {
             return false;
         }
         final boolean isFreeformDisplay = displayInfoContext.getResources().getConfiguration()
@@ -92,15 +108,18 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
 
     @Override
     public boolean showDesktopTaskbarForFreeformDisplay(Context displayInfoContext) {
-        if (!DesktopModeStatus.canEnterDesktopMode(displayInfoContext)) {
+        if (Build.VERSION.SDK_INT < 36) {
+            return false;
+        }
+        if (!DesktopModeStatusCompat.canEnterDesktopMode(displayInfoContext)) {
             return false;
         }
 
-        if (!DesktopModeStatus.enterDesktopByDefaultOnFreeformDisplay(displayInfoContext)) {
+        if (!DesktopModeStatusCompat.enterDesktopByDefaultOnFreeformDisplay(displayInfoContext)) {
             return false;
         }
 
-        if (!Flags.enableDesktopTaskbarOnFreeformDisplays()) {
+        if (!DesktopFlagsCompat.enableDesktopTaskbarOnFreeformDisplays()) {
             return false;
         }
 
@@ -116,12 +135,18 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
 
     @Override
     public int getRotation(Context displayInfoContext) {
+        if (Build.VERSION.SDK_INT < 36) {
+            return super.getRotation(displayInfoContext);
+        }
         return displayInfoContext.getResources().getConfiguration().windowConfiguration
                 .getRotation();
     }
 
     @Override
     protected int getStatusBarHeight(Context context, boolean isPortrait, int statusBarInset) {
+        if (Build.VERSION.SDK_INT < 36) {
+            return super.getStatusBarHeight(context, isPortrait, statusBarInset);
+        }
         // See b/264656380, calculate the status bar height manually as the inset in the system
         // server might not be updated by this point yet causing extra DeviceProfile updates
         return SystemBarUtils.getStatusBarHeight(context);
@@ -130,6 +155,9 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
     @Override
     public ArrayMap<CachedDisplayInfo, List<WindowBounds>> estimateInternalDisplayBounds(
             Context displayInfoContext) {
+        if (Build.VERSION.SDK_INT < 36) {
+            return super.estimateInternalDisplayBounds(displayInfoContext);
+        }
         ArrayMap<CachedDisplayInfo, List<WindowBounds>> result = new ArrayMap<>();
         WindowManager windowManager = displayInfoContext.getSystemService(WindowManager.class);
         Set<WindowMetrics> possibleMaximumWindowMetrics =
@@ -145,6 +173,9 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
     @Override
     protected DisplayCutout rotateCutout(DisplayCutout original, int startWidth, int startHeight,
             int fromRotation, int toRotation) {
+        if (Build.VERSION.SDK_INT < 36) {
+            return super.rotateCutout(original, startWidth, startHeight, fromRotation, toRotation);
+        }
         return original.getRotated(startWidth, startHeight, fromRotation, toRotation);
     }
 }

@@ -13,10 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat
+ *     (relocated from com.android.quickstep.util by Migration04, hence
+ *     the previously-implicit same-package reference now needs an import)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 
 package com.android.quickstep.util;
 
-import android.app.ActivityTaskManager;
 import android.app.IActivityTaskManager;
 import android.app.IAssistDataReceiver;
 import android.app.assist.AssistContent;
@@ -26,7 +35,11 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 import com.android.launcher3.util.Executors;
+
+import foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat;
 
 import java.lang.ref.WeakReference;
 import java.util.Collections;
@@ -51,7 +64,7 @@ public class AssistContentRequester {
         void onAssistContentAvailable(AssistContent assistContent);
     }
 
-    private final IActivityTaskManager mActivityTaskManager;
+    private final @Nullable IActivityTaskManager mActivityTaskManager;
     private final String mAttributionTag;
     private final String mPackageName;
     private final Executor mCallbackExecutor;
@@ -62,7 +75,7 @@ public class AssistContentRequester {
             Collections.synchronizedMap(new WeakHashMap<>());
 
     public AssistContentRequester(Context context) {
-        mActivityTaskManager = ActivityTaskManager.getService();
+        mActivityTaskManager = ActivityTaskManagerCompat.getService();
         mAttributionTag = context.getAttributionTag();
         mPackageName = context.getApplicationContext().getPackageName();
         mCallbackExecutor = Executors.MAIN_EXECUTOR;
@@ -76,6 +89,10 @@ public class AssistContentRequester {
      * @param callback to call when the content is available, called on the main thread.
      */
     public void requestAssistContent(final int taskId, final Callback callback) {
+        if (mActivityTaskManager == null) {
+            Log.i(TAG, "IActivityTaskManager not available, skipping assist content request");
+            return;
+        }
         // ActivityTaskManager interaction here is synchronous, so call off the main thread.
         mSystemInteractionExecutor.execute(() -> {
             try {

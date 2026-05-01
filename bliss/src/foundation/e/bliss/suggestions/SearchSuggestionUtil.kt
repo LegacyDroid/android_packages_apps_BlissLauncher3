@@ -20,11 +20,37 @@ package foundation.e.bliss.suggestions
 import android.content.Context
 import android.net.Uri
 import androidx.core.net.toUri
+import com.android.launcher3.LauncherPrefs
+import com.android.launcher3.dagger.LauncherComponentProvider
 import foundation.e.bliss.suggestions.duckduckgo.DuckDuckGoProvider
 import foundation.e.bliss.suggestions.qwant.QwantProvider
 
 object SearchSuggestionUtil {
     fun getSuggestionProvider(context: Context): SuggestionProvider {
+        // Phase 6.3: a user-configured custom URL takes precedence over the
+        // built-in providers. Empty / non-`%s` URLs fall through.
+        // PLAN-DRIFT-M02: see 13-drift-log.md entry for Phase 6.3 — the plan
+        // proposed a "custom" branch on `SEARCH_PROVIDER` ListPreference; we
+        // gate on the URL pref instead so getUriForQuery's engine map stays
+        // single-purpose.
+        try {
+            val prefs = LauncherComponentProvider.get(context).launcherPrefs
+            val customUrl = prefs.get(LauncherPrefs.WEB_SUGGESTION_URL)
+            if (customUrl.isNotEmpty() && customUrl.contains("%s")) {
+                return CustomUrlProvider(context)
+            }
+        } catch (e: Exception) {
+            // Pref subsystem unavailable — fall through to defaults.
+        }
+
+        val userPref = getUserSearchProvider(context)
+        if (userPref != "default") {
+            return when (userPref) {
+                "qwant" -> QwantProvider()
+                "duckduckgo" -> DuckDuckGoProvider()
+                else -> DuckDuckGoProvider()
+            }
+        }
         return with(defaultSearchEngine(context)) {
             when {
                 contains(Providers.QWANT.key, true) || contains(Providers.MURENASEARCH.key, true) ->
@@ -35,18 +61,42 @@ object SearchSuggestionUtil {
     }
 
     fun getUriForQuery(context: Context, query: String): Uri {
+        val encoded = Uri.encode(query)
+        val userPref = getUserSearchProvider(context)
+        if (userPref != "default") {
+            return when (userPref) {
+                "duckduckgo" -> "${Providers.DUCKDUCKGO.url}?q=$encoded"
+                "qwant" -> "${Providers.QWANT.url}?q=$encoded"
+                "murena" -> "${Providers.MURENASEARCH.url}?q=$encoded"
+                "mojeek" -> "${Providers.MOJEEK.url}search?q=$encoded"
+                "spot" -> "${Providers.SPOT.url}?q=$encoded"
+                "ecosia" -> "${Providers.ECOSIA.url}search?q=$encoded"
+                "startpage" -> "${Providers.STARTPAGE.url}sp/search?query=$encoded"
+                "brave" -> "${Providers.BRAVE.url}search?q=$encoded"
+                else -> "${Providers.DUCKDUCKGO.url}?q=$encoded"
+            }.toUri()
+        }
+
         val defaultSearchEngine = defaultSearchEngine(context)
 
         return with(defaultSearchEngine) {
             when {
                 contains(Providers.MURENASEARCH.key, true) ->
-                    "${Providers.MURENASEARCH.url}?q=$query"
-                contains(Providers.QWANT.key, true) -> "${Providers.QWANT.url}?q=$query"
-                contains(Providers.DUCKDUCKGO.key, true) -> "${Providers.DUCKDUCKGO.url}?q=$query"
-                contains(Providers.MOJEEK.key, true) -> "${Providers.MOJEEK.url}search?q=$query"
-                contains(Providers.SPOT.key, true) -> "${Providers.SPOT.url}?q=$query"
-                else -> "${Providers.MURENASEARCH.url}?q=$query"
+                    "${Providers.MURENASEARCH.url}?q=$encoded"
+                contains(Providers.QWANT.key, true) -> "${Providers.QWANT.url}?q=$encoded"
+                contains(Providers.DUCKDUCKGO.key, true) -> "${Providers.DUCKDUCKGO.url}?q=$encoded"
+                contains(Providers.MOJEEK.key, true) -> "${Providers.MOJEEK.url}search?q=$encoded"
+                contains(Providers.SPOT.key, true) -> "${Providers.SPOT.url}?q=$encoded"
+                else -> "${Providers.MURENASEARCH.url}?q=$encoded"
             }.toUri()
+        }
+    }
+
+    private fun getUserSearchProvider(context: Context): String {
+        return try {
+            LauncherComponentProvider.get(context).launcherPrefs.get(LauncherPrefs.SEARCH_PROVIDER)
+        } catch (e: Exception) {
+            "default"
         }
     }
 

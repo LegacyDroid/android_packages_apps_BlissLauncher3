@@ -43,9 +43,11 @@ import androidx.core.content.ContextCompat;
 
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.Launcher;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.logging.StatsLogManager.EventEnum;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.popup.ArrowPopup;
@@ -53,9 +55,12 @@ import com.android.launcher3.shortcuts.DeepShortcutView;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.launcher3.widget.picker.WidgetsFullSheet;
+import android.provider.Settings;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Popup shown on long pressing an empty space in launcher
@@ -195,41 +200,132 @@ public class OptionsPopupView<T extends Context & ActivityContext> extends Arrow
         return popup;
     }
 
+    // ---- Home long-press popup item registry (pref-driven order) ----
+    // Tokens correspond to entries that may appear in the popup; whether
+    // each is shown is determined by availability checks (e.g. widgets
+    // require WIDGETS_ENABLED) and by LauncherPrefs.HOME_POPUP_ORDER.
+    public static final String POPUP_TOKEN_WALLPAPER = "wallpaper";
+    public static final String POPUP_TOKEN_WIDGETS = "widgets";
+    public static final String POPUP_TOKEN_EDIT_MODE = "edit_mode";
+    public static final String POPUP_TOKEN_ALL_APPS = "all_apps";
+    public static final String POPUP_TOKEN_SETTINGS = "settings";
+    public static final String POPUP_TOKEN_LOCK = "lock";
+    public static final String POPUP_TOKEN_SYS_SETTINGS = "sys_settings";
+
+    /** Default order if HOME_POPUP_ORDER pref is empty. */
+    private static final String[] DEFAULT_POPUP_ORDER = new String[] {
+            POPUP_TOKEN_WALLPAPER,
+            POPUP_TOKEN_WIDGETS,
+            POPUP_TOKEN_EDIT_MODE,
+            POPUP_TOKEN_ALL_APPS,
+            POPUP_TOKEN_SETTINGS,
+    };
+
     /**
-     * Returns the list of supported actions
+     * Build a single OptionItem for the given token, or null if the token is
+     * unknown or its underlying feature is not available in the current build.
+     */
+    @Nullable
+    private static OptionItem buildOption(Launcher launcher, String token) {
+        switch (token) {
+            case POPUP_TOKEN_WALLPAPER:
+                return new OptionItem(launcher,
+                        R.string.styles_wallpaper_button_text,
+                        R.drawable.ic_palette,
+                        IGNORE,
+                        OptionsPopupView::startWallpaperPicker);
+            case POPUP_TOKEN_WIDGETS:
+                if (!WIDGETS_ENABLED || !Utilities.isWorkspaceEditAllowed(launcher)) return null;
+                return new OptionItem(launcher,
+                        R.string.widget_button_text,
+                        R.drawable.ic_widget,
+                        LAUNCHER_WIDGETSTRAY_BUTTON_TAP_OR_LONGPRESS,
+                        OptionsPopupView::onWidgetsClicked);
+            case POPUP_TOKEN_EDIT_MODE:
+                if (!MULTI_SELECT_EDIT_MODE.get()) return null;
+                return new OptionItem(launcher,
+                        R.string.edit_home_screen,
+                        R.drawable.enter_home_gardening_icon,
+                        LAUNCHER_SETTINGS_BUTTON_TAP_OR_LONGPRESS,
+                        OptionsPopupView::enterHomeGardening);
+            case POPUP_TOKEN_ALL_APPS:
+                return new OptionItem(launcher,
+                        R.string.all_apps_button_label,
+                        R.drawable.ic_apps,
+                        LAUNCHER_ALL_APPS_TAP_OR_LONGPRESS,
+                        OptionsPopupView::enterAllApps);
+            case POPUP_TOKEN_SETTINGS:
+                return new OptionItem(launcher,
+                        R.string.settings_button_text,
+                        R.drawable.ic_setting,
+                        LAUNCHER_SETTINGS_BUTTON_TAP_OR_LONGPRESS,
+                        OptionsPopupView::startSettings);
+            case POPUP_TOKEN_LOCK: {
+                LauncherPrefs prefs =
+                        LauncherComponentProvider.get(launcher).getLauncherPrefs();
+                boolean locked = prefs.get(LauncherPrefs.WORKSPACE_LOCK);
+                return new OptionItem(launcher,
+                        locked ? R.string.home_popup_unlock : R.string.home_popup_lock,
+                        R.drawable.ic_lock,
+                        IGNORE,
+                        OptionsPopupView::toggleWorkspaceLock);
+            }
+            case POPUP_TOKEN_SYS_SETTINGS:
+                return new OptionItem(launcher,
+                        R.string.home_popup_sys_settings,
+                        R.drawable.ic_setting,
+                        IGNORE,
+                        OptionsPopupView::openAndroidSettings);
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Returns the list of supported actions in the order configured by the
+     * user via {@link LauncherPrefs#HOME_POPUP_ORDER}, or in the default order
+     * if no preference is set.
      */
     public static ArrayList<OptionItem> getOptions(Launcher launcher) {
         ArrayList<OptionItem> options = new ArrayList<>();
-        options.add(new OptionItem(launcher,
-                R.string.styles_wallpaper_button_text,
-                R.drawable.ic_palette,
-                IGNORE,
-                OptionsPopupView::startWallpaperPicker));
-        if (WIDGETS_ENABLED && Utilities.isWorkspaceEditAllowed(launcher)) {
-            options.add(new OptionItem(launcher,
-                    R.string.widget_button_text,
-                    R.drawable.ic_widget,
-                    LAUNCHER_WIDGETSTRAY_BUTTON_TAP_OR_LONGPRESS,
-                    OptionsPopupView::onWidgetsClicked));
+        LauncherPrefs prefs = LauncherComponentProvider.get(launcher).getLauncherPrefs();
+        String orderPref = prefs.get(LauncherPrefs.HOME_POPUP_ORDER);
+        String[] order = (orderPref == null || orderPref.trim().isEmpty())
+                ? DEFAULT_POPUP_ORDER
+                : orderPref.split(",");
+        for (String tokenRaw : order) {
+            String token = tokenRaw.trim();
+            if (token.isEmpty()) continue;
+            OptionItem item = buildOption(launcher, token);
+            if (item != null) options.add(item);
         }
-        if (MULTI_SELECT_EDIT_MODE.get()) {
-            options.add(new OptionItem(launcher,
-                    R.string.edit_home_screen,
-                    R.drawable.enter_home_gardening_icon,
-                    LAUNCHER_SETTINGS_BUTTON_TAP_OR_LONGPRESS,
-                    OptionsPopupView::enterHomeGardening));
+        // Safety net: if user-supplied order produced an empty list (e.g. all
+        // tokens unknown), fall back to defaults so the menu isn't blank.
+        if (options.isEmpty()) {
+            for (String token : DEFAULT_POPUP_ORDER) {
+                OptionItem item = buildOption(launcher, token);
+                if (item != null) options.add(item);
+            }
         }
-        options.add(new OptionItem(launcher,
-                R.string.all_apps_button_label,
-                R.drawable.ic_apps,
-                LAUNCHER_ALL_APPS_TAP_OR_LONGPRESS,
-                OptionsPopupView::enterAllApps));
-        options.add(new OptionItem(launcher,
-                R.string.settings_button_text,
-                R.drawable.ic_setting,
-                LAUNCHER_SETTINGS_BUTTON_TAP_OR_LONGPRESS,
-                OptionsPopupView::startSettings));
         return options;
+    }
+
+    /** Toggle the workspace lock pref, used by the "lock" popup item. */
+    private static boolean toggleWorkspaceLock(View view) {
+        Launcher launcher = Launcher.getLauncher(view.getContext());
+        LauncherPrefs prefs = LauncherComponentProvider.get(launcher).getLauncherPrefs();
+        boolean wasLocked = prefs.get(LauncherPrefs.WORKSPACE_LOCK);
+        prefs.put(LauncherPrefs.WORKSPACE_LOCK, !wasLocked);
+        return true;
+    }
+
+    /** Open Android system settings, used by the "sys_settings" popup item. */
+    private static boolean openAndroidSettings(View view) {
+        Launcher launcher = Launcher.getLauncher(view.getContext());
+        Intent intent = new Intent(Settings.ACTION_SETTINGS)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        launcher.startActivity(intent);
+        return true;
     }
 
     /**

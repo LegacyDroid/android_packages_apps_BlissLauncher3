@@ -1450,6 +1450,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         updatePageAlphaValues();
         updatePageScrollValues();
         enableHwLayersOnVisiblePages();
+        applyPageTransitionEffect();
 
         if (mIsPageInTransition && MultiModeController.isSingleLayerMode()) {
             mLauncher.hideWidgetResizeContainer();
@@ -1635,6 +1636,50 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         if (!mLauncher.isInState(ALL_APPS)) {
             super.announceForAccessibility(text);
         }
+    }
+
+    private void applyPageTransitionEffect() {
+        try {
+            String transition = com.android.launcher3.dagger.LauncherComponentProvider
+                    .get(getContext()).getLauncherPrefs()
+                    .get(LauncherPrefs.PAGE_TRANSITION);
+            if ("default".equals(transition) || transition == null) return;
+
+            int screenCenter = getScrollX() + getMeasuredWidth() / 2;
+            int pageWidth = getMeasuredWidth();
+            for (int i = 0; i < getChildCount(); i++) {
+                android.view.View child = getChildAt(i);
+                if (child == null) continue;
+                float scrollProgress = getScrollProgress(screenCenter, child, i);
+
+                switch (transition) {
+                    case "cube":
+                        child.setCameraDistance(pageWidth * 12);
+                        child.setPivotX(scrollProgress > 0 ? 0 : pageWidth);
+                        child.setPivotY(child.getHeight() * 0.5f);
+                        child.setRotationY(45f * scrollProgress);
+                        break;
+                    case "stack":
+                        if (scrollProgress >= 0) {
+                            float scale = 1f - 0.2f * scrollProgress;
+                            child.setScaleX(Math.max(0.5f, scale));
+                            child.setScaleY(Math.max(0.5f, scale));
+                            child.setAlpha(Math.max(0f, 1f - scrollProgress));
+                            child.setTranslationX(-pageWidth * scrollProgress);
+                        } else {
+                            child.setScaleX(1f);
+                            child.setScaleY(1f);
+                            child.setAlpha(1f);
+                            child.setTranslationX(0);
+                        }
+                        break;
+                    case "fade":
+                        float fadeAlpha = 1f - Math.abs(scrollProgress) * 0.7f;
+                        child.setAlpha(Math.max(0f, fadeAlpha));
+                        break;
+                }
+            }
+        } catch (Exception e) { /* use default */ }
     }
 
     private void updatePageAlphaValues() {

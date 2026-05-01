@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar.overlay;
 
 import static android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
@@ -45,7 +53,7 @@ import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.taskbar.TaskbarControllers;
 import com.android.systemui.shared.system.BlurUtils;
 import com.android.systemui.shared.system.TaskStackChangeListener;
-import com.android.systemui.shared.system.TaskStackChangeListeners;
+import foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat;
 
 import java.util.Optional;
 
@@ -129,7 +137,11 @@ public final class TaskbarOverlayController {
             mProxyView.show();
             Optional.ofNullable(mOverlayContext.getSystemService(WindowManager.class))
                     .ifPresent(m -> m.addView(mOverlayContext.getDragLayer(), mLayoutParams));
-            TaskStackChangeListeners.getInstance().registerTaskStackListener(mTaskStackListener);
+            try {
+                ActivityTaskManagerCompat.registerTaskStackListener(mTaskStackListener);
+            } catch (SecurityException e) {
+                // MANAGE_ACTIVITY_TASKS not available for non-system apps
+            }
         }
 
         return mOverlayContext;
@@ -161,7 +173,7 @@ public final class TaskbarOverlayController {
 
     /** Destroys the controller and any overlay window if present. */
     public void onDestroy() {
-        TaskStackChangeListeners.getInstance().unregisterTaskStackListener(mTaskStackListener);
+        ActivityTaskManagerCompat.unregisterTaskStackListener(mTaskStackListener);
         Optional.ofNullable(mOverlayContext).ifPresent(c -> {
             c.onDestroy();
             WindowManager wm = c.getSystemService(WindowManager.class);
@@ -246,7 +258,10 @@ public final class TaskbarOverlayController {
             Log.w(TAG, "setBackgroundBlurRadius: rootSurfaceControl is null");
             return;
         }
-        SurfaceControl surfaceControl = dragLayerViewRoot.getSurfaceControl();
+        SurfaceControl surfaceControl = null;
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            surfaceControl = dragLayerViewRoot.getSurfaceControl();
+        }
         if (surfaceControl == null || !surfaceControl.isValid()) {
             Log.w(TAG, "setBackgroundBlurRadius: surfaceControl is null or invalid");
             return;

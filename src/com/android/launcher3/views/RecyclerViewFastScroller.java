@@ -399,7 +399,7 @@ public class RecyclerViewFastScroller extends View {
         canvas.translate(getWidth() / 2, mRv.getScrollBarTop());
         mThumbDrawOffset.set(getWidth() / 2, mRv.getScrollBarTop());
         // Draw the track
-        float halfW = mWidth / 2;
+        float halfW = mWidth / 2f;
         boolean useLetterFastScroller = shouldUseLetterFastScroller();
         if (useLetterFastScroller) {
             float translateX;
@@ -453,7 +453,7 @@ public class RecyclerViewFastScroller extends View {
     }
 
     private float getScrollThumbRadius() {
-        return mWidth + mThumbPadding + mThumbPadding;
+        return (float) mWidth + mThumbPadding + mThumbPadding;
     }
 
     /**

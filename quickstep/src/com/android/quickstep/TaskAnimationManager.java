@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep;
 
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
@@ -55,7 +63,7 @@ import com.android.quickstep.views.RecentsView;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.shared.system.TaskStackChangeListener;
-import com.android.systemui.shared.system.TaskStackChangeListeners;
+import foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -85,7 +93,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
         public void onActivityRestartAttempt(ActivityManager.RunningTaskInfo task,
                 boolean homeTaskVisible, boolean clearedTask, boolean wasVisible) {
             if (mLastGestureState == null) {
-                TaskStackChangeListeners.getInstance().unregisterTaskStackListener(
+                ActivityTaskManagerCompat.unregisterTaskStackListener(
                         mLiveTileRestartListener);
                 return;
             }
@@ -96,7 +104,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                         .getOverviewPanel();
                 if (recentsView != null) {
                     recentsView.launchSideTaskInLiveTileModeForRestartedApp(task.taskId);
-                    TaskStackChangeListeners.getInstance().unregisterTaskStackListener(
+                    ActivityTaskManagerCompat.unregisterTaskStackListener(
                             mLiveTileRestartListener);
                 }
             }
@@ -416,7 +424,11 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
     }
 
     public void enableLiveTileRestartListener() {
-        TaskStackChangeListeners.getInstance().registerTaskStackListener(mLiveTileRestartListener);
+        try {
+            ActivityTaskManagerCompat.registerTaskStackListener(mLiveTileRestartListener);
+        } catch (SecurityException e) {
+            // MANAGE_ACTIVITY_TASKS not available for non-system apps
+        }
     }
 
     /**
@@ -508,7 +520,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
             mLiveTileCleanUpHandler.run();
             mLiveTileCleanUpHandler = null;
         }
-        TaskStackChangeListeners.getInstance().unregisterTaskStackListener(mLiveTileRestartListener);
+        ActivityTaskManagerCompat.unregisterTaskStackListener(mLiveTileRestartListener);
 
         // Release all the target leashes
         if (mTargets != null) {

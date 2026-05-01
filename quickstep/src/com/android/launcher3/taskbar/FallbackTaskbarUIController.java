@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
 
 import static com.android.launcher3.Utilities.isRunningInTestHarness;
@@ -26,6 +34,7 @@ import androidx.annotation.Nullable;
 import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.statemanager.StatefulContainer;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.quickstep.FallbackActivityInterface;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.RecentsAnimationCallbacks;
@@ -147,7 +156,7 @@ public class FallbackTaskbarUIController
     private boolean isIn3pHomeOrRecents() {
         TopTaskTracker.CachedTaskInfo topTask = TopTaskTracker.INSTANCE
                 .get(mControllers.taskbarActivityContext).getCachedTopTask(true,
-                        mRecentsContainer.asContext().getDisplayId());
+                        DisplayIdCompat.getDisplayId(mRecentsContainer.asContext()));
         return topTask.isHomeTask() || topTask.isRecentsTask();
     }
 

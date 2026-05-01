@@ -135,8 +135,7 @@ public final class FileLog {
         Message.obtain(getHandler(), LogWriterCallback.MSG_FLUSH,
                 Pair.create(out, latch)).sendToTarget();
 
-        latch.await(2, TimeUnit.SECONDS);
-        return latch.getCount() == 0;
+        return latch.await(2, TimeUnit.SECONDS);
     }
 
     /**
@@ -256,7 +255,9 @@ public final class FileLog {
     public static File[] getLogFiles() {
         try {
             flushAll(null);
-        } catch (InterruptedException e) { }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         File[] files = new File[LOG_DAYS];
         for (int i = 0; i < LOG_DAYS; i++) {
             files[i] = new File(sLogsDirectory, FILE_NAME_PREFIX + i);

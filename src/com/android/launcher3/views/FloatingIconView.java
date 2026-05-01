@@ -343,7 +343,7 @@ public class FloatingIconView extends FrameLayout implements
         // Clone right away as we are on the background thread instead of blocking the
         // main thread later
         Drawable btvClone = btvIcon == null ? null : btvIcon.getConstantState().newDrawable();
-        synchronized (outIconLoadResult) {
+        synchronized (outIconLoadResult.mLock) {
             outIconLoadResult.btvDrawable = () -> btvClone;
             outIconLoadResult.drawable = drawable;
             outIconLoadResult.badge = badge;
@@ -433,7 +433,7 @@ public class FloatingIconView extends FrameLayout implements
             return;
         }
 
-        synchronized (mIconLoadResult) {
+        synchronized (mIconLoadResult.mLock) {
             if (mIconLoadResult.isIconLoaded) {
                 setIcon(mIconLoadResult.drawable, mIconLoadResult.badge,
                         mIconLoadResult.btvDrawable, mIconLoadResult.iconOffset);
@@ -729,6 +729,8 @@ public class FloatingIconView extends FrameLayout implements
     }
 
     private static class IconLoadResult {
+        /** Dedicated monitor for synchronizing access to this result's mutable state. */
+        final Object mLock = new Object();
         final ItemInfo itemInfo;
         final boolean isThemed;
         Supplier<Drawable> btvDrawable;

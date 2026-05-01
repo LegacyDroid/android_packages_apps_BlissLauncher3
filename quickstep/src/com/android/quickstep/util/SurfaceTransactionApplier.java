@@ -73,7 +73,9 @@ public class SurfaceTransactionApplier extends ReleaseCheck {
 
     private void initialize(View view) {
         mTargetViewRootImpl = view.getViewRootImpl();
-        mBarrierSurfaceControl = mTargetViewRootImpl.getSurfaceControl();
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            mBarrierSurfaceControl = mTargetViewRootImpl.getSurfaceControl();
+        }
         mInitialized = true;
     }
 

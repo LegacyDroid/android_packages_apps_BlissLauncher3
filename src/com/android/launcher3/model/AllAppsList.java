@@ -69,6 +69,9 @@ public class AllAppsList {
 
     public static final int DEFAULT_APPLICATIONS_NUMBER = 42;
 
+    /** Dedicated monitor for synchronizing access to this list's mutable state. */
+    public final Object mLock = new Object();
+
     /** The list off all apps. */
     public final ArrayList<AppInfo> data = new ArrayList<>(DEFAULT_APPLICATIONS_NUMBER);
 

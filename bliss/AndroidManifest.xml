@@ -27,6 +27,20 @@
             android:label="@string/remove_widgets"
             android:theme="@style/HomeSettings.Theme" />
 
+        <!-- Migration02 / Phase 1: Drawer-folder management UI. Internal-only. -->
+        <activity
+            android:name="foundation.e.bliss.folders.ui.DrawerFolderManageActivity"
+            android:exported="false"
+            android:label="@string/drawer_folders_manage_title"
+            android:theme="@style/HomeSettings.Theme" />
+
+        <!-- Migration04 / Phase 07: First-run wizard host. Internal-only. -->
+        <activity
+            android:name="foundation.e.bliss.firstrun.ui.FirstRunActivity"
+            android:exported="false"
+            android:label="@string/first_run_layout_title"
+            android:theme="@style/HomeSettings.Theme" />
+
         <!-- Dummy receiver for the migration of weather app -->
         <receiver
             android:name="foundation.e.blisslauncher.features.weather.WeatherAppWidgetProvider"

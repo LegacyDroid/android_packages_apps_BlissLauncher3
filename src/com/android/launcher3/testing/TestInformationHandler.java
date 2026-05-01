@@ -518,7 +518,10 @@ public class TestInformationHandler implements ResourceBasedOverride {
     protected static <T> T getFromExecutorSync(ExecutorService executor, Callable<T> callback) {
         try {
             return executor.submit(callback).get();
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }
     }
@@ -549,6 +552,7 @@ public class TestInformationHandler implements ResourceBasedOverride {
                 Runtime.getRuntime().runFinalization();
             } while (!fence.await(100, TimeUnit.MILLISECONDS));
         } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
             throw new RuntimeException(ex);
         }
     }

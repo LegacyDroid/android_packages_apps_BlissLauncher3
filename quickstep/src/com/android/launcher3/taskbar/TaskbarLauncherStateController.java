@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
 
 import static com.android.app.animation.Interpolators.EMPHASIZED;
@@ -61,6 +69,7 @@ import com.android.launcher3.anim.AnimatorListeners;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController.BubbleLauncherState;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.quickstep.RecentsAnimationCallbacks;
 import com.android.quickstep.RecentsAnimationController;
@@ -668,7 +677,7 @@ public class TaskbarLauncherStateController {
         float cornerRoundness = isInLauncher ? 0 : 1;
 
         if (mControllers.taskbarDesktopModeController.isInDesktopModeAndNotInOverview(
-                mControllers.taskbarActivityContext.getDisplayId())
+                DisplayIdCompat.getDisplayId(mControllers.taskbarActivityContext))
                 && mControllers.getSharedState() != null) {
             cornerRoundness =
                     mControllers.taskbarDesktopModeController.getTaskbarCornerRoundness(
@@ -1150,7 +1159,7 @@ public class TaskbarLauncherStateController {
         if (RecentsWindowFlags.getEnableOverviewInWindow()) {
             final TaskbarActivityContext taskbarContext = mControllers.taskbarActivityContext;
             RecentsWindowManager recentsWindowManager = RecentsDisplayModel.getINSTANCE()
-                    .get(taskbarContext).getRecentsWindowManager(taskbarContext.getDisplayId());
+                    .get(taskbarContext).getRecentsWindowManager(DisplayIdCompat.getDisplayId(taskbarContext));
             if (recentsWindowManager != null) {
                 callback.accept(recentsWindowManager);
             }

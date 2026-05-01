@@ -100,4 +100,9 @@ public final class WidgetsListContentEntry extends WidgetsListBaseEntry {
                 && mTitleSectionName.equals(otherEntry.mTitleSectionName)
                 && mMaxSpanSize == otherEntry.mMaxSpanSize;
     }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(mWidgets, mPkgItem, mTitleSectionName, mMaxSpanSize);
+    }
 }

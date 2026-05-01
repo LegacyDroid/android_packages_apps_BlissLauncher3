@@ -29,6 +29,7 @@ import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 
 import java.util.ArrayList;
@@ -97,6 +98,16 @@ public class RoundedCornerEnforcement {
      * in the given context.
      */
     public static float computeEnforcedRadius(@NonNull Context context) {
+        try {
+            boolean roundedEnabled = LauncherPrefs.get(context)
+                    .get(LauncherPrefs.WIDGET_ROUNDED_CORNERS);
+            if (!roundedEnabled) {
+                return 0;
+            }
+        } catch (Exception e) {
+            // Use default behavior
+        }
+
         Resources res = context.getResources();
         float systemRadius = res.getDimension(android.R.dimen.system_app_widget_background_radius);
         if (useSystemRadiusForAppWidgets()) {

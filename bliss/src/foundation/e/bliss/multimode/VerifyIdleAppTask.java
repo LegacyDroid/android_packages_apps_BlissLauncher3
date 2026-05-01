@@ -15,6 +15,24 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Phase 05 evaluated wiring this task to LauncherPolicy.idleApp(ctx)
+ *     (HonorGapsIdleAppPolicy.shouldAutoFillIdle() returns false). The audit
+ *     found the Migration03 plan's preserve-gaps early-return was previously
+ *     present here but had to be REMOVED to fix a regression where newly
+ *     installed apps stopped reaching the workspace. The gap-preservation
+ *     guarantee is now upheld by WorkspaceItemSpaceFinder, which honours the
+ *     pref by placing new items AFTER the last occupied cell rather than
+ *     first-fit-from-top-left. Adding a `shouldAutoFillIdle()` gate here
+ *     would re-introduce that regression, so the task deliberately does NOT
+ *     consult IdleAppPolicy. The policy + LauncherPolicy.idleApp() machinery
+ *     is kept available in foundation.e.bliss.policy.idle for future call
+ *     sites that legitimately need the toggle.
+ *     — Plan ref: Plans/Migration04/05-launcher-policy-strategies.md §5.4
+ *
+ * The body of this file otherwise tracks Bliss baseline behaviour.
+ */
 package foundation.e.bliss.multimode;
 
 import android.content.ComponentName;
@@ -88,6 +106,12 @@ public class VerifyIdleAppTask implements Runnable {
         if (!MultiModeController.isSingleLayerMode()) {
             return;
         }
+        // Note: we deliberately do NOT bail out via LauncherPolicy.idleApp()
+        // here. See the file-header touchpoint block above — bailing would
+        // prevent newly installed apps from appearing on the home screen.
+        // WorkspaceItemSpaceFinder upholds the gap-preservation guarantee
+        // by placing new items AFTER the last occupied cell instead of
+        // first-fit-from-top-left.
 
         final Map<ComponentKey, Object> map = new HashMap<>();
         if (mApps != null && mApps.size() > 0) {
@@ -116,7 +140,7 @@ public class VerifyIdleAppTask implements Runnable {
 
     List<Pair<ItemInfo, Object>> verifyAllApps(Context context, Map<ComponentKey, Object> map, boolean animated) {
         List<Pair<ItemInfo, Object>> newItems = new ArrayList<>();
-        synchronized (mBgdataModel) {
+        synchronized (mBgdataModel.mLock) {
             for (Map.Entry<ComponentKey, Object> entry : map.entrySet()) {
                 ComponentKey componentKey = entry.getKey();
                 HashSet<ComponentName> components = new HashSet<>(1);

@@ -26,6 +26,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.view.CrossWindowBlurListeners;
+import android.view.SurfaceControl;
 import android.view.View;
 import android.view.ViewRootImpl;
 import android.view.ViewTreeObserver;
@@ -71,7 +72,11 @@ public class DepthController extends BaseDepthController implements StateHandler
     private void onLauncherDraw() {
         View view = mLauncher.getDragLayer();
         ViewRootImpl viewRootImpl = view.getViewRootImpl();
-        setBaseSurface(viewRootImpl != null ? viewRootImpl.getSurfaceControl() : null);
+        SurfaceControl surfaceControl = null;
+        if (viewRootImpl != null && android.os.Build.VERSION.SDK_INT >= 36) {
+            surfaceControl = viewRootImpl.getSurfaceControl();
+        }
+        setBaseSurface(surfaceControl);
         view.post(this::removeOnDrawListener);
     }
 

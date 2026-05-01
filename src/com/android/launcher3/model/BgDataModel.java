@@ -86,13 +86,16 @@ import foundation.e.bliss.utils.BlissDbUtils;
 /**
  * All the data stored in-memory and managed by the LauncherModel
  *
- * All the static data should be accessed on the background thread, A lock should be acquired on
- * this object when accessing any data from this model.
+ * All the static data should be accessed on the background thread. Acquire {@link #mLock} when
+ * accessing any data from this model.
  */
 @LauncherAppSingleton
 public class BgDataModel {
 
     private static final String TAG = "BgDataModel";
+
+    /** Dedicated monitor for synchronizing access to this model's mutable state. */
+    public final Object mLock = new Object();
 
     /**
      * Map of all the ItemInfos (shortcuts, folders, and widgets) created by

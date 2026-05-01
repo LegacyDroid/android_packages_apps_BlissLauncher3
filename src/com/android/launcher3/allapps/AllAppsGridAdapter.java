@@ -186,6 +186,16 @@ public class AllAppsGridAdapter<T extends Context & ActivityContext> extends
 
     @Override
     public void setAppsPerRow(int appsPerRow) {
+        // Check if list view mode is enabled
+        try {
+            boolean listMode = com.android.launcher3.dagger.LauncherComponentProvider
+                    .get((android.content.Context) mActivityContext).getLauncherPrefs()
+                    .get(com.android.launcher3.LauncherPrefs.DRAWER_LIST_VIEW);
+            if (listMode) {
+                appsPerRow = 1;
+            }
+        } catch (Exception e) { /* pref not available */ }
+
         mAppsPerRow = appsPerRow;
         int totalSpans = mAppsPerRow;
         for (int itemPerRow : mAdapterProvider.getSupportedItemsPerRowArray()) {

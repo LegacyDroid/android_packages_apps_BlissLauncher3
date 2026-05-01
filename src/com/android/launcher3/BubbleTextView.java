@@ -49,6 +49,8 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
+import android.app.WallpaperColors;
+import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -65,6 +67,7 @@ import android.icu.text.MessageFormat;
 import android.net.Uri;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.graphics.Typeface;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.TextUtils;
@@ -88,6 +91,7 @@ import androidx.annotation.UiThread;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.accessibility.BaseAccessibilityDelegate;
 import com.android.launcher3.dot.DotInfo;
 import com.android.launcher3.dragndrop.DragOptions;
@@ -236,6 +240,11 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
     protected int mDisplay;
 
+    // Cached label visibility preferences (read once at construction, views are
+    // recreated when preferences change via IDP reload)
+    private final boolean mShowHomeLabels;
+    private final boolean mShowDrawerLabels;
+
     private final CheckLongPressHelper mLongPressHelper;
 
     private boolean mLayoutHorizontal;
@@ -334,6 +343,12 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         mCenterVertically = a.getBoolean(R.styleable.BubbleTextView_centerVertically, false);
 
         mDisplay = a.getInteger(R.styleable.BubbleTextView_iconDisplay, DISPLAY_WORKSPACE);
+
+        // Cache label visibility preferences
+        LauncherPrefs labelPrefs = LauncherComponentProvider.get(context).getLauncherPrefs();
+        mShowHomeLabels = labelPrefs.get(LauncherPrefs.SHOW_HOME_LABELS);
+        mShowDrawerLabels = labelPrefs.get(LauncherPrefs.SHOW_DRAWER_LABELS);
+
         final int defaultIconSize;
         if (mDisplay == DISPLAY_WORKSPACE) {
             setTextSize(TypedValue.COMPLEX_UNIT_PX, mDeviceProfile.iconTextSizePx);
@@ -366,6 +381,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
                 defaultIconSize);
         a.recycle();
 
+        applyFontPreference(context);
+
         mRunningAppIndicatorWidth =
                 getResources().getDimensionPixelSize(R.dimen.taskbar_running_app_indicator_width);
         mRunningAppIndicatorHeight =
@@ -391,6 +408,13 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         setEllipsize(TruncateAt.END);
         setAccessibilityDelegate(mActivity.getAccessibilityDelegate());
         setTextAlpha(1f);
+
+        // Apply label visibility preference for drawer items (workspace items are
+        // handled in CellLayout.addViewToCellLayout via shouldTextBeVisible())
+        if ((mDisplay == DISPLAY_ALL_APPS || mDisplay == DISPLAY_PREDICTION_ROW
+                || mDisplay == DISPLAY_SEARCH_RESULT_APP_ROW) && !mShowDrawerLabels) {
+            setTextVisibility(false);
+        }
     }
 
     @Override
@@ -629,8 +653,12 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
     private void setNonPendingIcon(ItemInfoWithIcon info) {
         // Set nonPendingIcon acts as a restart which should refresh the flag state when applicable.
+        // Migration02 Phase 3.2: shouldUseThemedDrawable() decides per-display themed vs regular,
+        // honoring both LauncherPrefs.THEMED_ICONS (global) and LauncherPrefs.DRAWER_THEMED_ICONS
+        // (drawer-only) so the drawer can render real ThemedIconDrawables while the workspace
+        // stays normal.
         int flags = Objects.equals(info.getTargetPackage(), PRIVATE_SPACE_PACKAGE)
-                ? info.bitmap.creationFlags : shouldUseTheme() ? FLAG_THEMED : 0;
+                ? info.bitmap.creationFlags : shouldUseThemedDrawable() ? FLAG_THEMED : 0;
         // Remove badge on icons smaller than 48dp.
         if (mHideBadge || mDisplay == DISPLAY_SEARCH_RESULT_SMALL) {
             flags |= FLAG_NO_BADGE;
@@ -638,18 +666,81 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         if (mSkipUserBadge) {
             flags |= FLAG_SKIP_USER_BADGE;
         }
+        // Plan §3.2 calls for `info.bitmap.newThemedIcon(getContext())` when themed and
+        // `info.newIcon(getContext(), getDisplay())` otherwise. We route through
+        // info.newIcon(context, flags) which preserves the existing badge / disabled-state /
+        // shape-mask handling and dispatches to bitmap.newThemedIcon under the hood when
+        // FLAG_THEMED is set.
         FastBitmapDrawable iconDrawable = info.newIcon(getContext(), flags);
         mDotParams.appColor = iconDrawable.getIconColor();
         mDotParams.dotColor = getResources().getColor(
                 R.color.notification_dot_bg, getContext().getTheme());
         mDotParams.shadowDotColor = getContext().getResources()
                 .getColor(R.color.notification_dot_shadow, getContext().getTheme());
+
+        // Custom dot color override
+        try {
+            String dotColorPref = com.android.launcher3.dagger.LauncherComponentProvider
+                    .get(getContext()).getLauncherPrefs()
+                    .get(LauncherPrefs.DOT_COLOR);
+            if (!"default".equals(dotColorPref)) {
+                int customColor;
+                switch (dotColorPref) {
+                    case "red": customColor = 0xFFE53935; break;
+                    case "blue": customColor = 0xFF1A73E8; break;
+                    case "green": customColor = 0xFF01D066; break;
+                    case "white": customColor = 0xFFFFFFFF; break;
+                    case "black": customColor = 0xFF000000; break;
+                    case "orange": customColor = 0xFFFF6D00; break;
+                    case "purple": customColor = 0xFF7C4DFF; break;
+                    default: customColor = -1; break;
+                }
+                if (customColor != -1) {
+                    mDotParams.dotColor = customColor;
+                }
+            }
+        } catch (Exception e) { /* use default */ }
+
         setIcon(iconDrawable);
     }
 
     protected boolean shouldUseTheme() {
         return mDisplay == DISPLAY_WORKSPACE || mDisplay == DISPLAY_FOLDER
                 || mDisplay == DISPLAY_TASKBAR;
+    }
+
+    /**
+     * Migration02 Phase 3.2 — per-display themed-icon decision.
+     *
+     * <ul>
+     *   <li>{@link LauncherPrefs#THEMED_ICONS} on  → all surfaces themed.</li>
+     *   <li>{@link LauncherPrefs#DRAWER_THEMED_ICONS} on (with global off) → only drawer
+     *       surfaces (all-apps, prediction row, search-result rows) are themed; the
+     *       workspace, folders and dock keep their regular icons.</li>
+     *   <li>Both off → never themed.</li>
+     * </ul>
+     *
+     * Replaces Migration01's {@code applyDrawerOnlyMonoTint} PorterDuff shortcut: the
+     * returned boolean drives the real {@link com.android.launcher3.icons.BitmapInfo#FLAG_THEMED}
+     * pipeline via {@link com.android.launcher3.icons.BitmapInfo#newThemedIcon(Context)}.
+     */
+    private boolean shouldUseThemedDrawable() {
+        LauncherPrefs prefs;
+        try {
+            prefs = LauncherPrefs.get(getContext());
+        } catch (Throwable t) {
+            return false;
+        }
+        boolean global = prefs.get(com.android.launcher3.graphics.ThemeManager.THEMED_ICONS);
+        boolean drawerOnly = prefs.get(LauncherPrefs.DRAWER_THEMED_ICONS);
+        if (!global && !drawerOnly) return false;
+        if (global) return true;
+        // drawer-only: themed only on drawer surfaces.
+        return mDisplay == DISPLAY_ALL_APPS
+                || mDisplay == DISPLAY_PREDICTION_ROW
+                || mDisplay == DISPLAY_SEARCH_RESULT_APP_ROW
+                || mDisplay == DISPLAY_SEARCH_RESULT_SMALL
+                || mDisplay == DISPLAY_SEARCH_RESULT;
     }
 
     /**
@@ -1236,11 +1327,34 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     }
 
     public boolean shouldTextBeVisible() {
-        // Text should be visible everywhere but the hotseat.
+        // Text should be visible everywhere but the hotseat (unless dock labels pref is on).
         Object tag = getParent() instanceof FolderIcon ? ((View) getParent()).getTag() : getTag();
         ItemInfo info = tag instanceof ItemInfo ? (ItemInfo) tag : null;
-        return info == null || (info.container != LauncherSettings.Favorites.CONTAINER_HOTSEAT
-                && info.container != LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION);
+        boolean isHotseat = info != null
+                && (info.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT
+                || info.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION);
+        if (isHotseat) {
+            try {
+                boolean dockLabels = com.android.launcher3.dagger.LauncherComponentProvider
+                        .get(getContext()).getLauncherPrefs()
+                        .get(LauncherPrefs.DOCK_LABELS);
+                if (!dockLabels) return false;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        // Check cached label visibility preference based on display type
+        if (mDisplay == DISPLAY_WORKSPACE && !mShowHomeLabels) {
+            return false;
+        }
+        if ((mDisplay == DISPLAY_ALL_APPS || mDisplay == DISPLAY_PREDICTION_ROW
+                || mDisplay == DISPLAY_SEARCH_RESULT_APP_ROW)
+                && !mShowDrawerLabels) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -1270,7 +1384,73 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             // Special case to prevent text shadows in high contrast mode
             return Color.TRANSPARENT;
         }
-        return setColorAlphaBound(mTextColor, Math.round(Color.alpha(mTextColor) * mTextAlpha));
+        int base = mTextColor;
+        // User-controlled label color override on the workspace + folder open state.
+        if (mDisplay == DISPLAY_WORKSPACE || mDisplay == DISPLAY_FOLDER) {
+            try {
+                String mode = LauncherPrefs.get(getContext())
+                        .get(LauncherPrefs.HOME_LABEL_COLOR_MODE);
+                if ("light".equals(mode)) {
+                    base = Color.WHITE;
+                } else if ("dark".equals(mode)) {
+                    base = 0xFF202020;
+                } else if ("auto".equals(mode) || mode == null || mode.isEmpty()) {
+                    // Migration02 / Phase 7.4 — derive label color from wallpaper luminance.
+                    base = getAutoLabelColor();
+                }
+            } catch (Throwable ignored) { /* keep theme color */ }
+        }
+        return setColorAlphaBound(base, Math.round(Color.alpha(base) * mTextAlpha));
+    }
+
+    /**
+     * Migration02 / Phase 7.4 — compute a contrast-friendly label color from the system
+     * wallpaper's primary color via the WCAG relative-luminance formula. Cached at the
+     * application level (see {@link LauncherApplication#getAutoLabelColor}); recomputed when the
+     * platform broadcasts {@link android.content.Intent#ACTION_WALLPAPER_CHANGED}. Returns the
+     * default theme-resolved {@link #mTextColor} on any failure (e.g. emulator wallpaper that
+     * yields no {@link WallpaperColors}).
+     */
+    private int getAutoLabelColor() {
+        try {
+            // Prefer the cached app-wide value so per-icon work is a single field read.
+            android.content.Context appCtx = getContext().getApplicationContext();
+            if (appCtx instanceof LauncherApplication) {
+                Integer cached = ((LauncherApplication) appCtx).getCachedAutoLabelColor();
+                if (cached != null) return cached;
+            }
+            // Cold path / fallback — compute synchronously.
+            return computeAutoLabelColorFromWallpaper(getContext(), mTextColor);
+        } catch (Throwable ignored) {
+            return mTextColor;
+        }
+    }
+
+    /**
+     * Pure helper for the WCAG-luminance auto-color pipeline. Public-static so
+     * {@link LauncherApplication} can prime the cache up-front and on
+     * {@code ACTION_WALLPAPER_CHANGED}. The {@code fallback} is returned when
+     * {@link WallpaperManager#getWallpaperColors} returns null (emulator behaviour).
+     */
+    public static int computeAutoLabelColorFromWallpaper(android.content.Context ctx,
+            int fallback) {
+        try {
+            WallpaperColors wc = WallpaperManager.getInstance(ctx)
+                    .getWallpaperColors(WallpaperManager.FLAG_SYSTEM);
+            if (wc == null) return fallback;
+            int p = wc.getPrimaryColor().toArgb();
+            float r = ((p >> 16) & 0xFF) / 255f;
+            float g = ((p >> 8) & 0xFF) / 255f;
+            float b = (p & 0xFF) / 255f;
+            // sRGB → linear
+            r = r <= 0.03928f ? r / 12.92f : (float) Math.pow((r + 0.055f) / 1.055f, 2.4);
+            g = g <= 0.03928f ? g / 12.92f : (float) Math.pow((g + 0.055f) / 1.055f, 2.4);
+            b = b <= 0.03928f ? b / 12.92f : (float) Math.pow((b + 0.055f) / 1.055f, 2.4);
+            float luminance = 0.2126f * r + 0.7152f * g + 0.0722f * b;
+            return luminance > 0.5f ? 0xFF202020 : 0xFFFFFFFF;
+        } catch (Throwable ignored) {
+            return fallback;
+        }
     }
 
     /**
@@ -1496,6 +1676,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         if (mIcon != null) {
             mIcon.setVisible(getWindowVisibility() == VISIBLE && isShown(), false);
             mIcon.setHoverScaleEnabledForDisplay(mDisplay != DISPLAY_TASKBAR);
+            // Migration02 Phase 3.3: removed applyDrawerOnlyMonoTint() — the
+            // PorterDuff-tint approximation is replaced by the real per-display
+            // ThemedIconDrawable pipeline. See shouldUseThemedDrawable() above.
         }
     }
 
@@ -1705,5 +1888,43 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
      */
     public boolean canShowLongPressPopup() {
         return getTag() instanceof ItemInfo && ShortcutUtil.supportsShortcuts((ItemInfo) getTag());
+    }
+
+    private void applyFontPreference(android.content.Context context) {
+        try {
+            com.android.launcher3.LauncherPrefs prefs =
+                    LauncherComponentProvider.get(context).getLauncherPrefs();
+            String fontFamily = prefs.get(LauncherPrefs.FONT_FAMILY);
+            Typeface baseTf = getTypeface();
+            if (fontFamily != null && !"default".equals(fontFamily)) {
+                switch (fontFamily) {
+                    case "sans-serif": baseTf = Typeface.SANS_SERIF; break;
+                    case "serif": baseTf = Typeface.SERIF; break;
+                    case "monospace": baseTf = Typeface.MONOSPACE; break;
+                    case "cursive": baseTf = Typeface.create("cursive", Typeface.NORMAL); break;
+                }
+            }
+            // Apply font weight
+            String fontWeight = prefs.get(LauncherPrefs.FONT_WEIGHT);
+            if (fontWeight != null && !"normal".equals(fontWeight)) {
+                int style;
+                switch (fontWeight) {
+                    case "bold": style = Typeface.BOLD; break;
+                    case "light":
+                        baseTf = Typeface.create(baseTf, 300, false);
+                        setTypeface(baseTf);
+                        return;
+                    case "medium":
+                        baseTf = Typeface.create(baseTf, 500, false);
+                        setTypeface(baseTf);
+                        return;
+                    default: style = Typeface.NORMAL; break;
+                }
+                baseTf = Typeface.create(baseTf, style);
+            }
+            setTypeface(baseTf);
+        } catch (Exception e) {
+            // Use default typeface
+        }
     }
 }

@@ -57,7 +57,7 @@ public class PackageIncrementalDownloadUpdatedTask implements ModelUpdateTask {
                 mProgress,
                 mUser);
 
-        synchronized (appsList) {
+        synchronized (appsList.mLock) {
             List<AppInfo> updatedAppInfos = appsList.updatePromiseInstallInfo(downloadInfo);
             if (!updatedAppInfos.isEmpty()) {
                 for (AppInfo appInfo : updatedAppInfos) {
@@ -70,7 +70,7 @@ public class PackageIncrementalDownloadUpdatedTask implements ModelUpdateTask {
         }
 
         final ArrayList<WorkspaceItemInfo> updatedWorkspaceItems = new ArrayList<>();
-        synchronized (dataModel) {
+        synchronized (dataModel.mLock) {
             dataModel.forAllWorkspaceItemInfos(mUser, si -> {
                 if (mPackageName.equals(si.getTargetPackage())) {
                     si.runtimeStatusFlags &= ~ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE;

@@ -1,0 +1,59 @@
+// Migration04 §09: :bliss-compat — see Plans/Migration04/09-build-and-rollout.md §2.3
+plugins {
+    alias libs.plugins.android.library
+    alias libs.plugins.kotlin
+}
+
+android {
+    namespace 'foundation.e.bliss.compat'
+    compileSdk 36
+
+    defaultConfig {
+        minSdk 35
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    sourceSets {
+        named("main") {
+            java.srcDirs("src/main/kotlin")
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+
+    kotlinOptions {
+        jvmTarget = "21"
+    }
+}
+
+// Migration04 §09 — bliss-compat references hidden-API surfaces from the
+// stub framework.jar (android.window.DesktopModeFlags / DesktopExperienceFlags,
+// lineageos.providers.LineageSettings) and aconfig flag classes that ship as
+// pre-built jars under libs/. Pull them in via the same `addFrameworkJar`
+// helper the root project uses (declared in `allprojects { ext.… }`).
+addFrameworkJar('framework.jar')
+
+dependencies {
+    implementation 'androidx.annotation:annotation:1.9.0'
+
+    // com.android.window.flags.Flags (aconfig-generated platform flags)
+    compileOnly files("$rootDir/libs/com.android.window.flags.window-aconfig-java.jar")
+    // com.android.launcher3.Flags (project-internal aconfig)
+    compileOnly files("$rootDir/libs/com_android_launcher3_flags_lib.jar")
+    // com.android.wm.shell.shared.desktopmode.DesktopModeStatus (and
+    // lineageos.providers.LineageSettings) ship inside Launcher3QuickStepLib.jar.
+    compileOnly files("$rootDir/libs/Launcher3QuickStepLib.jar")
+}
+
+// Launcher3QuickStepLib.jar is .gitignored and produced by the root project's
+// makeReleaseJar task (out of libs/classes.jar). Local builds typically already
+// have the jar from a prior build, but a fresh CI checkout doesn't, so wire
+// the dependency explicitly.
+afterEvaluate {
+    tasks.named('preBuild').configure {
+        dependsOn rootProject.tasks.named('makeReleaseJar')
+    }
+}

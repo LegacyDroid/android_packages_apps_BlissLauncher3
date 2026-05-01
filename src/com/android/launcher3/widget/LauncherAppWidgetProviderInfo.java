@@ -19,6 +19,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.icons.cache.BaseIconCache;
 import com.android.launcher3.icons.cache.CachedObject;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
@@ -72,6 +73,7 @@ public class LauncherAppWidgetProviderInfo extends AppWidgetProviderInfo impleme
     protected boolean mIsMinSizeFulfilled;
 
     private PackageManager mPM;
+    private Context mContext;
 
     public static LauncherAppWidgetProviderInfo fromProviderInfo(Context context,
             AppWidgetProviderInfo info) {
@@ -101,7 +103,8 @@ public class LauncherAppWidgetProviderInfo extends AppWidgetProviderInfo impleme
     }
 
     public void initSpans(Context context, InvariantDeviceProfile idp) {
-        mPM = context.getApplicationContext().getPackageManager();
+        mContext = context.getApplicationContext();
+        mPM = mContext.getPackageManager();
         int minSpanX = 0;
         int minSpanY = 0;
         int maxSpanX = idp.numColumns;
@@ -169,6 +172,24 @@ public class LauncherAppWidgetProviderInfo extends AppWidgetProviderInfo impleme
         // Ensures the default span X and span Y will not exceed the current grid size.
         this.spanX = Math.min(spanX, idp.numColumns);
         this.spanY = Math.min(spanY, idp.numRows);
+
+        applyUnlimitedSizeOverride(idp);
+    }
+
+    private void applyUnlimitedSizeOverride(InvariantDeviceProfile idp) {
+        try {
+            if (mContext == null) return;
+            boolean unlimited = LauncherPrefs.get(mContext)
+                    .get(LauncherPrefs.WIDGET_UNLIMITED_SIZE);
+            if (unlimited) {
+                this.minSpanX = 1;
+                this.minSpanY = 1;
+                this.maxSpanX = idp.numColumns;
+                this.maxSpanY = idp.numRows;
+            }
+        } catch (Exception e) {
+            // Use defaults
+        }
     }
 
     /**
@@ -205,8 +226,20 @@ public class LauncherAppWidgetProviderInfo extends AppWidgetProviderInfo impleme
     }
 
     public Point getMinSpans() {
+        if (isForceResizeEnabled()) {
+            return new Point(minSpanX, minSpanY);
+        }
         return new Point((resizeMode & RESIZE_HORIZONTAL) != 0 ? minSpanX : -1,
                 (resizeMode & RESIZE_VERTICAL) != 0 ? minSpanY : -1);
+    }
+
+    private boolean isForceResizeEnabled() {
+        try {
+            if (mContext == null) return false;
+            return LauncherPrefs.get(mContext).get(LauncherPrefs.FORCE_WIDGET_RESIZE);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean isCustomWidget() {

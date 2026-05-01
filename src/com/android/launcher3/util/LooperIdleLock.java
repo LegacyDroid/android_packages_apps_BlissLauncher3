@@ -40,7 +40,7 @@ public class LooperIdleLock implements MessageQueue.IdleHandler {
     public boolean queueIdle() {
         synchronized (mLock) {
             mIsLocked = false;
-            mLock.notify();
+            mLock.notifyAll();
         }
         // Manually remove from the list in case we're calling this outside of the idle callbacks
         // (this is Ok in the normal flow as well because MessageQueue makes a copy of all handlers
@@ -50,15 +50,17 @@ public class LooperIdleLock implements MessageQueue.IdleHandler {
     }
 
     public boolean awaitLocked(long ms) {
-        if (mIsLocked) {
-            try {
-                // Just in case mFlushingWorkerThread changes but we aren't woken up,
-                // wait no longer than 1sec at a time
-                mLock.wait(ms);
-            } catch (InterruptedException ex) {
-                // Ignore
+        synchronized (mLock) {
+            if (mIsLocked) {
+                try {
+                    // Just in case mFlushingWorkerThread changes but we aren't woken up,
+                    // wait no longer than 1sec at a time
+                    mLock.wait(ms);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
             }
+            return mIsLocked;
         }
-        return mIsLocked;
     }
 }

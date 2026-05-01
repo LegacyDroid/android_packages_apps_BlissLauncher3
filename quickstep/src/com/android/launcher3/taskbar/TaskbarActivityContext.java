@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
 
 import static android.os.Trace.TRACE_TAG_APP;
@@ -81,9 +90,6 @@ import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.Toast;
-import android.window.DesktopExperienceFlags;
-import android.window.DesktopModeFlags;
-import android.window.DesktopModeFlags.DesktopModeFlag;
 import android.window.RemoteTransition;
 
 import androidx.annotation.NonNull;
@@ -157,7 +163,9 @@ import com.android.launcher3.util.ActivityOptionsWrapper;
 import com.android.launcher3.util.ApiWrapper;
 import com.android.launcher3.util.ApplicationInfoWrapper;
 import com.android.launcher3.util.ComponentKey;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 import com.android.launcher3.util.DisplayController;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.MultiPropertyFactory;
@@ -207,9 +215,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     private static final String TAG = "TaskbarActivityContext";
 
     private static final String WINDOW_TITLE = "Taskbar";
-
-    protected static final DesktopModeFlag ENABLE_TASKBAR_BEHIND_SHADE = new DesktopModeFlag(
-            Flags::enableTaskbarBehindShade, false);
 
     private final @Nullable Context mNavigationBarPanelContext;
 
@@ -438,7 +443,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     @Override
     public boolean isInDesktopMode() {
         return mControllers != null
-                && mControllers.taskbarDesktopModeController.isInDesktopMode(getDisplayId());
+                && mControllers.taskbarDesktopModeController.isInDesktopMode(DisplayIdCompat.getDisplayId(this));
     }
 
     @Override
@@ -1118,7 +1123,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     }
 
     private void updateTaskbarSnapshot(AnimatorSet anim, boolean isExpanded) {
-        if (!ENABLE_TASKBAR_BEHIND_SHADE.isTrue()) {
+        if (!DesktopFlagsCompat.enableTaskbarBehindShade()) {
             return;
         }
         if (mTaskbarSnapshotView == null) {
@@ -1194,7 +1199,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     }
 
     public void disableNavBarElements(int displayId, int state1, int state2, boolean animate) {
-        if (displayId != getDisplayId()) {
+        if (displayId != DisplayIdCompat.getDisplayId(this)) {
             return;
         }
         mControllers.rotationButtonController.onDisable2FlagChanged(state2);
@@ -1680,19 +1685,17 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 mControllers.taskbarRecentAppsController.getRunningAppState(taskId);
         Log.d(TAG, "Task id=" + taskId + ", Running app state=" + runningAppState);
         return runningAppState == RunningAppState.MINIMIZED
-                && DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_ALTTAB_TRANSITIONS_BUGFIX.isTrue();
+                && DesktopFlagsCompat.enableDesktopAppLaunchAlttabTransitionsBugfix();
     }
 
     private RemoteTransition createDesktopAppLaunchRemoteTransition(
             AppLaunchType appLaunchType, @Cuj.CujType int cujType) {
-        return new RemoteTransition(
-                new DesktopAppLaunchTransition(
-                        this,
-                        appLaunchType,
-                        cujType,
-                        getMainExecutor()
-                ),
-                "TaskbarDesktopAppLaunch");
+        DesktopAppLaunchTransition transition = new DesktopAppLaunchTransition(
+                this, appLaunchType, cujType, getMainExecutor());
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            return new RemoteTransition(transition, "TaskbarDesktopAppLaunch");
+        }
+        return new RemoteTransition(transition);
     }
 
     /**
@@ -1714,7 +1717,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     private void launchFromInAppTaskbar(@Nullable RecentsView recents,
             @Nullable View launchingIconView, List<? extends ItemInfo> itemInfos) {
         boolean launchedFromExternalDisplay =
-                DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()
+                DesktopFlagsCompat.enableTaskbarConnectedDisplays()
                         && !mIsPrimaryDisplay;
         if (recents == null && !launchedFromExternalDisplay) {
             return;
@@ -1827,7 +1830,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 }
             }
             if (isInDesktopMode()
-                    && DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_TRANSITIONS_BUGFIX.isTrue()) {
+                    && DesktopFlagsCompat.enableDesktopAppLaunchTransitionsBugfix()) {
                 launchDesktopApp(intent, info, displayId);
             } else {
                 startActivity(intent, null);
@@ -1857,7 +1860,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         }
         // There is no task associated with this launch - launch a new task through an intent
         ActivityOptionsWrapper opts = getActivityLaunchDesktopOptions();
-        if (DesktopModeFlags.ENABLE_START_LAUNCH_TRANSITION_FROM_TASKBAR_BUGFIX.isTrue()) {
+        if (DesktopFlagsCompat.enableStartLaunchTransitionFromTaskbarBugfix()) {
             mSysUiProxy.startLaunchIntentTransition(intent, opts.options.toBundle(), displayId);
         } else {
             startActivity(intent, opts.options.toBundle());

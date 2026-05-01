@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.fallback.window
 
 import android.animation.AnimatorSet
@@ -77,7 +85,7 @@ import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.RecentsViewContainer
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.systemui.shared.system.TaskStackChangeListener
-import com.android.systemui.shared.system.TaskStackChangeListeners
+import foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat
 
 /**
  * Class that will manage RecentsView lifecycle within a window and interface correctly where
@@ -195,7 +203,11 @@ class RecentsWindowManager(context: Context, wallpaperColorHints: Int) :
         }
 
     init {
-        TaskStackChangeListeners.getInstance().registerTaskStackListener(taskStackChangeListener)
+        try {
+            ActivityTaskManagerCompat.registerTaskStackListener(taskStackChangeListener)
+        } catch (e: SecurityException) {
+            // MANAGE_ACTIVITY_TASKS not available for non-system apps
+        }
     }
 
     override fun handleConfigurationChanged(configuration: Configuration?) {
@@ -212,7 +224,7 @@ class RecentsWindowManager(context: Context, wallpaperColorHints: Int) :
         super.destroy()
         Executors.MAIN_EXECUTOR.execute { onViewDestroyed() }
         cleanupRecentsWindow()
-        TaskStackChangeListeners.getInstance().unregisterTaskStackListener(taskStackChangeListener)
+        ActivityTaskManagerCompat.unregisterTaskStackListener(taskStackChangeListener)
         callbacks?.removeListener(recentsAnimationListener)
         recentsWindowTracker.onContextDestroyed(this)
         recentsView?.destroy()
@@ -284,14 +296,19 @@ class RecentsWindowManager(context: Context, wallpaperColorHints: Int) :
 
     private fun startHomeInternal() {
         val runner = LauncherAnimationRunner(mainThreadHandler, animationToHomeFactory, true)
+        val homeTransition = if (android.os.Build.VERSION.SDK_INT >= 36) {
+            RemoteTransition(
+                runner.toRemoteTransition(),
+                iApplicationThread,
+                "StartHomeFromRecents",
+            )
+        } else {
+            RemoteTransition(runner.toRemoteTransition())
+        }
         val options =
             ActivityOptions.makeRemoteAnimation(
                 RemoteAnimationAdapter(runner, HOME_APPEAR_DURATION, 0),
-                RemoteTransition(
-                    runner.toRemoteTransition(),
-                    iApplicationThread,
-                    "StartHomeFromRecents",
-                ),
+                homeTransition,
             )
         OverviewComponentObserver.startHomeIntentSafely(this, options.toBundle(), TAG)
         stateManager.moveToRestState()

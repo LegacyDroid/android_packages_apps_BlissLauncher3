@@ -62,7 +62,10 @@ public class MainThreadInitializedObject<T> {
             } else {
                 try {
                     return MAIN_EXECUTOR.submit(() -> get(context)).get();
-                } catch (InterruptedException | ExecutionException e) {
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -159,7 +162,10 @@ public class MainThreadInitializedObject<T> {
 
             try {
                 return MAIN_EXECUTOR.submit(() -> getObject(object)).get();
-            } catch (InterruptedException | ExecutionException e) {
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
                 throw new RuntimeException(e);
             }
         }

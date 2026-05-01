@@ -62,7 +62,7 @@ public class CacheDataUpdatedTask implements ModelUpdateTask {
         IconCache iconCache = taskController.getIconCache();
         ArrayList<ItemInfo> updatedItems = new ArrayList<>();
 
-        synchronized (dataModel) {
+        synchronized (dataModel.mLock) {
             dataModel.forAllWorkspaceItemInfos(mUser, si -> {
                 ComponentName cn = si.getTargetComponent();
                 if (si.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPLICATION

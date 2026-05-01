@@ -260,7 +260,10 @@ public class GridCustomizationsProxy implements ProxyProvider {
                     try {
                         // Wait for device profile to be fully reloaded and applied to the launcher
                         loadModelSync(mContext);
-                    } catch (ExecutionException | InterruptedException e) {
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        Log.e(TAG, "Fail to load model", e);
+                    } catch (ExecutionException e) {
                         Log.e(TAG, "Fail to load model", e);
                     }
                 }

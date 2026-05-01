@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.LineageSettingsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3;
 
 import static com.android.launcher3.GridType.GRID_TYPE_ANY;
@@ -94,6 +102,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+
+import foundation.e.bliss.compat.platform.LineageSettingsCompat;
 
 import lineageos.providers.LineageSettings;
 
@@ -306,11 +316,160 @@ public class InvariantDeviceProfile {
             } else if (ENABLE_TWOLINE_ALLAPPS_TOGGLE.getSharedPrefKey().equals(key)
                     && enableTwoLinesInAllApps != prefs.get(ENABLE_TWOLINE_ALLAPPS_TOGGLE)) {
                 onConfigChanged(context);
+            } else if (LauncherPrefs.ICON_SIZE_FACTOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.SHOW_HOME_LABELS.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.SHOW_DRAWER_LABELS.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DOCK_ICON_COUNT.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.SHOW_DOCK.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DRAWER_COLUMNS.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.SHOW_FOLDER_LABELS.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.FOLDER_COLUMNS.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.ICON_PACK.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DRAWER_OPACITY.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DRAWER_BG_COLOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.WALLPAPER_SCROLLING.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.FOLDER_BG_COLOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.FOLDER_BG_OPACITY.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.SHOW_STATUS_BAR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.FORCE_WIDGET_RESIZE.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.WIDGET_ROUNDED_CORNERS.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.WIDGET_UNLIMITED_SIZE.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DRAWER_ICON_SIZE_FACTOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.HOME_LABEL_SIZE_FACTOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DRAWER_LABEL_SIZE_FACTOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.FONT_FAMILY.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.ACCENT_COLOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.SHOW_AT_A_GLANCE.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.HIDE_DRAWER_SEARCH.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.AUTO_SHOW_KEYBOARD.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.FUZZY_SEARCH.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.SHOW_CALCULATOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DRAWER_SORT_ORDER.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DOCK_BG_COLOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DOCK_BG_OPACITY.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.SEARCH_BAR_COLOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.SEARCH_BAR_RADIUS.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DOT_COLOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.PAGE_TRANSITION.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DARK_MODE.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.WIDGET_PADDING.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DRAWER_LIST_VIEW.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.CONTACT_SEARCH.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.SHORTCUT_SEARCH.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.SEARCH_BAR_BOTTOM.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.GESTURE_EDGE_LEFT.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.GESTURE_EDGE_RIGHT.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DOCK_LABELS.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DOCK_CORNER_RADIUS.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.APP_LAUNCH_ANIMATION.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.FONT_WEIGHT.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.KEYBOARD_AUTO_HIDE.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.FOLDER_BADGES.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DRAWER_ANIMATION.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.HOTSEAT_BOTTOM_FACTOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.PAGE_INDICATOR_HEIGHT_FACTOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.WORKSPACE_TOP_PADDING_FACTOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.WORKSPACE_BOTTOM_PADDING_FACTOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DRAWER_CELL_HEIGHT_FACTOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DRAWER_LEFT_RIGHT_MARGIN_FACTOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.HOTSEAT_INSET_LEFT.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.HOTSEAT_INSET_RIGHT.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.HOTSEAT_INSET_TOP.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.HOTSEAT_INSET_BOTTOM.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DOCK_SEARCH_BAR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.FOLDER_LABEL_SIZE_FACTOR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.SMARTSPACE_SHOW_TIME.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.SMARTSPACE_SHOW_DATE.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.SMARTSPACE_NOW_PLAYING.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.USE_24H_FORMAT.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.DARK_STATUS_BAR.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.REMEMBER_DRAWER_POSITION.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.HOME_POPUP_ORDER.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.APP_NAME_OVERRIDES.getSharedPrefKey().equals(key)
+                    || LauncherPrefs.FOLDER_COLOR_OVERRIDES.getSharedPrefKey().equals(key)) {
+                onConfigChanged(context);
+            } else if (LauncherPrefs.BLUR_INTENSITY.getSharedPrefKey().equals(key)) {
+                foundation.e.bliss.blur.BlurWallpaperProvider.Companion.getInstance(context).updateAsync();
             }
         };
-        prefs.addListener(prefListener, FIXED_LANDSCAPE_MODE, ENABLE_TWOLINE_ALLAPPS_TOGGLE);
+        prefs.addListener(prefListener, FIXED_LANDSCAPE_MODE, ENABLE_TWOLINE_ALLAPPS_TOGGLE,
+                LauncherPrefs.ICON_SIZE_FACTOR, LauncherPrefs.SHOW_HOME_LABELS,
+                LauncherPrefs.SHOW_DRAWER_LABELS, LauncherPrefs.DOCK_ICON_COUNT,
+                LauncherPrefs.SHOW_DOCK, LauncherPrefs.BLUR_INTENSITY,
+                LauncherPrefs.DRAWER_COLUMNS, LauncherPrefs.SHOW_FOLDER_LABELS,
+                LauncherPrefs.FOLDER_COLUMNS, LauncherPrefs.ICON_PACK,
+                LauncherPrefs.DRAWER_OPACITY, LauncherPrefs.DRAWER_BG_COLOR,
+                LauncherPrefs.WALLPAPER_SCROLLING,
+                LauncherPrefs.FOLDER_BG_COLOR, LauncherPrefs.FOLDER_BG_OPACITY,
+                LauncherPrefs.SHOW_STATUS_BAR,
+                LauncherPrefs.FORCE_WIDGET_RESIZE, LauncherPrefs.WIDGET_ROUNDED_CORNERS,
+                LauncherPrefs.WIDGET_UNLIMITED_SIZE,
+                LauncherPrefs.DRAWER_ICON_SIZE_FACTOR,
+                LauncherPrefs.HOME_LABEL_SIZE_FACTOR, LauncherPrefs.DRAWER_LABEL_SIZE_FACTOR,
+                LauncherPrefs.FONT_FAMILY, LauncherPrefs.ACCENT_COLOR,
+                LauncherPrefs.SHOW_AT_A_GLANCE,
+                LauncherPrefs.HIDE_DRAWER_SEARCH, LauncherPrefs.AUTO_SHOW_KEYBOARD,
+                LauncherPrefs.FUZZY_SEARCH, LauncherPrefs.SHOW_CALCULATOR,
+                LauncherPrefs.DRAWER_SORT_ORDER, LauncherPrefs.DOCK_BG_COLOR,
+                LauncherPrefs.DOCK_BG_OPACITY, LauncherPrefs.SEARCH_BAR_COLOR,
+                LauncherPrefs.SEARCH_BAR_RADIUS, LauncherPrefs.DOT_COLOR,
+                LauncherPrefs.PAGE_TRANSITION,
+                LauncherPrefs.DARK_MODE, LauncherPrefs.WIDGET_PADDING,
+                LauncherPrefs.DRAWER_LIST_VIEW, LauncherPrefs.CONTACT_SEARCH,
+                LauncherPrefs.SHORTCUT_SEARCH,
+                LauncherPrefs.SEARCH_BAR_BOTTOM, LauncherPrefs.GESTURE_EDGE_LEFT,
+                LauncherPrefs.GESTURE_EDGE_RIGHT,
+                LauncherPrefs.DOCK_LABELS, LauncherPrefs.DOCK_CORNER_RADIUS,
+                LauncherPrefs.APP_LAUNCH_ANIMATION, LauncherPrefs.FONT_WEIGHT,
+                LauncherPrefs.KEYBOARD_AUTO_HIDE, LauncherPrefs.FOLDER_BADGES,
+                LauncherPrefs.DRAWER_ANIMATION,
+                LauncherPrefs.HOTSEAT_BOTTOM_FACTOR,
+                LauncherPrefs.PAGE_INDICATOR_HEIGHT_FACTOR,
+                LauncherPrefs.WORKSPACE_TOP_PADDING_FACTOR,
+                LauncherPrefs.WORKSPACE_BOTTOM_PADDING_FACTOR,
+                LauncherPrefs.DRAWER_CELL_HEIGHT_FACTOR,
+                LauncherPrefs.DRAWER_LEFT_RIGHT_MARGIN_FACTOR,
+                LauncherPrefs.HOTSEAT_INSET_LEFT, LauncherPrefs.HOTSEAT_INSET_RIGHT,
+                LauncherPrefs.HOTSEAT_INSET_TOP, LauncherPrefs.HOTSEAT_INSET_BOTTOM,
+                LauncherPrefs.DOCK_SEARCH_BAR,
+                LauncherPrefs.FOLDER_LABEL_SIZE_FACTOR,
+                LauncherPrefs.SMARTSPACE_SHOW_TIME, LauncherPrefs.SMARTSPACE_SHOW_DATE,
+                LauncherPrefs.SMARTSPACE_NOW_PLAYING, LauncherPrefs.USE_24H_FORMAT,
+                LauncherPrefs.DARK_STATUS_BAR, LauncherPrefs.REMEMBER_DRAWER_POSITION,
+                LauncherPrefs.HOME_POPUP_ORDER, LauncherPrefs.APP_NAME_OVERRIDES,
+                LauncherPrefs.FOLDER_COLOR_OVERRIDES);
         lifeCycle.addCloseable(() -> prefs.removeListener(prefListener,
-                FIXED_LANDSCAPE_MODE, ENABLE_TWOLINE_ALLAPPS_TOGGLE));
+                FIXED_LANDSCAPE_MODE, ENABLE_TWOLINE_ALLAPPS_TOGGLE,
+                LauncherPrefs.ICON_SIZE_FACTOR, LauncherPrefs.SHOW_HOME_LABELS,
+                LauncherPrefs.SHOW_DRAWER_LABELS, LauncherPrefs.DOCK_ICON_COUNT,
+                LauncherPrefs.SHOW_DOCK, LauncherPrefs.BLUR_INTENSITY,
+                LauncherPrefs.DRAWER_COLUMNS, LauncherPrefs.SHOW_FOLDER_LABELS,
+                LauncherPrefs.FOLDER_COLUMNS, LauncherPrefs.ICON_PACK,
+                LauncherPrefs.DRAWER_OPACITY, LauncherPrefs.DRAWER_BG_COLOR,
+                LauncherPrefs.WALLPAPER_SCROLLING,
+                LauncherPrefs.FOLDER_BG_COLOR, LauncherPrefs.FOLDER_BG_OPACITY,
+                LauncherPrefs.SHOW_STATUS_BAR,
+                LauncherPrefs.FORCE_WIDGET_RESIZE, LauncherPrefs.WIDGET_ROUNDED_CORNERS,
+                LauncherPrefs.WIDGET_UNLIMITED_SIZE,
+                LauncherPrefs.DRAWER_ICON_SIZE_FACTOR,
+                LauncherPrefs.HOME_LABEL_SIZE_FACTOR, LauncherPrefs.DRAWER_LABEL_SIZE_FACTOR,
+                LauncherPrefs.FONT_FAMILY, LauncherPrefs.ACCENT_COLOR,
+                LauncherPrefs.SHOW_AT_A_GLANCE,
+                LauncherPrefs.HIDE_DRAWER_SEARCH, LauncherPrefs.AUTO_SHOW_KEYBOARD,
+                LauncherPrefs.FUZZY_SEARCH, LauncherPrefs.SHOW_CALCULATOR,
+                LauncherPrefs.DRAWER_SORT_ORDER, LauncherPrefs.DOCK_BG_COLOR,
+                LauncherPrefs.DOCK_BG_OPACITY, LauncherPrefs.SEARCH_BAR_COLOR,
+                LauncherPrefs.SEARCH_BAR_RADIUS, LauncherPrefs.DOT_COLOR,
+                LauncherPrefs.PAGE_TRANSITION,
+                LauncherPrefs.DARK_MODE, LauncherPrefs.WIDGET_PADDING,
+                LauncherPrefs.DRAWER_LIST_VIEW, LauncherPrefs.CONTACT_SEARCH,
+                LauncherPrefs.SHORTCUT_SEARCH,
+                LauncherPrefs.SEARCH_BAR_BOTTOM, LauncherPrefs.GESTURE_EDGE_LEFT,
+                LauncherPrefs.GESTURE_EDGE_RIGHT,
+                LauncherPrefs.DOCK_LABELS, LauncherPrefs.DOCK_CORNER_RADIUS,
+                LauncherPrefs.APP_LAUNCH_ANIMATION, LauncherPrefs.FONT_WEIGHT,
+                LauncherPrefs.KEYBOARD_AUTO_HIDE, LauncherPrefs.FOLDER_BADGES,
+                LauncherPrefs.DRAWER_ANIMATION));
 
         SimpleBroadcastReceiver localeReceiver = new SimpleBroadcastReceiver(context,
                 MAIN_EXECUTOR, i -> onConfigChanged(context));
@@ -469,6 +628,15 @@ public class InvariantDeviceProfile {
         // If the partner customization apk contains any grid overrides, apply them
         // Supported overrides: numRows, numColumns, iconSize
         applyPartnerDeviceProfileOverrides(context, metrics);
+
+        // Apply user icon size scaling factor from preferences
+        applyIconSizeFactorOverride();
+        // Apply user dock icon count override
+        applyDockIconCountOverride();
+        // Apply user drawer column count override
+        applyDrawerColumnsOverride();
+        // Apply user folder column count override
+        applyFolderColumnsOverride();
 
         final List<DeviceProfile> localSupportedProfiles = new ArrayList<>();
         defaultWallpaperSize = new Point(displayInfo.currentSize);
@@ -808,6 +976,77 @@ public class InvariantDeviceProfile {
             }
         } catch (Resources.NotFoundException ex) {
             Log.e(TAG, "Invalid Partner grid resource!", ex);
+        }
+    }
+
+    /**
+     * Applies user-configured icon size scaling factor from preferences.
+     * The factor is stored as an int percentage (50-150), default 100.
+     */
+    /**
+     * Applies user-configured dock icon count from preferences.
+     * A value of -1 means use the default from the grid profile.
+     */
+    private void applyDockIconCountOverride() {
+        int count = mPrefs.get(LauncherPrefs.DOCK_ICON_COUNT);
+        if (count > 0) {
+            count = Math.max(2, Math.min(count, 6));
+            numShownHotseatIcons = count;
+            numDatabaseHotseatIcons = Math.max(numDatabaseHotseatIcons, count);
+        }
+    }
+
+    private void applyDrawerColumnsOverride() {
+        int count = mPrefs.get(LauncherPrefs.DRAWER_COLUMNS);
+        if (count > 0) {
+            count = Math.max(2, Math.min(count, 8));
+            numAllAppsColumns = count;
+        }
+    }
+
+    private void applyFolderColumnsOverride() {
+        int count = mPrefs.get(LauncherPrefs.FOLDER_COLUMNS);
+        if (count > 0) {
+            count = Math.max(2, Math.min(count, 5));
+            for (int i = 0; i < numFolderColumns.length; i++) {
+                numFolderColumns[i] = count;
+                numFolderRows[i] = count;
+            }
+        }
+    }
+
+    private void applyIconSizeFactorOverride() {
+        int homeIconPercent = mPrefs.get(LauncherPrefs.ICON_SIZE_FACTOR);
+        int drawerIconPercent = mPrefs.get(LauncherPrefs.DRAWER_ICON_SIZE_FACTOR);
+        int homeLabelPercent = mPrefs.get(LauncherPrefs.HOME_LABEL_SIZE_FACTOR);
+        int drawerLabelPercent = mPrefs.get(LauncherPrefs.DRAWER_LABEL_SIZE_FACTOR);
+
+        float homeFactor = homeIconPercent / 100f;
+        float drawerFactor = drawerIconPercent / 100f;
+        float homeLabelFactor = homeLabelPercent / 100f;
+        float drawerLabelFactor = drawerLabelPercent / 100f;
+
+        for (int i = 0; i < COUNT_SIZES; i++) {
+            if (homeIconPercent != 100) {
+                iconSize[i] *= homeFactor;
+            }
+            if (drawerIconPercent != 100 && allAppsIconSize != null
+                    && i < allAppsIconSize.length) {
+                allAppsIconSize[i] *= drawerFactor;
+            } else if (homeIconPercent != 100 && allAppsIconSize != null
+                    && i < allAppsIconSize.length) {
+                allAppsIconSize[i] *= homeFactor;
+            }
+            if (homeLabelPercent != 100) {
+                iconTextSize[i] *= homeLabelFactor;
+            }
+            if (drawerLabelPercent != 100 && allAppsIconTextSize != null
+                    && i < allAppsIconTextSize.length) {
+                allAppsIconTextSize[i] *= drawerLabelFactor;
+            } else if (homeLabelPercent != 100 && allAppsIconTextSize != null
+                    && i < allAppsIconTextSize.length) {
+                allAppsIconTextSize[i] *= homeLabelFactor;
+            }
         }
     }
 
@@ -1470,7 +1709,7 @@ public class InvariantDeviceProfile {
 
             WindowManagerProxy wm = WindowManagerProxy.INSTANCE.get(context);
             boolean isGesture = wm.getNavigationMode(context) == NavigationMode.NO_BUTTON;
-            boolean noHintGesture = isGesture && LineageSettings.System.getInt(
+            boolean noHintGesture = isGesture && LineageSettingsCompat.getSystemInt(
                     context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
             float hotseatBarBottom = ResourcesCompat.getFloat(res, R.dimen.hotseat_qsb_space_default);
             boolean isTablet = grid.deviceCategory == TYPE_TABLET;

@@ -15,26 +15,54 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/folder/GridFolderIconLayoutRule.kt
+ * Module:  bliss main source-set  (foundation.e.bliss.folder)
+ * Role:    REFACTORED
+ *
+ * Tree (foundation/e/bliss/folder/):
+ *   ├── GridFolderController.kt           — selects the layout rule per FolderIcon
+ *   ├── GridFolderIcon.kt                 — single-layer-mode FolderIcon variant
+ *   ├── GridFolderIconLayoutRule.kt       — preview-grid impl (this file)         ← THIS FILE
+ *   ├── GridFolder.kt                     — opened-folder layout for grid mode
+ *   ├── PreviewItem.kt                    — preview-item view
+ *   └── PreviewItemDecoration.kt          — preview-item background decoration
+ *
+ * Purpose:
+ *   Single-layer-mode subclass of ClippedFolderIconLayoutRule. Reads its
+ *   2×2-vs-3×3 grid configuration from the Bliss-side FolderPreviewPolicy
+ *   strategy (LauncherPolicy.folderPreview) instead of poking the
+ *   pref-registry constant directly. Keeps Bliss-folder UI sized correctly
+ *   when the user has the Lawnchair-style 2×2 preview on.
+ *
+ * Consumed by:
+ *   - foundation.e.bliss.folder.GridFolderController             — per-FolderIcon instantiation
+ *
+ * Calls into:
+ *   - foundation.e.bliss.policy.LauncherPolicy                   — folderPreview()
+ *   - com.android.launcher3.folder.ClippedFolderIconLayoutRule   — superclass
+ *
+ * Plan reference: Plans/Migration04/05-launcher-policy-strategies.md §5.3
+ */
 package foundation.e.bliss.folder
 
 import android.content.Context
-import com.android.launcher3.R
 import com.android.launcher3.folder.ClippedFolderIconLayoutRule
 import com.android.launcher3.folder.PreviewItemDrawingParams
+import foundation.e.bliss.policy.LauncherPolicy
 
-class GridFolderIconLayoutRule(context: Context) : ClippedFolderIconLayoutRule() {
+class GridFolderIconLayoutRule(context: Context) : ClippedFolderIconLayoutRule(context) {
     private val mGridCountX: Int
     private val mGridCountY: Int
     private val mItemIconScale: Float
     private val maxNumItemsInPreview: Int
 
     init {
-        val resources = context.resources
-        mGridCountX = resources.getInteger(R.integer.grid_folder_icon_rows)
-        mGridCountY = resources.getInteger(R.integer.grid_folder_icon_columns)
-        mItemIconScale =
-            resources.getInteger(R.integer.grid_folder_app_icon_size_percentage) / 100.0f
-        maxNumItemsInPreview = mGridCountX * mGridCountY
+        val policy = LauncherPolicy.folderPreview(context)
+        mGridCountX = policy.gridCountX
+        mGridCountY = policy.gridCountY
+        mItemIconScale = policy.itemIconScale
+        maxNumItemsInPreview = policy.maxNumItemsInPreview
     }
 
     override fun computePreviewItemDrawingParams(

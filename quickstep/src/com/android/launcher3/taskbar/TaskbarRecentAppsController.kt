@@ -13,10 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar
 
 import android.content.Context
-import android.window.DesktopModeFlags
 import androidx.annotation.VisibleForTesting
 import com.android.launcher3.BubbleTextView.RunningAppState
 import com.android.launcher3.Flags
@@ -25,13 +33,14 @@ import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.TaskItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.taskbar.TaskbarControllers.LoggableTaskbarController
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat
 import com.android.launcher3.util.CancellableTask
 import com.android.quickstep.RecentsFilterState
 import com.android.quickstep.RecentsModel
 import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.GroupTask
 import com.android.quickstep.util.SingleTask
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat
 import java.io.PrintWriter
 
 /**
@@ -43,8 +52,8 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
     LoggableTaskbarController {
 
     var canShowRunningApps =
-        DesktopModeStatus.canEnterDesktopMode(context) &&
-            DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_TASKBAR_RUNNING_APPS.isTrue
+        DesktopModeStatusCompat.canEnterDesktopMode(context) &&
+            DesktopFlagsCompat.enableDesktopWindowingTaskbarRunningApps()
         @VisibleForTesting
         set(isEnabledFromTest) {
             field = isEnabledFromTest

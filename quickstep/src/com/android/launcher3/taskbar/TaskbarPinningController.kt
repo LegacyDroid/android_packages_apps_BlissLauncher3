@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar
 
 import android.animation.AnimatorSet
@@ -23,6 +31,7 @@ import androidx.core.animation.doOnEnd
 import com.android.app.animation.Interpolators
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherPrefs.Companion.TASKBAR_PINNING
+import foundation.e.bliss.compat.platform.DisplayIdCompat
 import com.android.launcher3.LauncherPrefs.Companion.TASKBAR_PINNING_IN_DESKTOP_MODE
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_DIVIDER_MENU_CLOSE
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TASKBAR_DIVIDER_MENU_OPEN
@@ -59,7 +68,7 @@ class TaskbarPinningController(private val context: TaskbarActivityContext) :
                 val shouldPinTaskbar =
                     if (
                         controllers.taskbarDesktopModeController.isInDesktopModeAndNotInOverview(
-                            context.displayId
+                            DisplayIdCompat.getDisplayId(context)
                         )
                     ) {
                         !launcherPrefs.get(TASKBAR_PINNING_IN_DESKTOP_MODE)
@@ -143,7 +152,7 @@ class TaskbarPinningController(private val context: TaskbarActivityContext) :
         updateIsAnimatingTaskbarPinningAndNotifyTaskbarDragLayer(false)
         if (
             controllers.taskbarDesktopModeController.isInDesktopModeAndNotInOverview(
-                context.displayId
+                DisplayIdCompat.getDisplayId(context)
             )
         ) {
             launcherPrefs.put(

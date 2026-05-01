@@ -87,6 +87,21 @@ public class StatusBarTouchController implements TouchController {
             }
         } else if (mSystemUiProxy.isActive()) {
             mSystemUiProxy.onStatusBarTouchEvent(ev);
+        } else {
+            // Fallback: expand notifications via StatusBarManager when SystemUiProxy
+            // is not connected (e.g. debug/sideloaded builds)
+            expandNotificationsFallback();
+        }
+    }
+
+    private void expandNotificationsFallback() {
+        try {
+            Object sbm = mLauncher.getSystemService("statusbar");
+            if (sbm != null) {
+                sbm.getClass().getMethod("expandNotificationsPanel").invoke(sbm);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Notification panel fallback failed", e);
         }
     }
 
@@ -128,7 +143,9 @@ public class StatusBarTouchController implements TouchController {
                             mLauncher.swipeSearchContainer.getVisibility() == View.GONE)) {
                 ev.setAction(ACTION_DOWN);
                 dispatchTouchEvent(ev);
-                setWindowSlippery(true);
+                if (mSystemUiProxy.isActive()) {
+                    setWindowSlippery(true);
+                }
                 return true;
             }
             if (Math.abs(dx) > mTouchSlop) {
@@ -189,6 +206,6 @@ public class StatusBarTouchController implements TouchController {
             return false;
         }
 
-        return SystemUiProxy.INSTANCE.get(mLauncher).isActive();
+        return true;
     }
 }

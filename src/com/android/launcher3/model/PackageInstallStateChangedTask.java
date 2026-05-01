@@ -66,7 +66,7 @@ public class PackageInstallStateChangedTask implements ModelUpdateTask {
             return;
         }
 
-        synchronized (apps) {
+        synchronized (apps.mLock) {
             List<AppInfo> updatedAppInfos = apps.updatePromiseInstallInfo(mInstallInfo);
             if (!updatedAppInfos.isEmpty()) {
                 for (AppInfo appInfo : updatedAppInfos) {
@@ -77,7 +77,7 @@ public class PackageInstallStateChangedTask implements ModelUpdateTask {
             taskController.bindApplicationsIfNeeded();
         }
 
-        synchronized (dataModel) {
+        synchronized (dataModel.mLock) {
             final HashSet<ItemInfo> updates = new HashSet<>();
             dataModel.forAllWorkspaceItemInfos(mInstallInfo.user, si -> {
                 if (si.hasPromiseIconUi()

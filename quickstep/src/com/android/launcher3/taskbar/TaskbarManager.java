@@ -13,6 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
 
 import static android.content.Context.RECEIVER_EXPORTED;
@@ -63,8 +73,6 @@ import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.view.WindowManagerGlobal;
 import android.widget.FrameLayout;
-import android.window.DesktopExperienceFlags;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
@@ -80,7 +88,9 @@ import com.android.launcher3.statemanager.StatefulActivity;
 import com.android.launcher3.taskbar.TaskbarNavButtonController.TaskbarNavButtonCallbacks;
 import com.android.launcher3.taskbar.unfold.NonDestroyableScopedUnfoldTransitionProgressProvider;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 import com.android.launcher3.util.DisplayController;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.SettingsCache;
 import com.android.launcher3.util.SimpleBroadcastReceiver;
 import com.android.quickstep.AllAppsActionManager;
@@ -101,7 +111,7 @@ import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.systemui.shared.system.TaskStackChangeListener;
-import com.android.systemui.shared.system.TaskStackChangeListeners;
+import foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat;
 import com.android.systemui.unfold.UnfoldTransitionProgressProvider;
 import com.android.systemui.unfold.util.ScopedUnfoldTransitionProgressProvider;
 
@@ -216,7 +226,7 @@ public class TaskbarManager implements DisplayDecorationListener {
     private class RecreationListener implements DisplayController.DisplayInfoChangeListener {
         @Override
         public void onDisplayInfoChanged(Context context, DisplayController.Info info, int flags) {
-            int displayId = context.getDisplayId();
+            int displayId = DisplayIdCompat.getDisplayId(context);
             if ((flags & CHANGE_DENSITY) != 0) {
                 debugTaskbarManager("onDisplayInfoChanged: Display density changed", displayId);
             }
@@ -225,7 +235,7 @@ public class TaskbarManager implements DisplayDecorationListener {
             }
             if ((flags & CHANGE_DESKTOP_MODE) != 0) {
                 debugTaskbarManager("onDisplayInfoChanged: Desktop mode changed",
-                        context.getDisplayId());
+                        DisplayIdCompat.getDisplayId(context));
                 handleDisplayUpdatesForPerceptibleTasks();
             }
             if ((flags & CHANGE_TASKBAR_PINNING) != 0) {
@@ -323,7 +333,7 @@ public class TaskbarManager implements DisplayDecorationListener {
             for (Integer taskId : mPerceptibleTasks) {
                 ActivityManagerWrapper.getInstance().setTaskIsPerceptible(taskId, false);
             }
-            TaskStackChangeListeners.getInstance().unregisterTaskStackListener(
+            ActivityTaskManagerCompat.unregisterTaskStackListener(
                     mTaskStackListener);
         }
     }
@@ -335,7 +345,7 @@ public class TaskbarManager implements DisplayDecorationListener {
                 public void onExitDesktopMode(int duration) {
                     for (int taskbarIndex = 0; taskbarIndex < mTaskbars.size(); taskbarIndex++) {
                         int displayId = mTaskbars.keyAt(taskbarIndex);
-                        if (DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()
+                        if (DesktopFlagsCompat.enableTaskbarConnectedDisplays()
                                 && !isDefaultDisplay(displayId)) {
                             continue;
                         }
@@ -359,7 +369,7 @@ public class TaskbarManager implements DisplayDecorationListener {
                 public void onEnterDesktopMode(int duration) {
                     for (int taskbarIndex = 0; taskbarIndex < mTaskbars.size(); taskbarIndex++) {
                         int displayId = mTaskbars.keyAt(taskbarIndex);
-                        if (DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()
+                        if (DesktopFlagsCompat.enableTaskbarConnectedDisplays()
                                 && !isDefaultDisplay(displayId)) {
                             continue;
                         }
@@ -400,7 +410,7 @@ public class TaskbarManager implements DisplayDecorationListener {
             int displayId = getDefaultDisplayId();
             debugTaskbarManager("onActivityDestroyed:", displayId);
             if (mActivity != null) {
-                displayId = mActivity.getDisplayId();
+                displayId = DisplayIdCompat.getDisplayId(mActivity);
                 mActivity.removeOnDeviceProfileChangeListener(
                         mDebugActivityDeviceProfileChanged);
                 debugTaskbarManager("onActivityDestroyed: unregistering callbacks", displayId);
@@ -456,7 +466,7 @@ public class TaskbarManager implements DisplayDecorationListener {
             TaskbarNavButtonCallbacks navCallbacks,
             RecentsDisplayModel recentsDisplayModel) {
         mBaseContext = context;
-        mPrimaryDisplayId = mBaseContext.getDisplayId();
+        mPrimaryDisplayId = DisplayIdCompat.getDisplayId(mBaseContext);
         mAllAppsActionManager = allAppsActionManager;
         mNavCallbacks = navCallbacks;
         mRecentsDisplayModel = recentsDisplayModel;
@@ -519,7 +529,11 @@ public class TaskbarManager implements DisplayDecorationListener {
 
         if (eligibleForPerceptibleTasks()) {
             mTaskStackListener = new PerceptibleTaskListener();
-            TaskStackChangeListeners.getInstance().registerTaskStackListener(mTaskStackListener);
+            try {
+                ActivityTaskManagerCompat.registerTaskStackListener(mTaskStackListener);
+            } catch (SecurityException e) {
+                // MANAGE_ACTIVITY_TASKS not available for non-system apps
+            }
         } else {
             mTaskStackListener = null;
         }
@@ -534,8 +548,11 @@ public class TaskbarManager implements DisplayDecorationListener {
         if (eligibleForPerceptibleTasks()) {
             if (mTaskStackListener == null) {
                 mTaskStackListener = new PerceptibleTaskListener();
-                TaskStackChangeListeners.getInstance()
-                        .registerTaskStackListener(mTaskStackListener);
+                try {
+                    ActivityTaskManagerCompat.registerTaskStackListener(mTaskStackListener);
+                } catch (SecurityException e) {
+                    // MANAGE_ACTIVITY_TASKS not available for non-system apps
+                }
             }
         } else {
             // not eligible for perceptible tasks, so we should unregister the listener
@@ -826,7 +843,7 @@ public class TaskbarManager implements DisplayDecorationListener {
             // Non default displays should not use LauncherTaskbarUIController as they shouldn't
             // have access to the Launcher activity.
             if (!isDefaultDisplay(displayId)
-                    && DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()) {
+                    && DesktopFlagsCompat.enableTaskbarConnectedDisplays()) {
                 taskbar.setUIController(createTaskbarUIControllerForNonDefaultDisplay(displayId));
             } else if (mRecentsViewContainer != null) {
                 taskbar.setUIController(
@@ -998,12 +1015,12 @@ public class TaskbarManager implements DisplayDecorationListener {
             return;
         }
 
-        if (!DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue() || isDefaultDisplay(
+        if (!DesktopFlagsCompat.enableTaskbarConnectedDisplays() || isDefaultDisplay(
                 displayId)) {
             debugTaskbarManager(
                     "onDisplayAddSystemDecorations: not an external display! | "
                             + "ENABLE_TASKBAR_CONNECTED_DISPLAYS="
-                            + DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()
+                            + DesktopFlagsCompat.enableTaskbarConnectedDisplays()
                             + " isDefaultDisplay=" + isDefaultDisplay(displayId), displayId);
             return;
         }
@@ -1056,12 +1073,12 @@ public class TaskbarManager implements DisplayDecorationListener {
     @Override
     public void onDisplayRemoved(int displayId) {
         debugTaskbarManager("onDisplayRemoved: ", displayId);
-        if (!DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue() || isDefaultDisplay(
+        if (!DesktopFlagsCompat.enableTaskbarConnectedDisplays() || isDefaultDisplay(
                 displayId)) {
             debugTaskbarManager(
                     "onDisplayRemoved: not an external display! | "
                             + "ENABLE_TASKBAR_CONNECTED_DISPLAYS="
-                            + DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()
+                            + DesktopFlagsCompat.enableTaskbarConnectedDisplays()
                             + " isDefaultDisplay=" + isDefaultDisplay(displayId), displayId);
             return;
         }
@@ -1313,7 +1330,7 @@ public class TaskbarManager implements DisplayDecorationListener {
         }
 
         boolean isPrimaryDisplay = isDefaultDisplay(displayId)
-                || !DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue();
+                || !DesktopFlagsCompat.enableTaskbarConnectedDisplays();
 
         TaskbarActivityContext newTaskbar = new TaskbarActivityContext(getWindowContext(displayId),
                 navigationBarPanelContext, dp, getNavButtonController(displayId),
@@ -1363,7 +1380,7 @@ public class TaskbarManager implements DisplayDecorationListener {
         }
 
         boolean isPrimary = isDefaultDisplay(displayId)
-                || !DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue();
+                || !DesktopFlagsCompat.enableTaskbarConnectedDisplays();
         if (isPrimary) {
             return idp.getDeviceProfile(mPrimaryWindowContext);
         }
@@ -1451,7 +1468,7 @@ public class TaskbarManager implements DisplayDecorationListener {
             }
         };
         if (isDefaultDisplay(displayId)
-                || !DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()) {
+                || !DesktopFlagsCompat.enableTaskbarConnectedDisplays()) {
             mPrimaryComponentCallbacks = callbacks;
             mPrimaryWindowContext.registerComponentCallbacks(callbacks);
         } else {
@@ -1468,7 +1485,7 @@ public class TaskbarManager implements DisplayDecorationListener {
      */
     private void removeAndUnregisterComponentCallbacks(int displayId) {
         if (isDefaultDisplay(displayId)
-                || !DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()) {
+                || !DesktopFlagsCompat.enableTaskbarConnectedDisplays()) {
             mPrimaryWindowContext.unregisterComponentCallbacks(mPrimaryComponentCallbacks);
         } else {
             ComponentCallbacks callbacks = mComponentCallbacks.get(displayId);
@@ -1485,7 +1502,7 @@ public class TaskbarManager implements DisplayDecorationListener {
      */
     private void createNavButtonController(int displayId) {
         if (isDefaultDisplay(displayId)
-                || !DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()) {
+                || !DesktopFlagsCompat.enableTaskbarConnectedDisplays()) {
             mPrimaryNavButtonController = new TaskbarNavButtonController(
                     displayId,
                     mNavCallbacks,
@@ -1505,13 +1522,13 @@ public class TaskbarManager implements DisplayDecorationListener {
 
     private TaskbarNavButtonController getNavButtonController(int displayId) {
         return (isDefaultDisplay(displayId)
-                || !DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue())
+                || !DesktopFlagsCompat.enableTaskbarConnectedDisplays())
                 ? mPrimaryNavButtonController : mNavButtonControllers.get(displayId);
     }
 
     private void removeNavButtonController(int displayId) {
         if (isDefaultDisplay(displayId)
-                || !DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()) {
+                || !DesktopFlagsCompat.enableTaskbarConnectedDisplays()) {
             mPrimaryNavButtonController = null;
         } else {
             mNavButtonControllers.delete(displayId);
@@ -1671,7 +1688,7 @@ public class TaskbarManager implements DisplayDecorationListener {
      */
     private Context getWindowContext(int displayId) {
         return (isDefaultDisplay(displayId)
-                || !DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue())
+                || !DesktopFlagsCompat.enableTaskbarConnectedDisplays())
                 ? mPrimaryWindowContext : mWindowContexts.get(displayId);
     }
 
@@ -1688,7 +1705,7 @@ public class TaskbarManager implements DisplayDecorationListener {
      */
     private @Nullable WindowManager getWindowManager(int displayId) {
         if (isDefaultDisplay(displayId)
-                || !DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()) {
+                || !DesktopFlagsCompat.enableTaskbarConnectedDisplays()) {
             debugTaskbarManager("cannot get mPrimaryWindowManager", displayId);
             return mPrimaryWindowManager;
         }

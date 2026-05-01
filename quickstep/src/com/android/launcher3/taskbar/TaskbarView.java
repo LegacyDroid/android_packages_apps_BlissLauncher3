@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
 
 import static android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED;
-import static android.window.DesktopModeFlags.ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION;
-
 import static com.android.launcher3.BubbleTextView.DISPLAY_TASKBAR;
 import static com.android.launcher3.Flags.enableCursorHoverStates;
 import static com.android.launcher3.Flags.enableRecentsInTaskbar;
@@ -63,6 +69,7 @@ import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.taskbar.customization.TaskbarAllAppsButtonContainer;
 import com.android.launcher3.taskbar.customization.TaskbarDividerContainer;
 import com.android.launcher3.uioverrides.PredictedAppIcon;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 import com.android.quickstep.util.GroupTask;
@@ -399,7 +406,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // TODO(b/343289567 and b/316004172): support app pairs and desktop mode.
         recentTasks = recentTasks.stream().filter(it -> it instanceof SingleTask).toList();
 
-        if (ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue()) {
+        if (DesktopFlagsCompat.enableTaskbarRecentsLayoutTransition()) {
             updateItemsWithLayoutTransition(hotseatItemInfos, recentTasks);
         } else {
             updateItemsWithoutLayoutTransition(hotseatItemInfos, recentTasks);
@@ -627,9 +634,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             overflowSize = mIdealNumIcons - mMaxNumIcons;
             hasOverflow = overflowSize > 0;
 
-            if (!ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue() && hasOverflow) {
+            if (!DesktopFlagsCompat.enableTaskbarRecentsLayoutTransition() && hasOverflow) {
                 addView(mTaskbarOverflowView, mNextViewIndex++);
-            } else if (ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue()) {
+            } else if (DesktopFlagsCompat.enableTaskbarRecentsLayoutTransition()) {
                 // RTL case is handled after we add the recent icons, because the button needs to
                 // then be to the right of them.
                 if (hasOverflow && !mIsRtl) {
@@ -672,13 +679,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             final int expectedLayoutResId;
             boolean isCollection = false;
             if (!(task instanceof SingleTask)) {
-                if (task.taskViewType == TaskViewType.DESKTOP) {
-                    // TODO(b/316004172): use Desktop tile layout.
-                    expectedLayoutResId = -1;
-                } else {
-                    // TODO(b/343289567): use R.layout.app_pair_icon
-                    expectedLayoutResId = -1;
-                }
+                // TODO(b/316004172): use Desktop tile layout for DESKTOP tasks.
+                // TODO(b/343289567): use R.layout.app_pair_icon for app pairs.
+                expectedLayoutResId = -1;
                 isCollection = true;
             } else {
                 expectedLayoutResId = R.layout.taskbar_app_icon;
@@ -686,7 +689,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
             View recentIcon = null;
             // If a task is new, we should not reuse a view so that it animates in when it is added.
-            final boolean canReuseView = !ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue()
+            final boolean canReuseView = !DesktopFlagsCompat.enableTaskbarRecentsLayoutTransition()
                     || (mPrevRecentTasks.contains(task) && !mPrevOverflowTasks.contains(task));
             while (canReuseView && isNextViewInSection(GroupTask.class)) {
                 recentIcon = getChildAt(mNextViewIndex);
@@ -696,7 +699,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 if ((recentIcon.getSourceLayoutResId() != expectedLayoutResId)
                         || (isCollection && tag != task)
                         // Remove view corresponding to removed task so that it animates out.
-                        || (ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue()
+                        || (DesktopFlagsCompat.enableTaskbarRecentsLayoutTransition()
                                 && (!recentTasksSet.contains(tag)
                                         || overflownRecentsSet.contains(tag)))) {
                     removeAndRecycle(recentIcon);
@@ -729,7 +732,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             removeAndRecycle(getChildAt(mNextViewIndex));
         }
 
-        if (ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue() && mIsRtl && hasOverflow) {
+        if (DesktopFlagsCompat.enableTaskbarRecentsLayoutTransition() && mIsRtl && hasOverflow) {
             if (mPrevOverflowTasks.isEmpty()) {
                 addView(mTaskbarOverflowView, mNextViewIndex);
             }
@@ -1137,7 +1140,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         if (navbarOnRight) {
             return getWidth() - navSpaceNeeded;
         } else {
-            return navSpaceNeeded + getIconLayoutWidth();
+            return (float) navSpaceNeeded + getIconLayoutWidth();
         }
     }
 }

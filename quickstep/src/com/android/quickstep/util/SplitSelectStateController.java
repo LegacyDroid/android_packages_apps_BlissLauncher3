@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.QuickStepContractCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.util;
 
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_DESKTOP_MODE_SPLIT_LEFT_TOP;
@@ -97,7 +105,7 @@ import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.views.SplitInstructionsView;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
-import com.android.systemui.shared.system.QuickStepContract;
+import foundation.e.bliss.compat.quickstep.QuickStepContractCompat;
 import com.android.wm.shell.shared.split.SplitScreenConstants.PersistentSnapPosition;
 import com.android.wm.shell.splitscreen.ISplitSelectListener;
 
@@ -564,11 +572,16 @@ public class SplitSelectStateController {
         ShortcutInfo initialShortcut = launchData.getInitialShortcut();
         Bundle optionsBundle = options1.toBundle();
 
-        final RemoteSplitLaunchTransitionRunner animationRunner =
-                new RemoteSplitLaunchTransitionRunner(firstTaskId, secondTaskId, callback);
-        final RemoteTransition remoteTransition = new RemoteTransition(animationRunner,
-                ActivityThread.currentActivityThread().getApplicationThread(),
-                "LaunchAppFullscreen");
+        final RemoteTransition remoteTransition;
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            final RemoteSplitLaunchTransitionRunner animationRunner =
+                    new RemoteSplitLaunchTransitionRunner(firstTaskId, secondTaskId, callback);
+            remoteTransition = new RemoteTransition(animationRunner,
+                    ActivityThread.currentActivityThread().getApplicationThread(),
+                    "LaunchAppFullscreen");
+        } else {
+            remoteTransition = null;
+        }
         InstanceId instanceId = mSessionInstanceIds.first;
         switch (launchData.getSplitLaunchType()) {
             case SPLIT_SINGLE_TASK_FULLSCREEN -> mSystemUiProxy.startTasks(firstTaskId,
@@ -597,6 +610,9 @@ public class SplitSelectStateController {
 
     private RemoteTransition getRemoteTransition(int firstTaskId, int secondTaskId,
             @Nullable Consumer<Boolean> callback, String transitionName) {
+        if (android.os.Build.VERSION.SDK_INT < 36) {
+            return null;
+        }
         final RemoteSplitLaunchTransitionRunner animationRunner =
                 new RemoteSplitLaunchTransitionRunner(firstTaskId, secondTaskId, callback);
         return new RemoteTransition(animationRunner,
@@ -715,7 +731,7 @@ public class SplitSelectStateController {
                             finishAdapter.run();
                             cleanup(true /*success*/);
                         },
-                        QuickStepContract.getWindowCornerRadius(mContainer.asContext()));
+                        QuickStepContractCompat.getWindowCornerRadius(mContainer.asContext()));
             });
         }
 

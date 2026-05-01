@@ -44,7 +44,7 @@ class ShortcutsChangedTask(
         // Find WorkspaceItemInfo's that have changed on the workspace.
         val matchingWorkspaceItems = ArrayList<WorkspaceItemInfo>()
 
-        synchronized(dataModel) {
+        synchronized(dataModel.mLock) {
             dataModel.forAllWorkspaceItemInfos(user) { wai: WorkspaceItemInfo ->
                 if (
                     (wai.itemType == ITEM_TYPE_DEEP_SHORTCUT) &&

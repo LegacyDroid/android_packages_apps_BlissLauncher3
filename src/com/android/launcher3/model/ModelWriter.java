@@ -263,7 +263,7 @@ public class ModelWriter {
             writer.put(Favorites._ID, item.id);
 
             mModel.getModelDbController().insert(writer.getValues(mContext));
-            synchronized (mBgDataModel) {
+            synchronized (mBgDataModel.mLock) {
                 checkItemInfoLocked(item.id, item, stackTrace);
                 mBgDataModel.addItem(mContext, item, true);
                 verifier.verifyModel();
@@ -462,7 +462,7 @@ public class ModelWriter {
 
         protected void updateItemArrays(ItemInfo item, int itemId) {
             // Lock on mBgLock *after* the db operation
-            synchronized (mBgDataModel) {
+            synchronized (mBgDataModel.mLock) {
                 checkItemInfoLocked(itemId, item, mStackTrace);
 
                 if (item.container != Favorites.CONTAINER_DESKTOP &&

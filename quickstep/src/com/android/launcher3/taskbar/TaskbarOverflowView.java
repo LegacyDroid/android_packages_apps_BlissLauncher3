@@ -491,6 +491,6 @@ public class TaskbarOverflowView extends FrameLayout implements Reorderable {
             return 0;
         }
         // First half of items is on top, later half is on bottom.
-        return (itemIndex + 1 <= itemCount / 2 ? -1 : 1) * baseOffset;
+        return (itemIndex + 1 <= (double) itemCount / 2 ? -1 : 1) * baseOffset;
     }
 }

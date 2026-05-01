@@ -59,11 +59,17 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
     override fun getPersons(si: ShortcutInfo) = si.persons ?: Utilities.EMPTY_PERSON_ARRAY
 
     override fun getActivityOverrides(): Map<String, LauncherActivityInfo> =
-        mContext.getSystemService(LauncherApps::class.java)!!.activityOverrides
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            mContext.getSystemService(LauncherApps::class.java)!!.activityOverrides
+        } else {
+            emptyMap()
+        }
 
     override fun createFadeOutAnimOptions(): ActivityOptions =
         ActivityOptions.makeBasic().apply {
-            remoteTransition = RemoteTransition(FadeOutRemoteTransition(), "FadeOut")
+            if (android.os.Build.VERSION.SDK_INT >= 36) {
+                remoteTransition = RemoteTransition(FadeOutRemoteTransition(), "FadeOut")
+            }
         }
 
     override fun queryAllUsers(): Map<UserHandle, UserIconInfo> {
@@ -122,7 +128,11 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
 
     /** Returns an intent which can be used to open Private Space Settings. */
     override fun getPrivateSpaceSettingsIntent(): Intent? =
-        if (allowPrivateProfile() && enablePrivateSpace())
+        if (
+            android.os.Build.VERSION.SDK_INT >= 36 &&
+            allowPrivateProfile() &&
+            enablePrivateSpace()
+        )
             ProxyActivityStarter.getLaunchIntent(
                 mContext,
                 StartActivityParams(null as PendingIntent?, 0).apply {
@@ -145,6 +155,9 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
         lai.activityInfo.resizeMode == ActivityInfo.RESIZE_MODE_UNRESIZEABLE
 
     override fun supportsMultiInstance(lai: LauncherActivityInfo): Boolean {
+        if (android.os.Build.VERSION.SDK_INT < 36) {
+            return super.supportsMultiInstance(lai)
+        }
         return try {
             super.supportsMultiInstance(lai) || lai.supportsMultiInstance()
         } catch (e: Exception) {
@@ -199,9 +212,18 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
     }
 
     override fun getApplicationInfoHash(appInfo: ApplicationInfo): String =
-        (appInfo.sourceDir?.hashCode() ?: 0).toString() + " " + appInfo.longVersionCode
+        try {
+            (appInfo.sourceDir?.hashCode() ?: 0).toString() + " " + appInfo.longVersionCode
+        } catch (e: NoSuchFieldError) {
+            super.getApplicationInfoHash(appInfo)
+        }
 
-    override fun getRoundIconRes(appInfo: ApplicationInfo) = appInfo.roundIconRes
+    override fun getRoundIconRes(appInfo: ApplicationInfo): Int =
+        try {
+            appInfo.roundIconRes
+        } catch (e: NoSuchFieldError) {
+            super.getRoundIconRes(appInfo)
+        }
 
     override fun isFileDrawable(shortcutInfo: ShortcutInfo) =
         shortcutInfo.hasIconFile() || shortcutInfo.hasIconUri()

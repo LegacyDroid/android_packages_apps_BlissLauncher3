@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.desktop
 
 import android.app.WindowConfiguration.ACTIVITY_TYPE_STANDARD
 import android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM
 import android.content.Context
-import android.window.DesktopModeFlags
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat
 import android.window.RemoteTransition
 import android.window.TransitionFilter
 import android.window.TransitionFilter.CONTAINER_ORDER_TOP
@@ -27,7 +36,7 @@ import com.android.internal.jank.Cuj
 import com.android.launcher3.desktop.DesktopAppLaunchTransition.AppLaunchType
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.quickstep.SystemUiProxy
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat
 
 /** Manages transitions related to app launches in Desktop Mode. */
 class DesktopAppLaunchTransitionManager(
@@ -44,16 +53,17 @@ class DesktopAppLaunchTransitionManager(
         if (!shouldRegisterTransitions()) {
             return
         }
-        remoteWindowLimitUnminimizeTransition =
-            RemoteTransition(
-                DesktopAppLaunchTransition(
-                    context,
-                    AppLaunchType.UNMINIMIZE,
-                    Cuj.CUJ_DESKTOP_MODE_APP_LAUNCH_FROM_INTENT,
-                    MAIN_EXECUTOR,
-                ),
-                "DesktopWindowLimitUnminimize",
+        val unminimizeRunner = DesktopAppLaunchTransition(
+                context,
+                AppLaunchType.UNMINIMIZE,
+                Cuj.CUJ_DESKTOP_MODE_APP_LAUNCH_FROM_INTENT,
+                MAIN_EXECUTOR,
             )
+        remoteWindowLimitUnminimizeTransition = if (android.os.Build.VERSION.SDK_INT >= 36) {
+            RemoteTransition(unminimizeRunner, "DesktopWindowLimitUnminimize")
+        } else {
+            RemoteTransition(unminimizeRunner)
+        }
         systemUiProxy.registerRemoteTransition(
             remoteWindowLimitUnminimizeTransition,
             buildAppLaunchFilter(),
@@ -73,8 +83,8 @@ class DesktopAppLaunchTransitionManager(
     }
 
     private fun shouldRegisterTransitions(): Boolean =
-        DesktopModeStatus.canEnterDesktopMode(context) &&
-            DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_TRANSITIONS_BUGFIX.isTrue
+        DesktopModeStatusCompat.canEnterDesktopMode(context) &&
+            DesktopFlagsCompat.enableDesktopAppLaunchTransitionsBugfix()
 
     companion object {
         private fun buildAppLaunchFilter(): TransitionFilter {

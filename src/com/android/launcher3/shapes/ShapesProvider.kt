@@ -45,42 +45,38 @@ object ShapesProvider {
     @VisibleForTesting const val ARCH_KEY = "arch"
 
     val iconShapes =
-        if (Flags.newCustomizationPickerUi() && LauncherFlags.enableLauncherIconShapes()) {
-            arrayOf(
-                IconShapeModel(
-                    key = CIRCLE_KEY,
-                    title = "circle",
-                    pathString = CIRCLE_PATH,
-                    folderPathString = FOLDER_CLOVER_PATH,
-                ),
-                IconShapeModel(
-                    key = SQUARE_KEY,
-                    title = "square",
-                    pathString = SQUARE_PATH,
-                    folderPathString = FOLDER_SQUARE_PATH,
-                ),
-                IconShapeModel(
-                    key = FOUR_SIDED_COOKIE_KEY,
-                    title = "4 sided cookie",
-                    pathString = FOUR_SIDED_COOKIE_PATH,
-                    folderPathString = FOLDER_COMPLEX_CLOVER_PATH,
-                    iconScale = 72f / 83.4f,
-                ),
-                IconShapeModel(
-                    key = SEVEN_SIDED_COOKIE_KEY,
-                    title = "7 sided cookie",
-                    pathString = SEVEN_SIDED_COOKIE_PATH,
-                    folderPathString = FOLDER_CLOVER_PATH,
-                    iconScale = 72f / 80f,
-                ),
-                IconShapeModel(
-                    key = ARCH_KEY,
-                    title = "arch",
-                    pathString = ARCH_PATH,
-                    folderPathString = FOLDER_ARCH_PATH,
-                ),
-            )
-        } else {
-            arrayOf(IconShapeModel(key = CIRCLE_KEY, title = "circle", pathString = CIRCLE_PATH))
-        }
+        arrayOf(
+            IconShapeModel(
+                key = CIRCLE_KEY,
+                title = "circle",
+                pathString = CIRCLE_PATH,
+                folderPathString = FOLDER_CLOVER_PATH,
+            ),
+            IconShapeModel(
+                key = SQUARE_KEY,
+                title = "square",
+                pathString = SQUARE_PATH,
+                folderPathString = FOLDER_SQUARE_PATH,
+            ),
+            IconShapeModel(
+                key = FOUR_SIDED_COOKIE_KEY,
+                title = "4 sided cookie",
+                pathString = FOUR_SIDED_COOKIE_PATH,
+                folderPathString = FOLDER_COMPLEX_CLOVER_PATH,
+                iconScale = 72f / 83.4f,
+            ),
+            IconShapeModel(
+                key = SEVEN_SIDED_COOKIE_KEY,
+                title = "7 sided cookie",
+                pathString = SEVEN_SIDED_COOKIE_PATH,
+                folderPathString = FOLDER_CLOVER_PATH,
+                iconScale = 72f / 80f,
+            ),
+            IconShapeModel(
+                key = ARCH_KEY,
+                title = "arch",
+                pathString = ARCH_PATH,
+                folderPathString = FOLDER_ARCH_PATH,
+            ),
+        )
 }

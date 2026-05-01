@@ -363,6 +363,21 @@ public class ItemInstallQueue {
             }
             return false;
         }
+
+        @Override
+        public int hashCode() {
+            int result = user.hashCode();
+            result = 31 * result + itemType;
+            result = 31 * result + intent.toUri(0).hashCode();
+            if (shortcutInfo != null) {
+                result = 31 * result + shortcutInfo.getId().hashCode();
+                result = 31 * result + shortcutInfo.getPackage().hashCode();
+            }
+            if (providerInfo != null) {
+                result = 31 * result + providerInfo.provider.hashCode();
+            }
+            return result;
+        }
     }
 
     private static String getIntentPackage(Intent intent) {

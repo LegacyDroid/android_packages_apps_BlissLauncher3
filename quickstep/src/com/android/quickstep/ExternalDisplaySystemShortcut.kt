@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep
 
 import android.view.View
@@ -24,9 +33,9 @@ import com.android.launcher3.popup.SystemShortcut
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.RecentsViewContainer
 import com.android.quickstep.views.TaskContainer
-import com.android.window.flags.Flags
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat
 import com.android.wm.shell.shared.desktopmode.DesktopModeCompatPolicy
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat
 
 /** A menu item that allows the user to move the current app into external display. */
 class ExternalDisplaySystemShortcut(
@@ -71,9 +80,9 @@ class ExternalDisplaySystemShortcut(
                     val taskKey = taskContainer.task.key
                     val desktopModeCompatPolicy = DesktopModeCompatPolicy(context)
                     return when {
-                        !DesktopModeStatus.canEnterDesktopMode(context) -> null
+                        !DesktopModeStatusCompat.canEnterDesktopMode(context) -> null
 
-                        !Flags.moveToExternalDisplayShortcut() -> null
+                        !DesktopFlagsCompat.moveToExternalDisplayShortcut() -> null
 
                         desktopModeCompatPolicy.isTopActivityExemptFromDesktopWindowing(
                             taskKey.baseActivity?.packageName,

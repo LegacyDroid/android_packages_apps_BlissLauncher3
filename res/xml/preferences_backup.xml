@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Migration04 §04: backup screen — see Plans/Migration04/04-settings-ui-modularization.md §6 -->
+<androidx.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:launcher="http://schemas.android.com/apk/res-auto"
+    android:title="@string/backup_restore_category_title">
+
+    <Preference
+        android:key="pref_backup_create"
+        android:title="@string/backup_create_title"
+        android:summary="@string/backup_create_summary"
+        android:persistent="false" />
+
+    <Preference
+        android:key="pref_backup_restore"
+        android:title="@string/backup_restore_title"
+        android:summary="@string/backup_restore_summary"
+        android:persistent="false" />
+
+    <Preference
+        android:key="pref_lawnchair_import"
+        android:title="@string/lawnchair_import_title"
+        android:summary="@string/lawnchair_import_summary"
+        android:persistent="false" />
+
+</androidx.preference.PreferenceScreen>

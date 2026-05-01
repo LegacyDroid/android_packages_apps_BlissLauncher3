@@ -451,8 +451,8 @@ public abstract class DragView<T extends Context & ActivityContext> extends Fram
     public void move(int touchX, int touchY) {
         if (touchX > 0 && touchY > 0 && mLastTouchX > 0 && mLastTouchY > 0
                 && mScaledMaskPath != null) {
-            mTranslateX.animateToPos(mLastTouchX - touchX);
-            mTranslateY.animateToPos(mLastTouchY - touchY);
+            mTranslateX.animateToPos((float) mLastTouchX - touchX);
+            mTranslateY.animateToPos((float) mLastTouchY - touchY);
         }
         mLastTouchX = touchX;
         mLastTouchY = touchY;

@@ -12,4 +12,34 @@
         <item name="android:colorAccent">@color/colorAccent</item>
         <item name="android:colorControlActivated">@color/colorAccent</item>
     </style>
+
+    <style name="AccentOverlay" />
+    <style name="AccentOverlay.Blue">
+        <item name="colorAccent">@color/accent_val_blue</item>
+        <item name="android:colorAccent">@color/accent_val_blue</item>
+    </style>
+    <style name="AccentOverlay.Green">
+        <item name="colorAccent">@color/accent_val_green</item>
+        <item name="android:colorAccent">@color/accent_val_green</item>
+    </style>
+    <style name="AccentOverlay.Red">
+        <item name="colorAccent">@color/accent_val_red</item>
+        <item name="android:colorAccent">@color/accent_val_red</item>
+    </style>
+    <style name="AccentOverlay.Purple">
+        <item name="colorAccent">@color/accent_val_purple</item>
+        <item name="android:colorAccent">@color/accent_val_purple</item>
+    </style>
+    <style name="AccentOverlay.Orange">
+        <item name="colorAccent">@color/accent_val_orange</item>
+        <item name="android:colorAccent">@color/accent_val_orange</item>
+    </style>
+    <style name="AccentOverlay.Pink">
+        <item name="colorAccent">@color/accent_val_pink</item>
+        <item name="android:colorAccent">@color/accent_val_pink</item>
+    </style>
+    <style name="AccentOverlay.Teal">
+        <item name="colorAccent">@color/accent_val_teal</item>
+        <item name="android:colorAccent">@color/accent_val_teal</item>
+    </style>
 </resources>

@@ -104,7 +104,7 @@ public class BitmapCreationCheck {
 
             @Override
             public void run() {
-                mCurrentThreadDrawing.set(false);
+                mCurrentThreadDrawing.remove();
             }
         }
 

@@ -129,7 +129,8 @@ public class GridFolder extends Folder implements OnAlarmListener {
         return mGridFolderPage.getBackground();
     }
 
-    private int getContentAreaWidth() {
+    @Override
+    protected int getContentAreaWidth() {
         return Math.max(mContent.getDesiredWidth(), MIN_CONTENT_DIMEN);
     }
 
@@ -141,11 +142,13 @@ public class GridFolder extends Folder implements OnAlarmListener {
         return Math.max(height, MIN_CONTENT_DIMEN);
     }
 
-    private int getFolderWidth() {
+    @Override
+    protected int getFolderWidth() {
         return getPaddingLeft() + getPaddingRight() + mContent.getDesiredWidth();
     }
 
-    private int getFolderHeight() {
+    @Override
+    protected int getFolderHeight() {
         return mContent.getDesiredHeight() + mFooterHeight;
     }
 

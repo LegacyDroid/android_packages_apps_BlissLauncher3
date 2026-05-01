@@ -32,4 +32,500 @@
     <string name="show_notification_count">Show notification count</string>
     <string name="add_to_widget_Screen">Add to widget screen</string>
     <string name="select_a_widget">Please select a widget</string>
+
+    <!-- General settings -->
+    <string name="general_category_title">General</string>
+
+    <!-- Home screen settings -->
+    <string name="home_screen_category_title">Home screen</string>
+
+    <!-- Advanced settings -->
+    <string name="advanced_category_title">Advanced</string>
+    <string name="single_layer_mode_title">Single layer mode</string>
+    <string name="single_layer_mode_summary">Show all apps on the home screen without an app drawer</string>
+
+    <!-- Customization settings (deprecated - kept for reference) -->
+    <string name="customization_category_title">Customization</string>
+    <string name="grid_size_title">Home screen grid</string>
+    <string name="grid_size_summary">Set the number of rows and columns</string>
+    <string name="themed_icons_title">Themed icons</string>
+    <string name="themed_icons_summary">Use monochrome themed icons on the home screen</string>
+    <string name="home_icon_size_title">Home icon size</string>
+    <string name="drawer_icon_size_title">Drawer icon size</string>
+    <string name="icon_size_title">Icon size</string>
+    <string name="icon_size_summary">%d%%</string>
+    <string name="show_home_screen_labels_title">Home screen labels</string>
+    <string name="show_home_screen_labels_summary">Show icon labels on the home screen</string>
+    <string name="home_label_size_title">Home label size</string>
+    <string name="show_drawer_labels_title">App drawer labels</string>
+    <string name="show_drawer_labels_summary">Show icon labels in the app drawer</string>
+    <string name="drawer_label_size_title">Drawer label size</string>
+
+    <!-- Hidden apps -->
+    <string name="hidden_apps_title">Hidden apps</string>
+    <string name="hidden_apps_summary">Choose apps to hide from the app drawer</string>
+    <string name="hidden_apps_none">No hidden apps</string>
+    <string name="hidden_apps_count">%d app(s) hidden</string>
+
+    <!-- Dock settings -->
+    <string name="dock_category_title">Dock</string>
+    <string name="show_dock_title">Show dock</string>
+    <string name="show_dock_summary">Show the dock bar at the bottom of the home screen</string>
+    <string name="dock_icon_count_title">Dock icons</string>
+    <string name="dock_icon_count_summary">Number of icons in the dock</string>
+    <string name="dock_icon_count_default">Default</string>
+
+    <!-- Blur settings -->
+    <string name="blur_intensity_title">Wallpaper blur</string>
+    <string name="blur_intensity_summary">%d%%</string>
+
+    <!-- Gesture settings -->
+    <string name="gestures_category_title">Gestures</string>
+    <string name="gesture_double_tap_title">Double-tap action</string>
+    <string name="gesture_double_tap_summary">Action when double-tapping the home screen</string>
+    <string name="gesture_swipe_down_title">Swipe-down action</string>
+    <string name="gesture_swipe_down_summary">Action when swiping down on the home screen</string>
+    <string name="gesture_none">None</string>
+    <string name="gesture_sleep">Sleep (lock screen)</string>
+    <string name="gesture_notifications">Open notifications</string>
+    <string name="gesture_quick_settings">Open quick settings</string>
+    <string name="gesture_app_drawer">Open app drawer</string>
+    <string name="gesture_app_search">Open app search</string>
+    <string name="gesture_assistant">Open assistant</string>
+
+    <!-- App drawer settings -->
+    <string name="drawer_category_title">App drawer</string>
+    <string name="drawer_columns_title">Drawer columns</string>
+    <string name="drawer_columns_summary">Number of columns in the app drawer</string>
+    <string name="drawer_columns_default">Default</string>
+    <string name="drawer_opacity_title">Drawer opacity</string>
+    <string name="drawer_opacity_summary">%d%%</string>
+    <string name="drawer_bg_color_title">Drawer background</string>
+    <string name="drawer_bg_color_summary">Background color of the app drawer</string>
+    <string name="drawer_bg_default">Default</string>
+    <string name="drawer_bg_black">Black</string>
+    <string name="drawer_bg_white">White</string>
+    <string name="drawer_bg_dark_gray">Dark gray</string>
+
+    <!-- Folder settings -->
+    <string name="folder_category_title">Folders</string>
+    <string name="show_folder_labels_title">Folder labels</string>
+    <string name="show_folder_labels_summary">Show folder name labels on the home screen</string>
+    <string name="folder_columns_title">Folder grid size</string>
+    <string name="folder_columns_summary">Number of columns and rows in folders</string>
+    <string name="folder_columns_default">Default</string>
+    <string name="folder_bg_color_title">Folder background</string>
+    <string name="folder_bg_color_summary">Background color of folders</string>
+    <string name="folder_bg_default">Default</string>
+    <string name="folder_bg_black">Black</string>
+    <string name="folder_bg_white">White</string>
+    <string name="folder_bg_dark_gray">Dark gray</string>
+    <string name="folder_bg_opacity_title">Folder opacity</string>
+    <string name="folder_bg_opacity_summary">%d%%</string>
+    <string name="folder_preview_bg_opacity_title">Folder preview opacity</string>
+    <string name="hotseat_bottom_factor_title">Dock bottom space</string>
+    <string name="hotseat_bottom_factor_summary">100 = default, lower tightens, higher raises</string>
+    <string name="workspace_top_padding_factor_title">Workspace top padding</string>
+    <string name="workspace_bottom_padding_factor_title">Workspace bottom padding</string>
+    <string name="page_indicator_height_factor_title">Page indicator height</string>
+    <string name="workspace_padding_factor_summary">100 = default, lower compacts</string>
+    <string name="wrap_adaptive_icons_title">Apply icon shape to all icons</string>
+    <string name="wrap_adaptive_icons_summary">Force the chosen icon shape on apps that don\'t use an adaptive icon</string>
+    <string name="two_line_drawer_labels_title">Two-line app names</string>
+    <string name="two_line_drawer_labels_summary">Allow long app names to wrap to a second line in the drawer</string>
+    <string name="hidden_apps_in_search_title">Hidden apps in search</string>
+    <string name="hidden_apps_in_search_summary">Whether hidden apps appear in drawer search</string>
+    <string name="hidden_apps_in_search_never">Never</string>
+    <string name="hidden_apps_in_search_always">Always</string>
+    <string name="hidden_apps_in_search_if_typed">Only when name is typed</string>
+    <string name="drawer_haptic_title">Drawer haptic feedback</string>
+    <string name="drawer_haptic_summary">Vibrate on drawer scroll and item touches</string>
+    <string name="dot_text_color_title">Notification dot text color</string>
+    <string name="dot_text_color_auto">Auto</string>
+    <string name="dot_text_color_white">White</string>
+    <string name="dot_text_color_black">Black</string>
+    <string name="wallpaper_depth_effect_title">Wallpaper depth effect</string>
+    <string name="wallpaper_depth_effect_summary">Use parallax depth on supported wallpapers (Android 11+)</string>
+    <string name="allow_widget_overlap_title">Allow widget overlap</string>
+    <string name="allow_widget_overlap_summary">Let widgets share cells with other items</string>
+    <string name="drawer_cell_height_factor_title">Drawer cell height</string>
+    <string name="drawer_lr_margin_factor_title">Drawer side margin</string>
+    <string name="drawer_show_scrollbar_title">Show drawer scrollbar</string>
+    <string name="drawer_themed_icons_title">Themed icons in drawer only</string>
+    <string name="drawer_themed_icons_summary">Apply system theming only inside the app drawer</string>
+    <string name="show_suggested_apps_title">Suggested apps</string>
+    <string name="show_suggested_apps_summary">Show recently used apps at the top of the drawer</string>
+    <string name="dock_search_bar_title">Show dock search bar</string>
+    <string name="dock_search_bar_summary">Show the search box on the dock</string>
+    <string name="hotseat_inset_left_title">Dock left inset (px)</string>
+    <string name="hotseat_inset_right_title">Dock right inset (px)</string>
+    <string name="hotseat_inset_top_title">Dock top inset (px)</string>
+    <string name="hotseat_inset_bottom_title">Dock bottom inset (px)</string>
+    <string name="home_label_color_mode_title">Home screen label color</string>
+    <string name="home_label_color_mode_auto">Auto (wallpaper)</string>
+    <string name="home_label_color_mode_light">Light</string>
+    <string name="home_label_color_mode_dark">Dark</string>
+    <string name="search_people_title">Include contacts in search</string>
+    <string name="search_files_title">Include files in search</string>
+    <string name="search_audio_title">Include audio in search</string>
+    <string name="search_visual_media_title">Include photos/videos in search</string>
+    <string name="search_settings_title">Include device settings in search</string>
+    <string name="search_startpage_suggestion_title">Show web suggestions</string>
+
+    <!-- Phase 6.4: Custom web-suggestion provider settings -->
+    <string name="web_suggestion_url_title">Custom search URL</string>
+    <string name="web_suggestion_url_summary">URL with %1$s as the query placeholder</string>
+    <string name="web_suggestion_url_dialog">e.g., https://duckduckgo.com/ac/?q=%1$s</string>
+    <string name="web_suggestion_name_title">Custom search name</string>
+    <string name="web_suggestion_max_delay_title">Suggestion timeout (ms)</string>
+    <string name="web_suggestion_max_delay_summary">Network timeout for fetching suggestions</string>
+    <string name="web_suggestion_max_count_title">Max suggestions</string>
+    <string name="reset_app_renames_title">Reset all app renames</string>
+    <string name="reset_app_renames_summary">Restore default names for all apps you renamed</string>
+    <string name="reset_app_renames_confirm">All custom app names will be cleared.</string>
+    <string name="rename_app_label">Rename</string>
+    <string name="dock_bg_hex_title">Dock color (custom hex)</string>
+    <string name="dock_bg_hex_summary">Set a custom color like #1A73E8</string>
+    <string name="accent_hex_title">Accent color (custom hex)</string>
+    <string name="accent_hex_summary">Set a custom accent like #1A73E8</string>
+    <string name="drawer_bg_hex_title">Drawer color (custom hex)</string>
+    <string name="drawer_bg_hex_summary">Set a custom drawer color like #1A73E8</string>
+    <string name="hex_picker_prompt">#RRGGBB or #AARRGGBB (blank to clear)</string>
+
+    <!-- Phase 5: Bliss color picker -->
+    <string name="reset_to_default">Reset to default</string>
+    <string name="color_picker_hue_cd">Hue</string>
+    <string name="color_picker_alpha_cd">Transparency</string>
+    <string name="color_picker_saturation_value_cd">Saturation and brightness</string>
+    <string name="color_picker_system_accent_cd">System accent color</string>
+    <string name="color_picker_wallpaper_primary_cd">Wallpaper primary color</string>
+    <string name="color_picker_recent_cd">Recent color %1$s</string>
+    <string name="color_picker_invalid_hex">Invalid hex</string>
+
+    <!-- Icon pack settings -->
+    <string name="icon_pack_title">Icon pack</string>
+    <string name="icon_pack_summary">Choose an icon pack for app icons</string>
+    <string name="icon_pack_system">System default</string>
+
+    <!-- Search settings -->
+    <string name="search_category_title">Search</string>
+    <string name="search_result_count_title">Max search results</string>
+    <string name="search_result_count_summary">Maximum number of app search results</string>
+    <string name="search_provider_title">Web search provider</string>
+    <string name="search_provider_summary">Search engine for web queries</string>
+    <string name="search_provider_default">Default (from browser)</string>
+    <string name="search_provider_duckduckgo">DuckDuckGo</string>
+    <string name="search_provider_qwant">Qwant</string>
+    <string name="search_provider_murena">Murena Search</string>
+    <string name="search_provider_mojeek">Mojeek</string>
+    <string name="search_provider_spot">Spot</string>
+
+    <!-- Wallpaper settings -->
+    <string name="wallpaper_scrolling_title">Wallpaper scrolling</string>
+    <string name="wallpaper_scrolling_summary">Scroll wallpaper when swiping between home screen pages</string>
+
+    <!-- Infinite scrolling -->
+    <string name="infinite_scrolling_title">Infinite scrolling</string>
+    <string name="infinite_scrolling_summary">Loop between the first and last home screen pages</string>
+
+    <!-- Status bar -->
+    <string name="show_status_bar_title">Show status bar</string>
+    <string name="show_status_bar_summary">Show the status bar on the home screen</string>
+
+    <!-- Widget settings -->
+    <string name="widgets_category_title">Widgets</string>
+    <string name="widget_rounded_corners_title">Rounded corners</string>
+    <string name="widget_rounded_corners_summary">Apply rounded corners to widgets</string>
+    <string name="force_widget_resize_title">Force widget resizing</string>
+    <string name="force_widget_resize_summary">Allow resizing widgets that are normally constrained</string>
+    <string name="widget_unlimited_size_title">Remove size constraints</string>
+    <string name="widget_unlimited_size_summary">Remove minimum and maximum size restrictions from widgets</string>
+
+    <!-- Font settings -->
+    <string name="font_category_title">Font</string>
+    <string name="font_family_title">Font family</string>
+    <string name="font_family_summary">Typeface used for icon labels</string>
+    <string name="font_default">System default</string>
+    <string name="font_sans_serif">Sans Serif</string>
+    <string name="font_serif">Serif</string>
+    <string name="font_monospace">Monospace</string>
+    <string name="font_cursive">Cursive</string>
+
+    <!-- Accent color settings -->
+    <string name="accent_color_title">Accent color</string>
+    <string name="accent_color_summary">Override the system accent color</string>
+    <string name="accent_system">System default</string>
+    <string name="accent_blue">Blue</string>
+    <string name="accent_green">Green</string>
+    <string name="accent_red">Red</string>
+    <string name="accent_purple">Purple</string>
+    <string name="accent_orange">Orange</string>
+    <string name="accent_pink">Pink</string>
+    <string name="accent_teal">Teal</string>
+
+    <!-- At a Glance -->
+    <string name="at_a_glance_title">At a Glance</string>
+    <string name="at_a_glance_summary">Show date and information on the home screen</string>
+
+    <!-- Backup & Restore -->
+    <string name="backup_restore_category_title">Backup &amp; Restore</string>
+    <string name="backup_create_title">Create backup</string>
+    <string name="backup_create_summary">Export launcher settings and layout</string>
+    <string name="backup_restore_title">Restore backup</string>
+    <string name="backup_restore_summary">Import launcher settings and layout from file</string>
+    <string name="backup_success">Backup created successfully</string>
+    <string name="backup_failed">Backup failed</string>
+    <string name="restore_success">Restore complete — launcher will restart</string>
+    <string name="restore_failed">Restore failed — file may be invalid</string>
+
+    <!-- Lawnchair import -->
+    <string name="lawnchair_import_title">Import from Lawnchair</string>
+    <string name="lawnchair_import_summary">Import settings from a Lawnchair backup file (.lawnchairbackup)</string>
+    <string name="lawnchair_import_failed">Import failed — file may not be a valid Lawnchair backup</string>
+
+    <!-- Drawer search bar -->
+    <string name="hide_drawer_search_title">Hide search bar</string>
+    <string name="hide_drawer_search_summary">Hide the search bar in the app drawer</string>
+
+    <!-- Auto-show keyboard -->
+    <string name="auto_show_keyboard_title">Auto-show keyboard</string>
+    <string name="auto_show_keyboard_summary">Automatically open keyboard when the app drawer opens</string>
+
+    <!-- Fuzzy search -->
+    <string name="fuzzy_search_title">Fuzzy search</string>
+    <string name="fuzzy_search_summary">Match apps even when characters are not adjacent</string>
+
+    <!-- Calculator in search -->
+    <string name="show_calculator_title">Calculator in search</string>
+    <string name="show_calculator_summary">Show math results when typing expressions in search</string>
+
+    <!-- Icon shape -->
+    <string name="icon_shape_title">Icon shape</string>
+    <string name="icon_shape_summary">Override the shape of app icons</string>
+    <string name="icon_shape_system">System default</string>
+    <string name="icon_shape_circle">Circle</string>
+    <string name="icon_shape_square">Rounded square</string>
+    <string name="icon_shape_clover">Clover</string>
+    <string name="icon_shape_flower">Flower</string>
+    <string name="icon_shape_arch">Arch</string>
+    <string name="icon_shape_custom">Custom</string>
+
+    <!-- Migration02 Phase 7.2 — Custom icon shape corner radius slider. -->
+    <string name="custom_icon_shape_radius_title">Custom icon shape corner radius</string>
+    <string name="custom_icon_shape_radius_summary">0 = square, 50 = circle</string>
+
+    <!-- Migration02 Phase 7.1 — per-folder color picker. -->
+    <string name="folder_color_label">Folder color</string>
+
+    <!-- Launch app gesture -->
+    <string name="gesture_launch_app">Launch app</string>
+    <string name="gesture_pick_app_title">Choose app to launch</string>
+
+    <!-- Drawer sort order -->
+    <string name="drawer_sort_order_title">Sort order</string>
+    <string name="drawer_sort_order_summary">How apps are sorted in the drawer</string>
+    <string name="sort_alphabetical">Alphabetical (A→Z)</string>
+    <string name="sort_reverse">Reverse (Z→A)</string>
+    <string name="sort_install_date">Install date (newest first)</string>
+
+    <!-- Dock background -->
+    <string name="dock_bg_color_title">Dock background</string>
+    <string name="dock_bg_color_summary">Background color of the dock area</string>
+    <string name="dock_bg_default">Default (blur)</string>
+    <string name="dock_bg_black">Black</string>
+    <string name="dock_bg_white">White</string>
+    <string name="dock_bg_dark_gray">Dark gray</string>
+    <string name="dock_bg_transparent">Transparent</string>
+    <string name="dock_bg_opacity_title">Dock opacity</string>
+
+    <!-- Search bar style -->
+    <string name="search_bar_color_title">Search bar color</string>
+    <string name="search_bar_color_summary">Background color of the drawer search bar</string>
+    <string name="search_bar_color_default">Default</string>
+    <string name="search_bar_color_black">Black</string>
+    <string name="search_bar_color_white">White</string>
+    <string name="search_bar_color_dark_gray">Dark gray</string>
+    <string name="search_bar_color_accent">Accent</string>
+    <string name="search_bar_radius_title">Search bar corner radius</string>
+
+    <!-- Notification dot color -->
+    <string name="dot_color_title">Notification dot color</string>
+    <string name="dot_color_summary">Color of notification badges on icons</string>
+    <string name="dot_color_default">Default</string>
+    <string name="dot_color_red">Red</string>
+    <string name="dot_color_blue">Blue</string>
+    <string name="dot_color_green">Green</string>
+    <string name="dot_color_white">White</string>
+    <string name="dot_color_orange">Orange</string>
+    <string name="dot_color_purple">Purple</string>
+
+    <!-- Page transition -->
+    <string name="page_transition_title">Page transition</string>
+    <string name="page_transition_summary">Animation when swiping between home pages</string>
+    <string name="transition_default">Default (slide)</string>
+    <string name="transition_cube">Cube</string>
+    <string name="transition_stack">Stack</string>
+    <string name="transition_fade">Fade</string>
+
+    <!-- Restart launcher -->
+    <string name="restart_launcher_title">Restart launcher</string>
+    <string name="restart_launcher_summary">Force restart the launcher to apply changes</string>
+
+    <!-- Dark mode -->
+    <string name="dark_mode_title">Dark mode</string>
+    <string name="dark_mode_summary">Override the system dark mode setting</string>
+    <string name="dark_mode_auto">Follow system</string>
+    <string name="dark_mode_dark">Always dark</string>
+    <string name="dark_mode_light">Always light</string>
+
+    <!-- Widget padding -->
+    <string name="widget_padding_title">Widget padding</string>
+
+    <!-- Drawer list view -->
+    <string name="drawer_list_view_title">List view</string>
+    <string name="drawer_list_view_summary">Show apps in a single-column list instead of a grid</string>
+
+    <!-- Contact search -->
+    <string name="contact_search_title">Contact search</string>
+    <string name="contact_search_summary">Show matching contacts when searching in the app drawer</string>
+
+    <!-- Shortcut search -->
+    <string name="shortcut_search_title">Shortcut search</string>
+    <string name="shortcut_search_summary">Show matching app shortcuts when searching in the app drawer</string>
+
+    <!-- Search bar position -->
+    <string name="search_bar_bottom_title">Search bar at bottom</string>
+    <string name="search_bar_bottom_summary">Move the drawer search bar to the bottom of the screen</string>
+
+    <!-- Edge swipe gestures -->
+    <string name="gesture_edge_left_title">Left edge swipe</string>
+    <string name="gesture_edge_left_summary">Action when swiping inward from the left screen edge</string>
+    <string name="gesture_edge_right_title">Right edge swipe</string>
+    <string name="gesture_edge_right_summary">Action when swiping inward from the right screen edge</string>
+
+    <!-- Open recents gesture -->
+    <string name="gesture_recents">Open recents</string>
+
+    <!-- Dock labels -->
+    <string name="dock_labels_title">Dock labels</string>
+    <string name="dock_labels_summary">Show text labels on dock icons</string>
+
+    <!-- Dock corner radius -->
+    <string name="dock_corner_radius_title">Dock corner radius</string>
+
+    <!-- App launch animation -->
+    <string name="app_launch_animation_title">App launch animation</string>
+    <string name="app_launch_animation_summary">Transition when opening an app</string>
+    <string name="launch_anim_default">Default</string>
+    <string name="launch_anim_fade">Fade</string>
+    <string name="launch_anim_slide">Slide</string>
+    <string name="launch_anim_none">None</string>
+
+    <!-- Font weight -->
+    <string name="font_weight_title">Font weight</string>
+    <string name="font_weight_summary">Thickness of icon label text</string>
+    <string name="font_weight_normal">Normal</string>
+    <string name="font_weight_light">Light</string>
+    <string name="font_weight_medium">Medium</string>
+    <string name="font_weight_bold">Bold</string>
+
+    <!-- Keyboard auto-hide -->
+    <string name="keyboard_auto_hide_title">Auto-hide keyboard</string>
+    <string name="keyboard_auto_hide_summary">Dismiss keyboard when scrolling through apps</string>
+
+    <!-- Folder badges -->
+    <string name="folder_badges_title">Folder notification badges</string>
+    <string name="folder_badges_summary">Show notification badges on folders</string>
+
+    <!-- Folder spring animation (Migration02 Phase 2) -->
+    <string name="folder_spring_anim_title">Spring folder animation</string>
+    <string name="folder_spring_anim_summary">Use a spring physics animation when opening folders</string>
+
+    <!-- Drawer animation -->
+    <string name="drawer_animation_title">Drawer animation</string>
+    <string name="drawer_animation_summary">Animation style when opening the app drawer</string>
+    <string name="drawer_anim_default">Default (slide)</string>
+    <string name="drawer_anim_fade">Fade</string>
+    <string name="drawer_anim_none">None (instant)</string>
+
+    <!-- Additional search providers -->
+    <string name="search_provider_ecosia">Ecosia</string>
+    <string name="search_provider_startpage">Startpage</string>
+    <string name="search_provider_brave">Brave Search</string>
+
+    <!-- Dashboard category descriptions -->
+    <string name="general_category_summary">Theme, icons &amp; notifications</string>
+    <string name="home_screen_category_summary">Grid, layout &amp; effects</string>
+    <string name="drawer_category_summary">Columns, sorting &amp; search</string>
+    <string name="dock_category_summary">Dock bar &amp; appearance</string>
+    <string name="folder_category_summary">Labels, grid &amp; badges</string>
+    <string name="search_category_summary">Provider, results &amp; contacts</string>
+    <string name="gestures_category_summary">Swipe, tap &amp; edge actions</string>
+    <string name="widgets_category_summary">Corners, sizing &amp; padding</string>
+    <string name="font_category_summary">Family &amp; weight</string>
+    <string name="backup_restore_category_summary">Backup, restore &amp; import</string>
+    <string name="advanced_category_summary">Single-layer mode &amp; restart</string>
+
+    <!-- Grid size entries -->
+    <string name="grid_2_by_2" translatable="false">2 \u00d7 2</string>
+    <string name="grid_3_by_3" translatable="false">3 \u00d7 3</string>
+    <string name="grid_4_by_5" translatable="false">4 \u00d7 5</string>
+    <string name="grid_4_by_6" translatable="false">4 \u00d7 6</string>
+
+    <!-- Home long-press popup new items -->
+    <string name="home_popup_lock">Lock home</string>
+    <string name="home_popup_unlock">Unlock home</string>
+    <string name="home_popup_sys_settings">Android settings</string>
+
+    <!-- First-run layout-mode chooser dialog -->
+    <string name="first_run_layout_title">Choose your home screen style</string>
+    <string name="first_run_layout_message">You can change this later in Settings.</string>
+    <string name="first_run_layout_simple_title">Simple home</string>
+    <string name="first_run_layout_simple_summary">All your apps live on the home screen — no separate app drawer. Like iOS. New apps land at the end automatically.</string>
+    <string name="first_run_layout_classic_title">Classic Android</string>
+    <string name="first_run_layout_classic_summary">Apps live in a drawer; drag the ones you use to the home screen. Leave empty cells wherever you want.</string>
+    <string name="first_run_layout_choose_simple">Use simple home</string>
+    <string name="first_run_layout_choose_classic">Use classic Android</string>
+
+    <!-- First-run wizard: Lawnchair backup import step -->
+    <string name="first_run_import_lawnchair_title">Import from Lawnchair?</string>
+    <string name="first_run_import_lawnchair_summary">A Lawnchair backup file was found on this device. You can import your home-screen layout, folders and settings now, or skip and do it later from Settings.</string>
+    <string name="first_run_import_lawnchair_action_import">Import backup</string>
+    <string name="first_run_import_lawnchair_action_skip">Skip</string>
+    <string name="first_run_import_lawnchair_toast_success">Lawnchair backup imported.</string>
+    <string name="first_run_import_lawnchair_toast_failure">Lawnchair import failed: %1$s</string>
+    <string name="first_run_import_lawnchair_toast_no_file">Backup file no longer available.</string>
+
+    <!-- Workspace freedom toggle (settings) -->
+    <string name="pref_preserve_layout_gaps_title">Allow gaps on home screen</string>
+    <string name="pref_preserve_layout_gaps_summary">Leave intentional empty cells between icons. New apps go to the end instead of filling gaps.</string>
+
+    <!-- Phase 2 prefs -->
+    <string name="dark_status_bar_title">Force dark status bar</string>
+    <string name="dark_status_bar_summary">Use light icons on the status bar over the home screen</string>
+    <string name="smartspace_show_time_title">Show time in At a Glance</string>
+    <string name="smartspace_show_date_title">Show date in At a Glance</string>
+    <string name="smartspace_now_playing_title">Show now-playing in At a Glance</string>
+    <string name="use_24h_format_title">24-hour clock</string>
+    <string name="use_24h_format_summary">Force 24-hour time format in launcher widgets (overrides system)</string>
+    <string name="remember_drawer_position_title">Remember drawer scroll position</string>
+    <string name="remember_drawer_position_summary">Reopen the app drawer where you last left it</string>
+
+    <!-- Drawer folders (Migration02 / Phase 1) -->
+    <string name="drawer_folders_manage_title">Manage app drawer folders</string>
+    <string name="drawer_folders_manage_summary">Group apps in the drawer into folders</string>
+    <string name="drawer_folders_none">No drawer folders yet</string>
+    <string name="drawer_folders_add">Add folder</string>
+    <string name="drawer_folders_edit">Edit</string>
+    <string name="drawer_folders_delete">Delete</string>
+    <string name="drawer_folders_save">Save</string>
+    <string name="drawer_folders_cancel">Cancel</string>
+    <string name="drawer_folders_name_hint">Folder name</string>
+    <string name="drawer_folders_pick_apps">Pick apps</string>
+    <string name="drawer_folders_app_count">%1$d app(s)</string>
+
+    <!-- Closing-app overlay modes (Migration02 / Phase 4) -->
+    <string name="overlay_none">None</string>
+    <string name="overlay_fade_in">Fade</string>
+    <string name="overlay_suck_in">Suck in</string>
 </resources>

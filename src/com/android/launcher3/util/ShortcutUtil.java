@@ -35,7 +35,7 @@ public class ShortcutUtil {
      * Returns true when we should show depp shortcuts in shortcut menu for the item.
      */
     public static boolean supportsDeepShortcuts(ItemInfo info) {
-        return isActive(info) && isApp(info) && !!WIDGETS_ENABLED;
+        return isActive(info) && isApp(info) && WIDGETS_ENABLED;
     }
 
     /**

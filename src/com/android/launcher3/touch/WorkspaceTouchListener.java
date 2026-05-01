@@ -45,7 +45,9 @@ import com.android.launcher3.BubbleTextView;
 import com.android.launcher3.CellLayout;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.Workspace;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.dragndrop.DragLayer;
 import com.android.launcher3.logger.LauncherAtom;
 import com.android.launcher3.testing.TestLogging;
@@ -78,6 +80,13 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
 
     private int mLongPressState = STATE_CANCELLED;
 
+    private static final int EDGE_NONE = 0;
+    private static final int EDGE_LEFT = 1;
+    private static final int EDGE_RIGHT = 2;
+    private static final int EDGE_THRESHOLD_DP = 30;
+    private static final float EDGE_SWIPE_MIN_DISTANCE_DP = 80;
+    private int mEdgeTouchSide = EDGE_NONE;
+
     private final GestureDetector mGestureDetector;
 
     public WorkspaceTouchListener(Launcher launcher, Workspace<?> workspace) {
@@ -95,6 +104,18 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
         mGestureDetector.onTouchEvent(ev);
 
         if (action == ACTION_DOWN) {
+            // Detect edge touch for edge swipe gestures
+            float density = mLauncher.getResources().getDisplayMetrics().density;
+            float edgeThreshold = EDGE_THRESHOLD_DP * density;
+            int screenWidth = mLauncher.getDragLayer().getWidth();
+            if (ev.getX() < edgeThreshold) {
+                mEdgeTouchSide = EDGE_LEFT;
+            } else if (ev.getX() > screenWidth - edgeThreshold) {
+                mEdgeTouchSide = EDGE_RIGHT;
+            } else {
+                mEdgeTouchSide = EDGE_NONE;
+            }
+
             // Check if we can handle long press.
             boolean handleLongPress = canHandleLongPress();
 
@@ -168,6 +189,32 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
                     }
                 }
             }
+        }
+
+        // Edge swipe gesture detection
+        if (action == ACTION_UP && mEdgeTouchSide != EDGE_NONE
+                && mLongPressState != STATE_COMPLETED) {
+            float dx = ev.getX() - mTouchDownPoint.x;
+            float density = mLauncher.getResources().getDisplayMetrics().density;
+            float minDist = EDGE_SWIPE_MIN_DISTANCE_DP * density;
+            boolean leftSwipeIn = mEdgeTouchSide == EDGE_LEFT && dx > minDist;
+            boolean rightSwipeIn = mEdgeTouchSide == EDGE_RIGHT && dx < -minDist;
+            if (leftSwipeIn || rightSwipeIn) {
+                try {
+                    LauncherPrefs prefs =
+                            LauncherComponentProvider.get(mLauncher).getLauncherPrefs();
+                    String handler = leftSwipeIn
+                            ? prefs.get(LauncherPrefs.GESTURE_EDGE_LEFT)
+                            : prefs.get(LauncherPrefs.GESTURE_EDGE_RIGHT);
+                    if (handler != null && !"none".equals(handler)) {
+                        foundation.e.bliss.gestures.GestureHandler gh =
+                                foundation.e.bliss.gestures.GestureHandler
+                                        .forName(handler, mLauncher);
+                        if (gh != null) gh.onTrigger();
+                    }
+                } catch (Exception e) { /* pref not available */ }
+            }
+            mEdgeTouchSide = EDGE_NONE;
         }
 
         if (action == ACTION_UP || action == ACTION_CANCEL) {

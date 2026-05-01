@@ -17,13 +17,11 @@
  */
 package foundation.e.bliss.suggestions
 
+import android.app.AppOpsManager
 import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.provider.Settings
-import android.widget.Toast
+import android.os.Process
 import com.android.launcher3.R
 import foundation.e.bliss.utils.Logger
 import java.util.Calendar
@@ -35,6 +33,12 @@ class AppUsageStats(private val mContext: Context) {
     val usageStats: List<UsageStats>
         get() {
             val usageStats = mutableListOf<UsageStats>()
+
+            if (!hasUsageStatsPermission()) {
+                Logger.i(TAG, "Usage stats permission not granted, returning empty list.")
+                return usageStats
+            }
+
             val cal = Calendar.getInstance()
             cal.add(Calendar.YEAR, -1)
 
@@ -59,15 +63,7 @@ class AppUsageStats(private val mContext: Context) {
                 }
             }
 
-            if (
-                mContext.checkCallingOrSelfPermission(
-                    android.Manifest.permission.PACKAGE_USAGE_STATS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                Logger.i(TAG, "The user may not allow the access to apps usage.")
-                Toast.makeText(mContext, "Permission not allowed!", Toast.LENGTH_LONG).show()
-                mContext.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-            } else if (aggregatedStats.isNotEmpty()) {
+            if (aggregatedStats.isNotEmpty()) {
                 val statsMap = aggregatedStats.entries
 
                 statsMap
@@ -92,6 +88,17 @@ class AppUsageStats(private val mContext: Context) {
 
             return usageStats
         }
+
+    private fun hasUsageStatsPermission(): Boolean {
+        val appOps = mContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        val mode =
+            appOps.unsafeCheckOpNoThrow(
+                AppOpsManager.OPSTR_GET_USAGE_STATS,
+                Process.myUid(),
+                mContext.packageName,
+            )
+        return mode == AppOpsManager.MODE_ALLOWED
+    }
 
     companion object {
         private const val TAG = "AppUsageStats"

@@ -13,6 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - buildOpenCloseAnimator(): the bespoke try { spring … } catch (Throwable)
+ *     block introduced in Migration02 §2.4 is replaced with
+ *     AnimatorFallback.tryBuild(...). Same fallback policy (spring → AOSP
+ *     FolderAnimationManager); the wrapper just centralises the try/log so
+ *     every animator port shares one policy.
+ *     — Plan ref: Plans/Migration04/06-animation-safety.md §5.2
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 
 package com.android.launcher3.folder;
 
@@ -77,6 +89,7 @@ import com.android.launcher3.DragSource;
 import com.android.launcher3.DropTarget;
 import com.android.launcher3.ExtendedEditText;
 import com.android.launcher3.Launcher;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.OnAlarmListener;
 import com.android.launcher3.R;
 import com.android.launcher3.ShortcutAndWidgetContainer;
@@ -89,6 +102,9 @@ import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dragndrop.DragController;
 import com.android.launcher3.dragndrop.DragController.DragListener;
 import com.android.launcher3.dragndrop.DragOptions;
+// PLAN-DRIFT-M02: Phase 2.4 wire — spring animator path for animateOpen/animateClose.
+import com.android.launcher3.graphics.ShapeDelegate;
+import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.logger.LauncherAtom.FromState;
 import com.android.launcher3.logger.LauncherAtom.ToState;
 import com.android.launcher3.logging.StatsLogManager;
@@ -117,6 +133,7 @@ import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import foundation.e.bliss.animations.safety.AnimatorFallback;
 import foundation.e.bliss.folder.GridFolder;
 import foundation.e.bliss.multimode.MultiModeController;
 
@@ -285,6 +302,16 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
                 ResourcesCompat.getDrawable(getResources(),
                         R.drawable.round_rect_folder, getContext().getTheme()));
         mBackground.setCallback(this);
+        applyOpenBgOpacity();
+    }
+
+    private void applyOpenBgOpacity() {
+        try {
+            int opacity = LauncherPrefs.get(getContext()).get(LauncherPrefs.FOLDER_BG_OPACITY);
+            mBackground.setAlpha((int) (opacity / 100f * 255));
+        } catch (Exception ignored) {
+            // keep drawable's default alpha
+        }
     }
 
     @Override
@@ -694,6 +721,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         if (!shouldAnimateOpen(items)) {
             return;
         }
+        applyOpenBgOpacity();
         Folder openFolder = getOpen(mActivityContext);
         closeOpenFolder(openFolder);
 
@@ -736,8 +764,9 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         cancelRunningAnimations();
         Log.d("b/383526431", "animateOpen: content child count after cancelling"
                 + " animation: " + mContent.getTotalChildCount());
-        FolderAnimationManager fam = new FolderAnimationManager(this, true /* isOpening */);
-        AnimatorSet anim = fam.getAnimator();
+        // PLAN-DRIFT-M02 Phase 2.4: dispatch via FOLDER_SPRING_ANIM pref. Silent fallback to
+        // the AOSP FolderAnimationManager on any throw, per plan hard rules.
+        AnimatorSet anim = buildOpenCloseAnimator(true /* isOpening */);
         anim.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
@@ -876,6 +905,37 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         }
     }
 
+    /**
+     * Returns the open/close animator. When {@link LauncherPrefs#FOLDER_SPRING_ANIM} is enabled,
+     * returns the spring-physics-based AnimatorSet ported from Lawnchair; otherwise (or on any
+     * throw) falls back silently to the AOSP {@link FolderAnimationManager}.
+     */
+    private AnimatorSet buildOpenCloseAnimator(boolean isOpening) {
+        boolean useSpring = false;
+        try {
+            useSpring = LauncherPrefs.get(getContext()).get(LauncherPrefs.FOLDER_SPRING_ANIM);
+        } catch (Throwable ignored) {
+            // pref read shouldn't fail, but be defensive — fall back to AOSP path.
+        }
+        if (!useSpring) {
+            return new FolderAnimationManager(this, isOpening).getAnimator();
+        }
+        // Migration04 §06: AnimatorFallback centralises the spring → AOSP fallback.
+        // Same behaviour as the Migration02 §2.4 inline catch (Throwable): on any
+        // exception (NaN propagation, NPE in the spring builder, …) we silently
+        // fall through to FolderAnimationManager. AnimatorFallback also logs at WARN.
+        return AnimatorFallback.tryBuild(
+                "Folder.buildOpenCloseAnimator",
+                () -> {
+                    ShapeDelegate shapeDelegate = ThemeManager.INSTANCE.get(getContext())
+                            .getFolderShape();
+                    FolderAnimationCreator creator = new FolderAnimationSpringBuilderManager(
+                            this, shapeDelegate, mLauncherDelegate);
+                    return creator.createAnimatorSet(isOpening);
+                },
+                () -> new FolderAnimationManager(this, isOpening).getAnimator());
+    }
+
     private void animateClosed() {
         if (mIsAnimatingClosed) {
             return;
@@ -893,7 +953,9 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         mContent.snapToPageImmediately(mContent.getDestinationPage());
 
         cancelRunningAnimations();
-        AnimatorSet a = new FolderAnimationManager(this, false /* isOpening */).getAnimator();
+        // PLAN-DRIFT-M02 Phase 2.4: dispatch via FOLDER_SPRING_ANIM pref. Silent fallback to
+        // the AOSP FolderAnimationManager on any throw, per plan hard rules.
+        AnimatorSet a = buildOpenCloseAnimator(false /* isOpening */);
         a.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
@@ -1253,17 +1315,17 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     }
 
     @VisibleForTesting
-    int getContentAreaWidth() {
+    protected int getContentAreaWidth() {
         return Math.max(mContent.getDesiredWidth(), MIN_CONTENT_DIMEN);
     }
 
     @VisibleForTesting
-    int getFolderWidth() {
+    protected int getFolderWidth() {
         return getPaddingLeft() + getPaddingRight() + mContent.getDesiredWidth();
     }
 
     @VisibleForTesting
-    int getFolderHeight() {
+    protected int getFolderHeight() {
         return getFolderHeight(getContentAreaHeight());
     }
 

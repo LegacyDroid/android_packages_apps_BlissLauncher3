@@ -207,6 +207,11 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
     }
 
     private boolean isOnBackInvokedCallbackEnabled(OnBackInvokedDispatcher dispatcher) {
+        if (android.os.Build.VERSION.SDK_INT < 36) {
+            // On API 35, predictive back is enabled for apps targeting API 34+
+            return dispatcher instanceof WindowOnBackInvokedDispatcher
+                    && mViewCallbacks != null;
+        }
         return dispatcher instanceof WindowOnBackInvokedDispatcher
                 && ((WindowOnBackInvokedDispatcher) dispatcher).isOnBackInvokedCallbackEnabled()
                 && mViewCallbacks != null;

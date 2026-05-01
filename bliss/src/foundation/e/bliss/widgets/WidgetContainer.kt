@@ -403,7 +403,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
                     rebindWidgets(true)
                 }
 
-                disableComponent(context, DefaultWidgets.oldWeatherWidget)
+                disableComponent(context, DefaultWidgets.oldWeatherWidget(context))
                 initialWidgetsAdded = true
             } else {
                 rebindWidgets()
@@ -501,7 +501,11 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
                             )
 
                         if (backup) {
-                            if (it.appWidgetInfo.provider.equals(DefaultWidgets.oldWeatherWidget)) {
+                            if (
+                                it.appWidgetInfo.provider.equals(
+                                    DefaultWidgets.oldWeatherWidget(context)
+                                )
+                            ) {
                                 mWidgetHost.deleteAppWidgetId(it.id)
 
                                 // Swap with new widget

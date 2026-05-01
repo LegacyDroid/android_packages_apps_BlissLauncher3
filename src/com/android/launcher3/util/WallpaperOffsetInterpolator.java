@@ -16,6 +16,7 @@ import android.view.animation.Interpolator;
 import androidx.annotation.AnyThread;
 
 import com.android.app.animation.Interpolators;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.Workspace;
 
@@ -71,6 +72,12 @@ public class WallpaperOffsetInterpolator {
      */
     private void wallpaperOffsetForScroll(int scroll, int numScrollableScreens, final int[] out) {
         out[1] = 1;
+
+        // Check if wallpaper scrolling is disabled by user preference
+        if (!isWallpaperScrollingEnabled()) {
+            out[0] = mIsRtl ? 1 : 0;
+            return;
+        }
 
         // To match the default wallpaper behavior in the system, we default to either the left
         // or right edge on initialization
@@ -130,6 +137,15 @@ public class WallpaperOffsetInterpolator {
     public float wallpaperOffsetForScroll(int scroll) {
         wallpaperOffsetForScroll(scroll, getNumScrollableScreensExcludingEmpty(), sTempInt);
         return ((float) sTempInt[0]) / sTempInt[1];
+    }
+
+    private boolean isWallpaperScrollingEnabled() {
+        try {
+            return LauncherPrefs.get(mWorkspace.getContext())
+                    .get(LauncherPrefs.WALLPAPER_SCROLLING);
+        } catch (Exception e) {
+            return true;
+        }
     }
 
     /**

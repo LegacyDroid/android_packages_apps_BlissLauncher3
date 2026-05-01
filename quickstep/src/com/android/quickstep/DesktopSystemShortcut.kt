@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep
 
 import android.view.View
@@ -27,7 +35,7 @@ import com.android.quickstep.views.RecentsViewContainer
 import com.android.quickstep.views.TaskContainer
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper
 import com.android.wm.shell.shared.desktopmode.DesktopModeCompatPolicy
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource
 
 /** A menu item, "Desktop", that allows the user to bring the current app into Desktop Windowing. */
@@ -75,7 +83,7 @@ class DesktopSystemShortcut(
                     val taskKey = taskContainer.task.key
                     val desktopModeCompatPolicy = DesktopModeCompatPolicy(context)
                     return when {
-                        !DesktopModeStatus.canEnterDesktopMode(context) -> null
+                        !DesktopModeStatusCompat.canEnterDesktopMode(context) -> null
 
                         desktopModeCompatPolicy.isTopActivityExemptFromDesktopWindowing(
                             taskKey.baseActivity?.packageName,

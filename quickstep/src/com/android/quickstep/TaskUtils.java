@@ -116,7 +116,12 @@ public final class TaskUtils {
      * Requests that the system close any open system windows (including other SystemUI).
      */
     public static void closeSystemWindowsAsync(String reason) {
-        UI_HELPER_EXECUTOR.execute(
-                () -> ActivityManagerWrapper.getInstance().closeSystemWindows(reason));
+        UI_HELPER_EXECUTOR.execute(() -> {
+            try {
+                ActivityManagerWrapper.getInstance().closeSystemWindows(reason);
+            } catch (SecurityException e) {
+                // BROADCAST_CLOSE_SYSTEM_DIALOGS not available for non-system apps
+            }
+        });
     }
 }

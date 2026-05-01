@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep
 
 import android.app.ActivityManager
@@ -38,7 +47,7 @@ import android.view.MotionEvent
 import android.view.RemoteAnimationTarget
 import android.view.SurfaceControl
 import android.view.SurfaceControl.Transaction
-import android.window.DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_TASKBAR_RUNNING_APPS
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat
 import android.window.IOnBackInvokedCallback
 import android.window.RemoteTransition
 import android.window.TaskSnapshot
@@ -92,7 +101,7 @@ import com.android.wm.shell.shared.GroupedTaskInfo
 import com.android.wm.shell.shared.IShellTransitions
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation.UpdateSource
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource
 import com.android.wm.shell.shared.desktopmode.DesktopTaskToFrontReason
 import com.android.wm.shell.shared.split.SplitBounds
@@ -918,6 +927,7 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
      * Launcher and SystemUI need to coordinate transactions (eg. for shell transitions).
      */
     fun shareTransactionQueue() {
+        if (android.os.Build.VERSION.SDK_INT < 36) return
         if (originalTransactionToken == null) {
             originalTransactionToken = Transaction.getDefaultApplyToken()
         }
@@ -926,6 +936,7 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
 
     /** Switch back to using Launcher's independent transaction queue. */
     fun unshareTransactionQueue() {
+        if (android.os.Build.VERSION.SDK_INT < 36) return
         if (originalTransactionToken == null) {
             return
         }
@@ -935,6 +946,7 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
 
     private fun setupTransactionQueue() =
         executeWithErrorLog({ "Error getting Shell's apply token" }) {
+            if (android.os.Build.VERSION.SDK_INT < 36) return
             val token: IBinder =
                 shellTransitions?.shellApplyToken ?: originalTransactionToken ?: return
             Transaction.setDefaultApplyToken(token)
@@ -1084,8 +1096,8 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
     }
 
     private fun shouldEnableRunningTasksForDesktopMode(): Boolean =
-        DesktopModeStatus.canEnterDesktopMode(context) &&
-            ENABLE_DESKTOP_WINDOWING_TASKBAR_RUNNING_APPS.isTrue
+        DesktopModeStatusCompat.canEnterDesktopMode(context) &&
+            DesktopFlagsCompat.enableDesktopWindowingTaskbarRunningApps()
 
     private fun handleMessageAsync(msg: Message): Boolean {
         return when (msg.what) {

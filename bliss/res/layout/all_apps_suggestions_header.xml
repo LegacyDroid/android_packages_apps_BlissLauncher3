@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Migration02 / Phase 7.3 — top-of-drawer suggested apps row.
+    Children are populated at bind time by SuggestionsHeaderView.bindSuggestions().
+-->
+<foundation.e.bliss.allapps.SuggestionsHeaderView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/suggestions_header"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_horizontal"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp" />

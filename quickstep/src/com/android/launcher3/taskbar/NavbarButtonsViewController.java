@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
 
 import static android.view.View.AccessibilityDelegate;
@@ -51,7 +59,7 @@ import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_Q
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_SCREEN_PINNING;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_SHORTCUT_HELPER_SHOWING;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_VOICE_INTERACTION_WINDOW_SHOWING;
-import static com.android.window.flags.Flags.predictiveBackThreeButtonNav;
+import static foundation.e.bliss.compat.desktop.DesktopFlagsCompat.predictiveBackThreeButtonNav;
 
 import android.animation.Animator;
 import android.animation.ArgbEvaluator;
@@ -309,7 +317,9 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         mNavButtonsView.setLayoutParams(navButtonsViewLayoutParams);
 
         mIsImeRenderingNavButtons =
-                InputMethodService.canImeRenderGesturalNavButtons() && mContext.imeDrawsImeNavBar();
+                android.os.Build.VERSION.SDK_INT >= 36
+                        && InputMethodService.canImeRenderGesturalNavButtons()
+                        && mContext.imeDrawsImeNavBar();
         if (!mIsImeRenderingNavButtons) {
             // IME switcher
             final int switcherResId = Flags.imeSwitcherRevamp()
@@ -479,7 +489,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                         && ((flags & FLAG_ONLY_BACK_FOR_BOUNCER_VISIBLE) != 0
                             || (flags & FLAG_KEYGUARD_VISIBLE) != 0)
                         && (!shouldShowHomeButtonInLockscreen(flags)),
-                    VIEW_TRANSLATE_X, navButtonSize * (isRtl ? -2 : 2), 0));
+                    VIEW_TRANSLATE_X, (float) navButtonSize * (isRtl ? -2 : 2), 0));
         }
 
         // home button

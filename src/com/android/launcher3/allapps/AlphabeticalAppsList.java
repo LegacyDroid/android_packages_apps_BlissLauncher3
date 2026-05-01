@@ -13,9 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.PrivateSpaceFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.allapps;
 
-import static android.multiuser.Flags.enableMovingContentIntoPrivateSpace;
+import static foundation.e.bliss.compat.platform.PrivateSpaceFlagsCompat.enableMovingContentIntoPrivateSpace;
 
 import static com.android.launcher3.allapps.BaseAllAppsAdapter.VIEW_TYPE_BOTTOM_VIEW_TO_SCROLL_TO;
 import static com.android.launcher3.allapps.BaseAllAppsAdapter.VIEW_TYPE_MASK_PRIVATE_SPACE_HEADER;
@@ -46,6 +54,7 @@ import com.android.launcher3.views.ActivityContext;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,6 +62,9 @@ import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.android.launcher3.LauncherPrefs;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 
 import foundation.e.bliss.LauncherAppMonitor;
 
@@ -94,18 +106,18 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
     }
 
 
-    private final T mActivityContext;
+    protected final T mActivityContext;
 
     // The set of apps from the system
-    private final List<AppInfo> mApps = new ArrayList<>();
+    protected final List<AppInfo> mApps = new ArrayList<>();
     private final List<AppInfo> mPrivateApps = new ArrayList<>();
     @Nullable
-    private final AllAppsStore<T> mAllAppsStore;
+    protected final AllAppsStore<T> mAllAppsStore;
 
     // The number of results in current adapter
     private int mAccessibilityResultsCount = 0;
     // The current set of adapter items
-    private final ArrayList<AdapterItem> mAdapterItems = new ArrayList<>();
+    protected final ArrayList<AdapterItem> mAdapterItems = new ArrayList<>();
     // The set of sections that we allow fast-scrolling to (includes non-merged sections)
     private final List<FastScrollSectionInfo> mFastScrollerSections = new ArrayList<>();
 
@@ -257,8 +269,29 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
                         .filter(mPrivateProviderManager.getItemInfoMatcher());
             }
         }
-        appSteam = appSteam.sorted(mAppNameComparator);
-        privateAppStream = privateAppStream.sorted(mAppNameComparator);
+        Comparator<AppInfo> sortComparator = mAppNameComparator;
+        try {
+            String sortOrder = LauncherComponentProvider.get(mActivityContext)
+                    .getLauncherPrefs().get(LauncherPrefs.DRAWER_SORT_ORDER);
+            if ("reverse".equals(sortOrder)) {
+                sortComparator = mAppNameComparator.reversed();
+            } else if ("install_date".equals(sortOrder)) {
+                android.content.pm.PackageManager pm = mActivityContext.getPackageManager();
+                sortComparator = (a, b) -> {
+                    try {
+                        long timeA = pm.getPackageInfo(
+                                a.componentName.getPackageName(), 0).firstInstallTime;
+                        long timeB = pm.getPackageInfo(
+                                b.componentName.getPackageName(), 0).firstInstallTime;
+                        return Long.compare(timeB, timeA); // newest first
+                    } catch (Exception e) {
+                        return mAppNameComparator.compare(a, b);
+                    }
+                };
+            }
+        } catch (Exception e) { /* use default */ }
+        appSteam = appSteam.sorted(sortComparator);
+        privateAppStream = privateAppStream.sorted(sortComparator);
 
         // As a special case for some languages (currently only Simplified Chinese), we may need to
         // coalesce sections
@@ -454,7 +487,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
         return position;
     }
 
-    private int addAppsWithSections(List<AppInfo> appList, int startPosition) {
+    protected int addAppsWithSections(List<AppInfo> appList, int startPosition) {
         String lastSectionName = null;
         boolean hasPrivateApps = false;
         int position = startPosition;

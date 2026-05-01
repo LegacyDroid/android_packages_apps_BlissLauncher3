@@ -307,7 +307,11 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
         val rotation = display.rotation
         val info = DisplayInfo()
         display.getDisplayInfo(info)
-        val rotatedCutout = cutout.getRotated(info.logicalWidth, info.logicalHeight, rotation, rot)
+        val rotatedCutout = if (android.os.Build.VERSION.SDK_INT >= 36) {
+            cutout.getRotated(info.logicalWidth, info.logicalHeight, rotation, rot)
+        } else {
+            cutout // use unrotated cutout as fallback on API < 36
+        }
 
         if ((gravity and Gravity.BOTTOM) == Gravity.BOTTOM) {
             return Insets.of(0, 0, 0, maxOf(inset, rotatedCutout.safeInsetBottom))

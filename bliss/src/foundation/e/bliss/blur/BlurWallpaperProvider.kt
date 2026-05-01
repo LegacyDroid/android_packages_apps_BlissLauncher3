@@ -28,7 +28,9 @@ import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.widget.Toast
 import androidx.core.graphics.drawable.toBitmap
+import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.Utilities
+import com.android.launcher3.dagger.LauncherComponentProvider
 import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.SafeCloseable
@@ -65,7 +67,7 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
     private val mUpdateRunnable = Runnable { updateWallpaper() }
 
-    private val wallpaperFilter = BlurWallpaperFilter(context)
+    private val wallpaperFilter = BlurWallpaperFilter(context).also { it.provider = this }
     private var applyTask: WallpaperFilter.ApplyTask<BlurSizes>? = null
 
     private var updatePending = false
@@ -118,12 +120,14 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
                 } else {
                     wall
                 }
+            } catch (e: SecurityException) {
+                // READ_EXTERNAL_STORAGE not granted — use placeholder wallpaper
+                Logger.w(TAG, "Cannot read wallpaper, permission denied", e)
+                runOnMainThread { notifyWallpaperChanged() }
+                return
             } catch (e: Exception) {
-                runOnMainThread {
-                    val msg = "Failed: ${e.message}"
-                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                    notifyWallpaperChanged()
-                }
+                Logger.e(TAG, "Failed to read wallpaper", e)
+                runOnMainThread { notifyWallpaperChanged() }
                 return
             }
 
@@ -287,6 +291,27 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
     data class BlurConfig(val getDrawable: (BlurSizes) -> Bitmap, val scale: Int, val radius: Int)
 
+    /**
+     * Returns the user's blur intensity factor (0.0 to 2.0). 100 = default (1.0x), 0 = no blur, 200
+     * = 2x blur.
+     */
+    fun getBlurIntensityFactor(): Float {
+        return try {
+            val prefs = LauncherComponentProvider.get(context).getLauncherPrefs()
+            val intensity = prefs.get(LauncherPrefs.BLUR_INTENSITY)
+            intensity / 100f
+        } catch (e: Exception) {
+            1.0f
+        }
+    }
+
+    /** Returns a BlurConfig with the radius scaled by the user's blur intensity preference. */
+    fun scaledConfig(base: BlurConfig): BlurConfig {
+        val factor = getBlurIntensityFactor()
+        val scaledRadius = (base.radius * factor).toInt().coerceIn(0, MAX_BLUR_RADIUS)
+        return base.copy(radius = scaledRadius)
+    }
+
     companion object {
         val INSTANCE = MainThreadInitializedObject { context: Context ->
             BlurWallpaperProvider(context)
@@ -297,6 +322,7 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
         }
 
         const val TAG = "BlurWallpaperProvider"
+        private const val MAX_BLUR_RADIUS = 25
 
         @JvmField val blurConfigBackground = BlurConfig({ it.background }, 2, 8)
 

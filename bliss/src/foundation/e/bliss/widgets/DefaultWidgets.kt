@@ -18,17 +18,19 @@
 package foundation.e.bliss.widgets
 
 import android.content.ComponentName
+import android.content.Context
 
 object DefaultWidgets {
     private val ecloudWidget =
         ComponentName("foundation.e.drive", "foundation.e.drive.widgets.EDriveWidget")
     private val privacyWidget =
         ComponentName("foundation.e.advancedprivacy", "foundation.e.advancedprivacy.Widget")
-    val oldWeatherWidget =
-        ComponentName(
-            "foundation.e.blisslauncher",
-            "foundation.e.blisslauncher.features.weather.WeatherAppWidgetProvider",
-        )
+    private const val OLD_WEATHER_WIDGET_CLASS =
+        "foundation.e.blisslauncher.features.weather.WeatherAppWidgetProvider"
+
+    fun oldWeatherWidget(context: Context) =
+        ComponentName(context.packageName, OLD_WEATHER_WIDGET_CLASS)
+
     val weatherWidget =
         ComponentName(
             "foundation.e.blissweather",

@@ -14,6 +14,16 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.quickstep.QuickStepContractCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3;
 
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
@@ -66,8 +76,8 @@ import static com.android.quickstep.TaskViewUtils.findTaskViewToLaunch;
 import static com.android.quickstep.util.AnimUtils.clampToDuration;
 import static com.android.quickstep.util.AnimUtils.completeRunnableListCallback;
 import static com.android.systemui.shared.Flags.returnAnimationFrameworkLibrary;
-import static com.android.systemui.shared.system.QuickStepContract.getWindowCornerRadius;
-import static com.android.systemui.shared.system.QuickStepContract.supportsRoundedCornersOnWindows;
+import static foundation.e.bliss.compat.quickstep.QuickStepContractCompat.getWindowCornerRadius;
+import static foundation.e.bliss.compat.quickstep.QuickStepContractCompat.supportsRoundedCornersOnWindows;
 import static com.android.wm.shell.Flags.enableDynamicInsetsForAppLaunch;
 
 import android.animation.Animator;
@@ -111,7 +121,7 @@ import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
 import android.view.animation.PathInterpolator;
-import android.window.DesktopModeFlags;
+import android.window.IRemoteTransition;
 import android.window.RemoteTransition;
 import android.window.TransitionFilter;
 import android.window.WindowAnimationState;
@@ -137,6 +147,7 @@ import com.android.launcher3.testing.shared.ResourceUtils;
 import com.android.launcher3.touch.PagedOrientationHandler;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.ActivityOptionsWrapper;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 import com.android.launcher3.util.DynamicResource;
 import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.StableViewInfo;
@@ -170,7 +181,7 @@ import com.android.systemui.animation.RemoteAnimationRunnerCompat;
 import com.android.systemui.shared.system.BlurUtils;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 import com.android.systemui.shared.system.QuickStepContract;
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat;
 import com.android.wm.shell.startingsurface.IStartingWindowListener;
 
 import java.io.PrintWriter;
@@ -355,10 +366,16 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
 
         long statusBarTransitionDelay = duration - STATUS_BAR_TRANSITION_DURATION
                 - STATUS_BAR_TRANSITION_PRE_DELAY;
+        RemoteTransition remoteTransition;
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            remoteTransition = new RemoteTransition(runner.toRemoteTransition(),
+                    mLauncher.getIApplicationThread(), "QuickstepLaunch");
+        } else {
+            remoteTransition = new RemoteTransition(runner.toRemoteTransition());
+        }
         ActivityOptions options = ActivityOptions.makeRemoteAnimation(
                 new RemoteAnimationAdapter(runner, duration, statusBarTransitionDelay),
-                new RemoteTransition(runner.toRemoteTransition(),
-                        mLauncher.getIApplicationThread(), "QuickstepLaunch"));
+                remoteTransition);
         IRemoteCallback endCallback = completeRunnableListCallback(onEndCallback, mLauncher);
         options.setOnAnimationAbortListener(endCallback);
         options.setOnAnimationFinishedListener(endCallback);
@@ -778,8 +795,12 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                     // LAUNCHER_TASKBAR_EDUCATION_SHOWING is set to true here, when the education
                     // flow is about to start, to avoid a race condition with other components
                     // that would show something else to the user as soon as the app is opened.
-                    Settings.Secure.putInt(mLauncher.getContentResolver(),
-                            LAUNCHER_TASKBAR_EDUCATION_SHOWING, 1);
+                    try {
+                        Settings.Secure.putInt(mLauncher.getContentResolver(),
+                                LAUNCHER_TASKBAR_EDUCATION_SHOWING, 1);
+                    } catch (SecurityException e) {
+                        // WRITE_SECURE_SETTINGS not available for non-system apps
+                    }
                 }
             }
 
@@ -1166,9 +1187,10 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             // - There won't be texture allocation overhead, because EffectLayers don't have
             //   buffers
             ViewRootImpl viewRootImpl = mLauncher.getDragLayer().getViewRootImpl();
-            SurfaceControl parent = viewRootImpl != null
-                    ? viewRootImpl.getSurfaceControl()
-                    : null;
+            SurfaceControl parent = null;
+            if (viewRootImpl != null && android.os.Build.VERSION.SDK_INT >= 36) {
+                parent = viewRootImpl.getSurfaceControl();
+            }
             SurfaceControl dimLayer = new SurfaceControl.Builder()
                     .setName("Blur layer")
                     .setParent(parent)
@@ -1201,7 +1223,12 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         }
         RemoteAnimationDefinition definition = new RemoteAnimationDefinition();
         addRemoteAnimations(definition);
-        mLauncher.registerRemoteAnimations(definition);
+        try {
+            mLauncher.registerRemoteAnimations(definition);
+        } catch (SecurityException | NoSuchMethodError e) {
+            // CONTROL_REMOTE_APP_TRANSITION_ANIMATIONS not available for non-system apps,
+            // or registerRemoteAnimations hidden API not accessible on this framework.
+        }
     }
 
     /**
@@ -1222,16 +1249,25 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
      * Registers remote animations used when closing apps to home screen.
      */
     public void registerRemoteTransitions() {
+        if (android.os.Build.VERSION.SDK_INT < 36) {
+            // Shell remote transitions API requires API 36+
+            return;
+        }
         SystemUiProxy.INSTANCE.get(mLauncher).shareTransactionQueue();
         if (SEPARATE_RECENTS_ACTIVITY.get()) {
             return;
         }
 
         mWallpaperOpenTransitionRunner = new WallpaperOpenLauncherAnimationRunner();
-        mLauncherOpenTransition = new RemoteTransition(
+        IRemoteTransition launchHomeRunner =
                 new LauncherAnimationRunner(mHandler, mWallpaperOpenTransitionRunner,
-                        false /* startAtFrontOfQueue */).toRemoteTransition(),
-                mLauncher.getIApplicationThread(), "QuickstepLaunchHome");
+                        false /* startAtFrontOfQueue */).toRemoteTransition();
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            mLauncherOpenTransition = new RemoteTransition(launchHomeRunner,
+                    mLauncher.getIApplicationThread(), "QuickstepLaunchHome");
+        } else {
+            mLauncherOpenTransition = new RemoteTransition(launchHomeRunner);
+        }
 
         TransitionFilter homeCheck = new TransitionFilter();
         // No need to handle the transition that also dismisses keyguard.
@@ -1298,7 +1334,12 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         if (SEPARATE_RECENTS_ACTIVITY.get()) {
             return;
         }
-        mLauncher.unregisterRemoteAnimations();
+        try {
+            mLauncher.unregisterRemoteAnimations();
+        } catch (SecurityException | NoSuchMethodError e) {
+            // CONTROL_REMOTE_APP_TRANSITION_ANIMATIONS not available for non-system apps,
+            // or unregisterRemoteAnimations hidden API not accessible on this framework.
+        }
 
         // Also clear strong references to the runners registered with the remote animation
         // definition so we don't have to wait for the system gc
@@ -1307,6 +1348,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     }
 
     protected void unregisterRemoteTransitions() {
+        if (android.os.Build.VERSION.SDK_INT < 36) return;
         SystemUiProxy.INSTANCE.get(mLauncher).unshareTransactionQueue();
         if (SEPARATE_RECENTS_ACTIVITY.get()) {
             return;
@@ -1623,8 +1665,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     }
 
     private boolean isFreeformAnimation(RemoteAnimationTarget[] appTargets) {
-        return DesktopModeStatus.canEnterDesktopMode(mLauncher.getApplicationContext())
-                && DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_EXIT_TRANSITIONS_BUGFIX.isTrue()
+        return DesktopModeStatusCompat.canEnterDesktopMode(mLauncher.getApplicationContext())
+                && DesktopFlagsCompat.enableDesktopWindowingExitTransitionsBugfix()
                 && Arrays.stream(appTargets)
                         .anyMatch(app -> app.taskInfo != null && app.taskInfo.isFreeform());
     }
@@ -1911,7 +1953,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
 
             BackAnimState bankAnimState = createWallpaperOpenAnimations(
                     appTargets, wallpaperTargets, nonAppTargets, resolveRectF,
-                    QuickStepContract.getWindowCornerRadius(mLauncher),
+                    getWindowCornerRadius(mLauncher),
                     false /* fromPredictiveBack */);
 
             TaskViewUtils.createSplitAuxiliarySurfacesAnimator(nonAppTargets, false, null);
