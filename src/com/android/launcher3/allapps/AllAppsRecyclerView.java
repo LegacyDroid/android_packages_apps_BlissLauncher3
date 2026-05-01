@@ -168,13 +168,25 @@ public class AllAppsRecyclerView extends FastScrollRecyclerView {
                 mgr.logger().sendToInteractionJankMonitor(
                         LAUNCHER_ALLAPPS_VERTICAL_SWIPE_BEGIN, this);
                 ActivityContext.lookupContext(getContext()).hideKeyboard();
+                maybeHapticFeedback(android.view.HapticFeedbackConstants.GESTURE_START);
                 break;
             case SCROLL_STATE_IDLE:
                 mgr.logger().sendToInteractionJankMonitor(
                         LAUNCHER_ALLAPPS_VERTICAL_SWIPE_END, this);
                 logCumulativeVerticalScroll();
+                maybeHapticFeedback(android.view.HapticFeedbackConstants.GESTURE_END);
                 break;
         }
+    }
+
+    private void maybeHapticFeedback(int constant) {
+        try {
+            if (com.android.launcher3.LauncherPrefs.get(getContext())
+                    .get(com.android.launcher3.LauncherPrefs.DRAWER_HAPTIC)) {
+                performHapticFeedback(constant,
+                        android.view.HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
+            }
+        } catch (Throwable ignored) { /* pref not available */ }
     }
 
     @Override

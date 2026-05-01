@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.QuickStepContractCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.views;
 
 import static com.android.app.animation.Interpolators.LINEAR;
@@ -48,7 +56,7 @@ import com.android.quickstep.util.AnimUtils;
 import com.android.quickstep.util.MultiValueUpdateListener;
 import com.android.quickstep.util.SplitAnimationTimings;
 import com.android.quickstep.util.TaskCornerRadius;
-import com.android.systemui.shared.system.QuickStepContract;
+import foundation.e.bliss.compat.quickstep.QuickStepContractCompat;
 
 /**
  * Create an instance via
@@ -437,7 +445,7 @@ public class FloatingTaskView extends FrameLayout {
 
         public FullscreenDrawParams(Context context) {
             mCornerRadius = TaskCornerRadius.get(context);
-            mWindowCornerRadius = QuickStepContract.getWindowCornerRadius(context);
+            mWindowCornerRadius = QuickStepContractCompat.getWindowCornerRadius(context);
 
             mCurrentDrawnCornerRadius = mCornerRadius;
         }

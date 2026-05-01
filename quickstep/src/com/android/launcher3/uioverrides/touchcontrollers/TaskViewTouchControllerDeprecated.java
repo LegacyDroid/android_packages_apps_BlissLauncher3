@@ -234,7 +234,7 @@ public class TaskViewTouchControllerDeprecated<
         mCurrentAnimationIsGoingUp = goingUp;
         BaseDragLayer dl = mContainer.getDragLayer();
         final int secondaryLayerDimension = orientationHandler.getSecondaryDimension(dl);
-        long maxDuration = 2 * secondaryLayerDimension;
+        long maxDuration = 2L * secondaryLayerDimension;
         int verticalFactor = orientationHandler.getTaskDragDisplacementFactor(mIsRtl);
         int secondaryTaskDimension = orientationHandler.getSecondaryDimension(mTaskBeingDragged);
         // The interpolator controlling the most prominent visual movement. We use this to determine

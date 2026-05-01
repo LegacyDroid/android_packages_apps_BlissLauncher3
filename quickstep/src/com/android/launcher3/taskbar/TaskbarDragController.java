@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
 
 import static com.android.app.animation.Interpolators.FAST_OUT_SLOW_IN;
@@ -80,6 +88,7 @@ import com.android.launcher3.shortcuts.ShortcutDragPreviewProvider;
 import com.android.launcher3.taskbar.bubbles.BubbleBarViewController;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.ItemInfoMatcher;
 import com.android.launcher3.views.BubbleTextHolder;
@@ -359,7 +368,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
         // Pre-drag has ended, start the global system drag.
         if (mDisallowGlobalDrag
                 || mControllers.taskbarDesktopModeController
-                    .isInDesktopModeAndNotInOverview(mActivity.getDisplayId())) {
+                    .isInDesktopModeAndNotInOverview(DisplayIdCompat.getDisplayId(mActivity))) {
             AbstractFloatingView.closeAllOpenViewsExcept(mActivity, TYPE_TASKBAR_ALL_APPS);
             return;
         }

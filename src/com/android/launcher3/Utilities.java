@@ -114,7 +114,7 @@ public final class Utilities {
 
     private static final String TAG = "Launcher.Utilities";
 
-    private static final String TRIM_PATTERN = "(^\\h+|\\h+$)";
+    private static final String TRIM_PATTERN = "(?:^\\h+)|(?:\\h+$)";
 
     private static final Matrix sMatrix = new Matrix();
     private static final Matrix sInverseMatrix = new Matrix();

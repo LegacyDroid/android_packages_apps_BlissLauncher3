@@ -8,7 +8,7 @@
         <item>@string/launcher_component</item>
     </string-array>
 
-    <bool name="default_single_mode">true</bool>
+    <bool name="default_single_mode">false</bool>
 
     <integer name="grid_folder_icon_rows">3</integer>
     <integer name="grid_folder_icon_columns">3</integer>

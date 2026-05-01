@@ -27,4 +27,7 @@ enum class Providers(val key: String, val url: String) {
     MURENASEARCH("murena search", "https://murena.qwant.com/"),
     SPOT("spot", "https://spot.murena.io/"),
     MOJEEK("mojeek", "https://www.mojeek.com/"),
+    ECOSIA("ecosia", "https://www.ecosia.org/"),
+    STARTPAGE("startpage", "https://www.startpage.com/"),
+    BRAVE("brave", "https://search.brave.com/"),
 }

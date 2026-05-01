@@ -82,6 +82,11 @@ public class IntSet implements Iterable<Integer> {
         return (obj instanceof IntSet) && ((IntSet) obj).mArray.equals(mArray);
     }
 
+    @Override
+    public int hashCode() {
+        return mArray.hashCode();
+    }
+
     /**
      * Returns the wrapped IntArray. The elements in the array are sorted in ascending order.
      */

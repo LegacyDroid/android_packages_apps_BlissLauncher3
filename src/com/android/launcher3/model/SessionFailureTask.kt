@@ -36,7 +36,7 @@ class SessionFailureTask(val packageName: String, val user: UserHandle) : ModelU
         val iconCache = taskController.iconCache
         val isAppArchived =
             ApplicationInfoWrapper(taskController.context, packageName, user).isArchived()
-        synchronized(dataModel) {
+        synchronized(dataModel.mLock) {
             if (isAppArchived) {
                 val updatedItems = mutableListOf<WorkspaceItemInfo>()
                 // Remove package icon cache entry for archived app in case of a session

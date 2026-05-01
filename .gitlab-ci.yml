@@ -21,7 +21,29 @@ before_script:
   - export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
   - export GRADLE_USER_HOME=$(pwd)/.gradle
   - chmod +x ./gradlew
-  - git submodule update --init --recursive
+  # Submodule fetch via the runner's CI_JOB_TOKEN-injected Authorization header
+  # intermittently triggers a 30X redirect from the fork URL to the upstream
+  # source repo (which doesn't carry the WIP submodule commit). Retry a few
+  # times; if the auth-injected attempts keep redirecting, fall back to an
+  # explicit anonymous clone of the fork at the registered submodule SHA.
+  - |
+    SUBMOD_SHA=$(git ls-tree HEAD libs_systemui | awk '{print $3}')
+    SUBMOD_URL=$(git config -f .gitmodules submodule.libs_systemui.url)
+    if [[ "$SUBMOD_URL" == ../* ]]; then
+      PARENT_DIR=$(dirname "$(git config --get remote.origin.url)")
+      SUBMOD_URL="${PARENT_DIR}/${SUBMOD_URL#../}"
+    fi
+    for i in 1 2 3; do
+      git -c http.extraheader= submodule update --init --recursive && break
+      echo "[submodule] attempt $i failed; sleeping 10s..."
+      sleep 10
+    done
+    if [ ! -d libs_systemui/.git ] || [ -z "$(ls -A libs_systemui 2>/dev/null)" ]; then
+      echo "[submodule] auth-injected attempts kept redirecting; falling back to explicit anonymous clone of $SUBMOD_URL @ $SUBMOD_SHA"
+      rm -rf libs_systemui
+      git -c http.extraheader= clone "$SUBMOD_URL" libs_systemui
+      (cd libs_systemui && git -c http.extraheader= fetch --depth=20 origin "$SUBMOD_SHA" && git checkout "$SUBMOD_SHA")
+    fi
 
 cache:
   key: ${CI_PROJECT_ID}
@@ -43,6 +65,43 @@ blissWithQuickstepRelease:
   artifacts:
     paths:
       - build/outputs/apk
+
+spotlessCheck:
+  stage: build
+  rules:
+    - if: '$CI_PROJECT_PATH == "Siavash/BlissLauncher3"'
+  interruptible: true
+  script:
+    - ./gradlew spotlessCheck
+
+lintblissWithQuickstepDebug:
+  stage: build
+  rules:
+    - if: '$CI_PROJECT_PATH == "Siavash/BlissLauncher3"'
+  interruptible: true
+  script:
+    - ./gradlew lintblissWithQuickstepDebug
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - "**/build/reports/lint-results-*.html"
+      - "**/build/reports/lint-results-*.xml"
+
+testblissWithQuickstepDebugUnitTest:
+  stage: build
+  rules:
+    - if: '$CI_PROJECT_PATH == "Siavash/BlissLauncher3"'
+  interruptible: true
+  script:
+    - ./gradlew testblissWithQuickstepDebugUnitTest
+  artifacts:
+    when: always
+    expire_in: 1 week
+    reports:
+      junit: "**/build/test-results/testblissWithQuickstepDebugUnitTest/TEST-*.xml"
+    paths:
+      - "**/build/reports/tests/"
 
 init_submodules:
   stage: gitlab_release

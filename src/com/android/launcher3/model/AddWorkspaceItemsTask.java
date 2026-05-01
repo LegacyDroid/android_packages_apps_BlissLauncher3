@@ -103,7 +103,7 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
         final IntArray addedWorkspaceScreensFinal = new IntArray();
         final Context context = taskController.getContext();
 
-        synchronized (dataModel) {
+        synchronized (dataModel.mLock) {
             IntArray workspaceScreens = dataModel.collectWorkspaceScreens();
 
             List<ItemInfo> filteredItems = new ArrayList<>();
@@ -284,7 +284,7 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
         }
 
         boolean isLauncherAppTarget = PackageManagerHelper.isLauncherAppTarget(intent);
-        synchronized (dataModel) {
+        synchronized (dataModel.mLock) {
             for (ItemInfo item : dataModel.itemsIdMap) {
                 if (item instanceof WorkspaceItemInfo) {
                     WorkspaceItemInfo info = (WorkspaceItemInfo) item;

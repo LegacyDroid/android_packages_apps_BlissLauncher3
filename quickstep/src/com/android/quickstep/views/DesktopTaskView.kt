@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.views
 
 import android.annotation.SuppressLint
@@ -31,7 +40,7 @@ import android.view.View
 import android.view.ViewStub
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.updateLayoutParams
-import com.android.internal.hidden_from_bootclasspath.com.android.window.flags.Flags.enableDesktopRecentsTransitionsCornersBugfix
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat.enableDesktopRecentsTransitionsCornersBugfix
 import com.android.launcher3.Flags.enableDesktopExplodedView
 import com.android.launcher3.Flags.enableOverviewIconMenu
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
@@ -59,7 +68,7 @@ import com.android.quickstep.recents.ui.viewmodel.TaskData
 import com.android.quickstep.task.thumbnail.TaskThumbnailView
 import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.RecentsOrientedState
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat.enableMultipleDesktops
 import kotlin.math.roundToInt
 
 /** TaskView that contains all tasks that are part of the desktop. */

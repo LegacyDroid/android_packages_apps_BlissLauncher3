@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep;
 
 import static com.android.app.animation.Interpolators.INSTANT;
@@ -44,6 +52,7 @@ import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.DisplayController;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.views.ScrimView;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
@@ -237,7 +246,7 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
             startState = stateFromGestureEndTarget(endTarget);
             final var context = recentsView.getContext();
             if (DesktopVisibilityController.INSTANCE.get(context)
-                    .isInDesktopModeAndNotInOverview(context.getDisplayId())
+                    .isInDesktopModeAndNotInOverview(DisplayIdCompat.getDisplayId(context))
                     && endTarget == LAST_TASK) {
                 // When we are cancelling the transition and going back to last task, move to
                 // rest state instead when desktop tasks are visible.
@@ -312,7 +321,7 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
             );
             insets = outRect;
         }
-        potentialTaskRect.inset(insets);
+        potentialTaskRect.inset(insets.left, insets.top, insets.right, insets.bottom);
 
         outRect.set(
                 minimumHorizontalPadding,
@@ -321,7 +330,7 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
                 claimedSpaceBelow);
         // Rotate the paddings to portrait perspective,
         orientationHandler.rotateInsets(outRect, outRect);
-        potentialTaskRect.inset(outRect);
+        potentialTaskRect.inset(outRect.left, outRect.top, outRect.right, outRect.bottom);
 
         calculateTaskSizeInternal(context, dp, potentialTaskRect, maxScale, gravity, outRect);
     }

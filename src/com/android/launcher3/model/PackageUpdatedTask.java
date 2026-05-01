@@ -216,7 +216,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
 
             // For system apps, package manager send OP_UPDATE when an app is enabled.
             final boolean isNewApkAvailable = mOp == OP_ADD || mOp == OP_UPDATE;
-            synchronized (dataModel) {
+            synchronized (dataModel.mLock) {
                 dataModel.forAllWorkspaceItemInfos(mUser, itemInfo -> {
 
                     boolean infoUpdated = false;

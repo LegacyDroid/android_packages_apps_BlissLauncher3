@@ -164,13 +164,14 @@ public class WorkspaceStateTransitionAnimation {
         float hotseatIconsAlpha = (elements & HOTSEAT_ICONS) != 0 ? 1 : 0;
         propertySetter.setViewAlpha(hotseat, hotseatIconsAlpha, hotseatFadeInterpolator);
 
-        if (MultiModeController.isSingleLayerMode() && FeatureFlags.QSB_ON_FIRST_SCREEN.get()) {
+        if (MultiModeController.isSingleLayerMode() && FeatureFlags.QSB_ON_FIRST_SCREEN.get()
+                && mWorkspace.getFirstPagePinnedItem() != null) {
             propertySetter.setViewAlpha(
                     mWorkspace.getFirstPagePinnedItem(),
                     state == SPRING_LOADED ? FIRST_PAGE_PINNED_WIDGET_DISABLED_ALPHA : 1,
                     workspaceFadeInterpolator);
             propertySetter.addEndListener(success -> {
-                if (success) {
+                if (success && mWorkspace.getFirstPagePinnedItem() != null) {
                     mWorkspace.getFirstPagePinnedItem().setClickable(state != SPRING_LOADED);
                 }
             });

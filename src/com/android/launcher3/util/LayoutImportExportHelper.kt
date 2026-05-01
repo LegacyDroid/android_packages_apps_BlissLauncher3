@@ -40,11 +40,14 @@ import com.android.launcher3.shortcuts.ShortcutKey
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.Executors.ORDERED_BG_EXECUTOR
+import android.util.Log
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.concurrent.CompletableFuture
 
 object LayoutImportExportHelper {
+    private const val TAG = "LayoutImportExportHelper"
+
     fun exportModelDbAsXmlFuture(context: Context): CompletableFuture<String> {
         val future = CompletableFuture<String>()
         exportModelDbAsXml(context) { xmlString -> future.complete(xmlString) }
@@ -86,18 +89,47 @@ object LayoutImportExportHelper {
 
         val resolver = context.contentResolver
 
-        blobManager.openSession(blobManager.createSession(handle)).use { session ->
-            AutoCloseOutputStream(session.openWrite(0, -1)).use { it.write(data) }
-            session.allowPublicAccess()
+        try {
+            blobManager.openSession(blobManager.createSession(handle)).use { session ->
+                AutoCloseOutputStream(session.openWrite(0, -1)).use { it.write(data) }
+                session.allowPublicAccess()
 
-            session.commit(ORDERED_BG_EXECUTOR) {
-                Secure.putString(resolver, LAYOUT_PROVIDER_KEY, createBlobProviderKey(digest))
+                session.commit(ORDERED_BG_EXECUTOR) {
+                    try {
+                        Secure.putString(
+                            resolver, LAYOUT_PROVIDER_KEY, createBlobProviderKey(digest)
+                        )
+                    } catch (e: SecurityException) {
+                        Log.w(
+                            TAG,
+                            "WRITE_SECURE_SETTINGS not available, " +
+                                "falling back to DB reset for layout import",
+                            e,
+                        )
+                    }
 
-                MODEL_EXECUTOR.submit { model.modelDbController.createEmptyDB() }.get()
-                MAIN_EXECUTOR.submit { model.forceReload() }.get()
-                MODEL_EXECUTOR.submit {}.get()
-                Secure.putString(resolver, LAYOUT_PROVIDER_KEY, null)
+                    MODEL_EXECUTOR.submit { model.modelDbController.createEmptyDB() }.get()
+                    MAIN_EXECUTOR.submit { model.forceReload() }.get()
+                    MODEL_EXECUTOR.submit {}.get()
+
+                    try {
+                        Secure.putString(resolver, LAYOUT_PROVIDER_KEY, null)
+                    } catch (e: SecurityException) {
+                        // Already logged above; clearing the key is best-effort
+                    }
+                }
             }
+        } catch (e: SecurityException) {
+            Log.w(
+                TAG,
+                "BlobStoreManager or Secure.Settings access denied, " +
+                    "falling back to DB reset for layout import",
+                e,
+            )
+            // Fallback: reset DB and reload so the launcher doesn't crash.
+            // The layout won't be restored, but the launcher remains functional.
+            MODEL_EXECUTOR.submit { model.modelDbController.createEmptyDB() }.get()
+            MAIN_EXECUTOR.submit { model.forceReload() }.get()
         }
     }
 

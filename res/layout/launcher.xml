@@ -40,6 +40,23 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <TextView
+            android:id="@+id/at_a_glance_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="48dp"
+            android:textSize="20sp"
+            android:textColor="?android:attr/textColorPrimary"
+            android:shadowColor="#80000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="3"
+            android:clickable="false"
+            android:focusable="false"
+            android:visibility="gone" />
+
         <!-- The workspace contains 5 screens of cells -->
         <!-- DO NOT CHANGE THE ID -->
         <com.android.launcher3.Workspace

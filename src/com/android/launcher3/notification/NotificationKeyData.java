@@ -75,4 +75,9 @@ public class NotificationKeyData {
         // Only compare the keys.
         return ((NotificationKeyData) obj).notificationKey.equals(notificationKey);
     }
+
+    @Override
+    public int hashCode() {
+        return notificationKey.hashCode();
+    }
 }

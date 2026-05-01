@@ -170,7 +170,10 @@ public class LauncherProvider extends ContentProvider {
                 try {
                     b.putString(KEY_LAYOUT, resultFuture.get());
                     b.putString(KEY_RESULT, SUCCESS);
-                } catch (ExecutionException | InterruptedException e) {
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    b.putString(KEY_RESULT, FAILURE);
+                } catch (ExecutionException e) {
                     b.putString(KEY_RESULT, FAILURE);
                 }
                 return b;

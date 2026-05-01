@@ -149,14 +149,20 @@ public class TaskbarDragLayer extends BaseDragLayer<TaskbarActivityContext> {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         getViewTreeObserver().addOnComputeInternalInsetsListener(mTaskbarInsetsComputer);
-        mViewCaptureCloseable = ViewCaptureFactory.getInstance(getContext())
-                .startCapture(getRootView(), ".Taskbar");
+        try {
+            mViewCaptureCloseable = ViewCaptureFactory.getInstance(getContext())
+                    .startCapture(getRootView(), ".Taskbar");
+        } catch (NoSuchMethodError e) {
+            // ViewCapture uses IDumpCallback.Stub which requires API 36+
+        }
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        mViewCaptureCloseable.close();
+        if (mViewCaptureCloseable != null) {
+            mViewCaptureCloseable.close();
+        }
         onDestroy(true);
     }
 

@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
@@ -55,6 +63,7 @@ import com.android.quickstep.recents.data.RecentTasksDataSource;
 import com.android.quickstep.recents.data.TaskVisualsChangeNotifier;
 import com.android.quickstep.util.DesktopTask;
 import com.android.quickstep.util.GroupTask;
+import foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat;
 import com.android.quickstep.util.TaskVisualsChangeListener;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.recents.model.ThumbnailData;
@@ -171,7 +180,13 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
             tracker.addCloseable(() -> context.unregisterComponentCallbacks(componentCallbacks));
         }
 
-        taskStackChangeListeners.registerTaskStackListener(this);
+        if (ActivityTaskManagerCompat.isServiceAvailable()) {
+            try {
+                taskStackChangeListeners.registerTaskStackListener(this);
+            } catch (SecurityException e) {
+                // MANAGE_ACTIVITY_TASKS not available for non-system apps
+            }
+        }
         SafeCloseable iconChangeCloseable = iconProvider.registerIconChangeListener(
                 this::onAppIconChanged, MAIN_EXECUTOR.getHandler());
 
@@ -179,7 +194,13 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
         lockedUserState.runOnUserUnlocked(unlockCallback);
 
         tracker.addCloseable(() -> {
-            taskStackChangeListeners.unregisterTaskStackListener(this);
+            if (ActivityTaskManagerCompat.isServiceAvailable()) {
+                try {
+                    taskStackChangeListeners.unregisterTaskStackListener(this);
+                } catch (SecurityException e) {
+                    // Already not registered
+                }
+            }
             iconChangeCloseable.close();
             mIconCache.removeTaskVisualsChangeListener();
             if (lockedUserState.isUserUnlocked()) {

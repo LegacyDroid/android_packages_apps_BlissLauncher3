@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Migration04 §04: home screen — see Plans/Migration04/04-settings-ui-modularization.md §6 -->
+<androidx.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:launcher="http://schemas.android.com/apk/res-auto"
+    android:title="@string/home_screen_category_title">
+
+    <!-- General appearance prefs (formerly "General" screen) -->
+    <ListPreference
+        android:key="pref_dark_mode"
+        android:title="@string/dark_mode_title"
+        android:summary="@string/dark_mode_summary"
+        android:persistent="false" />
+
+    <ListPreference
+        android:key="pref_accent_color"
+        android:title="@string/accent_color_title"
+        android:summary="@string/accent_color_summary"
+        android:persistent="false" />
+
+    <Preference
+        android:key="pref_accent_hex"
+        android:title="@string/accent_hex_title"
+        android:summary="@string/accent_hex_summary"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_themed_icons"
+        android:title="@string/themed_icons_title"
+        android:summary="@string/themed_icons_summary"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_wrap_adaptive_icons"
+        android:title="@string/wrap_adaptive_icons_title"
+        android:summary="@string/wrap_adaptive_icons_summary"
+        android:defaultValue="true"
+        android:persistent="false" />
+
+    <ListPreference
+        android:key="pref_dot_text_color"
+        android:title="@string/dot_text_color_title"
+        android:entries="@array/dot_text_color_entries"
+        android:entryValues="@array/dot_text_color_values"
+        android:defaultValue="auto"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_wallpaper_depth_effect"
+        android:title="@string/wallpaper_depth_effect_title"
+        android:summary="@string/wallpaper_depth_effect_summary"
+        android:defaultValue="true"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_allow_widget_overlap"
+        android:title="@string/allow_widget_overlap_title"
+        android:summary="@string/allow_widget_overlap_summary"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <ListPreference
+        android:key="pref_icon_pack"
+        android:title="@string/icon_pack_title"
+        android:summary="@string/icon_pack_summary"
+        android:persistent="false" />
+
+    <ListPreference
+        android:key="pref_icon_shape"
+        android:title="@string/icon_shape_title"
+        android:summary="@string/icon_shape_summary"
+        android:persistent="false" />
+
+    <androidx.preference.SeekBarPreference
+        android:key="pref_custom_icon_shape_radius"
+        android:title="@string/custom_icon_shape_radius_title"
+        android:summary="@string/custom_icon_shape_radius_summary"
+        android:defaultValue="25"
+        android:min="0"
+        android:max="50"
+        android:persistent="false" />
+
+    <com.android.launcher3.settings.NotificationDotsPreference
+        android:key="pref_icon_badging"
+        android:title="@string/notification_dots_title"
+        android:persistent="false"
+        android:widgetLayout="@layout/notification_pref_warning" />
+
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="pref_notif_count"
+        android:persistent="true"
+        android:title="@string/show_notification_count" />
+
+    <ListPreference
+        android:key="pref_dot_color"
+        android:title="@string/dot_color_title"
+        android:summary="@string/dot_color_summary"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_allowRotation"
+        android:title="@string/allow_rotation_title"
+        android:summary="@string/allow_rotation_desc"
+        android:defaultValue="false"
+        android:persistent="true"
+        launcher:logIdOn="615"
+        launcher:logIdOff="616" />
+
+    <Preference
+        android:key="pref_reset_app_renames"
+        android:title="@string/reset_app_renames_title"
+        android:summary="@string/reset_app_renames_summary"
+        android:persistent="false" />
+
+    <!-- Home screen layout/grid prefs (formerly "Home Screen" screen) -->
+    <ListPreference
+        android:key="pref_grid_size"
+        android:title="@string/grid_size_title"
+        android:summary="@string/grid_size_summary"
+        android:persistent="false" />
+
+    <androidx.preference.SeekBarPreference
+        android:key="pref_icon_size_factor"
+        android:title="@string/home_icon_size_title"
+        android:defaultValue="100"
+        android:max="150"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_show_home_labels"
+        android:title="@string/show_home_screen_labels_title"
+        android:summary="@string/show_home_screen_labels_summary"
+        android:defaultValue="true"
+        android:persistent="false" />
+
+    <androidx.preference.SeekBarPreference
+        android:key="pref_home_label_size_factor"
+        android:title="@string/home_label_size_title"
+        android:defaultValue="100"
+        android:max="150"
+        android:persistent="false" />
+
+    <ListPreference
+        android:key="pref_home_label_color_mode"
+        android:title="@string/home_label_color_mode_title"
+        android:entries="@array/home_label_color_mode_entries"
+        android:entryValues="@array/home_label_color_mode_values"
+        android:defaultValue="auto"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="pref_workspace_lock"
+        android:persistent="true"
+        android:title="@string/settings_lock_layout_title"
+        android:summaryOn="@string/settings_lock_layout_summary_on"
+        android:summaryOff="@string/settings_lock_layout_summary_off" />
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="pref_preserve_layout_gaps"
+        android:persistent="true"
+        android:title="@string/pref_preserve_layout_gaps_title"
+        android:summary="@string/pref_preserve_layout_gaps_summary" />
+
+    <SwitchPreference
+        android:key="pref_add_icon_to_home"
+        android:title="@string/auto_add_shortcuts_label"
+        android:summary="@string/auto_add_shortcuts_description"
+        android:defaultValue="true"
+        android:persistent="true"
+        launcher:logIdOn="613"
+        launcher:logIdOff="614" />
+
+    <androidx.preference.SeekBarPreference
+        android:key="pref_workspace_top_padding_factor"
+        android:title="@string/workspace_top_padding_factor_title"
+        android:summary="@string/workspace_padding_factor_summary"
+        android:defaultValue="100"
+        android:max="150"
+        android:min="0"
+        android:persistent="false" />
+
+    <androidx.preference.SeekBarPreference
+        android:key="pref_workspace_bottom_padding_factor"
+        android:title="@string/workspace_bottom_padding_factor_title"
+        android:summary="@string/workspace_padding_factor_summary"
+        android:defaultValue="100"
+        android:max="150"
+        android:min="0"
+        android:persistent="false" />
+
+    <androidx.preference.SeekBarPreference
+        android:key="pref_page_indicator_height_factor"
+        android:title="@string/page_indicator_height_factor_title"
+        android:summary="@string/workspace_padding_factor_summary"
+        android:defaultValue="100"
+        android:max="100"
+        android:min="0"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_show_at_a_glance"
+        android:title="@string/at_a_glance_title"
+        android:summary="@string/at_a_glance_summary"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_wallpaper_scrolling"
+        android:title="@string/wallpaper_scrolling_title"
+        android:summary="@string/wallpaper_scrolling_summary"
+        android:defaultValue="true"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_infinite_scrolling"
+        android:title="@string/infinite_scrolling_title"
+        android:summary="@string/infinite_scrolling_summary"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_show_status_bar"
+        android:title="@string/show_status_bar_title"
+        android:summary="@string/show_status_bar_summary"
+        android:defaultValue="true"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_dark_status_bar"
+        android:title="@string/dark_status_bar_title"
+        android:summary="@string/dark_status_bar_summary"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_smartspace_show_time"
+        android:title="@string/smartspace_show_time_title"
+        android:defaultValue="true"
+        android:persistent="false"
+        android:dependency="pref_show_at_a_glance" />
+
+    <SwitchPreference
+        android:key="pref_smartspace_show_date"
+        android:title="@string/smartspace_show_date_title"
+        android:defaultValue="true"
+        android:persistent="false"
+        android:dependency="pref_show_at_a_glance" />
+
+    <SwitchPreference
+        android:key="pref_smartspace_now_playing"
+        android:title="@string/smartspace_now_playing_title"
+        android:defaultValue="true"
+        android:persistent="false"
+        android:dependency="pref_show_at_a_glance" />
+
+    <SwitchPreference
+        android:key="pref_use_24h_format"
+        android:title="@string/use_24h_format_title"
+        android:summary="@string/use_24h_format_summary"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <androidx.preference.SeekBarPreference
+        android:key="pref_blur_intensity"
+        android:title="@string/blur_intensity_title"
+        android:defaultValue="100"
+        android:max="200"
+        android:persistent="false" />
+
+    <ListPreference
+        android:key="pref_page_transition"
+        android:title="@string/page_transition_title"
+        android:summary="@string/page_transition_summary"
+        android:persistent="false" />
+
+    <ListPreference
+        android:key="pref_app_launch_animation"
+        android:title="@string/app_launch_animation_title"
+        android:summary="@string/app_launch_animation_summary"
+        android:persistent="false" />
+
+    <!-- Font prefs (folded in: theme/font is part of overall home appearance) -->
+    <ListPreference
+        android:key="pref_font_family"
+        android:title="@string/font_family_title"
+        android:summary="@string/font_family_summary"
+        android:persistent="false" />
+
+    <ListPreference
+        android:key="pref_font_weight"
+        android:title="@string/font_weight_title"
+        android:summary="@string/font_weight_summary"
+        android:persistent="false" />
+
+</androidx.preference.PreferenceScreen>

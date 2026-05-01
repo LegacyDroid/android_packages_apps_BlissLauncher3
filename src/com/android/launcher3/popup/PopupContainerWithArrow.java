@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.PrivateSpaceFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.popup;
 
-import static android.multiuser.Flags.enableMovingContentIntoPrivateSpace;
+import static foundation.e.bliss.compat.platform.PrivateSpaceFlagsCompat.enableMovingContentIntoPrivateSpace;
 
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_SHORTCUTS;
 import static com.android.launcher3.Utilities.squaredHypot;

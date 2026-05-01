@@ -58,15 +58,21 @@ public class TaskbarOverlayDragLayer extends
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         getViewTreeObserver().addOnComputeInternalInsetsListener(this);
-        mViewCaptureCloseable = ViewCaptureFactory.getInstance(getContext())
-                .startCapture(getRootView(), ".TaskbarOverlay");
+        try {
+            mViewCaptureCloseable = ViewCaptureFactory.getInstance(getContext())
+                    .startCapture(getRootView(), ".TaskbarOverlay");
+        } catch (NoSuchMethodError e) {
+            // ViewCapture uses IDumpCallback.Stub which requires API 36+
+        }
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         getViewTreeObserver().removeOnComputeInternalInsetsListener(this);
-        mViewCaptureCloseable.close();
+        if (mViewCaptureCloseable != null) {
+            mViewCaptureCloseable.close();
+        }
     }
 
     @Override

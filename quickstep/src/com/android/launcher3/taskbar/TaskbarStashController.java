@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
 
 import static android.view.accessibility.AccessibilityManager.FLAG_CONTENT_CONTROLS;
@@ -28,7 +37,6 @@ import static com.android.launcher3.QuickstepTransitionManager.PINNED_TASKBAR_TR
 import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TRANSIENT_TASKBAR_HIDE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TRANSIENT_TASKBAR_SHOW;
-import static com.android.launcher3.taskbar.TaskbarActivityContext.ENABLE_TASKBAR_BEHIND_SHADE;
 import static com.android.launcher3.taskbar.TaskbarManager.NAVIGATION_BAR_HINT;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.FlagDebugUtils.appendFlag;
@@ -67,6 +75,8 @@ import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.anim.AnimationSuccessListener;
 import com.android.launcher3.anim.AnimatorListeners;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.launcher3.util.SettingsCache;
 import com.android.quickstep.SystemUiProxy;
@@ -1147,7 +1157,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         long startDelay = 0;
 
         updateStateForFlag(FLAG_STASHED_IN_APP_SYSUI, hasAnyFlag(systemUiStateFlags,
-                SYSUI_STATE_DIALOG_SHOWING | (ENABLE_TASKBAR_BEHIND_SHADE.isTrue()
+                SYSUI_STATE_DIALOG_SHOWING | (DesktopFlagsCompat.enableTaskbarBehindShade()
                         ? 0
                         : SYSUI_STATE_NOTIFICATION_PANEL_VISIBLE)
         ));
@@ -1203,7 +1213,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         if (mActivity.isHardwareKeyboard()
                 && mActivity.isThreeButtonNav()
                 && mControllers.taskbarDesktopModeController
-                    .isInDesktopModeAndNotInOverview(mActivity.getDisplayId())) {
+                    .isInDesktopModeAndNotInOverview(DisplayIdCompat.getDisplayId(mActivity))) {
             return false;
         }
 

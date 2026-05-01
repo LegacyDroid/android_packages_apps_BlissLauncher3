@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.QuickStepContractCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.interaction;
 
 import static android.view.View.GONE;
@@ -63,7 +71,7 @@ import com.android.launcher3.util.SettingsCache;
 import com.android.launcher3.views.ClipIconView;
 import com.android.quickstep.interaction.EdgeBackGestureHandler.BackGestureAttemptCallback;
 import com.android.quickstep.interaction.NavBarGestureHandler.NavBarGestureAttemptCallback;
-import com.android.systemui.shared.system.QuickStepContract;
+import foundation.e.bliss.compat.quickstep.QuickStepContractCompat;
 import com.android.wm.shell.Flags;
 import com.android.wm.shell.shared.TypefaceUtils.FontFamily;
 
@@ -173,7 +181,7 @@ abstract class TutorialController implements BackGestureAttemptCallback,
         mScreenHeight = mTutorialFragment.getDeviceProfile().heightPx;
         mExitingAppMargin = mContext.getResources().getDimensionPixelSize(
                 R.dimen.gesture_tutorial_back_gesture_exiting_app_margin);
-        mExitingAppStartingCornerRadius = QuickStepContract.getWindowCornerRadius(mContext);
+        mExitingAppStartingCornerRadius = QuickStepContractCompat.getWindowCornerRadius(mContext);
         mExitingAppEndingCornerRadius = mContext.getResources().getDimensionPixelSize(
                 R.dimen.gesture_tutorial_back_gesture_end_corner_radius);
         mAnimatedGestureDemonstration.addLottieOnCompositionLoadedListener(

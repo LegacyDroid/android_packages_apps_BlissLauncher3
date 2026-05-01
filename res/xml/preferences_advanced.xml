@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Migration04 §04: advanced screen — see Plans/Migration04/04-settings-ui-modularization.md §6 -->
+<androidx.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:launcher="http://schemas.android.com/apk/res-auto"
+    android:title="@string/advanced_category_title">
+
+    <SwitchPreference
+        android:defaultValue="@bool/default_single_mode"
+        android:key="pref_single_layer"
+        android:persistent="true"
+        android:title="@string/single_layer_mode_title"
+        android:summary="@string/single_layer_mode_summary" />
+
+    <Preference
+        android:key="pref_restart_launcher"
+        android:title="@string/restart_launcher_title"
+        android:summary="@string/restart_launcher_summary"
+        android:persistent="false" />
+
+</androidx.preference.PreferenceScreen>

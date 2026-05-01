@@ -1474,7 +1474,7 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
                     mOrientationHandler.setPrimary(this, VIEW_SCROLL_BY, delta);
 
                     if (mAllowOverScroll) {
-                        final float pulledToX = oldScroll + delta;
+                        final float pulledToX = (float) oldScroll + delta;
 
                         if (pulledToX < mMinScroll) {
                             mEdgeGlowLeft.onPullDistance(-delta / size, 1.f - displacement, ev);
@@ -1550,6 +1550,8 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
                     // test for a large move if a fling has been registered. That is, a large
                     // move to the left and fling to the right will register as a fling to the right.
 
+                    boolean infiniteScroll = isInfiniteScrollingEnabled();
+
                     if (((isSignificantMove && !isDeltaLeft && !isFling) ||
                             (isFling && !isVelocityLeft)) && mCurrentPage > 0) {
                         finalPage = returnToOriginalPage
@@ -1561,6 +1563,17 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
                             mCurrentPage < getChildCount() - 1) {
                         finalPage = returnToOriginalPage
                                 ? mCurrentPage : mCurrentPage + getPanelCount();
+                        runOnPageScrollsInitialized(
+                                () -> snapToPageWithVelocity(finalPage, velocity));
+                    } else if (mCurrentPage == getChildCount() - 1 && infiniteScroll
+                            && isFling && isVelocityLeft) {
+                        finalPage = returnToOriginalPage ? mCurrentPage : 0;
+                        runOnPageScrollsInitialized(
+                                () -> snapToPageWithVelocity(finalPage, velocity));
+                    } else if (mCurrentPage == 0 && infiniteScroll
+                            && isFling && !isVelocityLeft) {
+                        finalPage = returnToOriginalPage
+                                ? mCurrentPage : getChildCount() - 1;
                         runOnPageScrollsInitialized(
                                 () -> snapToPageWithVelocity(finalPage, velocity));
                     } else {
@@ -2127,6 +2140,15 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
                 }
                 canvas.restoreToCount(restoreCount);
             }
+        }
+    }
+
+    private boolean isInfiniteScrollingEnabled() {
+        try {
+            return LauncherPrefs.get(getContext())
+                    .get(LauncherPrefs.INFINITE_SCROLLING);
+        } catch (Exception e) {
+            return false;
         }
     }
 }

@@ -94,7 +94,7 @@ public class SysUiOverlayInputConsumer implements InputConsumer,
         // Close system dialogs when a swipe up is detected.
         try {
             ActivityManager.getService().closeSystemDialogs(SYSTEM_DIALOG_REASON_GESTURE_NAV);
-        } catch (RemoteException e) {
+        } catch (RemoteException | SecurityException e) {
             Log.e(TAG, "Exception calling closeSystemDialogs " + e.getMessage());
         }
     }

@@ -38,9 +38,14 @@ import android.view.animation.Interpolator;
 
 import androidx.core.content.ContextCompat;
 
+import android.graphics.Color;
+
+import androidx.core.graphics.ColorUtils;
+
 import com.android.launcher3.BubbleTextView;
 import com.android.launcher3.CellLayout;
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.ShortcutAndWidgetContainer;
 import com.android.launcher3.Utilities;
@@ -195,6 +200,34 @@ public class FolderAnimationManager {
         if (MultiModeController.isSingleLayerMode()) {
             initialColor = ContextCompat.getColor(mContext, R.color.gridFolderPreview);
             finalColor = ContextCompat.getColor(mContext, R.color.gridFolderBackground);
+        }
+
+        try {
+            LauncherPrefs prefs = LauncherPrefs.get(mContext);
+            String bgColor = prefs.get(LauncherPrefs.FOLDER_BG_COLOR);
+            int opacity = prefs.get(LauncherPrefs.FOLDER_BG_OPACITY);
+
+            if (!"default".equals(bgColor)) {
+                int customColor;
+                switch (bgColor) {
+                    case "black": customColor = Color.BLACK; break;
+                    case "white": customColor = Color.WHITE; break;
+                    case "dark_gray": customColor = 0xFF303030; break;
+                    default: customColor = finalColor; break;
+                }
+                initialColor = customColor;
+                finalColor = customColor;
+            }
+
+            if (opacity < 100) {
+                float alphaFactor = opacity / 100f;
+                initialColor = ColorUtils.setAlphaComponent(
+                        initialColor, (int) (alphaFactor * 255));
+                finalColor = ColorUtils.setAlphaComponent(
+                        finalColor, (int) (alphaFactor * 255));
+            }
+        } catch (Exception e) {
+            // Use defaults
         }
 
         mFolderBackground.mutate();

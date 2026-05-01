@@ -13,9 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
-
-import static android.window.DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY;
 
 import static com.android.launcher3.Flags.syncAppLaunchWithTaskbarStash;
 import static com.android.launcher3.QuickstepTransitionManager.TASKBAR_TO_APP_DURATION;
@@ -45,7 +53,9 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.taskbar.bubbles.BubbleBarController;
 import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 import com.android.launcher3.util.DisplayController;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.MultiPropertyFactory;
 import com.android.launcher3.util.OnboardingPrefs;
 import com.android.quickstep.GestureState;
@@ -60,7 +70,7 @@ import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat;
 
 import java.io.PrintWriter;
 import java.util.Arrays;
@@ -122,7 +132,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
         final TaskbarActivityContext taskbarContext = mControllers.taskbarActivityContext;
         if (RecentsWindowFlags.getEnableOverviewInWindow()) {
             mRecentsViewContainer = RecentsDisplayModel.getINSTANCE()
-                    .get(taskbarContext).getRecentsWindowManager(taskbarContext.getDisplayId());
+                    .get(taskbarContext).getRecentsWindowManager(DisplayIdCompat.getDisplayId(taskbarContext));
         }
         if (mRecentsViewContainer == null) {
             mRecentsViewContainer = mLauncher;
@@ -224,7 +234,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
      */
     @Override
     public void onLauncherVisibilityChanged(boolean isVisible) {
-        if (DesktopModeStatus.enterDesktopByDefaultOnFreeformDisplay(mLauncher)
+        if (DesktopModeStatusCompat.enterDesktopByDefaultOnFreeformDisplay(mLauncher)
                 && mControllers.taskbarActivityContext.isPrimaryDisplay()) {
             DisplayController.INSTANCE.get(mLauncher).notifyConfigChange();
         }
@@ -272,9 +282,9 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
             return null;
         }
 
-        if (!ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue()
+        if (!DesktopFlagsCompat.enableDesktopWindowingWallpaperActivity()
                 && mControllers.taskbarDesktopModeController
-                    .isInDesktopModeAndNotInOverview(mLauncher.getDisplayId())) {
+                    .isInDesktopModeAndNotInOverview(DisplayIdCompat.getDisplayId(mLauncher))) {
             // TODO: b/333533253 - Remove after flag rollout
             isVisible = false;
         }

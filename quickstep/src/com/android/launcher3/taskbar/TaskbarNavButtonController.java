@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
 
 import static android.view.KeyEvent.ACTION_DOWN;
@@ -34,7 +42,7 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import static com.android.systemui.shared.system.ActivityManagerWrapper.CLOSE_SYSTEM_WINDOWS_REASON_HOME_KEY;
 import static com.android.systemui.shared.system.ActivityManagerWrapper.CLOSE_SYSTEM_WINDOWS_REASON_RECENTS;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_SCREEN_PINNING;
-import static com.android.window.flags.Flags.predictiveBackThreeButtonNav;
+import static foundation.e.bliss.compat.desktop.DesktopFlagsCompat.predictiveBackThreeButtonNav;
 
 import android.os.Bundle;
 import android.os.Handler;

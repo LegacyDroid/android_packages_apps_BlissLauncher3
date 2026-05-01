@@ -174,7 +174,7 @@ public class AllAppsEduView extends AbstractFloatingView {
         final Rect circleBoundsOg = new Rect(mCircle.getBounds());
         final Rect gradientBoundsOg = new Rect(mGradient.getBounds());
         final Rect temp = new Rect();
-        final float transY = mMaxHeightPx - mCircleSizePx - mPaddingPx;
+        final float transY = (float) mMaxHeightPx - mCircleSizePx - mPaddingPx;
 
         // 1st: Circle alpha/scale
         int firstPart = 600;

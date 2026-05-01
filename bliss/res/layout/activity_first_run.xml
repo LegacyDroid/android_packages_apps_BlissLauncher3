@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    File:    bliss/res/layout/activity_first_run.xml
+    Module:  bliss source-set  (Android resources, layout-)
+    Role:    NEW
+
+    Tree (bliss/res/layout/):
+      └── activity_first_run.xml   — host layout for FirstRunActivity  (this file)
+
+    Purpose:
+      Single-frame container for the wizard's step Fragments. The host
+      Activity (foundation.e.bliss.firstrun.ui.FirstRunActivity) swaps
+      one step Fragment into @id/first_run_container at a time; the
+      wizard advances by replacing the fragment, not by stacking dialogs.
+
+    Plan reference: Plans/Migration04/07-first-run-wizard.md §2
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/first_run_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:fitsSystemWindows="true" />

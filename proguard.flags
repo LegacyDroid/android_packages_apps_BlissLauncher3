@@ -59,3 +59,34 @@
 -keep class com.android.internal.protolog.** {
   *;
 }
+
+# --- Migration04: keep-rules for Compat layer reflection targets ---
+#
+# Bliss touchpoint(s) (Migration04 §09):
+#   - The reflection-target keepnames for the seven framework classes below
+#     are now ALSO declared in `bliss-compat/consumer-rules.pro` (which AGP
+#     auto-attaches when the root project depends on `:bliss-compat`). They
+#     remain duplicated here as belt-and-braces in case the dep is dropped.
+#     — Plan ref Plans/Migration04/09-build-and-rollout.md §3
+#   - The QuickStepContract keepname only lives here, NOT in
+#     `bliss-compat/consumer-rules.pro`, because
+#     `bliss/src/foundation/e/bliss/compat/quickstep/QuickStepContractCompat.kt`
+#     is flavour-gated and stays in the root project (Plan §2.4 Option A).
+#     — Plan ref Plans/Migration04/01-compat-platform.md §5
+
+# Reflective targets — any class the Compat layer probes via Class.forName.
+# These are framework classes; R8 wouldn't strip them, but rename obfuscation
+# of the names in our string literals would defeat the lookup.
+-keepnames class android.multiuser.Flags { *; }
+-keepnames class android.window.DesktopModeFlags { *; }
+-keepnames class android.window.DesktopExperienceFlags { *; }
+-keepnames class com.android.window.flags.Flags { *; }
+-keepnames class lineageos.providers.LineageSettings { *; }
+-keepnames class lineageos.providers.LineageSettings$System { *; }
+-keepnames class android.app.ActivityTaskManager { *; }
+# Migration04 §09 — QuickStepContract reflection target (quickstep flavour;
+# the consumer .kt file stays in the root project per Plan §2.4 Option A).
+-keepnames class com.android.systemui.shared.recents.utilities.QuickStepContract { *; }
+
+# Compat module — our wrappers. Strip-resistant; release builds inline these.
+-keep,allowshrinking,allowoptimization class foundation.e.bliss.compat.** { *; }

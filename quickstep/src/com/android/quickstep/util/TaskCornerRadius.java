@@ -13,9 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.QuickStepContractCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.util;
 
-import static com.android.systemui.shared.system.QuickStepContract.supportsRoundedCornersOnWindows;
+import static foundation.e.bliss.compat.quickstep.QuickStepContractCompat.supportsRoundedCornersOnWindows;
 
 import android.content.Context;
 import android.content.res.Resources;

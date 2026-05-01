@@ -35,7 +35,7 @@ public class ReloadStringCacheTask implements ModelUpdateTask {
     @Override
     public void execute(@NonNull ModelTaskController taskController, @NonNull BgDataModel dataModel,
             @NonNull AllAppsList apps) {
-        synchronized (dataModel) {
+        synchronized (dataModel.mLock) {
             mModelDelegate.loadStringCache(dataModel.stringCache);
             StringCache cloneSC = dataModel.stringCache.clone();
             taskController.scheduleCallbackTask(c -> c.bindStringCache(cloneSC));

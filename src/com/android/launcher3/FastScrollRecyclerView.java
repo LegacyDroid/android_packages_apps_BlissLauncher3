@@ -62,6 +62,10 @@ public abstract class FastScrollRecyclerView extends RecyclerView  {
         mScrollbar.setFastScrollerLocation(location);
         scrollToTop();
         onUpdateScrollbar(0);
+        try {
+            boolean show = LauncherPrefs.get(getContext()).get(LauncherPrefs.DRAWER_SHOW_SCROLLBAR);
+            mScrollbar.setVisibility(show ? View.VISIBLE : View.GONE);
+        } catch (Throwable ignored) { /* keep default */ }
     }
 
     @Nullable

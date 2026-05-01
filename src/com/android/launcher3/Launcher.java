@@ -14,6 +14,18 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *   - First-run dialog replaced by step-based wizard: the post-onCreate
+ *     hook now calls FirstRunWizard.shouldShow / launch (a separate
+ *     Activity), instead of the old LayoutModeChooser AlertDialog.
+ *     — Plan ref: Plans/Migration04/07-first-run-wizard.md §6
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3;
 
 import static android.app.PendingIntent.FLAG_IMMUTABLE;
@@ -98,6 +110,7 @@ import static com.android.launcher3.logging.StatsLogManager.StatsLatencyLogger.L
 import static com.android.launcher3.model.ItemInstallQueue.FLAG_ACTIVITY_PAUSED;
 import static com.android.launcher3.model.ItemInstallQueue.FLAG_DRAG_AND_DROP;
 import static com.android.launcher3.popup.SystemShortcut.APP_INFO;
+import static com.android.launcher3.popup.SystemShortcut.FOLDER_COLOR;
 import static com.android.launcher3.popup.SystemShortcut.INSTALL;
 import static com.android.launcher3.popup.SystemShortcut.WIDGETS;
 import static com.android.launcher3.states.RotationHelper.REQUEST_LOCK;
@@ -180,6 +193,9 @@ import androidx.annotation.RequiresApi;
 import androidx.annotation.UiThread;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.os.BuildCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.window.embedding.RuleController;
 
 import com.android.launcher3.DropTarget.DragObject;
@@ -265,6 +281,9 @@ import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.Thunk;
 import com.android.launcher3.util.TouchController;
 import com.android.launcher3.util.TraceHelper;
+
+import foundation.e.bliss.gestures.GestureController;
+import foundation.e.bliss.gestures.WorkspaceGestureTouchController;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.FloatingIconView;
 import com.android.launcher3.views.FloatingSurfaceView;
@@ -287,7 +306,7 @@ import com.android.systemui.plugins.LauncherOverlayPlugin;
 import com.android.systemui.plugins.PluginListener;
 import com.android.systemui.plugins.shared.LauncherOverlayManager;
 import com.android.systemui.plugins.shared.LauncherOverlayManager.LauncherOverlayTouchProxy;
-import com.android.window.flags.Flags;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -375,6 +394,8 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     @Thunk
     Hotseat mHotseat;
+
+    protected GestureController mGestureController;
 
     private DropTargetBar mDropTargetBar;
 
@@ -565,7 +586,10 @@ public class Launcher extends StatefulActivity<LauncherState>
         mAppMonitor.onLauncherPreCreate(this);
 
         super.onCreate(savedInstanceState);
+        applyDarkModeOverride();
         setWallpaperDependentTheme(this);
+        applyAccentColorOverlay();
+        applyDarkStatusBarPref();
 
         LauncherAppState app = LauncherAppState.getInstance(this);
         mModel = app.getModel();
@@ -672,6 +696,17 @@ public class Launcher extends StatefulActivity<LauncherState>
                     RuleController.parseRules(this, R.xml.split_configuration));
         }
         TestEventEmitter.sendEvent(TestEvent.LAUNCHER_ON_CREATE);
+
+        // First-run wizard. No-op once the user has completed it or
+        // after a Lawnchair import has set the choice on their behalf.
+        // Posted to the message queue so we don't launch the host
+        // Activity before the workspace has had a chance to render its
+        // first frame.
+        getRootView().post(() -> {
+            if (foundation.e.bliss.firstrun.FirstRunWizard.shouldShow(this)) {
+                foundation.e.bliss.firstrun.FirstRunWizard.launch(this);
+            }
+        });
     }
 
     protected ModelCallbacks createModelCallbacks() {
@@ -1396,6 +1431,9 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         DragView.removeAllViews(this);
         mAppMonitor.onLauncherResumed();
+        applyStatusBarPreference();
+        updateAtAGlanceView();
+        setupAtAGlanceTickReceiver(true);
         TraceHelper.INSTANCE.endSection();
     }
 
@@ -1416,6 +1454,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         mAppWidgetHolder.setActivityResumed(false);
         mAppMonitor.onLauncherPaused();
         hideWidgetResizeContainer();
+        setupAtAGlanceTickReceiver(false);
     }
 
     /**
@@ -1472,6 +1511,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         mOverviewPanel = findViewById(R.id.overview_panel);
         mHotseat = findViewById(R.id.hotseat);
         mHotseat.setWorkspace(mWorkspace);
+        applyDockVisibility();
 
         // Setup the drag layer
         mDragLayer.setup(mDragController, mWorkspace);
@@ -1502,6 +1542,34 @@ public class Launcher extends StatefulActivity<LauncherState>
         mWorkspace.getPageIndicator().setShouldAutoHide(false);
         mWorkspace.getPageIndicator().setPaintColor(Themes.getAttrBoolean(
                 this, R.attr.isWorkspaceDarkText) ? Color.BLACK : Color.WHITE);
+
+        // Auto-show keyboard when drawer opens
+        mStateManager.addStateListener(new StateManager.StateListener<LauncherState>() {
+            @Override
+            public void onStateTransitionComplete(LauncherState finalState) {
+                if (finalState == LauncherState.ALL_APPS) {
+                    try {
+                        boolean autoKeyboard = LauncherPrefs.get(Launcher.this)
+                                .get(LauncherPrefs.AUTO_SHOW_KEYBOARD);
+                        if (autoKeyboard) {
+                            mAppsView.postDelayed(() -> {
+                                android.widget.EditText et =
+                                        mAppsView.getSearchUiManager().getEditText();
+                                if (et != null) {
+                                    et.requestFocus();
+                                    android.view.inputmethod.InputMethodManager imm =
+                                            (android.view.inputmethod.InputMethodManager)
+                                            getSystemService(INPUT_METHOD_SERVICE);
+                                    if (imm != null) {
+                                        imm.showSoftInput(et, 0);
+                                    }
+                                }
+                            }, 200);
+                        }
+                    } catch (Exception e) { /* pref not available */ }
+                }
+            }
+        });
     }
 
     /**
@@ -2254,7 +2322,35 @@ public class Launcher extends StatefulActivity<LauncherState>
             hideSwipeSearchContainer();
         }
 
+        // Bliss: closing-app overlay (CLOSING_APP_OVERLAY pref). Show before the
+        // started activity covers the screen; self-detaches. Pass the tapped icon
+        // View so SUCK_IN can aim at its on-screen position; null falls back to
+        // the screen center inside FullScreenOverlayView.suckAnimation.
+        // Migration02 / Phase 4.
+        try {
+            foundation.e.bliss.animations.FullScreenOverlayView
+                    .showForCloseTransition(this, v);
+        } catch (Throwable ignored) { }
         RunnableList result = super.startActivitySafely(v, intent, item);
+        // Apply custom app launch animation
+        try {
+            String anim = LauncherPrefs.get(this).get(LauncherPrefs.APP_LAUNCH_ANIMATION);
+            if (anim != null && !"default".equals(anim)) {
+                switch (anim) {
+                    case "fade":
+                        overridePendingTransition(android.R.anim.fade_in,
+                                android.R.anim.fade_out);
+                        break;
+                    case "slide_up":
+                        overridePendingTransition(android.R.anim.slide_in_left,
+                                android.R.anim.slide_out_right);
+                        break;
+                    case "none":
+                        overridePendingTransition(0, 0);
+                        break;
+                }
+            }
+        } catch (Exception e) { /* use default transition */ }
         if (result != null && v instanceof BubbleTextView) {
             // This is set to the view that launched the activity that navigated the user away
             // from launcher. Since there is no callback for when the activity has finished
@@ -2817,7 +2913,172 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     public TouchController[] createTouchControllers() {
-        return new TouchController[] {getDragController(), new AllAppsSwipeController(this)};
+        if (mGestureController == null) {
+            mGestureController = new GestureController(this);
+        }
+        return new TouchController[] {
+            getDragController(),
+            new AllAppsSwipeController(this),
+            new WorkspaceGestureTouchController(this, mGestureController)
+        };
+    }
+
+    private void applyStatusBarPreference() {
+        try {
+            boolean showStatusBar = LauncherPrefs.get(this)
+                    .get(LauncherPrefs.SHOW_STATUS_BAR);
+            WindowInsetsControllerCompat controller =
+                    WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+            if (controller != null) {
+                if (showStatusBar) {
+                    controller.show(WindowInsetsCompat.Type.statusBars());
+                } else {
+                    controller.hide(WindowInsetsCompat.Type.statusBars());
+                    controller.setSystemBarsBehavior(
+                            WindowInsetsControllerCompat
+                                    .BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                }
+            }
+        } catch (Exception e) {
+            // Use default
+        }
+    }
+
+    private void applyDarkModeOverride() {
+        try {
+            String darkMode = LauncherPrefs.get(this).get(LauncherPrefs.DARK_MODE);
+            if ("dark".equals(darkMode)) {
+                androidx.appcompat.app.AppCompatDelegate
+                        .setDefaultNightMode(
+                                androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES);
+            } else if ("light".equals(darkMode)) {
+                androidx.appcompat.app.AppCompatDelegate
+                        .setDefaultNightMode(
+                                androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
+            } else {
+                androidx.appcompat.app.AppCompatDelegate
+                        .setDefaultNightMode(
+                                androidx.appcompat.app.AppCompatDelegate
+                                        .MODE_NIGHT_FOLLOW_SYSTEM);
+            }
+        } catch (Exception e) { }
+    }
+
+    /**
+     * Force dark status bar appearance (light icons / dark backdrop) when the
+     * user has opted in via {@link LauncherPrefs#DARK_STATUS_BAR}. Matches
+     * Lawnchair's {@code dark_status_bar} option. No-op when the pref is off.
+     */
+    private void applyDarkStatusBarPref() {
+        try {
+            if (!LauncherPrefs.get(this).get(LauncherPrefs.DARK_STATUS_BAR)) return;
+            android.view.View decor = getWindow().getDecorView();
+            androidx.core.view.WindowInsetsControllerCompat controller =
+                    new androidx.core.view.WindowInsetsControllerCompat(getWindow(), decor);
+            controller.setAppearanceLightStatusBars(false);
+        } catch (Exception ignored) {
+            // Decor may not be ready yet, or controller unavailable; skip.
+        }
+    }
+
+    private void applyAccentColorOverlay() {
+        try {
+            String accent = LauncherPrefs.get(this).get(LauncherPrefs.ACCENT_COLOR);
+            int overlayStyle = 0;
+            switch (accent) {
+                case "blue": overlayStyle = R.style.AccentOverlay_Blue; break;
+                case "green": overlayStyle = R.style.AccentOverlay_Green; break;
+                case "red": overlayStyle = R.style.AccentOverlay_Red; break;
+                case "purple": overlayStyle = R.style.AccentOverlay_Purple; break;
+                case "orange": overlayStyle = R.style.AccentOverlay_Orange; break;
+                case "pink": overlayStyle = R.style.AccentOverlay_Pink; break;
+                case "teal": overlayStyle = R.style.AccentOverlay_Teal; break;
+            }
+            if (overlayStyle != 0) {
+                getTheme().applyStyle(overlayStyle, true);
+            }
+        } catch (Exception e) {
+            // Use system default
+        }
+    }
+
+    private android.content.BroadcastReceiver mAtAGlanceTickReceiver;
+
+    private void updateAtAGlanceView() {
+        try {
+            android.widget.TextView atAGlance = findViewById(R.id.at_a_glance_view);
+            if (atAGlance == null) return;
+            LauncherPrefs prefs = LauncherPrefs.get(this);
+            boolean show = prefs.get(LauncherPrefs.SHOW_AT_A_GLANCE);
+            if (!show) {
+                atAGlance.setVisibility(android.view.View.GONE);
+                return;
+            }
+            boolean showTime = prefs.get(LauncherPrefs.SMARTSPACE_SHOW_TIME);
+            boolean showDate = prefs.get(LauncherPrefs.SMARTSPACE_SHOW_DATE);
+            if (!showTime && !showDate) {
+                atAGlance.setVisibility(android.view.View.GONE);
+                return;
+            }
+            atAGlance.setVisibility(android.view.View.VISIBLE);
+
+            String timeFormatPref = prefs.get(LauncherPrefs.SMARTSPACE_TIME_FORMAT);
+            String fmt = timeFormatPref == null
+                    ? "" : timeFormatPref.toLowerCase(java.util.Locale.ROOT);
+            boolean force24 = prefs.get(LauncherPrefs.USE_24H_FORMAT)
+                    || "24".equals(fmt) || fmt.contains("24");
+            boolean force12 = "12".equals(fmt) || fmt.contains("12");
+            boolean is24 = force24 || (!force12
+                    && android.text.format.DateFormat.is24HourFormat(this));
+
+            java.util.Date now = new java.util.Date();
+            java.util.Locale locale = java.util.Locale.getDefault();
+            StringBuilder text = new StringBuilder();
+            if (showTime) {
+                text.append(new java.text.SimpleDateFormat(
+                        is24 ? "HH:mm" : "h:mm a", locale).format(now));
+            }
+            if (showDate) {
+                if (text.length() > 0) text.append('\n');
+                text.append(new java.text.SimpleDateFormat(
+                        "EEEE, MMMM d", locale).format(now));
+            }
+            atAGlance.setText(text.toString());
+        } catch (Exception e) {
+            // Use default
+        }
+    }
+
+    /** Register / unregister a TIME_TICK listener so the at-a-glance time stays
+     *  fresh while the launcher is visible (every minute). */
+    private void setupAtAGlanceTickReceiver(boolean register) {
+        if (register) {
+            if (mAtAGlanceTickReceiver != null) return;
+            mAtAGlanceTickReceiver = new android.content.BroadcastReceiver() {
+                @Override
+                public void onReceive(android.content.Context context,
+                        android.content.Intent intent) {
+                    updateAtAGlanceView();
+                }
+            };
+            android.content.IntentFilter f = new android.content.IntentFilter();
+            f.addAction(android.content.Intent.ACTION_TIME_TICK);
+            f.addAction(android.content.Intent.ACTION_TIME_CHANGED);
+            f.addAction(android.content.Intent.ACTION_TIMEZONE_CHANGED);
+            // Receivers without RECEIVER_EXPORTED/NOT_EXPORTED flag throw on
+            // Android 13+; mark as not-exported since this is process-internal.
+            try {
+                registerReceiver(mAtAGlanceTickReceiver, f,
+                        android.content.Context.RECEIVER_NOT_EXPORTED);
+            } catch (Throwable t) {
+                // Older Android: no flag needed
+                registerReceiver(mAtAGlanceTickReceiver, f);
+            }
+        } else {
+            if (mAtAGlanceTickReceiver == null) return;
+            try { unregisterReceiver(mAtAGlanceTickReceiver); } catch (Throwable ignored) {}
+            mAtAGlanceTickReceiver = null;
+        }
     }
 
     public void onDragLayerHierarchyChanged() {
@@ -2834,8 +3095,8 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     private void updateDisallowBack() {
         if (BuildCompat.isAtLeastV()
-                && Flags.enableDesktopWindowingMode()
-                && !Flags.enableDesktopWindowingWallpaperActivity()
+                && DesktopFlagsCompat.enableDesktopWindowingMode()
+                && !DesktopFlagsCompat.enableDesktopWindowingWallpaperActivity()
                 && mDeviceProfile.isTablet) {
             // TODO(b/333533253): Clean up after desktop wallpaper activity flag is rolled out
             return;
@@ -3072,6 +3333,13 @@ public class Launcher extends StatefulActivity<LauncherState>
         return mHotseat;
     }
 
+    private void applyDockVisibility() {
+        if (mHotseat == null) return;
+        LauncherPrefs prefs = LauncherPrefs.get(this);
+        boolean showDock = prefs.get(LauncherPrefs.SHOW_DOCK);
+        mHotseat.setVisibility(showDock ? View.VISIBLE : View.GONE);
+    }
+
     public <T extends View> T getOverviewPanel() {
         return (T) mOverviewPanel;
     }
@@ -3136,7 +3404,7 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     public Stream<SystemShortcut.Factory> getSupportedShortcuts() {
-        return Stream.of(APP_INFO, WIDGETS, INSTALL);
+        return Stream.of(APP_INFO, FOLDER_COLOR, WIDGETS, INSTALL);
     }
 
     /**
@@ -3229,7 +3497,7 @@ public class Launcher extends StatefulActivity<LauncherState>
                 currentAnimator = null;
                 swipeSearchContainer.setVisibility(View.GONE);
                 mWorkspace.setVisibility(View.VISIBLE);
-                mHotseat.setVisibility(View.VISIBLE);
+                applyDockVisibility();
                 mWorkspace.mPageIndicator.setVisibility(View.VISIBLE);
                 mBlurLayer.setAlpha(0f);
                 super.onAnimationCancel(animation);
@@ -3265,7 +3533,7 @@ public class Launcher extends StatefulActivity<LauncherState>
             @Override
             public void onAnimationStart(Animator animation) {
                 mWorkspace.setVisibility(View.VISIBLE);
-                mHotseat.setVisibility(View.VISIBLE);
+                applyDockVisibility();
                 mWorkspace.mPageIndicator.setVisibility(View.VISIBLE);
                 super.onAnimationStart(animation);
             }
@@ -3295,7 +3563,9 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     @SuppressLint("ClickableViewAccessibility")
     public void showWidgetResizeContainer(RoundedWidgetView roundedWidgetView) {
-        RelativeLayout widgetResizeContainer = mWorkspace.getFirstPagePinnedItem()
+        View pinnedItem = mWorkspace.getFirstPagePinnedItem();
+        if (pinnedItem == null) return;
+        RelativeLayout widgetResizeContainer = pinnedItem
                 .findViewById(R.id.widget_resizer_container);
 
         if (widgetResizeContainer.getVisibility() != View.VISIBLE) {
@@ -3380,7 +3650,9 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     public void hideWidgetResizeContainer() {
-        RelativeLayout widgetResizeContainer = mWorkspace.getFirstPagePinnedItem().findViewById(R.id.widget_resizer_container);
+        View pinnedItem = mWorkspace.getFirstPagePinnedItem();
+        if (pinnedItem == null) return;
+        RelativeLayout widgetResizeContainer = pinnedItem.findViewById(R.id.widget_resizer_container);
         if (widgetResizeContainer.getVisibility() == View.VISIBLE) {
             if (currentAnimator != null) {
                 currentAnimator.cancel();

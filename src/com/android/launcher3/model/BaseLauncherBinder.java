@@ -120,7 +120,7 @@ public class BaseLauncherBinder {
             final IntArray orderedScreenIds = new IntArray();
             ArrayList<FixedContainerItems> extraItems = new ArrayList<>();
             final int workspaceItemCount;
-            synchronized (mBgDataModel) {
+            synchronized (mBgDataModel.mLock) {
                 itemsIdMap = mBgDataModel.itemsIdMap.clone();
                 orderedScreenIds.addAll(mBgDataModel.collectWorkspaceScreens());
                 mBgDataModel.extraItems.forEach(extraItems::add);
@@ -149,7 +149,7 @@ public class BaseLauncherBinder {
             return;
         }
         final HashMap<ComponentKey, Integer> shortcutMapCopy;
-        synchronized (mBgDataModel) {
+        synchronized (mBgDataModel.mLock) {
             shortcutMapCopy = new HashMap<>(mBgDataModel.deepShortcutMap);
         }
         executeCallbacksTask(c -> c.bindDeepShortcutMap(shortcutMapCopy), mUiExecutor);

@@ -244,8 +244,8 @@ public class KeyboardDragAndDropView extends AbstractFloatingView
             int minorAxisWeight = minorAxis.applyAsInt(mTempRect2)
                     - minorAxis.applyAsInt(mTempRect);
 
-            float weight = majorAxisWeight * majorAxisWeight
-                    + minorAxisWeight * minorAxisWeight * MINOR_AXIS_WEIGHT;
+            float weight = (float) majorAxisWeight * majorAxisWeight
+                    + (float) minorAxisWeight * minorAxisWeight * MINOR_AXIS_WEIGHT;
             if (weight < minWeight) {
                 minWeight = weight;
                 match = node;

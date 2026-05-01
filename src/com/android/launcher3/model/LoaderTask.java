@@ -427,7 +427,7 @@ public class LoaderTask implements Runnable {
     public synchronized void stopLocked() {
         FileLog.w(TAG, "stopLocked: Loader stopping");
         mStopped = true;
-        this.notify();
+        this.notifyAll();
     }
 
     public void loadWorkspaceForPreview(String selection,
@@ -478,7 +478,7 @@ public class LoaderTask implements Runnable {
         Log.d(TAG, "loadWorkspace: loading default favorites if necessary");
         dbController.loadDefaultFavoritesIfNecessary();
 
-        synchronized (mBgDataModel) {
+        synchronized (mBgDataModel.mLock) {
             mBgDataModel.clear();
             mPendingPackages.clear();
 
@@ -663,7 +663,7 @@ public class LoaderTask implements Runnable {
 
     private void setIgnorePackages(IconCacheUpdateHandler updateHandler) {
         // Ignore packages which have a promise icon.
-        synchronized (mBgDataModel) {
+        synchronized (mBgDataModel.mLock) {
             for (ItemInfo info : mBgDataModel.itemsIdMap) {
                 if (info instanceof WorkspaceItemInfo) {
                     WorkspaceItemInfo si = (WorkspaceItemInfo) info;
@@ -686,7 +686,7 @@ public class LoaderTask implements Runnable {
         if (itemsDeleted) {
             // Remove any empty folder
             IntArray deletedFolderIds = mModel.getModelDbController().deleteEmptyFolders();
-            synchronized (mBgDataModel) {
+            synchronized (mBgDataModel.mLock) {
                 for (int folderId : deletedFolderIds) {
                     mBgDataModel.itemsIdMap.remove(folderId);
                 }
@@ -703,7 +703,7 @@ public class LoaderTask implements Runnable {
         deleted.addAll(deletedAppPairIds);
         deleted.addAll(deletedAppIds);
 
-        synchronized (mBgDataModel) {
+        synchronized (mBgDataModel.mLock) {
             for (int id : deleted) {
                 mBgDataModel.itemsIdMap.remove(id);
             }
@@ -902,7 +902,7 @@ public class LoaderTask implements Runnable {
         FolderNameProvider provider = FolderNameProvider.newInstance(mContext,
                 mBgAllAppsList.data, FolderNameProvider.getCollectionForSuggestions(mBgDataModel));
 
-        synchronized (mBgDataModel) {
+        synchronized (mBgDataModel.mLock) {
             mBgDataModel.itemsIdMap.stream()
                     .filter(item ->
                             item instanceof FolderInfo fi && fi.suggestedFolderNames == null)

@@ -14,27 +14,31 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.util;
 
 import static com.android.quickstep.util.QuickstepProtoLogGroup.LAUNCHER_STATE_MANAGER;
 import static com.android.quickstep.util.QuickstepProtoLogGroup.isProtoLogInitialized;
 
-import android.window.DesktopModeFlags.DesktopModeFlag;
-
 import androidx.annotation.NonNull;
 
 import com.android.internal.protolog.ProtoLog;
-import com.android.launcher3.Flags;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 
 /**
  * Proxy class used for StateManager ProtoLog support.
  */
 public class StateManagerProtoLogProxy {
-    private static final DesktopModeFlag ENABLE_STATE_MANAGER_PROTO_LOG =
-            new DesktopModeFlag(Flags::enableStateManagerProtoLog, true);
     public static void logGoToState(
             @NonNull Object fromState, @NonNull Object toState, @NonNull String trace) {
-        if (!ENABLE_STATE_MANAGER_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
+        if (!DesktopFlagsCompat.enableStateManagerProtoLog() || !isProtoLogInitialized()) return;
         ProtoLog.d(LAUNCHER_STATE_MANAGER,
                 "StateManager.goToState: fromState: %s, toState: %s, partial trace:\n%s",
                 fromState,
@@ -44,7 +48,7 @@ public class StateManagerProtoLogProxy {
 
     public static void logCreateAtomicAnimation(
             @NonNull Object fromState, @NonNull Object toState, @NonNull String trace) {
-        if (!ENABLE_STATE_MANAGER_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
+        if (!DesktopFlagsCompat.enableStateManagerProtoLog() || !isProtoLogInitialized()) return;
         ProtoLog.d(LAUNCHER_STATE_MANAGER, "StateManager.createAtomicAnimation: "
                         + "fromState: %s, toState: %s, partial trace:\n%s",
                 fromState,
@@ -53,17 +57,17 @@ public class StateManagerProtoLogProxy {
     }
 
     public static void logOnStateTransitionStart(@NonNull Object state) {
-        if (!ENABLE_STATE_MANAGER_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
+        if (!DesktopFlagsCompat.enableStateManagerProtoLog() || !isProtoLogInitialized()) return;
         ProtoLog.d(LAUNCHER_STATE_MANAGER, "StateManager.onStateTransitionStart: state: %s", state);
     }
 
     public static void logOnStateTransitionEnd(@NonNull Object state) {
-        if (!ENABLE_STATE_MANAGER_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
+        if (!DesktopFlagsCompat.enableStateManagerProtoLog() || !isProtoLogInitialized()) return;
         ProtoLog.d(LAUNCHER_STATE_MANAGER, "StateManager.onStateTransitionEnd: state: %s", state);
     }
 
     public static void logCancelAnimation(boolean animationOngoing, @NonNull String trace) {
-        if (!ENABLE_STATE_MANAGER_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
+        if (!DesktopFlagsCompat.enableStateManagerProtoLog() || !isProtoLogInitialized()) return;
         ProtoLog.d(LAUNCHER_STATE_MANAGER,
                 "StateManager.cancelAnimation: animation ongoing: %b, partial trace:\n%s",
                 animationOngoing,

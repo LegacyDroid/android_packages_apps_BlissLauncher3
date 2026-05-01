@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.views;
 
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
@@ -130,7 +141,7 @@ import android.view.animation.Interpolator;
 import android.widget.ListView;
 import android.widget.OverScroller;
 import android.widget.Toast;
-import android.window.DesktopModeFlags;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 import android.window.PictureInPictureSurfaceTransaction;
 import android.window.TransitionInfo;
 
@@ -169,6 +180,7 @@ import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.launcher3.touch.OverScroll;
 import com.android.launcher3.util.CancellableTask;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.DynamicResource;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.IntSet;
@@ -239,10 +251,10 @@ import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 import com.android.systemui.shared.system.PackageManagerWrapper;
 import com.android.systemui.shared.system.TaskStackChangeListener;
-import com.android.systemui.shared.system.TaskStackChangeListeners;
+import foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat;
 import com.android.wm.shell.common.pip.IPipAnimationListener;
 import com.android.wm.shell.shared.GroupedTaskInfo;
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat;
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource;
 
 import kotlin.Unit;
@@ -880,7 +892,7 @@ public abstract class RecentsView<
         setEnableFreeScroll(true);
 
         mContainer = RecentsViewContainer.containerFromContext(context);
-        mSizeStrategy = getContainerInterface(mContainer.getDisplayId());
+        mSizeStrategy = getContainerInterface(DisplayIdCompat.getDisplayId(mContainer));
 
         mOrientationState = new RecentsOrientedState(
                 context, mSizeStrategy, this::animateRecentsRotationInPlace);
@@ -922,7 +934,7 @@ public abstract class RecentsView<
                 .inflate(R.layout.overview_clear_all_button, this, false);
         mClearAllButton.setOnClickListener(this::dismissAllTasks);
 
-        if (DesktopModeStatus.enableMultipleDesktops(mContext)) {
+        if (DesktopModeStatusCompat.enableMultipleDesktops(mContext)) {
             mAddDesktopButton = (AddDesktopButton) LayoutInflater.from(context).inflate(
                     R.layout.overview_add_desktop_button, this, false);
             mAddDesktopButton.setOnClickListener(this::createDesk);
@@ -935,7 +947,7 @@ public abstract class RecentsView<
         int groupedViewPoolInitialSize = enableRefactorTaskThumbnail() ? 2 : 10;
         mGroupedTaskViewPool = new ViewPool<>(context, this,
                 R.layout.task_grouped, 20 /* max size */, groupedViewPoolInitialSize);
-        int desktopViewPoolInitialSize = DesktopModeStatus.canEnterDesktopMode(mContext) ? 1 : 0;
+        int desktopViewPoolInitialSize = DesktopModeStatusCompat.canEnterDesktopMode(mContext) ? 1 : 0;
         mDesktopTaskViewPool = new ViewPool<>(context, this, R.layout.task_desktop,
                 5 /* max size */, desktopViewPoolInitialSize);
 
@@ -1238,7 +1250,11 @@ public abstract class RecentsView<
         updateTaskStackListenerState();
         mModel.getThumbnailCache().getHighResLoadingState().addCallback(this);
         mContainer.addMultiWindowModeChangedListener(mMultiWindowModeChangedListener);
-        TaskStackChangeListeners.getInstance().registerTaskStackListener(mTaskStackListener);
+        try {
+            ActivityTaskManagerCompat.registerTaskStackListener(mTaskStackListener);
+        } catch (SecurityException e) {
+            // MANAGE_ACTIVITY_TASKS not available for non-system apps
+        }
         mSyncTransactionApplier = new SurfaceTransactionApplier(this);
         runActionOnRemoteHandles(remoteTargetHandle -> remoteTargetHandle.getTransformParams()
                 .setSyncTransactionApplier(mSyncTransactionApplier));
@@ -1261,7 +1277,7 @@ public abstract class RecentsView<
         updateTaskStackListenerState();
         mModel.getThumbnailCache().getHighResLoadingState().removeCallback(this);
         mContainer.removeMultiWindowModeChangedListener(mMultiWindowModeChangedListener);
-        TaskStackChangeListeners.getInstance().unregisterTaskStackListener(mTaskStackListener);
+        ActivityTaskManagerCompat.unregisterTaskStackListener(mTaskStackListener);
         mSyncTransactionApplier = null;
         runActionOnRemoteHandles(remoteTargetHandle -> remoteTargetHandle.getTransformParams()
                 .setSyncTransactionApplier(null));
@@ -1289,6 +1305,7 @@ public abstract class RecentsView<
                 mGroupedTaskViewPool.killOngoingInitializations();
                 mDesktopTaskViewPool.killOngoingInitializations();
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 Log.e(TAG, "Ongoing initializations could not be killed", e);
             }
             mHelper.onDestroy();
@@ -3495,11 +3512,11 @@ public abstract class RecentsView<
         float shorterRowCompensation = 0;
         if (topRowWidth <= bottomRowWidth) {
             if (!lastTopTaskViews.isEmpty()) {
-                shorterRowCompensation = bottomRowWidth - topRowWidth;
+                shorterRowCompensation = (float) bottomRowWidth - topRowWidth;
             }
         } else {
             if (!lastBottomTaskViews.isEmpty()) {
-                shorterRowCompensation = topRowWidth - bottomRowWidth;
+                shorterRowCompensation = (float) topRowWidth - bottomRowWidth;
             }
         }
         float clearAllShorterRowCompensation =
@@ -3970,7 +3987,7 @@ public abstract class RecentsView<
                     // Calculate the distance to put last large tile back to middle of the screen.
                     int primaryScroll = getPagedOrientationHandler().getPrimaryScroll(this);
                     int lastLargeTileScroll = getScrollForPage(indexOfChild(lastLargeTile));
-                    longGridRowWidthDiff = primaryScroll - lastLargeTileScroll;
+                    longGridRowWidthDiff = (float) primaryScroll - lastLargeTileScroll;
 
                     if (!isClearAllHidden) {
                         // If ClearAllButton is visible, reduce the distance by scroll difference
@@ -4578,7 +4595,7 @@ public abstract class RecentsView<
             SystemUiProxy.INSTANCE
                     .get(getContext())
                     .removeDesk(desktopTaskView.getDeskId());
-        } else if (DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_BACK_NAVIGATION.isTrue()) {
+        } else if (DesktopFlagsCompat.enableDesktopWindowingBackNavigation()) {
             SystemUiProxy.INSTANCE
                     .get(getContext())
                     .removeDefaultDeskInDisplay(
@@ -5657,10 +5674,10 @@ public abstract class RecentsView<
                 return 0f;
             }
 
-            return extraSpace * direction;
+            return (float) extraSpace * direction;
         }
 
-        return splitPlaceholderSize * direction;
+        return (float) splitPlaceholderSize * direction;
     }
 
     protected void onRotateInSplitSelectionState() {
@@ -7098,7 +7115,7 @@ public abstract class RecentsView<
     public void moveTaskToDesktop(TaskContainer taskContainer,
             DesktopModeTransitionSource transitionSource,
             Runnable successCallback) {
-        if (!DesktopModeStatus.canEnterDesktopMode(mContext)) {
+        if (!DesktopModeStatusCompat.canEnterDesktopMode(mContext)) {
             return;
         }
         switchToScreenshot(() -> finishRecentsAnimation(/* toRecents= */true, /* shouldPip= */false,
@@ -7119,7 +7136,7 @@ public abstract class RecentsView<
      * Move the provided task into external display and invoke {@code successCallback} if succeeded.
      */
     public void moveTaskToExternalDisplay(TaskContainer taskContainer, Runnable successCallback) {
-        if (!DesktopModeStatus.canEnterDesktopMode(mContext)) {
+        if (!DesktopModeStatusCompat.canEnterDesktopMode(mContext)) {
             return;
         }
         switchToScreenshot(() -> finishRecentsAnimation(/* toRecents= */true, /* shouldPip= */false,

@@ -18,6 +18,7 @@ package com.android.launcher3.util;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 /**
@@ -154,6 +155,15 @@ public class IntArray implements Cloneable, Iterable<Integer> {
             }
         }
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 1;
+        for (int i = 0; i < mSize; i++) {
+            result = 31 * result + mValues[i];
+        }
+        return result;
     }
 
     /**
@@ -296,6 +306,9 @@ public class IntArray implements Cloneable, Iterable<Integer> {
 
         @Override
         public Integer next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
             return get(mNextIndex++);
         }
 

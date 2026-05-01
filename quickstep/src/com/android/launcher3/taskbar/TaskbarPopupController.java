@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
 
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS;
@@ -47,6 +56,7 @@ import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.shortcuts.DeepShortcutView;
 import com.android.launcher3.splitscreen.SplitShortcut;
 import com.android.launcher3.util.ComponentKey;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.ShortcutUtil;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitPositionOption;
 import com.android.launcher3.views.ActivityContext;
@@ -54,7 +64,7 @@ import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.LogUtils;
 import com.android.quickstep.util.SingleTask;
 import com.android.wm.shell.shared.bubbles.BubbleAnythingFlagHelper;
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -192,7 +202,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         ArrayList<SystemShortcut.Factory> shortcuts = new ArrayList<>();
         shortcuts.add(APP_INFO);
         if (!mControllers.taskbarDesktopModeController
-                .isInDesktopModeAndNotInOverview(mContext.getDisplayId())) {
+                .isInDesktopModeAndNotInOverview(DisplayIdCompat.getDisplayId(mContext))) {
             shortcuts.addAll(mControllers.uiController.getSplitMenuOptions().toList());
         }
         if (BubbleAnythingFlagHelper.enableCreateAnyBubble()) {
@@ -200,7 +210,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         }
 
         if (Flags.enableMultiInstanceMenuTaskbar()
-                && DesktopModeStatus.canEnterDesktopMode(mContext)
+                && DesktopModeStatusCompat.canEnterDesktopMode(mContext)
                 && !mControllers.taskbarStashController.isInOverview()) {
             maybeCloseMultiInstanceMenu();
             shortcuts.addAll(getMultiInstanceMenuOptions().toList());

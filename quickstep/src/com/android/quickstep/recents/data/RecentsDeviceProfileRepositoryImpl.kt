@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.recents.data
 
 import com.android.quickstep.views.RecentsViewContainer
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat
 
 /**
  * Repository for shrink down version of [com.android.launcher3.DeviceProfile] that only contains
@@ -30,7 +38,7 @@ class RecentsDeviceProfileRepositoryImpl(private val container: RecentsViewConta
         with(container.deviceProfile) {
             RecentsDeviceProfile(
                 isLargeScreen = isTablet,
-                canEnterDesktopMode = DesktopModeStatus.canEnterDesktopMode(container.asContext()),
+                canEnterDesktopMode = DesktopModeStatusCompat.canEnterDesktopMode(container.asContext()),
             )
         }
 }

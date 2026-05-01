@@ -1,5 +1,24 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+/*
+ * Bliss touchpoint(s):
+ *   - Migration04 §08 — JVM unit-test source-set + buildSyntheticBackup
+ *     task; — Plan ref Plans/Migration04/08-observability-and-testing.md §3
+ *   - Migration04 §09 — module split (`:bliss-compat`, `:bliss-prefs`),
+ *     `lint { baseline ... disable "UElementAsPsi" }` block, R8 keeps;
+ *     — Plan ref Plans/Migration04/09-build-and-rollout.md §2-§3
+ *   - Migration05 §F1   — disable "UElementAsPsi" UAST detector to stop
+ *     Lint crashing inside KaFirExpressionTypeProvider;
+ *     — Plan ref Plans/Migration05/01-lint-and-logger.md §F1
+ *   - Migration05 §F1.5 — `baseline = file("lint-baseline.xml")` to absorb
+ *     ~2102 latent errors surfaced after F1; baseline owned by F1.5;
+ *     — Plan ref Plans/Migration05/01-lint-and-logger.md §F1.5
+ *   - Migration05 §F3   — `lintChecks project(':lint-rules')` wires the two
+ *     custom detectors into every lint run;
+ *     — Plan ref Plans/Migration05/03-custom-lint-rules.md §6
+ *
+ * The body of this file otherwise tracks AOSP Launcher3's build.gradle.
+ */
 plugins {
     alias libs.plugins.android.application
     alias libs.plugins.android.library apply false
@@ -9,6 +28,18 @@ plugins {
     alias libs.plugins.bliss.spotless
     alias libs.plugins.bliss.githooks
     alias libs.plugins.kotlin.serialization
+}
+
+subprojects {
+    afterEvaluate {
+        if (extensions.findByName("android") != null) {
+            android {
+                defaultConfig {
+                    if (minSdk > 35) minSdk = 35
+                }
+            }
+        }
+    }
 }
 
 allprojects {
@@ -63,7 +94,7 @@ android {
     compileSdkVersion 36
 
     defaultConfig {
-        minSdkVersion 36
+        minSdkVersion 35 // system default is 36; lowered for sideload testing on Android 15
         targetSdkVersion 36
         versionCode getVersionCode()
         versionName appVersion
@@ -109,6 +140,7 @@ android {
 
     buildTypes {
         debug {
+            applicationIdSuffix ".test"
             minifyEnabled = false
             signingConfig = signingConfigs.platformConfig
             buildConfigField "boolean", "IS_DEBUG_DEVICE", "true"
@@ -137,11 +169,40 @@ android {
         }
     }
 
+    // Migration04 §08 — JVM unit-test source-set. Tests live under
+    // bliss/src/test/java and bliss/src/test/resources so they ship with the
+    // bliss source-set semantically even though AGP only honours the global
+    // `test` source-set name. Run via:
+    //   ./gradlew testBlissWithQuickstepDebugUnitTest
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            // Robolectric needs to read the merged manifest; allow it.
+            returnDefaultValues = true
+        }
+    }
+
     sourceSets {
         bliss {
+            // 'bliss/src' is scanned recursively. The test source-set lives at
+            // 'bliss/test/java' (Migration04 §08), NOT 'bliss/src/test/java',
+            // precisely so it's outside this srcDir tree and can't bleed into
+            // the production compilation.
+            //
+            // Migration04 §01 — compat/quickstep/** depends on
+            // com.android.systemui.shared.* which is only on the classpath in
+            // the withQuickstep flavour. Exclude it from the flavour-agnostic
+            // bliss source-set; it's added back in via the withQuickstep
+            // source-set below.
             java.srcDirs = ['bliss/src']
+            java.exclude '**/foundation/e/bliss/compat/quickstep/**'
             manifest.srcFile "bliss/AndroidManifest.xml"
             res.srcDirs = ['bliss/res']
+        }
+
+        test {
+            java.srcDirs = ['bliss/test/java']
+            resources.srcDirs = ['bliss/test/resources']
         }
 
         blissWithQuickstep {
@@ -167,6 +228,14 @@ android {
 
         withQuickstep {
             java.srcDirs = [
+                    // Migration04 §01 — Bliss compat shims gated to the quickstep
+                    // flavour. Lives under bliss/ for module ownership but
+                    // compiles only when the withQuickstep flavour is selected,
+                    // because ActivityTaskManagerCompat / QuickStepContractCompat
+                    // depend on com.android.systemui.shared.* which is only
+                    // available in this flavour. See
+                    // Plans/Migration04/01-compat-platform.md §2.
+                    'bliss/src/foundation/e/bliss/compat/quickstep',
                     'libs_systemui/viewcapturelib/src',
                     'quickstep/dagger',
                     'quickstep/recents_ui_overrides/src',
@@ -198,6 +267,22 @@ android {
     lint {
         abortOnError = true
         checkReleaseBuilds = false
+        // Migration05 follow-up F1 — UElementAsPsiDetector crashes inside the
+        // AGP/Lint Kotlin UAST resolver when analysing
+        // libs_systemui/tracinglib/core/src/coroutines/CoroutineTracing.kt
+        // ("Exception during resolving KtLambdaExpression" at
+        // KaFirExpressionTypeProvider.getExpressionType). This is a bug in
+        // Lint itself, not in our source. Disabling the detector lets lint
+        // complete without losing other checks; revisit on the next AGP bump.
+        disable += "UElementAsPsi"
+        // Migration05 follow-up F1.5 — once the UAST detector stopped
+        // crashing, lint surfaced ~2102 latent errors that pre-date M04.
+        // Baselining them lets the gate pass; triaging is a Migration06
+        // candidate. Regenerate explicitly via:
+        //   ./gradlew updateLintBaselineBlissWithQuickstepDebug
+        // Do NOT auto-update the baseline on every run — that hides
+        // regressions. See Plans/Migration05/01-lint-and-logger.md §F1.5.
+        baseline = file("lint-baseline.xml")
     }
 
     lintOptions {
@@ -208,6 +293,11 @@ android {
 
     preBuild.dependsOn 'makeReleaseJar'
     preBuild.dependsOn 'createPreCommitHook'
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/bliss/schemas".toString())
+    arg("room.incremental", "true")
 }
 
 tasks.register("makeReleaseJar", Jar) {
@@ -247,6 +337,9 @@ dependencies {
     implementation libs.androidx.core.animation
     implementation libs.androidx.graphics.shapes
     implementation libs.androidx.preference
+    implementation libs.androidx.room.runtime
+    implementation libs.androidx.room.ktx
+    ksp libs.androidx.room.compiler
     implementation libs.androidx.slice.view
     implementation libs.androidx.window
     implementation libs.blur
@@ -269,12 +362,62 @@ dependencies {
     implementation project(':msdllib')
     implementation project(':contextualeducationlib')
 
+    // Migration04 §09 — leaf-only Bliss modules. See
+    // Plans/Migration04/09-build-and-rollout.md §2.5. Both modules expose pure
+    // Kotlin/Java with no Dagger graph wiring, so wiring them as plain
+    // implementation deps is sufficient.
+    implementation project(':bliss-compat')
+    implementation project(':bliss-prefs')
+
+    // Migration05 §F3 — Custom Android Lint detectors. The :lint-rules
+    // module ships ReflectionGateOnlyDetector and PrefXmlKeyRegistryDetector;
+    // both default to Severity.WARNING, promotion to ERROR deferred to a
+    // follow-up migration once a clean run is verified.
+    // See Plans/Migration05/03-custom-lint-rules.md §6.
+    lintChecks project(':lint-rules')
+
     implementation fileTree(dir: "libs", include: [
             'Launcher3QuickStepLib.jar',
             'com_android_launcher3_flags_lib.jar',
             'android.os.flags-aconfig-java.jar',
             'com.android.window.flags.window-aconfig-java.jar'
     ])
+
+    // Migration04 §08 — JVM unit-test deps. JUnit4 stays the test runner
+    // (Migration04 is structural; no test-framework migration). Robolectric is
+    // pulled in for any test that needs a Context; pure-JVM tests can ignore it.
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.14.1'
+    testImplementation 'androidx.test.ext:junit:1.2.1'
+    // Migration04 §05 — Mockito for the policy unit tests that need cheap
+    // stand-ins for AOSP types (CellLayout, ReorderParameters) without
+    // standing up Robolectric.
+    testImplementation 'org.mockito:mockito-core:5.12.0'
+}
+
+// Migration04 §08 — re-generate the committed synthetic .lawnchairbackup
+// fixture by running the SyntheticBackupBuilder.main entrypoint. Wiring this
+// as a Gradle task means the fixture is reproducible without a developer
+// hand-running kotlinc -script. Manual invocation:
+//   ./gradlew buildSyntheticBackup
+// Defer wiring until after AGP has registered the variant test tasks; only
+// at afterEvaluate does the per-variant test classpath exist on the Test
+// task. We pull it from there so that kotlin-stdlib (and any other test
+// dependency) reaches the JavaExec invocation without re-resolving the
+// AGP-internal variant configuration directly (which fails ambiguously
+// because it carries product-flavor attributes the root project doesn't).
+afterEvaluate {
+    def testTask = tasks.findByName('testBlissWithQuickstepDebugUnitTest')
+    if (testTask != null) {
+        tasks.register('buildSyntheticBackup', JavaExec) {
+            group = 'verification'
+            description = 'Regenerate bliss/test/resources/fixtures/synthetic.lawnchairbackup'
+            dependsOn 'compileBlissWithQuickstepDebugUnitTestKotlin'
+            classpath = testTask.classpath
+            mainClass = 'foundation.e.bliss.backup.fixtures.SyntheticBackupBuilder'
+            args 'bliss/test/resources/fixtures'
+        }
+    }
 }
 
 protobuf {

@@ -27,11 +27,14 @@ import androidx.annotation.Nullable;
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.AbstractFloatingViewHelper;
 import com.android.launcher3.Flags;
+import com.android.launcher3.LauncherAppState;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.R;
 import com.android.launcher3.SecondaryDropTarget;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.allapps.PrivateProfileManager;
+import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pm.UserCache;
@@ -144,6 +147,144 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
     }
 
     public static final Factory<ActivityContext> APP_INFO = AppInfo::new;
+
+    /**
+     * Migration02 / Phase 7.1 — per-folder color picker. Only available when the long-pressed
+     * item is a {@link FolderInfo}. Persists the chosen color to
+     * {@link LauncherPrefs#FOLDER_COLOR_OVERRIDES} (a JSON keyed by folder id) and triggers a
+     * model rebind so {@link com.android.launcher3.folder.PreviewBackground#lookupPerFolderColor}
+     * picks it up.
+     *
+     * Honors XC-5: drawer folders use a {@code dr-<id>} key prefix to avoid id collisions
+     * with workspace folders.
+     */
+    public static final Factory<ActivityContext> FOLDER_COLOR =
+            (target, item, view) -> {
+                if (!(item instanceof FolderInfo)) return null;
+                return new FolderColorShortcut<>(target, item, view);
+            };
+
+    public static class FolderColorShortcut<T extends ActivityContext> extends SystemShortcut<T> {
+        public FolderColorShortcut(T target, ItemInfo info, View v) {
+            super(R.drawable.ic_palette, R.string.folder_color_label, target, info, v);
+        }
+
+        @Override
+        public void onClick(View v) {
+            if (!(mItemInfo instanceof FolderInfo)) return;
+            final long id = mItemInfo.id;
+            // PLAN-DRIFT-M02: Phase 7.1 — distinguish drawer vs workspace folders by container
+            // type. Drawer folders are added to the drawer adapter (no Favorites row); workspace
+            // folders carry CONTAINER_DESKTOP / CONTAINER_HOTSEAT. Anything that isn't on the
+            // workspace surface is treated as a drawer folder for the purpose of the override key
+            // (matching XC-5).
+            final boolean isWorkspaceFolder =
+                    mItemInfo.container == LauncherSettings.Favorites.CONTAINER_DESKTOP
+                            || mItemInfo.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT;
+            final String key = isWorkspaceFolder
+                    ? String.valueOf(id) : ("dr-" + id);
+
+            AbstractFloatingView.closeAllOpenViews(mTarget);
+            final Context ctx = (Context) mTarget;
+            final foundation.e.bliss.preferences.colorpicker.BlissColorPickerView picker =
+                    new foundation.e.bliss.preferences.colorpicker.BlissColorPickerView(ctx, null);
+
+            // Pre-load existing override for this folder, if any.
+            try {
+                LauncherPrefs prefs = LauncherPrefs.get(ctx);
+                String raw = prefs.get(LauncherPrefs.FOLDER_COLOR_OVERRIDES);
+                if (raw != null && !raw.isEmpty()) {
+                    org.json.JSONObject obj = new org.json.JSONObject(raw);
+                    String hex = obj.optString(key, null);
+                    if (hex != null && !hex.isEmpty()) {
+                        picker.setColor(android.graphics.Color.parseColor(hex));
+                    }
+                }
+            } catch (Throwable ignored) { /* fall through to default picker color */ }
+
+            new android.app.AlertDialog.Builder(ctx)
+                    .setTitle(R.string.folder_color_label)
+                    .setView(picker)
+                    .setPositiveButton(android.R.string.ok, (d, w) ->
+                            setOverride(ctx, key, picker.getColor()))
+                    .setNeutralButton(R.string.reset_to_default, (d, w) ->
+                            setOverride(ctx, key, null))
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private void setOverride(Context ctx, String key, Integer color) {
+            try {
+                LauncherPrefs prefs = LauncherPrefs.get(ctx);
+                String raw = prefs.get(LauncherPrefs.FOLDER_COLOR_OVERRIDES);
+                org.json.JSONObject obj =
+                        (raw == null || raw.isEmpty()) ? new org.json.JSONObject()
+                                : new org.json.JSONObject(raw);
+                if (color == null) {
+                    obj.remove(key);
+                } else {
+                    obj.put(key, String.format("#%08x", color));
+                }
+                prefs.put(LauncherPrefs.FOLDER_COLOR_OVERRIDES, obj.toString());
+            } catch (Throwable ignored) { /* best-effort */ }
+            // Trigger redraw so the new color is picked up immediately.
+            try {
+                LauncherAppState.getInstance(ctx).getModel().rebindCallbacks();
+            } catch (Throwable ignored) { /* model may not be ready yet */ }
+        }
+    }
+
+    /** Bliss: per-app rename popup (Lawnchair parity). */
+    public static final Factory<ActivityContext> RENAME =
+            (target, itemInfo, originalView) -> {
+                if (itemInfo == null || itemInfo.getTargetComponent() == null) return null;
+                return new Rename<>(target, itemInfo, originalView);
+            };
+
+    public static class Rename<T extends ActivityContext> extends SystemShortcut<T> {
+        public Rename(T target, ItemInfo itemInfo, @NonNull View originalView) {
+            super(R.drawable.ic_setting, R.string.rename_app_label, target, itemInfo,
+                    originalView);
+        }
+
+        @Override
+        public void onClick(View view) {
+            if (mItemInfo == null) return;
+            ComponentName cn = mItemInfo.getTargetComponent();
+            if (cn == null) return;
+            AbstractFloatingView.closeAllOpenViews(mTarget);
+            Context ctx = (Context) mTarget;
+            android.widget.EditText input = new android.widget.EditText(ctx);
+            input.setSingleLine(true);
+            CharSequence current = mItemInfo.title;
+            if (current != null) input.setText(current);
+            input.setSelection(input.getText().length());
+            new android.app.AlertDialog.Builder(ctx)
+                    .setTitle(R.string.rename_app_label)
+                    .setView(input)
+                    .setPositiveButton(android.R.string.ok, (d, w) -> {
+                        String newName = input.getText().toString();
+                        foundation.e.bliss.preferences.AppNameOverrides.setOverride(
+                                ctx, cn, mItemInfo.user,
+                                newName.trim().isEmpty() ? null : newName);
+                        // Trigger model reload so labels refresh
+                        try {
+                            com.android.launcher3.LauncherAppState.getInstance(ctx)
+                                    .getModel().forceReload();
+                        } catch (Throwable ignored) { }
+                    })
+                    .setNeutralButton(R.string.reset_app_renames_title, (d, w) -> {
+                        foundation.e.bliss.preferences.AppNameOverrides.setOverride(
+                                ctx, cn, mItemInfo.user, null);
+                        try {
+                            com.android.launcher3.LauncherAppState.getInstance(ctx)
+                                    .getModel().forceReload();
+                        } catch (Throwable ignored) { }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+    }
 
     public static class AppInfo<T extends ActivityContext> extends SystemShortcut<T> {
 

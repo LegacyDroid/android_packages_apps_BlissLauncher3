@@ -13,6 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep;
 
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
@@ -98,7 +108,7 @@ import android.view.ViewTreeObserver.OnScrollChangedListener;
 import android.view.WindowInsets;
 import android.view.animation.Interpolator;
 import android.widget.Toast;
-import android.window.DesktopModeFlags;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 import android.window.PictureInPictureSurfaceTransaction;
 import android.window.TransitionInfo;
 import android.window.WindowAnimationState;
@@ -167,11 +177,11 @@ import com.android.systemui.shared.system.InputConsumerController;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 import com.android.systemui.shared.system.SysUiStatsLog;
 import com.android.systemui.shared.system.TaskStackChangeListener;
-import com.android.systemui.shared.system.TaskStackChangeListeners;
+import foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat;
 import com.android.wm.shell.Flags;
 import com.android.wm.shell.shared.GroupedTaskInfo;
 import com.android.wm.shell.shared.TransactionPool;
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat;
 import com.android.wm.shell.shared.startingsurface.SplashScreenExitAnimationUtils;
 
 import com.google.android.msdl.data.model.MSDLToken;
@@ -1304,9 +1314,9 @@ public abstract class AbsSwipeUpHandler<
         TaskView currentPageTaskView = mRecentsView != null
                 ? mRecentsView.getCurrentPageTaskView() : null;
 
-        if (DesktopModeStatus.canEnterDesktopMode(mContext)
-                && !(DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue()
-                && DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_QUICK_SWITCH.isTrue())) {
+        if (DesktopModeStatusCompat.canEnterDesktopMode(mContext)
+                && !(DesktopFlagsCompat.enableDesktopWindowingWallpaperActivity()
+                && DesktopFlagsCompat.enableDesktopWindowingQuickSwitch())) {
             if ((nextPageTaskView instanceof DesktopTaskView
                     || currentPageTaskView instanceof DesktopTaskView)
                     && endTarget == NEW_TASK) {
@@ -1480,9 +1490,9 @@ public abstract class AbsSwipeUpHandler<
             setClampScrollOffset(false);
         };
 
-        if (DesktopModeStatus.canEnterDesktopMode(mContext)
-                && !(DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue()
-                && DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_QUICK_SWITCH.isTrue())) {
+        if (DesktopModeStatusCompat.canEnterDesktopMode(mContext)
+                && !(DesktopFlagsCompat.enableDesktopWindowingWallpaperActivity()
+                && DesktopFlagsCompat.enableDesktopWindowingQuickSwitch())) {
             if (mRecentsView != null && (mRecentsView.getCurrentPageTaskView() != null
                     && !(mRecentsView.getCurrentPageTaskView() instanceof DesktopTaskView))) {
                 ActiveGestureLog.INSTANCE.trackEvent(ActiveGestureErrorDetector.GestureEvent
@@ -1536,8 +1546,8 @@ public abstract class AbsSwipeUpHandler<
             case NEW_TASK:
                 events.add(mLogDirectionUpOrLeft ? LAUNCHER_QUICKSWITCH_LEFT
                         : LAUNCHER_QUICKSWITCH_RIGHT);
-                if (targetTaskView != null && DesktopModeStatus.canEnterDesktopMode(mContext)
-                        && DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_QUICK_SWITCH.isTrue()) {
+                if (targetTaskView != null && DesktopModeStatusCompat.canEnterDesktopMode(mContext)
+                        && DesktopFlagsCompat.enableDesktopWindowingQuickSwitch()) {
                     if (targetTaskView.getType() == TaskViewType.DESKTOP) {
                         events.add(LAUNCHER_QUICKSWITCH_ENTER_DESKTOP_MODE);
                     } else if (mPreviousTaskViewType == TaskViewType.DESKTOP) {
@@ -1587,7 +1597,7 @@ public abstract class AbsSwipeUpHandler<
                 // Since this is an edge case, just cancel and relaunch with default activity
                 // options (since we don't know if there's an associated app icon to launch from)
                 endRunningWindowAnim(true /* cancel */);
-                TaskStackChangeListeners.getInstance().unregisterTaskStackListener(
+                ActivityTaskManagerCompat.unregisterTaskStackListener(
                         mActivityRestartListener);
                 ActivityManagerWrapper.getInstance().startActivityFromRecents(task.taskId, null);
             }
@@ -1608,8 +1618,12 @@ public abstract class AbsSwipeUpHandler<
                 DragView.removeAllViews(mContainer);
             }
 
-            TaskStackChangeListeners.getInstance().registerTaskStackListener(
-                    mActivityRestartListener);
+            try {
+                ActivityTaskManagerCompat.registerTaskStackListener(
+                        mActivityRestartListener);
+            } catch (SecurityException e) {
+                // MANAGE_ACTIVITY_TASKS not available for non-system apps
+            }
 
             mParallelRunningAnim = mContainerInterface.getParallelAnimationToGestureEndTarget(
                     mGestureState.getEndTarget(), duration,
@@ -2111,7 +2125,7 @@ public abstract class AbsSwipeUpHandler<
         // Cleanup when switching handlers
         mInputConsumerProxy.unregisterOnTouchDownCallback();
         mContextInitListener.unregister("AbsSwipeUpHandler.cancelCurrentAnimation");
-        TaskStackChangeListeners.getInstance().unregisterTaskStackListener(
+        ActivityTaskManagerCompat.unregisterTaskStackListener(
                 mActivityRestartListener);
         mTaskSnapshotCache.clear();
     }
@@ -2129,7 +2143,7 @@ public abstract class AbsSwipeUpHandler<
         }
 
         mContextInitListener.unregister("AbsSwipeUpHandler.invalidateHandler");
-        TaskStackChangeListeners.getInstance().unregisterTaskStackListener(
+        ActivityTaskManagerCompat.unregisterTaskStackListener(
                 mActivityRestartListener);
         mTaskSnapshotCache.clear();
     }
@@ -2379,9 +2393,9 @@ public abstract class AbsSwipeUpHandler<
                     mRecentsAnimationController, mRecentsAnimationTargets);
         });
 
-        if (DesktopModeStatus.canEnterDesktopMode(mContext)
-                && !(DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue()
-                        && DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_QUICK_SWITCH.isTrue())) {
+        if (DesktopModeStatusCompat.canEnterDesktopMode(mContext)
+                && !(DesktopFlagsCompat.enableDesktopWindowingWallpaperActivity()
+                        && DesktopFlagsCompat.enableDesktopWindowingQuickSwitch())) {
             if (mRecentsView.getNextPageTaskView() instanceof DesktopTaskView
                     || mRecentsView.getCurrentPageTaskView() instanceof DesktopTaskView) {
                 mRecentsViewScrollLinked = false;

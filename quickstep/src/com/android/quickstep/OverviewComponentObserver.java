@@ -24,8 +24,7 @@ import static android.view.Display.DEFAULT_DISPLAY;
 import static com.android.launcher3.Flags.enableOverviewOnConnectedDisplays;
 import static com.android.launcher3.config.FeatureFlags.SEPARATE_RECENTS_ACTIVITY;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
-import static com.android.quickstep.fallback.window.RecentsWindowFlags.enableFallbackOverviewInWindow;
-import static com.android.quickstep.fallback.window.RecentsWindowFlags.enableLauncherOverviewInWindow;
+import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import static com.android.systemui.shared.system.PackageManagerWrapper.ACTION_PREFERRED_ACTIVITY_CHANGED;
 
 import android.content.ActivityNotFoundException;
@@ -195,7 +194,7 @@ public final class OverviewComponentObserver {
 
         if (!mIsHomeDisabled && (defaultHome == null || mIsDefaultHome)) {
             // User default home is same as our home app. Use Overview integrated in Launcher.
-            if (enableLauncherOverviewInWindow.isTrue()) {
+            if (RecentsWindowFlags.getEnableLauncherOverviewInWindow()) {
                 mDefaultDisplayContainerInterface =
                         mRecentsDisplayModel.getFallbackWindowInterface(DEFAULT_DISPLAY);
             } else {
@@ -209,7 +208,7 @@ public final class OverviewComponentObserver {
             unregisterOtherHomeAppUpdateReceiver();
         } else {
             // The default home app is a different launcher. Use the fallback Overview instead.
-            if (enableFallbackOverviewInWindow.isTrue()) {
+            if (RecentsWindowFlags.getEnableFallbackOverviewInWindow()) {
                 mDefaultDisplayContainerInterface =
                         mRecentsDisplayModel.getFallbackWindowInterface(DEFAULT_DISPLAY);
             } else {
@@ -302,7 +301,7 @@ public final class OverviewComponentObserver {
     }
 
     public boolean isHomeAndOverviewSameActivity() {
-        return isHomeAndOverviewSame() && !enableLauncherOverviewInWindow.isTrue();
+        return isHomeAndOverviewSame() && !RecentsWindowFlags.getEnableLauncherOverviewInWindow();
     }
 
     /**

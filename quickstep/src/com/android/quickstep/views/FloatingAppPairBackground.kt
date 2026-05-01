@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.QuickStepContractCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.views
 
 import android.content.Context
@@ -29,7 +37,7 @@ import com.android.app.animation.Interpolators
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.quickstep.util.AnimUtils
-import com.android.systemui.shared.system.QuickStepContract
+import foundation.e.bliss.compat.quickstep.QuickStepContractCompat
 
 /**
  * A Drawable that is drawn onto [FloatingAppPairView] every frame during the app pair launch
@@ -107,7 +115,7 @@ open class FloatingAppPairBackground(
 
         // Find device-specific measurements
         val resources = context.resources
-        deviceCornerRadius = QuickStepContract.getWindowCornerRadius(context)
+        deviceCornerRadius = QuickStepContractCompat.getWindowCornerRadius(context)
         deviceHalfDividerSize =
                 resources.getDimensionPixelSize(R.dimen.multi_window_task_divider_size) / 2f
         val dividerCenterPos = dividerPos + deviceHalfDividerSize
@@ -346,9 +354,9 @@ open class FloatingAppPairBackground(
             val scaleFactorX = floatingView.scaleX
             val scaleFactorY = floatingView.scaleY
             val cornerRadiusX =
-                QuickStepContract.getWindowCornerRadius(container.asContext()) / scaleFactorX
+                QuickStepContractCompat.getWindowCornerRadius(container.asContext()) / scaleFactorX
             val cornerRadiusY =
-                QuickStepContract.getWindowCornerRadius(container.asContext()) / scaleFactorY
+                QuickStepContractCompat.getWindowCornerRadius(container.asContext()) / scaleFactorY
             c.drawRoundRect(rect, cornerRadiusX, cornerRadiusY, backgroundPaint)
         }
     }

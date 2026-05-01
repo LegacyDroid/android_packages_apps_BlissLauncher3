@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep;
 
 import static com.android.app.animation.Interpolators.ACCELERATE_2;
@@ -45,6 +53,7 @@ import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StatefulActivity;
 import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.DisplayController;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.NavigationMode;
 import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.views.RecentsView;
@@ -87,7 +96,7 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
             // We were on our way to this state when we got canceled, end there instead.
             startState = stateFromGestureEndTarget(endTarget);
             if (DesktopVisibilityController.INSTANCE.get(activity)
-                    .isInDesktopModeAndNotInOverview(activity.getDisplayId())
+                    .isInDesktopModeAndNotInOverview(DisplayIdCompat.getDisplayId(activity))
                     && endTarget == LAST_TASK) {
                 // When we are cancelling the transition and going back to last task, move to
                 // rest state instead when desktop tasks are visible.

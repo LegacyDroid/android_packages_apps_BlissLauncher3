@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Migration04 §04: widgets screen — see Plans/Migration04/04-settings-ui-modularization.md §6 -->
+<androidx.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:launcher="http://schemas.android.com/apk/res-auto"
+    android:title="@string/widgets_category_title">
+
+    <SwitchPreference
+        android:key="pref_widget_rounded_corners"
+        android:title="@string/widget_rounded_corners_title"
+        android:summary="@string/widget_rounded_corners_summary"
+        android:defaultValue="true"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_force_widget_resize"
+        android:title="@string/force_widget_resize_title"
+        android:summary="@string/force_widget_resize_summary"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_widget_unlimited_size"
+        android:title="@string/widget_unlimited_size_title"
+        android:summary="@string/widget_unlimited_size_summary"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <androidx.preference.SeekBarPreference
+        android:key="pref_widget_padding"
+        android:title="@string/widget_padding_title"
+        android:defaultValue="0"
+        android:max="32"
+        android:persistent="false" />
+
+</androidx.preference.PreferenceScreen>
