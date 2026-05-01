@@ -1,4 +1,4 @@
 [submodule "libs_systemui"]
 	path = libs_systemui
 	url = ../android_frameworks_libs_systemui.git
-	branch = siavash/sonarqube-fixes-2026-05-01
+	branch = a16
