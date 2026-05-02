@@ -22,9 +22,11 @@ import com.android.launcher3.dagger.LauncherComponentProvider;
 
 import org.json.JSONObject;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Per-app display-name override map. Stored as a JSON string in
@@ -40,7 +42,10 @@ public final class AppNameOverrides {
 
     private static final String TAG = "AppNameOverrides";
 
-    private static volatile ConcurrentMap<String, String> sCache = new ConcurrentHashMap<>();
+    // The map is replaced wholesale on each refresh (immutable-after-publication
+    // pattern). AtomicReference gives safe publication without the SonarQube
+    // "volatile is not enough" false-positive that fires on volatile + Map.
+    private static final AtomicReference<Map<String, String>> sCache = new AtomicReference<>(Collections.emptyMap());
     private static volatile String sCachedRaw = null;
 
     private AppNameOverrides() {
@@ -60,12 +65,12 @@ public final class AppNameOverrides {
             return;
         sCachedRaw = raw;
         if (raw.isEmpty()) {
-            sCache = new ConcurrentHashMap<>();
+            sCache.set(Collections.emptyMap());
             return;
         }
         try {
             JSONObject obj = new JSONObject(raw);
-            ConcurrentMap<String, String> map = new ConcurrentHashMap<>(obj.length());
+            Map<String, String> map = new HashMap<>(obj.length());
             Iterator<String> it = obj.keys();
             while (it.hasNext()) {
                 String k = it.next();
@@ -73,10 +78,10 @@ public final class AppNameOverrides {
                 if (!v.isEmpty())
                     map.put(k, v);
             }
-            sCache = map;
+            sCache.set(Collections.unmodifiableMap(map));
         } catch (Exception e) {
             Log.w(TAG, "Failed to parse app name overrides JSON: " + e.getMessage());
-            sCache = new ConcurrentHashMap<>();
+            sCache.set(Collections.emptyMap());
         }
     }
 
@@ -89,7 +94,8 @@ public final class AppNameOverrides {
         if (component == null)
             return null;
         ensureCacheFresh(context);
-        if (sCache.isEmpty())
+        Map<String, String> cache = sCache.get();
+        if (cache.isEmpty())
             return null;
         String flat = component.flattenToString();
         long serial = 0;
@@ -101,16 +107,16 @@ public final class AppNameOverrides {
             // Default to 0 (single-user device) on failure
         }
         String keyed = flat + "#" + serial;
-        String hit = sCache.get(keyed);
+        String hit = cache.get(keyed);
         if (hit != null)
             return hit;
-        return sCache.get(flat);
+        return cache.get(flat);
     }
 
     /** Force-invalidate the cache so the next lookup re-reads the pref. */
     public static void invalidate() {
         sCachedRaw = null;
-        sCache = new ConcurrentHashMap<>();
+        sCache.set(Collections.emptyMap());
     }
 
     /**

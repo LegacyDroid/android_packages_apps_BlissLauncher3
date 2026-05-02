@@ -489,7 +489,7 @@ public class StatsLogCompatManager extends StatsLogManager {
                     logStringBuilder.append("\n").append(atomInfo);
                 }
                 if (!TextUtils.isEmpty(packageName)) {
-                    logStringBuilder.append(String.format("\nPackage name: %s", packageName));
+                    logStringBuilder.append(String.format("%nPackage name: %s", packageName));
                 }
                 Log.d(TAG, logStringBuilder.toString());
             }
