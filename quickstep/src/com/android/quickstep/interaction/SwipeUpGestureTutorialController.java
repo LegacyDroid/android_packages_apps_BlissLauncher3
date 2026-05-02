@@ -159,14 +159,14 @@ abstract class SwipeUpGestureTutorialController extends TutorialController {
         PendingAnimation anim = new PendingAnimation(300);
         if (toOverviewFirst) {
             anim.setFloat(mTaskViewSwipeUpAnimation
-                    .getCurrentShift(), AnimatedFloat.VALUE, 1, ACCELERATE);
+                    .getCurrentShift(), AnimatedFloat.VALUE_PROPERTY, 1, ACCELERATE);
             anim.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation, boolean isReverse) {
                     PendingAnimation fadeAnim =
                             new PendingAnimation(TASK_VIEW_END_ANIMATION_DURATION_MILLIS);
                     fadeAnim.setFloat(mTaskViewSwipeUpAnimation
-                            .getCurrentShift(), AnimatedFloat.VALUE, 0, ACCELERATE);
+                            .getCurrentShift(), AnimatedFloat.VALUE_PROPERTY, 0, ACCELERATE);
                     if (resetViews) {
                         fadeAnim.addListener(mResetTaskView);
                     }
@@ -201,7 +201,7 @@ abstract class SwipeUpGestureTutorialController extends TutorialController {
             });
         } else {
             anim.setFloat(mTaskViewSwipeUpAnimation
-                    .getCurrentShift(), AnimatedFloat.VALUE, 0, ACCELERATE);
+                    .getCurrentShift(), AnimatedFloat.VALUE_PROPERTY, 0, ACCELERATE);
             if (resetViews) {
                 anim.addListener(mResetTaskView);
             }
@@ -227,7 +227,7 @@ abstract class SwipeUpGestureTutorialController extends TutorialController {
         mFakeTaskView.setVisibility(View.VISIBLE);
         PendingAnimation anim = new PendingAnimation(300);
         anim.setFloat(mTaskViewSwipeUpAnimation
-                .getCurrentShift(), AnimatedFloat.VALUE, 0, ACCELERATE);
+                .getCurrentShift(), AnimatedFloat.VALUE_PROPERTY, 0, ACCELERATE);
         anim.setViewAlpha(mFakeTaskView, 1, ACCELERATE);
         anim.addListener(mResetTaskView);
         AnimatorSet animset = anim.buildAnim();

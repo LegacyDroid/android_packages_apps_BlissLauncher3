@@ -313,6 +313,7 @@ public class AppEventProducer implements StatsLogConsumer {
                         == DEVICE_SEARCH_RESULT_CONTAINER) {
                     return "search-results";
                 }
+                break;
             }
             default: // fall out
         }

@@ -220,8 +220,9 @@ public class AppInfo extends ItemInfoWithIcon implements WorkspaceItemFactory {
                 || (oldRuntimeStatusFlags != info.runtimeStatusFlags);
     }
 
+    @NonNull
     @Override
-    public AppInfo clone() {
+    public AppInfo makeShallowCopy() {
         return new AppInfo(this);
     }
 }

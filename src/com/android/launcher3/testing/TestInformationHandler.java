@@ -402,10 +402,10 @@ public class TestInformationHandler implements ResourceBasedOverride {
                         model.getModelDbController().createEmptyDB();
                         MAIN_EXECUTOR.execute(model::forceReload);
                     });
-                    return response;
                 } finally {
                     Binder.restoreCallingIdentity(identity);
                 }
+                return response;
             }
 
             case TestProtocol.REQUEST_CLEAR_DATA: {
@@ -417,10 +417,10 @@ public class TestInformationHandler implements ResourceBasedOverride {
                         model.getModelDbController().clearEmptyDbFlag();
                         MAIN_EXECUTOR.execute(model::forceReload);
                     });
-                    return response;
                 } finally {
                     Binder.restoreCallingIdentity(identity);
                 }
+                return response;
             }
 
             case TestProtocol.REQUEST_HOTSEAT_ICON_NAMES: {

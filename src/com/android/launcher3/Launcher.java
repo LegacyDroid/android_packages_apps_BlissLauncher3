@@ -2257,7 +2257,8 @@ public class Launcher extends StatefulActivity<LauncherState>
                 break;
             case MotionEvent.ACTION_UP:
                 mLastTouchUpTime = SystemClock.uptimeMillis();
-                // Follow through
+                mTouchInProgress = false;
+                break;
             case MotionEvent.ACTION_CANCEL:
                 mTouchInProgress = false;
                 break;

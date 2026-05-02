@@ -303,7 +303,7 @@ public class FallbackSwipeHandler extends
         @Override
         public AnimatorPlaybackController createActivityAnimationToHome() {
             PendingAnimation pa = new PendingAnimation(mDuration);
-            pa.setFloat(mRecentsAlpha, AnimatedFloat.VALUE, 0, ACCELERATE);
+            pa.setFloat(mRecentsAlpha, AnimatedFloat.VALUE_PROPERTY, 0, ACCELERATE);
             return pa.createPlaybackController();
         }
 
@@ -343,7 +343,7 @@ public class FallbackSwipeHandler extends
                         .setMinimumVisibleChange(1f / mDp.heightPx)
                         .setDampingRatio(0.6f)
                         .setStiffness(800)
-                        .build(mVerticalShiftForScale, AnimatedFloat.VALUE)
+                        .build(mVerticalShiftForScale, AnimatedFloat.VALUE_PROPERTY)
                         .start();
             }
         }

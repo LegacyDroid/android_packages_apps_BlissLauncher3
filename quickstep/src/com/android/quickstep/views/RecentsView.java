@@ -2538,7 +2538,7 @@ public abstract class RecentsView<
 
     private void animateActionsViewAlpha(float alphaValue, long duration) {
         mActionsViewAlphaAnimator = ObjectAnimator.ofFloat(mActionsView.getVisibilityAlpha(),
-                AnimatedFloat.VALUE, alphaValue);
+                AnimatedFloat.VALUE_PROPERTY, alphaValue);
         mActionsViewAlphaAnimatorFinalValue = alphaValue;
         mActionsViewAlphaAnimator.setDuration(duration);
         // Set autocancel to prevent race-conditiony setting of alpha from other animations
@@ -5828,7 +5828,7 @@ public abstract class RecentsView<
                 for (RemoteTargetHandle remoteHandle : getRemoteTargetHandles()) {
                     anim.play(ObjectAnimator.ofFloat(
                             remoteHandle.getTaskViewSimulator().taskPrimaryTranslation,
-                            AnimatedFloat.VALUE,
+                            AnimatedFloat.VALUE_PROPERTY,
                             primaryTranslation));
                 }
             }

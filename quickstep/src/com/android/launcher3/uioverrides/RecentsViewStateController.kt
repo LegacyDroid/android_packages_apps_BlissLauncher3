@@ -299,7 +299,7 @@ class RecentsViewStateController(private val launcher: QuickstepLauncher) :
             if (state.areElementsVisible(launcher, LauncherState.OVERVIEW_ACTIONS)) 1f else 0f
         propertySetter.setFloat(
             launcher.actionsView.visibilityAlpha,
-            AnimatedFloat.VALUE,
+            AnimatedFloat.VALUE_PROPERTY,
             overviewButtonAlpha,
             config.getInterpolator(ANIM_OVERVIEW_ACTIONS_FADE, LINEAR),
         )

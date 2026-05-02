@@ -512,7 +512,7 @@ class TransientBubbleStashController(
             .setDampingRatio(SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY)
             .setStiffness(SpringForce.STIFFNESS_LOW)
             .setStartVelocity(stashHandleStashVelocity)
-            .build(translationYDuringStash, AnimatedFloat.VALUE)
+            .build(translationYDuringStash, AnimatedFloat.VALUE_PROPERTY)
     }
 
     private fun createScaleAnimator(isStashed: Boolean): AnimatorSet {

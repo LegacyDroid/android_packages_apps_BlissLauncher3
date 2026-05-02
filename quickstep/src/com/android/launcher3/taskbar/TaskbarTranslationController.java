@@ -15,7 +15,7 @@
  */
 package com.android.launcher3.taskbar;
 
-import static com.android.launcher3.anim.AnimatedFloat.VALUE;
+import static com.android.launcher3.anim.AnimatedFloat.VALUE_PROPERTY;
 import static com.android.launcher3.anim.AnimatorListeners.forEndCallback;
 
 import android.animation.Animator;
@@ -111,7 +111,7 @@ public class TaskbarTranslationController implements TaskbarControllers.Loggable
                 .setEndValue(0)
                 .setDampingRatio(SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY)
                 .setStiffness(SpringForce.STIFFNESS_LOW)
-                .build(mTranslationYForSwipe, VALUE);
+                .build(mTranslationYForSwipe, VALUE_PROPERTY);
         mSpringBounce.addListener(forEndCallback(() -> {
             if (!mGestureEnded) {
                 return;

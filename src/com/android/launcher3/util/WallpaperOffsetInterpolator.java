@@ -282,35 +282,16 @@ public class WallpaperOffsetInterpolator {
                     mAnimating = true;
                     mAnimationStartOffset = mCurrentOffset;
                     mAnimationStartTime = msg.getWhen();
-                    // Follow through
+                    mFinalOffset = ((float) msg.arg1) / msg.arg2;
+                    applyOffset(token);
+                    return;
                 }
                 case MSG_UPDATE_OFFSET:
                     mFinalOffset = ((float) msg.arg1) / msg.arg2;
-                    // Follow through
+                    applyOffset(token);
+                    return;
                 case MSG_APPLY_OFFSET: {
-                    float oldOffset = mCurrentOffset;
-                    if (mAnimating) {
-                        long durationSinceAnimation = SystemClock.uptimeMillis()
-                                - mAnimationStartTime;
-                        float t0 = durationSinceAnimation / (float) ANIMATION_DURATION;
-                        float t1 = mInterpolator.getInterpolation(t0);
-                        mCurrentOffset = mAnimationStartOffset +
-                                (mFinalOffset - mAnimationStartOffset) * t1;
-                        mAnimating = durationSinceAnimation < ANIMATION_DURATION;
-                    } else {
-                        mCurrentOffset = mFinalOffset;
-                    }
-
-                    if (Float.compare(mCurrentOffset, oldOffset) != 0) {
-                        setOffsetSafely(token);
-                        // Force the wallpaper offset steps to be set again, because another app
-                        // might have changed them
-                        mWM.setWallpaperOffsetSteps(mOffsetX, 1.0f);
-                    }
-                    if (mAnimating) {
-                        // If we are animating, keep updating the offset
-                        Message.obtain(this, MSG_APPLY_OFFSET, token).sendToTarget();
-                    }
+                    applyOffset(token);
                     return;
                 }
                 case MSG_SET_NUM_PARALLAX: {
@@ -327,6 +308,32 @@ public class WallpaperOffsetInterpolator {
                     mAnimating = false;
                     return;
                 }
+            }
+        }
+
+        private void applyOffset(IBinder token) {
+            float oldOffset = mCurrentOffset;
+            if (mAnimating) {
+                long durationSinceAnimation = SystemClock.uptimeMillis()
+                        - mAnimationStartTime;
+                float t0 = durationSinceAnimation / (float) ANIMATION_DURATION;
+                float t1 = mInterpolator.getInterpolation(t0);
+                mCurrentOffset = mAnimationStartOffset +
+                        (mFinalOffset - mAnimationStartOffset) * t1;
+                mAnimating = durationSinceAnimation < ANIMATION_DURATION;
+            } else {
+                mCurrentOffset = mFinalOffset;
+            }
+
+            if (Float.compare(mCurrentOffset, oldOffset) != 0) {
+                setOffsetSafely(token);
+                // Force the wallpaper offset steps to be set again, because another app
+                // might have changed them
+                mWM.setWallpaperOffsetSteps(mOffsetX, 1.0f);
+            }
+            if (mAnimating) {
+                // If we are animating, keep updating the offset
+                Message.obtain(this, MSG_APPLY_OFFSET, token).sendToTarget();
             }
         }
 

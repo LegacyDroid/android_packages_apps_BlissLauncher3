@@ -267,12 +267,12 @@ public final class TaskViewUtils {
         for (RemoteTargetHandle targetHandle : remoteTargetHandles) {
             TaskViewSimulator tvsLocal = targetHandle.getTaskViewSimulator();
             out.setFloat(tvsLocal.fullScreenProgress,
-                    AnimatedFloat.VALUE, 1, TOUCH_RESPONSE);
+                    AnimatedFloat.VALUE_PROPERTY, 1, TOUCH_RESPONSE);
             out.setFloat(tvsLocal.recentsViewScale,
-                    AnimatedFloat.VALUE, tvsLocal.getFullScreenScale(),
+                    AnimatedFloat.VALUE_PROPERTY, tvsLocal.getFullScreenScale(),
                     TOUCH_RESPONSE);
             if (!enableGridOnlyOverview()) {
-                out.setFloat(tvsLocal.recentsViewScroll, AnimatedFloat.VALUE, 0,
+                out.setFloat(tvsLocal.recentsViewScroll, AnimatedFloat.VALUE_PROPERTY, 0,
                         TOUCH_RESPONSE);
             }
 

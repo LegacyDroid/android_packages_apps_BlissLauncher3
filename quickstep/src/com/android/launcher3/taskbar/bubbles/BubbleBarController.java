@@ -325,7 +325,7 @@ public class BubbleBarController extends IBubblesListener.Stub {
         }
     }
 
-    private void applyViewChanges(BubbleBarViewUpdate update) {
+    private void applyViewChanges(BubbleBarViewUpdate update) { // NOSONAR pristine-AOSP-do-not-refactor
         final boolean isCollapsed = (update.expandedChanged && !update.expanded)
                 || (!update.expandedChanged && !mBubbleBarViewController.isExpanded());
         final boolean isExpanding = update.expandedChanged && update.expanded;

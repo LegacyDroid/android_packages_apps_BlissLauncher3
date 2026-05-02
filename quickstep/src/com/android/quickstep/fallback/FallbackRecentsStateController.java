@@ -108,7 +108,7 @@ public class FallbackRecentsStateController implements StateHandler<RecentsState
         }
         float overviewButtonAlpha = state.hasOverviewActions() ? 1 : 0;
         setter.setFloat(mRecentsViewContainer.getActionsView().getVisibilityAlpha(),
-                AnimatedFloat.VALUE, overviewButtonAlpha, LINEAR);
+                AnimatedFloat.VALUE_PROPERTY, overviewButtonAlpha, LINEAR);
 
         float[] scaleAndOffset = state.getOverviewScaleAndOffset(mRecentsViewContainer);
         setter.setFloat(mRecentsView, RECENTS_SCALE_PROPERTY, scaleAndOffset[0],

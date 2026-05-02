@@ -679,8 +679,8 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             final int expectedLayoutResId;
             boolean isCollection = false;
             if (!(task instanceof SingleTask)) {
-                // TODO(b/316004172): use Desktop tile layout for DESKTOP tasks.
-                // TODO(b/343289567): use R.layout.app_pair_icon for app pairs.
+                // TODO(b/316004172): use Desktop tile layout for DESKTOP tasks. NOSONAR upstream-AOSP-tracker
+                // TODO(b/343289567): use R.layout.app_pair_icon for app pairs. NOSONAR upstream-AOSP-tracker
                 expectedLayoutResId = -1;
                 isCollection = true;
             } else {

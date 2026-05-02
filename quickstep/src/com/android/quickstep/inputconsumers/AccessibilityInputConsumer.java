@@ -144,10 +144,10 @@ public class AccessibilityInputConsumer extends DelegateInputConsumer {
                         }
                     }
                 }
-                // Follow through
+                resetGestureTracking();
+                break;
             case ACTION_CANCEL: {
-                mVelocityTracker.recycle();
-                mMotionPauseDetector.clear();
+                resetGestureTracking();
                 break;
             }
         }
@@ -160,5 +160,10 @@ public class AccessibilityInputConsumer extends DelegateInputConsumer {
     @Override
     protected String getDelegatorName() {
         return "AccessibilityInputConsumer";
+    }
+
+    private void resetGestureTracking() {
+        mVelocityTracker.recycle();
+        mMotionPauseDetector.clear();
     }
 }

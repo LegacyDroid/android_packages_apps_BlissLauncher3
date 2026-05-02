@@ -254,8 +254,9 @@ public class WorkspaceItemInfo extends ItemInfoWithIcon {
         return cn;
     }
 
+    @NonNull
     @Override
-    public WorkspaceItemInfo clone() {
+    public WorkspaceItemInfo makeShallowCopy() {
         return new WorkspaceItemInfo(this);
     }
 }

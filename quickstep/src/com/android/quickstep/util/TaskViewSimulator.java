@@ -318,12 +318,12 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
      * Adds animation for all the components corresponding to transition from an app to carousel.
      */
     public void addAppToCarouselAnim(PendingAnimation pa, Interpolator interpolator) {
-        pa.addFloat(fullScreenProgress, AnimatedFloat.VALUE, 1, 0, interpolator);
+        pa.addFloat(fullScreenProgress, AnimatedFloat.VALUE_PROPERTY, 1, 0, interpolator);
         if (enableGridOnlyOverview() && mDp.isTablet && mDp.isGestureMode) {
             mIsAnimatingToCarousel = true;
             carouselScale.value = mCarouselTaskSize.width() / (float) mFullTaskSize.width();
         }
-        pa.addFloat(recentsViewScale, AnimatedFloat.VALUE, getFullScreenScale(), 1,
+        pa.addFloat(recentsViewScale, AnimatedFloat.VALUE_PROPERTY, getFullScreenScale(), 1,
                 interpolator);
     }
 
@@ -331,8 +331,8 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
      * Adds animation for all the components corresponding to transition from overview to the app.
      */
     public void addOverviewToAppAnim(PendingAnimation pa, TimeInterpolator interpolator) {
-        pa.addFloat(fullScreenProgress, AnimatedFloat.VALUE, 0, 1, interpolator);
-        pa.addFloat(recentsViewScale, AnimatedFloat.VALUE, 1, getFullScreenScale(), interpolator);
+        pa.addFloat(fullScreenProgress, AnimatedFloat.VALUE_PROPERTY, 0, 1, interpolator);
+        pa.addFloat(recentsViewScale, AnimatedFloat.VALUE_PROPERTY, 1, getFullScreenScale(), interpolator);
     }
 
     /**

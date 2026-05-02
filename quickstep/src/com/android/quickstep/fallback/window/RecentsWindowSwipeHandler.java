@@ -320,8 +320,8 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         @Override
         public AnimatorPlaybackController createActivityAnimationToHome() {
             PendingAnimation pa = new PendingAnimation(mDuration);
-            pa.setFloat(mRecentsAlpha, AnimatedFloat.VALUE, 0, ACCELERATE);
-            pa.setFloat(mHomeAlpha, AnimatedFloat.VALUE, 1, ACCELERATE);
+            pa.setFloat(mRecentsAlpha, AnimatedFloat.VALUE_PROPERTY, 0, ACCELERATE);
+            pa.setFloat(mHomeAlpha, AnimatedFloat.VALUE_PROPERTY, 1, ACCELERATE);
             return pa.createPlaybackController();
         }
 
@@ -338,7 +338,7 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
                     .setMinimumVisibleChange(1f / mDp.heightPx)
                     .setDampingRatio(0.6f)
                     .setStiffness(800)
-                    .build(mVerticalShiftForScale, AnimatedFloat.VALUE)
+                    .build(mVerticalShiftForScale, AnimatedFloat.VALUE_PROPERTY)
                     .start();
         }
 

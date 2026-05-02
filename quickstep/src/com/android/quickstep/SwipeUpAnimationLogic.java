@@ -118,8 +118,8 @@ public abstract class SwipeUpAnimationLogic implements
 
             remoteHandle.setPlaybackController(AnimatorControllerWithResistance.createForRecents(
                     playbackController, mContext, taskViewSimulator.getOrientationState(),
-                    mDp, taskViewSimulator.recentsViewScale, AnimatedFloat.VALUE,
-                    taskViewSimulator.recentsViewSecondaryTranslation, AnimatedFloat.VALUE
+                    mDp, taskViewSimulator.recentsViewScale, AnimatedFloat.VALUE_PROPERTY,
+                    taskViewSimulator.recentsViewSecondaryTranslation, AnimatedFloat.VALUE_PROPERTY
             ));
         }
     }

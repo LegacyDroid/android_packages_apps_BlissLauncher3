@@ -97,14 +97,14 @@ public abstract class NavigableAppWidgetHostView extends AppWidgetHostView
                     case 0:
                         mChildrenFocused = false;
                         break;
-                    case 1: {
+                    case 1:
                         if (shouldAllowDirectClick()) {
                             focusableChildren.get(0).performClick();
                             mChildrenFocused = false;
                             return true;
                         }
-                        // continue;
-                    }
+                        focusableChildren.get(0).requestFocus();
+                        return true;
                     default:
                         focusableChildren.get(0).requestFocus();
                         return true;

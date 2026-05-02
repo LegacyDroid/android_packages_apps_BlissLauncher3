@@ -205,7 +205,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
     public void bindAllModelExtras(@NonNull BgDataModel.Callbacks[] callbacks) {
         Iterable<FixedContainerItems> containerItems;
         synchronized (mDataModel.extraItems) {
-            containerItems = mDataModel.extraItems.clone();
+            containerItems = mDataModel.extraItems.copy();
         }
         Executors.MAIN_EXECUTOR.execute(() -> {
             for (BgDataModel.Callbacks c : callbacks) {
@@ -250,7 +250,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
         } else {
             IntSparseArrayMap<ItemInfo> itemsIdMap;
             synchronized (mDataModel.mLock) {
-                itemsIdMap = mDataModel.itemsIdMap.clone();
+                itemsIdMap = mDataModel.itemsIdMap.copy();
             }
             InstanceId instanceId = new InstanceIdSequence().newInstanceId();
             for (ItemInfo info : itemsIdMap) {
@@ -283,7 +283,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
                         InstanceId instanceId = new InstanceIdSequence().newInstanceId();
                         IntSparseArrayMap<ItemInfo> itemsIdMap;
                         synchronized (mDataModel.mLock) {
-                            itemsIdMap = mDataModel.itemsIdMap.clone();
+                            itemsIdMap = mDataModel.itemsIdMap.copy();
                         }
 
                         for (ItemInfo info : itemsIdMap) {

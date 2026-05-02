@@ -94,7 +94,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
             this::onInAppDisplayProgressChanged);
     private final MultiPropertyFactory<AnimatedFloat> mTaskbarInAppDisplayProgressMultiProp =
             new MultiPropertyFactory<>(mTaskbarInAppDisplayProgress,
-                    AnimatedFloat.VALUE, DISPLAY_PROGRESS_COUNT, Float::max);
+                    AnimatedFloat.VALUE_PROPERTY, DISPLAY_PROGRESS_COUNT, Float::max);
     private final AnimatedFloat mLauncherPauseProgress = new AnimatedFloat(
             this::onLauncherPauseProgressUpdate);
 

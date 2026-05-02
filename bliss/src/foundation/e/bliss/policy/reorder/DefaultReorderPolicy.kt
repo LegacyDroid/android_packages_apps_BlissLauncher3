@@ -31,9 +31,6 @@
  */
 package foundation.e.bliss.policy.reorder
 
-import com.android.launcher3.CellLayout
-import com.android.launcher3.celllayout.ItemConfiguration
-import com.android.launcher3.celllayout.ReorderParameters
 import foundation.e.bliss.multimode.MultiModeController
 import foundation.e.bliss.policy.ReorderPolicy
 
@@ -42,16 +39,10 @@ import foundation.e.bliss.policy.ReorderPolicy
  * (-1, 0)` in single-layer mode or for non- widget cell layouts) and then defers solution selection
  * to the AOSP algorithm by returning null.
  */
-object DefaultReorderPolicy : ReorderPolicy {
-    override fun overrideDirectionAndPreference(
-        cellLayout: CellLayout,
-        params: ReorderParameters,
-        dropInPlaceSolution: ItemConfiguration,
-    ): ItemConfiguration? {
-        if (MultiModeController.isSingleLayerMode || !cellLayout.isWidget) {
-            cellLayout.mDirectionVector[0] = -1
-            cellLayout.mDirectionVector[1] = 0
-        }
-        return null
+val DefaultReorderPolicy = ReorderPolicy { cellLayout, _, _ ->
+    if (MultiModeController.isSingleLayerMode || !cellLayout.isWidget) {
+        cellLayout.mDirectionVector[0] = -1
+        cellLayout.mDirectionVector[1] = 0
     }
+    null
 }

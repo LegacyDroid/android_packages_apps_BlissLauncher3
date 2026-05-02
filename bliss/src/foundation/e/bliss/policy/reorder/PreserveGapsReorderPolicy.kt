@@ -33,15 +33,8 @@
  */
 package foundation.e.bliss.policy.reorder
 
-import com.android.launcher3.CellLayout
-import com.android.launcher3.celllayout.ItemConfiguration
-import com.android.launcher3.celllayout.ReorderParameters
 import foundation.e.bliss.policy.ReorderPolicy
 
-object PreserveGapsReorderPolicy : ReorderPolicy {
-    override fun overrideDirectionAndPreference(
-        cellLayout: CellLayout,
-        params: ReorderParameters,
-        dropInPlaceSolution: ItemConfiguration,
-    ): ItemConfiguration? = if (dropInPlaceSolution.isSolution) dropInPlaceSolution else null
+val PreserveGapsReorderPolicy = ReorderPolicy { _, _, dropInPlaceSolution ->
+    if (dropInPlaceSolution.isSolution) dropInPlaceSolution else null
 }

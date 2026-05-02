@@ -39,7 +39,7 @@ import static com.android.launcher3.LauncherAnimUtils.VIEW_ALPHA;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_TRANSLATE_X;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_TRANSLATE_Y;
 import static com.android.launcher3.Utilities.mapRange;
-import static com.android.launcher3.anim.AnimatedFloat.VALUE;
+import static com.android.launcher3.anim.AnimatedFloat.VALUE_PROPERTY;
 import static com.android.launcher3.anim.AnimatorListeners.forEndCallback;
 import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
 import static com.android.launcher3.config.FeatureFlags.enableTaskbarPinning;
@@ -963,9 +963,9 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
         int offsetY =
                 isDeviceLocked ? taskbarDp.getTaskbarOffsetY() : launcherDp.getTaskbarOffsetY();
-        setter.setFloat(mTaskbarIconTranslationYForHome, VALUE, -offsetY, interpolator);
-        setter.setFloat(mTaskbarNavButtonTranslationY, VALUE, -offsetY, interpolator);
-        setter.setFloat(mTaskbarNavButtonTranslationYForInAppDisplay, VALUE, offsetY, interpolator);
+        setter.setFloat(mTaskbarIconTranslationYForHome, VALUE_PROPERTY, -offsetY, interpolator);
+        setter.setFloat(mTaskbarNavButtonTranslationY, VALUE_PROPERTY, -offsetY, interpolator);
+        setter.setFloat(mTaskbarNavButtonTranslationYForInAppDisplay, VALUE_PROPERTY, offsetY, interpolator);
         if (mBubbleControllers != null
                 && mCurrentBubbleBarLocation != null
                 && mActivity.isTransientTaskbar()) {
@@ -974,7 +974,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             if (offsetX != 0) {
                 // if taskbar should be adjusted for the bubble bar adjust the taskbar translation
                 mTranslationXForBubbleBar.updateValue(offsetX);
-                setter.setFloat(mTranslationXForBubbleBar, VALUE, 0, interpolator);
+                setter.setFloat(mTranslationXForBubbleBar, VALUE_PROPERTY, 0, interpolator);
             }
         }
         int collapsedHeight = mActivity.getDefaultTaskbarWindowSize();

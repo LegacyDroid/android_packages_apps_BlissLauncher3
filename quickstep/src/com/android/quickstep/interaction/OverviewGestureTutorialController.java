@@ -231,7 +231,7 @@ final class OverviewGestureTutorialController extends SwipeUpGestureTutorialCont
     public void animateTaskViewToOverview(boolean animateDelayedSuccessFeedback) {
         PendingAnimation anim = new PendingAnimation(TASK_VIEW_END_ANIMATION_DURATION_MILLIS);
         anim.setFloat(mTaskViewSwipeUpAnimation
-                .getCurrentShift(), AnimatedFloat.VALUE, 1, ACCELERATE);
+                .getCurrentShift(), AnimatedFloat.VALUE_PROPERTY, 1, ACCELERATE);
 
         if (animateDelayedSuccessFeedback) {
             anim.addListener(new AnimatorListenerAdapter() {

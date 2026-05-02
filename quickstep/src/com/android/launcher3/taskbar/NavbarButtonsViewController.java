@@ -367,7 +367,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
             int flagsToRemoveTranslation = FLAG_NOTIFICATION_SHADE_EXPANDED | FLAG_IME_VISIBLE
                     | FLAG_VOICE_INTERACTION_WINDOW_SHOWING | FLAG_KEYBOARD_SHORTCUT_HELPER_SHOWING;
             mPropertyHolders.add(new StatePropertyHolder(mNavButtonInAppDisplayProgressForSysui,
-                    flags -> (flags & flagsToRemoveTranslation) != 0, AnimatedFloat.VALUE,
+                    flags -> (flags & flagsToRemoveTranslation) != 0, AnimatedFloat.VALUE_PROPERTY,
                     1, 0));
             // Center nav buttons in new height for IME.
             float transForIme = (mContext.getDeviceProfile().taskbarHeight
@@ -375,7 +375,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
             // For gesture nav, nav buttons only show for IME anyway so keep them translated down.
             float defaultButtonTransY = alwaysShowButtons ? 0 : transForIme;
             mPropertyHolders.add(new StatePropertyHolder(mTaskbarNavButtonTranslationYForIme,
-                    flags -> (flags & FLAG_IME_VISIBLE) != 0 && !isInKidsMode, AnimatedFloat.VALUE,
+                    flags -> (flags & FLAG_IME_VISIBLE) != 0 && !isInKidsMode, AnimatedFloat.VALUE_PROPERTY,
                     transForIme, defaultButtonTransY));
 
             mPropertyHolders.add(new StatePropertyHolder(
@@ -1543,7 +1543,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         }
 
         StatePropertyHolder(AnimatedFloat animatedFloat, IntPredicate enableCondition) {
-            this(animatedFloat, enableCondition, AnimatedFloat.VALUE, 1, 0);
+            this(animatedFloat, enableCondition, AnimatedFloat.VALUE_PROPERTY, 1, 0);
         }
 
         <T> StatePropertyHolder(T target, IntPredicate enabledCondition,

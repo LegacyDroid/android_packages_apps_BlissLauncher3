@@ -166,12 +166,11 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
             Log.d(TAG, "onUpgrade triggered: " + oldVersion);
         }
         LauncherAppMonitor.getInstanceNoCreate().onLauncherDbUpgrade(db, oldVersion, newVersion);
-        switch (oldVersion) {
-            // The version cannot be lower that 12, as Launcher3 never supported a lower
-            // version of the DB.
-            case 12:
-                // No-op
-            case 13: {
+        // The version cannot be lower than 12, as Launcher3 never supported a lower
+        // version of the DB. Each block below applies the migration step from version N
+        // to version N+1; on failure we fall out of the labeled block and wipe old data.
+        upgrade: {
+            if (oldVersion <= 13) {
                 try (SQLiteTransaction t = new SQLiteTransaction(db)) {
                     // Insert new column for holding widget provider name
                     db.execSQL("ALTER TABLE " + Favorites.TABLE_NAME + " ADD COLUMN appWidgetProvider TEXT;");
@@ -179,55 +178,38 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
                 } catch (SQLException ex) {
                     Log.e(TAG, ex.getMessage(), ex);
                     // Old version remains, which means we wipe old data
-                    break;
+                    break upgrade;
                 }
             }
-            case 14: {
-                if (!addIntegerColumn(db, Favorites.MODIFIED, 0)) {
-                    // Old version remains, which means we wipe old data
-                    break;
-                }
+            if (oldVersion <= 14 && !addIntegerColumn(db, Favorites.MODIFIED, 0)) {
+                // Old version remains, which means we wipe old data
+                break upgrade;
             }
-            case 15: {
-                if (!addIntegerColumn(db, Favorites.RESTORED, 0)) {
-                    // Old version remains, which means we wipe old data
-                    break;
-                }
+            if (oldVersion <= 15 && !addIntegerColumn(db, Favorites.RESTORED, 0)) {
+                // Old version remains, which means we wipe old data
+                break upgrade;
             }
-            case 16:
-                // No-op
-            case 17:
-                // No-op
-            case 18:
-                // No-op
-            case 19: {
+            // Versions 16, 17, 18 are no-ops.
+            if (oldVersion <= 19
+                    && !addIntegerColumn(db, Favorites.PROFILE_ID, getDefaultUserSerial())) {
                 // Add userId column
-                if (!addIntegerColumn(db, Favorites.PROFILE_ID, getDefaultUserSerial())) {
-                    // Old version remains, which means we wipe old data
-                    break;
-                }
+                // Old version remains, which means we wipe old data
+                break upgrade;
             }
-            case 20:
-                if (!updateFolderItemsRank(db, true)) {
-                    break;
-                }
-            case 21:
-                // No-op
-            case 22: {
-                if (!addIntegerColumn(db, Favorites.OPTIONS, 0)) {
-                    // Old version remains, which means we wipe old data
-                    break;
-                }
+            if (oldVersion <= 20 && !updateFolderItemsRank(db, true)) {
+                break upgrade;
             }
-            case 23:
-                // No-op
-            case 24:
-                // No-op
-            case 25:
+            // Version 21 is a no-op.
+            if (oldVersion <= 22 && !addIntegerColumn(db, Favorites.OPTIONS, 0)) {
+                // Old version remains, which means we wipe old data
+                break upgrade;
+            }
+            // Versions 23, 24 are no-ops.
+            if (oldVersion <= 25) {
                 convertShortcutsToLauncherActivities(db);
-            case 26:
-                // QSB was moved to the grid. Ignore overlapping items
-            case 27: {
+            }
+            // Version 26: QSB was moved to the grid. Ignore overlapping items (no-op).
+            if (oldVersion <= 27) {
                 // Update the favorites table so that the screen ids are ordered based on
                 // workspace page rank.
                 IntArray finalScreens = LauncherDbUtils.queryIntArray(false, db,
@@ -250,40 +232,36 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
                 }
                 dropTable(db, "workspaceScreens");
             }
-            case 28: {
+            if (oldVersion <= 28) {
                 boolean columnAdded = addIntegerColumn(
                         db, Favorites.APPWIDGET_SOURCE, Favorites.CONTAINER_UNKNOWN);
                 if (!columnAdded) {
                     // Old version remains, which means we wipe old data
-                    break;
+                    break upgrade;
                 }
             }
-            case 29: {
+            if (oldVersion <= 29) {
                 // Remove widget panel related leftover workspace items
                 db.delete(Favorites.TABLE_NAME, Utilities.createDbSelectionQuery(
                         Favorites.SCREEN, IntArray.wrap(-777, -778)), null);
             }
-            case 30: {
-                if (FeatureFlags.QSB_ON_FIRST_SCREEN.get()
-                        && !SHOULD_SHOW_FIRST_PAGE_WIDGET) {
-                    // Clean up first row in screen 0 as it might contain junk data.
-                    Log.d(TAG, "Cleaning up first row");
-                    db.delete(Favorites.TABLE_NAME,
-                            String.format(Locale.ENGLISH,
-                                    "%1$s = %2$d AND %3$s = %4$d AND %5$s = %6$d",
-                                    Favorites.SCREEN, 0,
-                                    Favorites.CONTAINER, Favorites.CONTAINER_DESKTOP,
-                                    Favorites.CELLY, 0), null);
-                }
+            if (oldVersion <= 30
+                    && FeatureFlags.QSB_ON_FIRST_SCREEN.get()
+                    && !SHOULD_SHOW_FIRST_PAGE_WIDGET) {
+                // Clean up first row in screen 0 as it might contain junk data.
+                Log.d(TAG, "Cleaning up first row");
+                db.delete(Favorites.TABLE_NAME,
+                        String.format(Locale.ENGLISH,
+                                "%1$s = %2$d AND %3$s = %4$d AND %5$s = %6$d",
+                                Favorites.SCREEN, 0,
+                                Favorites.CONTAINER, Favorites.CONTAINER_DESKTOP,
+                                Favorites.CELLY, 0), null);
             }
-            case 31: {
+            if (oldVersion <= 31) {
                 LauncherDbUtils.migrateLegacyShortcuts(mContext, db);
             }
-            // Fall through
-            case 32: {
-                // DB Upgraded successfully
-                return;
-            }
+            // DB Upgraded successfully (case 32)
+            return;
         }
 
         // DB was not upgraded

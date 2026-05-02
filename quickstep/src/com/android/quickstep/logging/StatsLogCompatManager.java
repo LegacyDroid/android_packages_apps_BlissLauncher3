@@ -747,13 +747,18 @@ public class StatsLogCompatManager extends StatsLogManager {
                     return deviceSearchResultCont.hasQueryLength() ? deviceSearchResultCont
                             .getQueryLength() : -1;
                 }
+                return getCardinalityFromItemCase(info);
             default:
-                return switch (info.getItemCase()) {
-                    case FOLDER_ICON -> info.getFolderIcon().getCardinality();
-                    case TASK_VIEW -> info.getTaskView().getCardinality();
-                    default -> 0;
-                };
+                return getCardinalityFromItemCase(info);
         }
+    }
+
+    private static int getCardinalityFromItemCase(LauncherAtom.ItemInfo info) {
+        return switch (info.getItemCase()) {
+            case FOLDER_ICON -> info.getFolderIcon().getCardinality();
+            case TASK_VIEW -> info.getTaskView().getCardinality();
+            default -> 0;
+        };
     }
 
     private static String getPackageName(LauncherAtom.ItemInfo info) {

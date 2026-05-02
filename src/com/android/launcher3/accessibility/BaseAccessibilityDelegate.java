@@ -87,13 +87,12 @@ public abstract class BaseAccessibilityDelegate<T extends Context & ActivityCont
     protected abstract void getSupportedActions(View host, ItemInfo item, List<LauncherAction> out);
 
     private boolean itemSupportsLongClick(View host) {
-        if (host instanceof BubbleTextView btv) {
-            return btv.canShowLongPressPopup();
-        } else if (host instanceof BubbleTextHolder holder) {
-            return holder.getBubbleText() != null && holder.getBubbleText().canShowLongPressPopup();
-        } else {
-            return false;
-        }
+        return switch (host) {
+            case BubbleTextView btv -> btv.canShowLongPressPopup();
+            case BubbleTextHolder holder ->
+                    holder.getBubbleText() != null && holder.getBubbleText().canShowLongPressPopup();
+            default -> false;
+        };
     }
 
     protected boolean itemSupportsAccessibleDrag(ItemInfo item) {

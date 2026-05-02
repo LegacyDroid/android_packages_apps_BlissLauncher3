@@ -468,7 +468,7 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
                     });
                 });
             } else if (item instanceof WorkspaceItemInfo) {
-                WorkspaceItemInfo info = ((WorkspaceItemInfo) item).clone();
+                WorkspaceItemInfo info = ((WorkspaceItemInfo) item).makeShallowCopy();
                 mContext.getModelWriter().addItemToDatabase(info,
                         LauncherSettings.Favorites.CONTAINER_DESKTOP,
                         screenId, coordinates[0], coordinates[1]);

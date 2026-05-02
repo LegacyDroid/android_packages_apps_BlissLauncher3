@@ -173,7 +173,8 @@ public class StringMatcherUtility {
                             && nextType != Character.UNASSIGNED) {
                         return true;
                     }
-                    // Follow through
+                    // Break point if previous was not a upper case
+                    return prevType != Character.UPPERCASE_LETTER;
                 case Character.TITLECASE_LETTER:
                     // Break point if previous was not a upper case
                     return prevType != Character.UPPERCASE_LETTER;
