@@ -52,7 +52,7 @@ public final class BlissBackupZip {
 
     public static final String PREFS_ENTRY = "prefs.json";
     public static final String LAYOUT_ENTRY = "layout.xml";
-    private static final long MAX_ZIP_ENTRY_SIZE = 1024 * 1024; // 1 MB
+    private static final long MAX_ZIP_ENTRY_SIZE = 1024L * 1024; // 1 MB
 
     private BlissBackupZip() {
     }
