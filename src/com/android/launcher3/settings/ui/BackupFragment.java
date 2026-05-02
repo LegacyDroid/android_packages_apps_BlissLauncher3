@@ -23,6 +23,7 @@
 package com.android.launcher3.settings.ui;
 
 import android.content.Context;
+import android.net.Uri;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -45,106 +46,113 @@ import java.io.OutputStream;
 /** Backup / restore / Lawnchair-import screen. */
 public class BackupFragment extends AreaFragmentBase {
 
-    private ActivityResultLauncher<String> mBackupLauncher;
-    private ActivityResultLauncher<String[]> mRestoreLauncher;
-    private ActivityResultLauncher<String[]> mLawnchairImportLauncher;
-
     @Override protected int xmlRes() { return R.xml.preferences_backup; }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        mBackupLauncher = registerForActivityResult(
+        ActivityResultLauncher<String> backupLauncher = registerForActivityResult(
                 new ActivityResultContracts.CreateDocument("application/zip"),
-                uri -> {
-                    if (uri == null) return;
-                    Context ctx = getContext();
-                    if (ctx == null) return;
-                    try {
-                        OutputStream os = ctx.getContentResolver().openOutputStream(uri);
-                        if (os == null) return;
-                        BackupRestoreHelper.createBackup(ctx, os, success -> {
-                            if (getActivity() != null) {
-                                getActivity().runOnUiThread(() -> Toast.makeText(ctx,
-                                        success ? R.string.backup_success : R.string.backup_failed,
-                                        Toast.LENGTH_SHORT).show());
-                            }
-                        });
-                    } catch (Exception e) {
-                        Toast.makeText(ctx, R.string.backup_failed, Toast.LENGTH_SHORT).show();
-                    }
-                });
+                this::handleBackupResult);
 
-        mRestoreLauncher = registerForActivityResult(
+        ActivityResultLauncher<String[]> restoreLauncher = registerForActivityResult(
                 new ActivityResultContracts.OpenDocument(),
-                uri -> {
-                    if (uri == null) return;
-                    Context ctx = getContext();
-                    if (ctx == null) return;
-                    try {
-                        InputStream is = ctx.getContentResolver().openInputStream(uri);
-                        if (is == null) return;
-                        boolean success = BackupRestoreHelper.restoreFromBackup(ctx, is);
-                        Toast.makeText(ctx,
-                                success ? R.string.restore_success : R.string.restore_failed,
-                                Toast.LENGTH_SHORT).show();
-                        if (success) {
-                            LauncherAppState.getInstance(ctx).getModel().forceReload();
-                        }
-                    } catch (Exception e) {
-                        Toast.makeText(ctx, R.string.restore_failed, Toast.LENGTH_SHORT).show();
-                    }
-                });
+                this::handleRestoreResult);
 
-        mLawnchairImportLauncher = registerForActivityResult(
+        ActivityResultLauncher<String[]> lawnchairImportLauncher = registerForActivityResult(
                 new ActivityResultContracts.OpenDocument(),
-                uri -> {
-                    Context ctx = getContext();
-                    if (ctx == null) return;
-                    if (uri == null) {
-                        Toast.makeText(ctx, "No file selected", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    final InputStream is;
-                    try {
-                        is = ctx.getContentResolver().openInputStream(uri);
-                    } catch (Exception e) {
-                        Toast.makeText(ctx, "Could not open file", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    if (is == null) {
-                        Toast.makeText(ctx, "Could not open file", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    final Context appCtx = ctx.getApplicationContext();
-                    Toast.makeText(appCtx, "Importing Lawnchair backup\u2026",
-                            Toast.LENGTH_SHORT).show();
-                    Executors.MODEL_EXECUTOR.execute(() -> {
-                        ImportResult result;
-                        try (InputStream stream = is) {
-                            result = LawnchairImportHelper.importFromLawnchair(appCtx, stream);
-                        } catch (Exception e) {
-                            final String msg = "Import error: " + e.getMessage();
-                            Executors.MAIN_EXECUTOR.execute(() ->
-                                    Toast.makeText(appCtx, msg, Toast.LENGTH_LONG).show());
-                            return;
-                        }
-                        final String toastMsg = result.success
-                                ? result.message
-                                : getString(R.string.lawnchair_import_failed);
-                        final boolean reload = result.success;
-                        Executors.MAIN_EXECUTOR.execute(() -> {
-                            Toast.makeText(appCtx, toastMsg, Toast.LENGTH_LONG).show();
-                            if (reload) {
-                                LauncherAppState.getInstance(appCtx).getModel().forceReload();
-                            }
-                        });
-                    });
-                });
+                this::handleLawnchairImportResult);
 
-        BackupLaunchers.setBackupLauncher(mBackupLauncher);
-        BackupLaunchers.setRestoreLauncher(mRestoreLauncher);
-        BackupLaunchers.setLawnchairImportLauncher(mLawnchairImportLauncher);
+        BackupLaunchers.setBackupLauncher(backupLauncher);
+        BackupLaunchers.setRestoreLauncher(restoreLauncher);
+        BackupLaunchers.setLawnchairImportLauncher(lawnchairImportLauncher);
         super.onCreate(savedInstanceState);
+    }
+
+    private void handleBackupResult(Uri uri) {
+        if (uri == null) return;
+        Context ctx = getContext();
+        if (ctx == null) return;
+        try {
+            OutputStream os = ctx.getContentResolver().openOutputStream(uri);
+            if (os == null) return;
+            BackupRestoreHelper.createBackup(ctx, os, success -> {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> Toast.makeText(ctx,
+                            success ? R.string.backup_success : R.string.backup_failed,
+                            Toast.LENGTH_SHORT).show());
+                }
+            });
+        } catch (Exception e) {
+            Toast.makeText(ctx, R.string.backup_failed, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void handleRestoreResult(Uri uri) {
+        if (uri == null) return;
+        Context ctx = getContext();
+        if (ctx == null) return;
+        try {
+            InputStream is = ctx.getContentResolver().openInputStream(uri);
+            if (is == null) return;
+            boolean success = BackupRestoreHelper.restoreFromBackup(ctx, is);
+            Toast.makeText(ctx,
+                    success ? R.string.restore_success : R.string.restore_failed,
+                    Toast.LENGTH_SHORT).show();
+            if (success) {
+                LauncherAppState.getInstance(ctx).getModel().forceReload();
+            }
+        } catch (Exception e) {
+            Toast.makeText(ctx, R.string.restore_failed, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void handleLawnchairImportResult(Uri uri) {
+        Context ctx = getContext();
+        if (ctx == null) return;
+        if (uri == null) {
+            Toast.makeText(ctx, "No file selected", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        final InputStream is = openLawnchairStream(ctx, uri);
+        if (is == null) return;
+        final Context appCtx = ctx.getApplicationContext();
+        Toast.makeText(appCtx, "Importing Lawnchair backup\u2026", Toast.LENGTH_SHORT).show();
+        Executors.MODEL_EXECUTOR.execute(() -> runLawnchairImport(appCtx, is));
+    }
+
+    private static InputStream openLawnchairStream(Context ctx, Uri uri) {
+        try {
+            InputStream is = ctx.getContentResolver().openInputStream(uri);
+            if (is == null) {
+                Toast.makeText(ctx, "Could not open file", Toast.LENGTH_SHORT).show();
+            }
+            return is;
+        } catch (Exception e) {
+            Toast.makeText(ctx, "Could not open file", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+    }
+
+    private void runLawnchairImport(Context appCtx, InputStream is) {
+        ImportResult result;
+        try (InputStream stream = is) {
+            result = LawnchairImportHelper.importFromLawnchair(appCtx, stream);
+        } catch (Exception e) {
+            final String msg = "Import error: " + e.getMessage();
+            Executors.MAIN_EXECUTOR.execute(() ->
+                    Toast.makeText(appCtx, msg, Toast.LENGTH_LONG).show());
+            return;
+        }
+        final String toastMsg = result.success
+                ? result.message
+                : getString(R.string.lawnchair_import_failed);
+        final boolean reload = result.success;
+        Executors.MAIN_EXECUTOR.execute(() -> {
+            Toast.makeText(appCtx, toastMsg, Toast.LENGTH_LONG).show();
+            if (reload) {
+                LauncherAppState.getInstance(appCtx).getModel().forceReload();
+            }
+        });
     }
 
     @Override

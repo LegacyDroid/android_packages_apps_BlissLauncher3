@@ -56,11 +56,11 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                 });
                 try {
                     if (!latch.await(2, TimeUnit.SECONDS)) {
-                        throw new RuntimeException("Timed out waiting for recent tasks");
+                        throw new IllegalStateException("Timed out waiting for recent tasks");
                     }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    throw new RuntimeException(e);
+                    throw new IllegalStateException(e);
                 }
                 response.putStringArrayList(TestProtocol.TEST_INFO_RESPONSE_FIELD,
                         taskBaseIntentComponents);
@@ -254,9 +254,9 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             MAIN_EXECUTOR.execute(helper::onDestroy);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         } catch (ExecutionException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 

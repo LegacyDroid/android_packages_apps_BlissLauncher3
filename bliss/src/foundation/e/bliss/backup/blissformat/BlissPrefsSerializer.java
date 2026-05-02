@@ -123,9 +123,7 @@ public final class BlissPrefsSerializer {
             json.put("app_launch_animation", prefs.get(LauncherPrefs.APP_LAUNCH_ANIMATION));
             json.put("font_weight", prefs.get(LauncherPrefs.FONT_WEIGHT));
             json.put("drawer_animation", prefs.get(LauncherPrefs.DRAWER_ANIMATION));
-        } catch (JSONException e) {
-            return null;
-        } catch (RuntimeException e) {
+        } catch (JSONException | RuntimeException e) {
             return null;
         }
         return json.toString();

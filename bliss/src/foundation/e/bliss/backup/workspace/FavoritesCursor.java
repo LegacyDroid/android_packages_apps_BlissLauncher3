@@ -44,6 +44,8 @@ package foundation.e.bliss.backup.workspace;
 
 import android.database.Cursor;
 
+import java.util.List;
+
 /**
  * Typed accessor over a Lawnchair favorites cursor; centralises column indices.
  */
@@ -51,8 +53,8 @@ public final class FavoritesCursor {
 
     public static final String TABLE = "favorites";
 
-    public static final String[] PROJECTION = {"_id", "title", "intent", "container", "screen", "cellX", "cellY",
-            "spanX", "spanY", "itemType", "appWidgetProvider", "rank", "icon"};
+    public static final List<String> PROJECTION = List.of("_id", "title", "intent", "container", "screen", "cellX",
+            "cellY", "spanX", "spanY", "itemType", "appWidgetProvider", "rank", "icon");
 
     public static final String SELECTION = "container IN (-100, -101) OR container >= 0";
     public static final String ORDER_BY = "container, screen, cellY, cellX";

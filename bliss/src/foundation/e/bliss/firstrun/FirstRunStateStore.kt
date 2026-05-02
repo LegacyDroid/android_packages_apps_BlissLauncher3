@@ -49,8 +49,7 @@ class FirstRunStateStore(private val ctx: Context) {
         LauncherPrefs.get(ctx).get(LauncherPrefs.FIRST_RUN_LAYOUT_CHOICE_DONE)
 
     /** Read the set of step ids that have already been completed. */
-    fun completed(): Set<String> =
-        LauncherPrefs.get(ctx).get(LauncherPrefs.FIRST_RUN_STEPS_DONE) ?: emptySet()
+    fun completed(): Set<String> = LauncherPrefs.get(ctx).get(LauncherPrefs.FIRST_RUN_STEPS_DONE)
 
     /**
      * Record that [stepId] is done. If this satisfies every step in [FirstRunWizard.ALL_STEPS],

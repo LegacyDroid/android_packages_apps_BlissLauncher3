@@ -1979,10 +1979,10 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             ItemInfo dragObject, DragPreviewProvider previewProvider, DragOptions dragOptions) {
 
         float iconScale = 1f;
-        if (child instanceof BubbleTextView) {
-            Drawable icon = ((BubbleTextView) child).getIcon();
-            if (icon instanceof FastBitmapDrawable) {
-                iconScale = ((FastBitmapDrawable) icon).getAnimatedScale();
+        if (child instanceof BubbleTextView btv) {
+            Drawable icon = btv.getIcon();
+            if (icon instanceof FastBitmapDrawable fastBitmapDrawable) {
+                iconScale = fastBitmapDrawable.getAnimatedScale();
             }
         }
 

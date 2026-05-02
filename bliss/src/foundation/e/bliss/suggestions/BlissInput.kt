@@ -112,7 +112,7 @@ class BlissInput(context: Context, attrs: AttributeSet) :
                 }
             }
 
-            mSearchInput.setOnEditorActionListener { _, actionId, event ->
+            mSearchInput.setOnEditorActionListener { _, actionId, _ ->
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                     clearFocus()
                     openSearch(mSearchInput.text.toString())

@@ -920,10 +920,8 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         if (!useSpring) {
             return new FolderAnimationManager(this, isOpening).getAnimator();
         }
-        // Migration04 §06: AnimatorFallback centralises the spring → AOSP fallback.
-        // Same behaviour as the Migration02 §2.4 inline catch (Throwable): on any
-        // exception (NaN propagation, NPE in the spring builder, …) we silently
-        // fall through to FolderAnimationManager. AnimatorFallback also logs at WARN.
+        // AnimatorFallback centralises the spring-to-AOSP fallback policy: any throw from the
+        // spring builder is logged at WARN and falls through to FolderAnimationManager.
         return AnimatorFallback.tryBuild(
                 "Folder.buildOpenCloseAnimator",
                 () -> {

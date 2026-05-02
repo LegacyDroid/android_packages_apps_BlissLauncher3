@@ -520,8 +520,8 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
      */
     public void animateAwayNotificationDotsDuringTaskbarPinningAnimation() {
         for (View iconView : mTaskbarView.getIconViews()) {
-            if (iconView instanceof BubbleTextView && ((BubbleTextView) iconView).hasDot()) {
-                ((BubbleTextView) iconView).animateDotScale(0);
+            if (iconView instanceof BubbleTextView btv && btv.hasDot()) {
+                btv.animateDotScale(0);
             }
         }
     }

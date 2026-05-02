@@ -178,9 +178,13 @@ constructor(context: Context, attrs: AttributeSet? = null) : LinearLayout(contex
                     start: Int,
                     count: Int,
                     after: Int,
-                ) {}
+                ) {
+                    // No-op: only afterTextChanged drives the parse + debounce path.
+                }
 
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    // No-op: see beforeTextChanged.
+                }
 
                 override fun afterTextChanged(s: Editable?) {
                     if (suppressHexSync) return
@@ -348,7 +352,10 @@ constructor(context: Context, attrs: AttributeSet? = null) : LinearLayout(contex
                     if (s.isNotEmpty()) {
                         try {
                             out.add(Color.parseColor(s))
-                        } catch (_: Throwable) {}
+                        } catch (_: Throwable) {
+                            // Skip unparseable recents; persisted JSON may pre-date a format
+                            // change.
+                        }
                     }
                 }
                 out

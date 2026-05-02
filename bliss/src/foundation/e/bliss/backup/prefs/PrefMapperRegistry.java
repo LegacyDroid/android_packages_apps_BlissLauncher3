@@ -204,40 +204,28 @@ public final class PrefMapperRegistry {
     }
     private static int applyMoreBooleanPrefs(Map<String, Object> src, LauncherPrefs prefs) {
         int c = 0;
-        if (BasicMappers.mapBoolean(src, prefs, "show_icon_labels_in_drawer", LauncherPrefs.SHOW_DRAWER_LABELS))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "pref_allAppsIconLabels", LauncherPrefs.SHOW_DRAWER_LABELS))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "show_icon_labels_on_home_screen_folder",
-                LauncherPrefs.SHOW_FOLDER_LABELS))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "pref_show_hotseat", LauncherPrefs.SHOW_DOCK))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "enable_label_dock", LauncherPrefs.DOCK_LABELS))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "pref_wallpaperScrolling", LauncherPrefs.WALLPAPER_SCROLLING))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "pref_infiniteScrolling", LauncherPrefs.INFINITE_SCROLLING))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "show_status_bar", LauncherPrefs.SHOW_STATUS_BAR))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "pref_showStatusBar", LauncherPrefs.SHOW_STATUS_BAR))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "force_widget_resize", LauncherPrefs.FORCE_WIDGET_RESIZE))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "rounded_widgets", LauncherPrefs.WIDGET_ROUNDED_CORNERS))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "widget_unlimited_size", LauncherPrefs.WIDGET_UNLIMITED_SIZE))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "hide_app_drawer_search_bar", LauncherPrefs.HIDE_DRAWER_SEARCH))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "pref_hideAppSearchBar", LauncherPrefs.HIDE_DRAWER_SEARCH))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "enable_fuzzy_search", LauncherPrefs.FUZZY_SEARCH))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "pref_useFuzzySearch", LauncherPrefs.FUZZY_SEARCH))
-            c++;
+        c += hit(BasicMappers.mapBoolean(src, prefs, "show_icon_labels_in_drawer", LauncherPrefs.SHOW_DRAWER_LABELS));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "pref_allAppsIconLabels", LauncherPrefs.SHOW_DRAWER_LABELS));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "show_icon_labels_on_home_screen_folder",
+                LauncherPrefs.SHOW_FOLDER_LABELS));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "pref_show_hotseat", LauncherPrefs.SHOW_DOCK));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "enable_label_dock", LauncherPrefs.DOCK_LABELS));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "pref_wallpaperScrolling", LauncherPrefs.WALLPAPER_SCROLLING));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "pref_infiniteScrolling", LauncherPrefs.INFINITE_SCROLLING));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "show_status_bar", LauncherPrefs.SHOW_STATUS_BAR));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "pref_showStatusBar", LauncherPrefs.SHOW_STATUS_BAR));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "force_widget_resize", LauncherPrefs.FORCE_WIDGET_RESIZE));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "rounded_widgets", LauncherPrefs.WIDGET_ROUNDED_CORNERS));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "widget_unlimited_size", LauncherPrefs.WIDGET_UNLIMITED_SIZE));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "hide_app_drawer_search_bar", LauncherPrefs.HIDE_DRAWER_SEARCH));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "pref_hideAppSearchBar", LauncherPrefs.HIDE_DRAWER_SEARCH));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "enable_fuzzy_search", LauncherPrefs.FUZZY_SEARCH));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "pref_useFuzzySearch", LauncherPrefs.FUZZY_SEARCH));
         return c;
+    }
+
+    private static int hit(boolean mapped) {
+        return mapped ? 1 : 0;
     }
     private static int applyIntPrefs(Map<String, Object> src, LauncherPrefs prefs) {
         int c = 0;

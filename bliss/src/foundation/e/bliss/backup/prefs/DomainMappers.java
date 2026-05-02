@@ -257,6 +257,7 @@ public final class DomainMappers {
         try {
             foundation.e.bliss.preferences.AppNameOverrides.invalidate();
         } catch (Throwable ignored) {
+            // Best-effort cache invalidation; never fatal during import.
         }
         LOG.i("Imported pref_appNameMap (" + raw.length() + " chars)");
         return 1;

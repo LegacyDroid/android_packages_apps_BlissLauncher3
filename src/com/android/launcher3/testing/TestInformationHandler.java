@@ -520,9 +520,9 @@ public class TestInformationHandler implements ResourceBasedOverride {
             return executor.submit(callback).get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         } catch (ExecutionException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 

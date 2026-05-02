@@ -210,8 +210,10 @@ public class LauncherPreviewRenderer extends BaseContext
             deleteSharedPreferences(mPrefName);
             if (mDbDir != null) {
                 emptyDbDir();
-                if (!mDbDir.delete()) {
-                    Log.w(TAG, "Failed to delete preview db dir: " + mDbDir);
+                try {
+                    java.nio.file.Files.delete(mDbDir.toPath());
+                } catch (java.io.IOException e) {
+                    Log.w(TAG, "Failed to delete preview db dir: " + mDbDir, e);
                 }
             }
         }

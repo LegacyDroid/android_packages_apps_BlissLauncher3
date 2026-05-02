@@ -112,7 +112,7 @@ public final class BasicMappers {
         Object val = src.get(srcKey);
         if (!(val instanceof Float) && !(val instanceof Double))
             return 0;
-        double f = val instanceof Float ? ((Float) val).doubleValue() : (Double) val;
+        double f = val instanceof Float fv ? fv.doubleValue() : (Double) val;
         int pct = (int) Math.round(f * 100);
         if (pct < 0)
             pct = 0;

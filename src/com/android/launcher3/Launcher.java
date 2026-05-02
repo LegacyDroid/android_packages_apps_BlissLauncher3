@@ -1718,8 +1718,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         }
 
         // Show the widget resize frame.
-        if (hostView instanceof LauncherAppWidgetHostView) {
-            final LauncherAppWidgetHostView launcherHostView = (LauncherAppWidgetHostView) hostView;
+        if (hostView instanceof LauncherAppWidgetHostView launcherHostView) {
             showWidgetResizeFrame(launcherHostView, launcherInfo, presenterPos);
         }
     }

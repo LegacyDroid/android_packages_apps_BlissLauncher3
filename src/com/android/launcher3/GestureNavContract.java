@@ -72,10 +72,7 @@ public class GestureNavContract {
         Bundle result = new Bundle();
         result.putParcelable(EXTRA_ICON_POSITION, position);
         result.putParcelable(EXTRA_ICON_SURFACE, surfaceControl);
-        if (sMessageReceiver == null) {
-            sMessageReceiver = new StaticMessageReceiver();
-        }
-        result.putParcelable(EXTRA_ON_FINISH_CALLBACK, sMessageReceiver.setCurrentContext(context));
+        result.putParcelable(EXTRA_ON_FINISH_CALLBACK, getOrCreateMessageReceiver().setCurrentContext(context));
 
         Message callback = Message.obtain();
         callback.copyFrom(mCallback);
@@ -115,6 +112,13 @@ public class GestureNavContract {
      * properly.
      */
     private static StaticMessageReceiver sMessageReceiver = null;
+
+    private static synchronized StaticMessageReceiver getOrCreateMessageReceiver() {
+        if (sMessageReceiver == null) {
+            sMessageReceiver = new StaticMessageReceiver();
+        }
+        return sMessageReceiver;
+    }
 
     private static class StaticMessageReceiver implements Handler.Callback {
 

@@ -80,7 +80,7 @@ public class AllAppsSearchUiDelegate {
     }
 
     /** Creates the adapter provider for the main section. */
-    public SearchAdapterProvider<?> createMainAdapterProvider() {
+    public SearchAdapterProvider<? extends ActivityContext> createMainAdapterProvider() {
         return new DefaultSearchAdapterProvider(mActivityContext);
     }
 }

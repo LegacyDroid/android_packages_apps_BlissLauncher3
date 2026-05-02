@@ -57,6 +57,7 @@ public abstract class HexColorPickerController implements PreferenceController {
                 try {
                     initialColor = Color.parseColor(current);
                 } catch (Throwable ignored) {
+                    // Persisted value pre-dates the current colour format; fall back to default.
                 }
             }
             picker.setColor(initialColor);

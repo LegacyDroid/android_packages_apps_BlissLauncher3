@@ -178,16 +178,16 @@ public final class WorkspaceGridFontPopupMappers {
         StringBuilder out = new StringBuilder();
         for (String tokenRaw : raw.split("\\|")) {
             String token = tokenRaw.trim();
-            if (token.isEmpty() || !token.startsWith("+"))
-                continue;
-            String mapped = mapPopupToken(token.substring(1));
-            if (mapped == null)
-                continue;
-            if (out.length() > 0)
-                out.append(',');
-            out.append(mapped);
+            if (!token.isEmpty() && token.startsWith("+")) {
+                String mapped = mapPopupToken(token.substring(1));
+                if (mapped != null) {
+                    if (!out.isEmpty())
+                        out.append(',');
+                    out.append(mapped);
+                }
+            }
         }
-        if (out.length() == 0)
+        if (out.isEmpty())
             return 0;
         prefs.put(LauncherPrefs.HOME_POPUP_ORDER, out.toString());
         LOG.i("Mapped popup_order \"" + raw + "\" -> " + out);

@@ -89,56 +89,17 @@ public final class WorkspaceImporter {
         File tempDb = null;
         SQLiteDatabase sourceDb = null;
         try {
-            tempDb = File.createTempFile("lawnchair_import", ".db", context.getCacheDir());
-            try (FileOutputStream fos = new FileOutputStream(tempDb)) {
-                fos.write(dbBytes);
-            }
-
+            tempDb = stageDbToTemp(context, dbBytes);
             sourceDb = SQLiteDatabase.openDatabase(tempDb.getPath(), null,
                     SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
 
-            // Check if favorites table exists
-            try (Cursor tables = sourceDb
-                    .rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='favorites'", null)) {
-                if (!tables.moveToFirst()) {
-                    LOG.w("No favorites table in Lawnchair DB");
-                    return false;
-                }
+            if (!hasFavoritesTable(sourceDb)) {
+                LOG.w("No favorites table in Lawnchair DB");
+                return false;
             }
 
-            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             List<ContentValues> items = new ArrayList<>();
-            int skippedWidgets = 0;
-            try (Cursor cursor = sourceDb
-                    .rawQuery(
-                            "SELECT " + String.join(", ", FavoritesCursor.PROJECTION) + " FROM " + FavoritesCursor.TABLE
-                                    + " WHERE " + FavoritesCursor.SELECTION + " ORDER BY " + FavoritesCursor.ORDER_BY,
-                            null)) {
-                FavoritesCursor row = new FavoritesCursor(cursor);
-                while (cursor.moveToNext()) {
-                    int itemType = row.itemType();
-                    byte[] iconBlob = row.icon();
-
-                    int newAppWidgetId = -1;
-                    int restoreFlags = 0;
-                    if (itemType == ItemTypes.ITEM_TYPE_APPWIDGET) {
-                        WidgetRebinder.Result rb = WidgetRebinder.rebind(context, appWidgetManager, row.widgetProv());
-                        if (rb.skipped) {
-                            if (rb.pendingCounted)
-                                skippedWidgets++;
-                            continue;
-                        }
-                        newAppWidgetId = rb.newAppWidgetId;
-                        restoreFlags = rb.restoreFlags;
-                        if (rb.pendingCounted)
-                            skippedWidgets++;
-                    }
-
-                    restoreFlags = IconBlobWriter.decorate(itemType, iconBlob, restoreFlags);
-
-                    items.add(ContentValuesBuilder.fromLawnchair(row, newAppWidgetId, restoreFlags));
-                }
-            }
+            int skippedWidgets = readFavorites(context, sourceDb, items);
             if (skippedWidgets > 0) {
                 LOG.i(skippedWidgets + " widgets were not restored "
                         + "(see preceding log lines for per-widget reason)");
@@ -150,25 +111,86 @@ public final class WorkspaceImporter {
             }
 
             insertIntoBlissDb(context, items);
-
             PostImportLayoutFix.apply(context, items);
-
             LOG.i("Workspace imported: " + items.size() + " items");
             return true;
-
         } catch (Exception e) {
             LOG.w("Failed to import workspace from Lawnchair DB", e);
             return false;
         } finally {
-            if (sourceDb != null) {
-                try {
-                    sourceDb.close();
-                } catch (Exception ignored) {
-                }
+            closeQuietly(sourceDb);
+            deleteTemp(tempDb);
+        }
+    }
+
+    private static File stageDbToTemp(Context context, byte[] dbBytes) throws java.io.IOException {
+        File tempDb = File.createTempFile("lawnchair_import", ".db", context.getCacheDir());
+        try (FileOutputStream fos = new FileOutputStream(tempDb)) {
+            fos.write(dbBytes);
+        }
+        return tempDb;
+    }
+
+    private static boolean hasFavoritesTable(SQLiteDatabase sourceDb) {
+        try (Cursor tables = sourceDb.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='favorites'",
+                null)) {
+            return tables.moveToFirst();
+        }
+    }
+
+    private static int readFavorites(Context context, SQLiteDatabase sourceDb, List<ContentValues> items) {
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        int skippedWidgets = 0;
+        String query = "SELECT " + String.join(", ", FavoritesCursor.PROJECTION) + " FROM " + FavoritesCursor.TABLE
+                + " WHERE " + FavoritesCursor.SELECTION + " ORDER BY " + FavoritesCursor.ORDER_BY;
+        try (Cursor cursor = sourceDb.rawQuery(query, null)) {
+            FavoritesCursor row = new FavoritesCursor(cursor);
+            while (cursor.moveToNext()) {
+                skippedWidgets += processRow(context, appWidgetManager, row, items);
             }
-            if (tempDb != null) {
-                tempDb.delete();
+        }
+        return skippedWidgets;
+    }
+
+    private static int processRow(Context context, AppWidgetManager appWidgetManager, FavoritesCursor row,
+            List<ContentValues> items) {
+        int itemType = row.itemType();
+        byte[] iconBlob = row.icon();
+        int newAppWidgetId = -1;
+        int restoreFlags = 0;
+        int skipped = 0;
+        if (itemType == ItemTypes.ITEM_TYPE_APPWIDGET) {
+            WidgetRebinder.Result rb = WidgetRebinder.rebind(context, appWidgetManager, row.widgetProv());
+            if (rb.skipped) {
+                return rb.pendingCounted ? 1 : 0;
             }
+            newAppWidgetId = rb.newAppWidgetId;
+            restoreFlags = rb.restoreFlags;
+            if (rb.pendingCounted)
+                skipped = 1;
+        }
+        restoreFlags = IconBlobWriter.decorate(itemType, iconBlob, restoreFlags);
+        items.add(ContentValuesBuilder.fromLawnchair(row, newAppWidgetId, restoreFlags));
+        return skipped;
+    }
+
+    private static void closeQuietly(SQLiteDatabase db) {
+        if (db != null) {
+            try {
+                db.close();
+            } catch (Exception ignored) {
+                // Best-effort close on import-failure path.
+            }
+        }
+    }
+
+    private static void deleteTemp(File tempDb) {
+        if (tempDb == null)
+            return;
+        try {
+            java.nio.file.Files.deleteIfExists(tempDb.toPath());
+        } catch (java.io.IOException e) {
+            LOG.w("Failed to delete temp DB " + tempDb.getPath() + ": " + e.getMessage());
         }
     }
 

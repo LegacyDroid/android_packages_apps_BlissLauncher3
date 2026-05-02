@@ -40,7 +40,7 @@ package foundation.e.bliss.policy
  * Decides whether installed apps that are absent from the workspace should be auto-filled into
  * empty cells (the default Bliss behaviour) or left alone so the user's intentional gaps survive.
  */
-interface IdleAppPolicy {
+fun interface IdleAppPolicy {
     /**
      * @return true when [foundation.e.bliss.multimode.VerifyIdleAppTask] (or any future caller)
      *   should auto-fill empty cells with installed apps; false to leave gaps alone.

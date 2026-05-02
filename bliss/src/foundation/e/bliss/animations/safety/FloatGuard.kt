@@ -76,7 +76,7 @@ object FloatGuard {
 
     private fun fail(name: String, idx: Int, value: Float) {
         val msg = "FloatGuard: non-finite at $name [idx=$idx, value=$value]"
-        if (debugMode) throw IllegalStateException(msg)
+        check(!debugMode) { msg }
         Log.w(TAG, msg)
     }
 }

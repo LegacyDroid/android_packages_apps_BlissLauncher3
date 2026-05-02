@@ -52,7 +52,7 @@ public final class BlissBackupZip {
 
     public static final String PREFS_ENTRY = "prefs.json";
     public static final String LAYOUT_ENTRY = "layout.xml";
-    private static final long MAX_ZIP_ENTRY_SIZE = 1024L * 1024; // 1 MB
+    private static final long MAX_ZIP_ENTRY_SIZE = 1024L * 1024L; // 1 MB
 
     private BlissBackupZip() {
     }
@@ -86,8 +86,7 @@ public final class BlissBackupZip {
     public static Bundle read(InputStream in) throws IOException {
         String prefsJson = null;
         String layoutXml = null;
-        ZipInputStream zip = new ZipInputStream(in);
-        try {
+        try (ZipInputStream zip = new ZipInputStream(in)) {
             ZipEntry entry;
             while ((entry = zip.getNextEntry()) != null) {
                 String name = entry.getName();
@@ -103,8 +102,6 @@ public final class BlissBackupZip {
                 }
                 zip.closeEntry();
             }
-        } finally {
-            zip.close();
         }
         return new Bundle(prefsJson, layoutXml);
     }
