@@ -264,7 +264,11 @@ public class QuickstepModelDelegate extends ModelDelegate {
         registerSnapshotLoggingCallback();
     }
 
-    protected void additionalSnapshotEvents(InstanceId snapshotInstanceId){}
+    protected void additionalSnapshotEvents(InstanceId snapshotInstanceId) {
+        /* no-op: subclasses may override to log additional snapshot events; the base
+           QuickstepModelDelegate has no extra events to emit beyond the per-item snapshot
+           writes performed by snapshotIfNeeded(). */
+    }
 
     /**
      * Registers a callback to log launcher workspace layout using Statsd pulled atom.
@@ -614,6 +618,10 @@ public class QuickstepModelDelegate extends ModelDelegate {
                     mReadCount++;
                     return wii;
                 }
+                default:
+                    // Unhandled item types (folders, widgets, etc.) are intentionally ignored
+                    // here; this factory only materializes apps and pinned deep shortcuts.
+                    break;
             }
             return null;
         }

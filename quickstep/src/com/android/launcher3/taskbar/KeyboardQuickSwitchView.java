@@ -266,77 +266,18 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
         Resources resources = context.getResources();
         Resources.Theme theme = context.getTheme();
 
-        View previousTaskView = null;
         LayoutInflater layoutInflater = LayoutInflater.from(context);
         int tasksToDisplay = groupTasks.size();
-        for (int i = 0; i < tasksToDisplay; i++) {
-            GroupTask groupTask = groupTasks.get(i);
-            KeyboardQuickSwitchTaskView currentTaskView = createAndAddTaskView(
-                    i,
-                    /* isFinalView= */ i == tasksToDisplay - 1
-                            && numHiddenTasks == 0 && !useDesktopTaskView,
-                    /* useSmallStartSpacing= */ false,
-                    mViewCallbacks.isAspectRatioSquare()
-                            ? R.layout.keyboard_quick_switch_taskview_square
-                            : R.layout.keyboard_quick_switch_taskview,
-                    layoutInflater,
-                    previousTaskView);
-
-            Task task1;
-            Task task2;
-            if (groupTask instanceof SplitTask splitTask) {
-                task1 = splitTask.getTopLeftTask();
-                task2 = splitTask.getBottomRightTask();
-            } else if (groupTask instanceof SingleTask singleTask) {
-                task1 = singleTask.getTask();
-                task2 = null;
-            } else {
-                continue;
-            }
-
-            currentTaskView.setPositionInformation(i, tasksToDisplay);
-            currentTaskView.setThumbnailsForSplitTasks(
-                    task1,
-                    task2,
-                    updateTasks ? mViewCallbacks::updateThumbnailInBackground : null,
-                    updateTasks ? mViewCallbacks::updateIconInBackground : null,
-                    groupTask instanceof SplitTask splitTask ? splitTask.getSplitBounds() : null);
-
-            previousTaskView = currentTaskView;
-        }
+        View previousTaskView = bindGroupTaskViews(
+                groupTasks, numHiddenTasks, updateTasks, useDesktopTaskView,
+                tasksToDisplay, layoutInflater);
         if (numHiddenTasks > 0) {
-            HashMap<String, Integer> args = new HashMap<>();
-            args.put("count", numHiddenTasks);
-
-            mOverviewTaskIndex = getTaskCount();
-            View overviewButton = createAndAddTaskView(
-                    mOverviewTaskIndex,
-                    /* isFinalView= */ !useDesktopTaskView,
-                    /* useSmallStartSpacing= */ false,
-                    R.layout.keyboard_quick_switch_overview_taskview,
-                    layoutInflater,
+            previousTaskView = addOverviewButton(
+                    resources, numHiddenTasks, useDesktopTaskView, layoutInflater,
                     previousTaskView);
-
-            overviewButton.<TextView>findViewById(R.id.large_text).setText(
-                    String.format(Locale.getDefault(), "%d", numHiddenTasks));
-            overviewButton.<TextView>findViewById(R.id.small_text).setText(new MessageFormat(
-                    resources.getString(R.string.quick_switch_overflow),
-                    Locale.getDefault()).format(args));
-
-            previousTaskView = overviewButton;
         }
         if (useDesktopTaskView) {
-            mDesktopTaskIndex = getTaskCount();
-            View desktopButton = createAndAddTaskView(
-                    mDesktopTaskIndex,
-                    /* isFinalView= */ true,
-                    /* useSmallStartSpacing= */ numHiddenTasks > 0,
-                    R.layout.keyboard_quick_switch_desktop_taskview,
-                    layoutInflater,
-                    previousTaskView);
-
-            desktopButton.<TextView>findViewById(R.id.small_text).setText(
-                    resources.getString(R.string.quick_switch_desktop));
+            addDesktopButton(resources, numHiddenTasks, layoutInflater, previousTaskView);
         }
         mDisplayingRecentTasks = !groupTasks.isEmpty() || useDesktopTaskView;
 
@@ -350,6 +291,99 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                         getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     }
                 });
+    }
+
+    @Nullable
+    private View bindGroupTaskViews(
+            @NonNull List<GroupTask> groupTasks,
+            int numHiddenTasks,
+            boolean updateTasks,
+            boolean useDesktopTaskView,
+            int tasksToDisplay,
+            LayoutInflater layoutInflater) {
+        View previousTaskView = null;
+        for (int i = 0; i < tasksToDisplay; i++) {
+            GroupTask groupTask = groupTasks.get(i);
+            boolean isFinalView = i == tasksToDisplay - 1
+                    && numHiddenTasks == 0 && !useDesktopTaskView;
+            int taskLayoutRes = mViewCallbacks.isAspectRatioSquare()
+                    ? R.layout.keyboard_quick_switch_taskview_square
+                    : R.layout.keyboard_quick_switch_taskview;
+            KeyboardQuickSwitchTaskView currentTaskView = createAndAddTaskView(
+                    i,
+                    isFinalView,
+                    /* useSmallStartSpacing= */ false,
+                    taskLayoutRes,
+                    layoutInflater,
+                    previousTaskView);
+
+            if (!bindGroupTask(currentTaskView, groupTask, i, tasksToDisplay, updateTasks)) {
+                continue;
+            }
+            previousTaskView = currentTaskView;
+        }
+        return previousTaskView;
+    }
+
+    private boolean bindGroupTask(KeyboardQuickSwitchTaskView taskView, GroupTask groupTask,
+            int index, int tasksToDisplay, boolean updateTasks) {
+        Task task1;
+        Task task2;
+        if (groupTask instanceof SplitTask splitTask) {
+            task1 = splitTask.getTopLeftTask();
+            task2 = splitTask.getBottomRightTask();
+        } else if (groupTask instanceof SingleTask singleTask) {
+            task1 = singleTask.getTask();
+            task2 = null;
+        } else {
+            return false;
+        }
+
+        taskView.setPositionInformation(index, tasksToDisplay);
+        taskView.setThumbnailsForSplitTasks(
+                task1,
+                task2,
+                updateTasks ? mViewCallbacks::updateThumbnailInBackground : null,
+                updateTasks ? mViewCallbacks::updateIconInBackground : null,
+                groupTask instanceof SplitTask splitTask ? splitTask.getSplitBounds() : null);
+        return true;
+    }
+
+    private View addOverviewButton(Resources resources, int numHiddenTasks,
+            boolean useDesktopTaskView, LayoutInflater layoutInflater, View previousTaskView) {
+        HashMap<String, Integer> args = new HashMap<>();
+        args.put("count", numHiddenTasks);
+
+        mOverviewTaskIndex = getTaskCount();
+        View overviewButton = createAndAddTaskView(
+                mOverviewTaskIndex,
+                /* isFinalView= */ !useDesktopTaskView,
+                /* useSmallStartSpacing= */ false,
+                R.layout.keyboard_quick_switch_overview_taskview,
+                layoutInflater,
+                previousTaskView);
+
+        overviewButton.<TextView>findViewById(R.id.large_text).setText(
+                String.format(Locale.getDefault(), "%d", numHiddenTasks));
+        overviewButton.<TextView>findViewById(R.id.small_text).setText(new MessageFormat(
+                resources.getString(R.string.quick_switch_overflow),
+                Locale.getDefault()).format(args));
+        return overviewButton;
+    }
+
+    private void addDesktopButton(Resources resources, int numHiddenTasks,
+            LayoutInflater layoutInflater, View previousTaskView) {
+        mDesktopTaskIndex = getTaskCount();
+        View desktopButton = createAndAddTaskView(
+                mDesktopTaskIndex,
+                /* isFinalView= */ true,
+                /* useSmallStartSpacing= */ numHiddenTasks > 0,
+                R.layout.keyboard_quick_switch_desktop_taskview,
+                layoutInflater,
+                previousTaskView);
+
+        desktopButton.<TextView>findViewById(R.id.small_text).setText(
+                resources.getString(R.string.quick_switch_desktop));
     }
 
 

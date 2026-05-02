@@ -131,7 +131,7 @@ constructor(
                     TAG,
                     ("setVisibleDesktopTasksCount: visibleTasksCount=" +
                         visibleTasksCount +
-                        " currentValue=" +
+                        CURRENT_VALUE_LOG +
                         field),
                 )
             }
@@ -321,45 +321,59 @@ constructor(
                 TAG,
                 ("setOverviewStateEnabled: enabled=" +
                     overviewStateEnabled +
-                    " currentValue=" +
+                    CURRENT_VALUE_LOG +
                     inOverviewState),
             )
         }
-        if (overviewStateEnabled != inOverviewState) {
-            val wereDesktopTasksVisibleBefore = areDesktopTasksVisibleAndNotInOverview()
-            inOverviewState = overviewStateEnabled
-            val areDesktopTasksVisibleNow = areDesktopTasksVisibleAndNotInOverview()
+        if (overviewStateEnabled == inOverviewState) {
+            return
+        }
+        val wereDesktopTasksVisibleBefore = areDesktopTasksVisibleAndNotInOverview()
+        inOverviewState = overviewStateEnabled
+        val areDesktopTasksVisibleNow = areDesktopTasksVisibleAndNotInOverview()
 
-            if (!enableMultipleDesktops(context)) {
-                if (wereDesktopTasksVisibleBefore != areDesktopTasksVisibleNow) {
-                    notifyIsInDesktopModeChanged(DEFAULT_DISPLAY, areDesktopTasksVisibleNow)
-                }
-            } else {
-                // When overview state changes, it changes together on all displays.
-                displaysDesksConfigsMap.forEach { displayId, deskConfig ->
-                    // Overview affects the state of desks only if desktop mode is active on this
-                    // display.
-                    if (isInDesktopMode(displayId)) {
-                        notifyIsInDesktopModeChanged(
-                            displayId,
-                            isInDesktopModeAndNotInOverview(displayId),
-                        )
-                    }
-                }
-            }
+        notifyDesktopModeChangeForOverviewTransition(
+            wereDesktopTasksVisibleBefore,
+            areDesktopTasksVisibleNow,
+        )
 
-            if (DesktopFlagsCompat.enableDesktopWindowingWallpaperActivity()) {
-                return
-            }
+        if (DesktopFlagsCompat.enableDesktopWindowingWallpaperActivity()) {
+            return
+        }
 
-            // TODO: b/333533253 - Clean up after flag rollout
-            if (inOverviewState) {
-                markLauncherResumed()
-            } else if (areDesktopTasksVisibleNow && !gestureInProgress) {
-                // Switching out of overview state and gesture finished.
-                // If desktop tasks are still visible, hide launcher again.
-                markLauncherPaused()
+        // TODO: b/333533253 - Clean up after flag rollout
+        updateLauncherResumedStateForOverview(areDesktopTasksVisibleNow)
+    }
+
+    private fun notifyDesktopModeChangeForOverviewTransition(
+        wereDesktopTasksVisibleBefore: Boolean,
+        areDesktopTasksVisibleNow: Boolean,
+    ) {
+        if (!enableMultipleDesktops(context)) {
+            if (wereDesktopTasksVisibleBefore != areDesktopTasksVisibleNow) {
+                notifyIsInDesktopModeChanged(DEFAULT_DISPLAY, areDesktopTasksVisibleNow)
             }
+            return
+        }
+        // When overview state changes, it changes together on all displays.
+        displaysDesksConfigsMap.forEach { displayId, _ ->
+            // Overview affects the state of desks only if desktop mode is active on this display.
+            if (isInDesktopMode(displayId)) {
+                notifyIsInDesktopModeChanged(
+                    displayId,
+                    isInDesktopModeAndNotInOverview(displayId),
+                )
+            }
+        }
+    }
+
+    private fun updateLauncherResumedStateForOverview(areDesktopTasksVisibleNow: Boolean) {
+        if (inOverviewState) {
+            markLauncherResumed()
+        } else if (areDesktopTasksVisibleNow && !gestureInProgress) {
+            // Switching out of overview state and gesture finished.
+            // If desktop tasks are still visible, hide launcher again.
+            markLauncherPaused()
         }
     }
 
@@ -462,7 +476,7 @@ constructor(
                 TAG,
                 ("setBackgroundStateEnabled: enabled=" +
                     backgroundStateEnabled +
-                    " currentValue=" +
+                    CURRENT_VALUE_LOG +
                     this.backgroundStateEnabled),
             )
         }
@@ -771,21 +785,30 @@ constructor(
          *
          * @param doesAnyTaskRequireTaskbarRounding whether task requires taskbar corner roundness.
          */
-        fun onTaskbarCornerRoundingUpdate(doesAnyTaskRequireTaskbarRounding: Boolean) {}
+        fun onTaskbarCornerRoundingUpdate(doesAnyTaskRequireTaskbarRounding: Boolean) {
+            /* no-op: default implementation; listeners that care about taskbar corner
+               rounding overrides override this. */
+        }
 
         /**
          * Callback for when user is exiting desktop mode.
          *
          * @param duration for exit transition
          */
-        fun onExitDesktopMode(duration: Int) {}
+        fun onExitDesktopMode(duration: Int) {
+            /* no-op: default implementation; listeners that animate on desktop-mode exit
+               override this. */
+        }
 
         /**
          * Callback for when user is entering desktop mode.
          *
          * @param duration for enter transition
          */
-        fun onEnterDesktopMode(duration: Int) {}
+        fun onEnterDesktopMode(duration: Int) {
+            /* no-op: default implementation; listeners that animate on desktop-mode enter
+               override this. */
+        }
     }
 
     companion object {
@@ -794,6 +817,7 @@ constructor(
 
         private const val TAG = "DesktopVisController"
         private const val DEBUG = false
+        private const val CURRENT_VALUE_LOG = " currentValue="
 
         const val INACTIVE_DESK_ID = -1
     }

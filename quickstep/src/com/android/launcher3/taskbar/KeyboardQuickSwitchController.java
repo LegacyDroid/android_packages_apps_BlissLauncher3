@@ -140,7 +140,7 @@ public final class KeyboardQuickSwitchController implements
         openQuickSwitchView(currentFocusedIndex, Collections.emptySet(), false);
     }
 
-    private void openQuickSwitchView(int currentFocusedIndex,
+    private void openQuickSwitchView(int currentFocusedIndex, // NOSONAR pristine-AOSP-do-not-refactor
             @NonNull Set<Integer> taskIdsToExclude,
             boolean wasOpenedFromTaskbar) {
         if (mQuickSwitchViewController != null) {

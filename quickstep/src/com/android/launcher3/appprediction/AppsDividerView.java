@@ -126,62 +126,73 @@ public class AppsDividerView extends View implements FloatingHeaderRow {
     }
 
     private void updateDividerType() {
-        final DividerType dividerType;
+        final DividerType dividerType = computeDividerType();
+        if (mDividerType == dividerType) {
+            return;
+        }
+        mDividerType = dividerType;
+        setContentDescription(null);
+        int[] padding = resolvePaddingForDividerType(dividerType);
+        setPadding(getPaddingLeft(), padding[0], getPaddingRight(), padding[1]);
+        updateViewVisibility();
+        invalidate();
+        requestLayout();
+        if (mParent != null) {
+            mParent.onHeightUpdated();
+        }
+    }
+
+    private DividerType computeDividerType() {
         if (!mTabsHidden) {
-            dividerType = DividerType.NONE;
-        } else {
-            // Check how many sections above me.
-            int sectionCount = 0;
-            for (FloatingHeaderRow row : mRows) {
-                if (row == this) {
-                    break;
-                } else if (row.shouldDraw()) {
-                    sectionCount++;
-                }
-            }
+            return DividerType.NONE;
+        }
+        int sectionCount = countDrawnSectionsAboveSelf();
+        if (mShowAllAppsLabel && sectionCount > 0) {
+            return DividerType.ALL_APPS_LABEL;
+        }
+        if (sectionCount == 1) {
+            return DividerType.LINE;
+        }
+        return DividerType.NONE;
+    }
 
-            if (mShowAllAppsLabel && sectionCount > 0) {
-                dividerType = DividerType.ALL_APPS_LABEL;
-            } else if (sectionCount == 1) {
-                dividerType = DividerType.LINE;
-            } else {
-                dividerType = DividerType.NONE;
+    private int countDrawnSectionsAboveSelf() {
+        int sectionCount = 0;
+        for (FloatingHeaderRow row : mRows) {
+            if (row == this) {
+                break;
+            }
+            if (row.shouldDraw()) {
+                sectionCount++;
             }
         }
+        return sectionCount;
+    }
 
-        if (mDividerType != dividerType) {
-            mDividerType = dividerType;
-            int topPadding;
-            int bottomPadding;
-            setContentDescription(null);
-            switch (dividerType) {
-                case LINE:
-                    topPadding = 0;
-                    bottomPadding = getResources()
-                            .getDimensionPixelSize(R.dimen.all_apps_prediction_row_divider_height);
-                    mPaint.setColor(mStrokeColor);
-                    break;
-                case ALL_APPS_LABEL:
-                    topPadding = getAllAppsLabelLayout().getHeight() + getResources()
-                            .getDimensionPixelSize(R.dimen.all_apps_label_top_padding);
-                    bottomPadding = getResources()
-                            .getDimensionPixelSize(R.dimen.all_apps_label_bottom_padding);
-                    mPaint.setColor(mAllAppsLabelTextColor);
-                    setContentDescription(mAllAppsLabelLayout.getText());
-                    break;
-                case NONE:
-                default:
-                    topPadding = bottomPadding = 0;
-                    break;
-            }
-            setPadding(getPaddingLeft(), topPadding, getPaddingRight(), bottomPadding);
-            updateViewVisibility();
-            invalidate();
-            requestLayout();
-            if (mParent != null) {
-                mParent.onHeightUpdated();
-            }
+    private int[] resolvePaddingForDividerType(DividerType dividerType) {
+        int topPadding;
+        int bottomPadding;
+        switch (dividerType) {
+            case LINE:
+                topPadding = 0;
+                bottomPadding = getResources()
+                        .getDimensionPixelSize(R.dimen.all_apps_prediction_row_divider_height);
+                mPaint.setColor(mStrokeColor);
+                break;
+            case ALL_APPS_LABEL:
+                topPadding = getAllAppsLabelLayout().getHeight() + getResources()
+                        .getDimensionPixelSize(R.dimen.all_apps_label_top_padding);
+                bottomPadding = getResources()
+                        .getDimensionPixelSize(R.dimen.all_apps_label_bottom_padding);
+                mPaint.setColor(mAllAppsLabelTextColor);
+                setContentDescription(mAllAppsLabelLayout.getText());
+                break;
+            case NONE:
+            default:
+                topPadding = bottomPadding = 0;
+                break;
         }
+        return new int[]{topPadding, bottomPadding};
     }
 
     private void updateViewVisibility() {

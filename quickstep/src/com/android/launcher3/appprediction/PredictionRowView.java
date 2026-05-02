@@ -218,33 +218,53 @@ public class PredictionRowView<T extends Context & ActivityContext>
             return;
         }
         if (getChildCount() != mNumPredictedAppsPerRow) {
-            while (getChildCount() > mNumPredictedAppsPerRow) {
-                removeViewAt(0);
-            }
-            LayoutInflater inflater = mActivityContext.getAppsView().getLayoutInflater();
-            while (getChildCount() < mNumPredictedAppsPerRow) {
-                BubbleTextView icon = (BubbleTextView) inflater.inflate(
-                        R.layout.all_apps_prediction_row_icon, this, false);
-                icon.setOnClickListener(mActivityContext.getItemOnClickListener());
-                icon.setOnLongClickListener(mActivityContext.getAllAppsItemLongClickListener());
-                icon.setLongPressTimeoutFactor(1f);
-                icon.setOnFocusChangeListener(mFocusHelper);
-
-                LayoutParams lp = (LayoutParams) icon.getLayoutParams();
-                if (Flags.enableFocusOutline()) {
-                    lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
-                } else {
-                    // Ensure the all apps icon height matches the workspace icons in portrait mode.
-                    lp.height = mActivityContext.getDeviceProfile().allAppsCellHeightPx;
-                }
-                lp.width = 0;
-                lp.weight = 1;
-                addView(icon);
-            }
+            resizeIconChildren();
         }
 
         int predictionCount = mPredictedApps.size();
+        bindIconsForPredictions(predictionCount);
 
+        boolean predictionsEnabled = predictionCount > 0;
+        if (predictionsEnabled != mPredictionsEnabled) {
+            mPredictionsEnabled = predictionsEnabled;
+            updateVisibility();
+        }
+        mParent.onHeightUpdated();
+    }
+
+    private void resizeIconChildren() {
+        while (getChildCount() > mNumPredictedAppsPerRow) {
+            removeViewAt(0);
+        }
+        if (getChildCount() < mNumPredictedAppsPerRow) {
+            LayoutInflater inflater = mActivityContext.getAppsView().getLayoutInflater();
+            while (getChildCount() < mNumPredictedAppsPerRow) {
+                addView(createPredictionIcon(inflater));
+            }
+        }
+    }
+
+    private BubbleTextView createPredictionIcon(LayoutInflater inflater) {
+        BubbleTextView icon = (BubbleTextView) inflater.inflate(
+                R.layout.all_apps_prediction_row_icon, this, false);
+        icon.setOnClickListener(mActivityContext.getItemOnClickListener());
+        icon.setOnLongClickListener(mActivityContext.getAllAppsItemLongClickListener());
+        icon.setLongPressTimeoutFactor(1f);
+        icon.setOnFocusChangeListener(mFocusHelper);
+
+        LayoutParams lp = (LayoutParams) icon.getLayoutParams();
+        if (Flags.enableFocusOutline()) {
+            lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
+        } else {
+            // Ensure the all apps icon height matches the workspace icons in portrait mode.
+            lp.height = mActivityContext.getDeviceProfile().allAppsCellHeightPx;
+        }
+        lp.width = 0;
+        lp.weight = 1;
+        return icon;
+    }
+
+    private void bindIconsForPredictions(int predictionCount) {
         for (int i = 0; i < getChildCount(); i++) {
             BubbleTextView icon = (BubbleTextView) getChildAt(i);
             icon.reset();
@@ -259,13 +279,6 @@ public class PredictionRowView<T extends Context & ActivityContext>
                 icon.setVisibility(predictionCount == 0 ? GONE : INVISIBLE);
             }
         }
-
-        boolean predictionsEnabled = predictionCount > 0;
-        if (predictionsEnabled != mPredictionsEnabled) {
-            mPredictionsEnabled = predictionsEnabled;
-            updateVisibility();
-        }
-        mParent.onHeightUpdated();
     }
 
     @Override
