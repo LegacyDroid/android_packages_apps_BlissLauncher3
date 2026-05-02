@@ -143,9 +143,13 @@ constructor(context: Context, attrs: AttributeSet? = null) : LinearLayout(contex
                     notifyChange()
                 }
 
-                override fun onStartTrackingTouch(seekBar: SeekBar) {}
+                override fun onStartTrackingTouch(seekBar: SeekBar) {
+                    // no-op: only onProgressChanged is interesting for the hue slider
+                }
 
-                override fun onStopTrackingTouch(seekBar: SeekBar) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar) {
+                    // no-op: only onProgressChanged is interesting for the hue slider
+                }
             }
         )
     }
@@ -162,9 +166,13 @@ constructor(context: Context, attrs: AttributeSet? = null) : LinearLayout(contex
                     notifyChange()
                 }
 
-                override fun onStartTrackingTouch(seekBar: SeekBar) {}
+                override fun onStartTrackingTouch(seekBar: SeekBar) {
+                    // no-op: only onProgressChanged is interesting for the alpha slider
+                }
 
-                override fun onStopTrackingTouch(seekBar: SeekBar) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar) {
+                    // no-op: only onProgressChanged is interesting for the alpha slider
+                }
             }
         )
     }

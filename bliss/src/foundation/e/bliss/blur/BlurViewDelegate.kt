@@ -47,13 +47,17 @@ class BlurViewDelegate(
 
     private val blurDrawableCallback by lazy {
         object : Drawable.Callback {
-            override fun unscheduleDrawable(who: Drawable, what: Runnable) {}
+            override fun unscheduleDrawable(who: Drawable, what: Runnable) {
+                // no-op: blur drawable has no animation timing to cancel
+            }
 
             override fun invalidateDrawable(who: Drawable) {
                 view.post(view::invalidate)
             }
 
-            override fun scheduleDrawable(who: Drawable, what: Runnable, `when`: Long) {}
+            override fun scheduleDrawable(who: Drawable, what: Runnable, `when`: Long) {
+                // no-op: blur drawable has no animation timing to schedule
+            }
         }
     }
 

@@ -81,40 +81,9 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
             }
             val moveX = ObjectAnimator.ofFloat(this, TRANSLATION_X, 0f, endX - width / 2)
             val moveY = ObjectAnimator.ofFloat(this, TRANSLATION_Y, 0f, endY - height / 2)
-            val scaleAnimator =
-                ValueAnimator.ofFloat(1f, 0.85f, 0.6f, 0.3f, 0.0f).apply {
-                    this.duration = duration
-                    addUpdateListener { animator ->
-                        val progress = animator.animatedFraction
-                        val scaleFactor = animator.animatedValue as Float
-                        scaleX = scaleFactor
-                        scaleY = scaleFactor
-                        val changeScale = progress < 0.8f
-                        val minSize = width.coerceAtMost(height) * scaleFactor
-                        cornerRadius = (width / 2f) * progress
-                        outlineProvider =
-                            object : ViewOutlineProvider() {
-                                override fun getOutline(view: View, outline: Outline) {
-                                    outline.setRoundRect(
-                                        0,
-                                        0,
-                                        if (!changeScale) minSize.toInt() * 6 else view.width,
-                                        if (!changeScale) minSize.toInt() * 6 else view.height,
-                                        cornerRadius,
-                                    )
-                                }
-                            }
-                        invalidate()
-                    }
-                }
+            val scaleAnimator = buildSuckScaleAnimator(duration)
             val fadeAnimator = ObjectAnimator.ofFloat(this, ALPHA, 1f, 0f)
-            val fadeTrigger =
-                ValueAnimator.ofFloat(0f, 1f).apply {
-                    this.duration = duration
-                    addUpdateListener {
-                        if (animatedFraction > 0.5f && !fadeAnimator.isRunning) fadeAnimator.start()
-                    }
-                }
+            val fadeTrigger = buildSuckFadeTrigger(duration, fadeAnimator)
             AnimatorSet().apply {
                 playTogether(scaleAnimator, moveX, moveY, fadeTrigger)
                 play(fadeAnimator).after(fadeTrigger)
@@ -125,6 +94,43 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
             }
         }
     }
+
+    private fun buildSuckScaleAnimator(duration: Long): ValueAnimator =
+        ValueAnimator.ofFloat(1f, 0.85f, 0.6f, 0.3f, 0.0f).apply {
+            this.duration = duration
+            addUpdateListener { animator ->
+                val progress = animator.animatedFraction
+                val scaleFactor = animator.animatedValue as Float
+                scaleX = scaleFactor
+                scaleY = scaleFactor
+                val changeScale = progress < 0.8f
+                val minSize = width.coerceAtMost(height) * scaleFactor
+                cornerRadius = (width / 2f) * progress
+                outlineProvider = suckOutlineProvider(changeScale, minSize)
+                invalidate()
+            }
+        }
+
+    private fun suckOutlineProvider(changeScale: Boolean, minSize: Float): ViewOutlineProvider =
+        object : ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: Outline) {
+                outline.setRoundRect(
+                    0,
+                    0,
+                    if (!changeScale) minSize.toInt() * 6 else view.width,
+                    if (!changeScale) minSize.toInt() * 6 else view.height,
+                    cornerRadius,
+                )
+            }
+        }
+
+    private fun buildSuckFadeTrigger(duration: Long, fadeAnimator: ObjectAnimator): ValueAnimator =
+        ValueAnimator.ofFloat(0f, 1f).apply {
+            this.duration = duration
+            addUpdateListener {
+                if (animatedFraction > 0.5f && !fadeAnimator.isRunning) fadeAnimator.start()
+            }
+        }
 
     fun fadeIn(durationIn: Long = 200, durationOut: Long = 500, onEnd: (() -> Unit)? = null) {
         post {

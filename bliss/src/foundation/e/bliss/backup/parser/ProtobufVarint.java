@@ -95,6 +95,11 @@ final class ProtobufVarint {
             case 5 : // fixed32
                 buf.position(buf.position() + 4);
                 break;
+            default :
+                // Wire types 3 (start-group) and 4 (end-group) are deprecated and
+                // never emitted by Jetpack DataStore; anything else is a malformed
+                // protobuf message that we cannot safely skip.
+                throw new IllegalStateException("unexpected protobuf wire type: " + wireType);
         }
     }
 }

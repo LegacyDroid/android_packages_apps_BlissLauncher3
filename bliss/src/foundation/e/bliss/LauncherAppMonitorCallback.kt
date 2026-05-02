@@ -30,91 +30,165 @@ import java.io.PrintWriter
 @JvmDefaultWithCompatibility
 interface LauncherAppMonitorCallback {
     // Launcher activity Callbacks
-    fun onLauncherPreCreate(launcher: Launcher?) {}
+    fun onLauncherPreCreate(launcher: Launcher?) {
+        // no-op default; concrete monitors override the launcher-lifecycle events they observe
+    }
 
-    fun onLauncherCreated() {}
+    fun onLauncherCreated() {
+        // no-op default; concrete monitors override the launcher-lifecycle events they observe
+    }
 
-    fun onLauncherPreResume() {}
+    fun onLauncherPreResume() {
+        // no-op default; concrete monitors override the launcher-lifecycle events they observe
+    }
 
-    fun onLauncherResumed() {}
+    fun onLauncherResumed() {
+        // no-op default; concrete monitors override the launcher-lifecycle events they observe
+    }
 
-    fun onLauncherStart() {}
+    fun onLauncherStart() {
+        // no-op default; concrete monitors override the launcher-lifecycle events they observe
+    }
 
-    fun onLauncherStop() {}
+    fun onLauncherStop() {
+        // no-op default; concrete monitors override the launcher-lifecycle events they observe
+    }
 
-    fun onLauncherPrePause() {}
+    fun onLauncherPrePause() {
+        // no-op default; concrete monitors override the launcher-lifecycle events they observe
+    }
 
-    fun onLauncherPaused() {}
+    fun onLauncherPaused() {
+        // no-op default; concrete monitors override the launcher-lifecycle events they observe
+    }
 
-    fun onLauncherDestroy(launcher: Launcher) {}
+    fun onLauncherDestroy(launcher: Launcher) {
+        // no-op default; concrete monitors override the launcher-lifecycle events they observe
+    }
 
-    fun onLauncherStyleChanged(style: String) {}
+    fun onLauncherStyleChanged(style: String) {
+        // no-op default; concrete monitors override the launcher-lifecycle events they observe
+    }
 
     fun onLauncherRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String?>?,
         grantResults: IntArray?,
-    ) {}
+    ) {
+        // no-op default; concrete monitors override the launcher-lifecycle events they observe
+    }
 
-    fun onLauncherFocusChanged(hasFocus: Boolean) {}
+    fun onLauncherFocusChanged(hasFocus: Boolean) {
+        // no-op default; concrete monitors override the launcher-lifecycle events they observe
+    }
 
     // Launcher app Callbacks
-    fun onAppCreated(context: Context?) {}
+    fun onAppCreated(context: Context?) {
+        // no-op default; concrete monitors override the app/system events they care about
+    }
 
-    fun onReceive(intent: Intent?) {}
+    fun onReceive(intent: Intent?) {
+        // no-op default; concrete monitors override the app/system events they care about
+    }
 
-    fun onReceive() {}
+    fun onReceive() {
+        // no-op default; concrete monitors override the app/system events they care about
+    }
 
-    fun onUIConfigChanged() {}
+    fun onUIConfigChanged() {
+        // no-op default; concrete monitors override the app/system events they care about
+    }
 
-    fun onThemeChanged() {}
+    fun onThemeChanged() {
+        // no-op default; concrete monitors override the app/system events they care about
+    }
 
-    fun onAppSharedPreferenceChanged(key: String?) {}
+    fun onAppSharedPreferenceChanged(key: String?) {
+        // no-op default; concrete monitors override the app/system events they care about
+    }
 
-    fun onPackageRemoved(packageName: String?, user: UserHandle?) {}
+    fun onPackageRemoved(packageName: String?, user: UserHandle?) {
+        // no-op default; concrete monitors override the package events they observe
+    }
 
-    fun onPackageAdded(packageName: String?, user: UserHandle?) {}
+    fun onPackageAdded(packageName: String?, user: UserHandle?) {
+        // no-op default; concrete monitors override the package events they observe
+    }
 
-    fun onPackageChanged(packageName: String?, user: UserHandle?) {}
+    fun onPackageChanged(packageName: String?, user: UserHandle?) {
+        // no-op default; concrete monitors override the package events they observe
+    }
 
-    fun onPackagesAvailable(packageNames: Array<String?>?, user: UserHandle?, replacing: Boolean) {}
+    fun onPackagesAvailable(packageNames: Array<String?>?, user: UserHandle?, replacing: Boolean) {
+        // no-op default; concrete monitors override the package events they observe
+    }
 
     fun onPackagesUnavailable(
         packageNames: Array<String?>?,
         user: UserHandle?,
         replacing: Boolean,
-    ) {}
+    ) {
+        // no-op default; concrete monitors override the package events they observe
+    }
 
-    fun onPackagesSuspended(packageNames: Array<String?>?, user: UserHandle?) {}
+    fun onPackagesSuspended(packageNames: Array<String?>?, user: UserHandle?) {
+        // no-op default; concrete monitors override the package events they observe
+    }
 
-    fun onPackagesUnsuspended(packageNames: Array<String?>?, user: UserHandle?) {}
+    fun onPackagesUnsuspended(packageNames: Array<String?>?, user: UserHandle?) {
+        // no-op default; concrete monitors override the package events they observe
+    }
 
     fun onShortcutsChanged(
         packageName: String?,
         shortcuts: List<ShortcutInfo?>?,
         user: UserHandle?,
-    ) {}
+    ) {
+        // no-op default; concrete monitors override the package events they observe
+    }
 
-    fun onAllAppsListUpdated(apps: List<AppInfo?>?) {}
+    fun onAllAppsListUpdated(apps: List<AppInfo?>?) {
+        // no-op default; concrete monitors override the app-list events they observe
+    }
 
-    fun onLauncherLocaleChanged() {}
+    fun onLauncherLocaleChanged() {
+        // no-op default; concrete monitors override the configuration events they observe
+    }
 
-    fun onLauncherOrientationChanged() {}
+    fun onLauncherOrientationChanged() {
+        // no-op default; concrete monitors override the configuration events they observe
+    }
 
-    fun onLauncherScreensizeChanged() {}
+    fun onLauncherScreensizeChanged() {
+        // no-op default; concrete monitors override the configuration events they observe
+    }
 
-    fun onLoadAllAppsEnd(apps: ArrayList<AppInfo?>?) {}
+    fun onLoadAllAppsEnd(apps: ArrayList<AppInfo?>?) {
+        // no-op default; concrete monitors override the app-list events they observe
+    }
 
     // Launcher database callbacks
-    fun dump(prefix: String?, fd: FileDescriptor?, w: PrintWriter?, dumpAll: Boolean) {}
+    fun dump(prefix: String?, fd: FileDescriptor?, w: PrintWriter?, dumpAll: Boolean) {
+        // no-op default; concrete monitors override dump if they want to contribute diagnostics
+    }
 
-    fun dump(prefix: String, fd: FileDescriptor, w: PrintWriter, args: Array<String>) {}
+    fun dump(prefix: String, fd: FileDescriptor, w: PrintWriter, args: Array<String>) {
+        // no-op default; concrete monitors override dump if they want to contribute diagnostics
+    }
 
-    fun onLauncherDbUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {}
+    fun onLauncherDbUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        // no-op default; concrete monitors override the database events they observe
+    }
 
-    fun onReceiveHomeIntent() {}
+    fun onReceiveHomeIntent() {
+        // no-op default; concrete monitors override the launcher-binding events they observe
+    }
 
-    fun onLauncherWorkspaceBindingFinish() {}
+    fun onLauncherWorkspaceBindingFinish() {
+        // no-op default; concrete monitors override the launcher-binding events they observe
+    }
 
-    fun onLauncherAllAppBindingFinish(apps: Array<AppInfo>) {}
+    fun onLauncherAllAppBindingFinish(apps: Array<AppInfo>) {
+        // no-op default; concrete monitors override the launcher-binding events they observe
+    }
 }

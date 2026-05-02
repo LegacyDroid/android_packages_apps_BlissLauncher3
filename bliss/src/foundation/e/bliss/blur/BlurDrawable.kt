@@ -120,7 +120,9 @@ internal constructor(
         invalidateSelf()
     }
 
-    override fun setColorFilter(colorFilter: ColorFilter?) {}
+    override fun setColorFilter(colorFilter: ColorFilter?) {
+        // no-op: blur drawable does not support custom color filters; tinting handled via overlay
+    }
 
     fun startListening() = blurWallpaperProvider.addListener(this)
 

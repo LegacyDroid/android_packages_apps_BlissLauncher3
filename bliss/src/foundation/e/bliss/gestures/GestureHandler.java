@@ -36,6 +36,7 @@ import com.android.quickstep.SystemUiProxy;
 public abstract class GestureHandler {
 
     private static final String TAG = "GestureHandler";
+    private static final String SERVICE_STATUSBAR = "statusbar";
 
     public static final String HANDLER_NONE = "none";
     public static final String HANDLER_SLEEP = "sleep";
@@ -153,7 +154,7 @@ public abstract class GestureHandler {
 
         private void expandViaStatusBarManager() {
             try {
-                Object sbm = mLauncher.getSystemService("statusbar");
+                Object sbm = mLauncher.getSystemService(SERVICE_STATUSBAR);
                 if (sbm != null) {
                     java.lang.reflect.Method expand = sbm.getClass().getMethod("expandNotificationsPanel");
                     expand.invoke(sbm);
@@ -183,7 +184,7 @@ public abstract class GestureHandler {
                 Log.w(TAG, "Failed to toggle quick settings", e);
                 // Fallback: try StatusBarManager reflection
                 try {
-                    Object sbm = mLauncher.getSystemService("statusbar");
+                    Object sbm = mLauncher.getSystemService(SERVICE_STATUSBAR);
                     if (sbm != null) {
                         java.lang.reflect.Method expand = sbm.getClass().getMethod("expandSettingsPanel");
                         expand.invoke(sbm);
@@ -286,7 +287,7 @@ public abstract class GestureHandler {
                 // Use GLOBAL_ACTION_RECENTS via accessibility
                 android.accessibilityservice.AccessibilityService service = null;
                 // Fallback: try StatusBarManager to toggle recents
-                Object sbm = mLauncher.getSystemService("statusbar");
+                Object sbm = mLauncher.getSystemService(SERVICE_STATUSBAR);
                 if (sbm != null) {
                     java.lang.reflect.Method toggle = sbm.getClass().getMethod("toggleRecentApps");
                     toggle.invoke(sbm);

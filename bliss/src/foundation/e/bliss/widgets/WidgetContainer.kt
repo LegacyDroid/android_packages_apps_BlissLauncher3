@@ -474,108 +474,120 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
 
         private fun addView(widgetId: Int, backup: Boolean = false) {
             val info = mWidgetManager.getAppWidgetInfo(widgetId)
-            if (info != null) {
-                val widgetInfo = LauncherAppWidgetProviderInfo.fromProviderInfo(launcher, info)
-                mWidgetHost
-                    .createView(widgetId, widgetInfo)
-                    .apply {
-                        id = widgetId
-                        layoutTransition = LayoutTransition()
-                        setOnLongClickListener {
-                            if (
-                                (widgetInfo.resizeMode and AppWidgetProviderInfo.RESIZE_VERTICAL) ==
-                                    AppWidgetProviderInfo.RESIZE_VERTICAL
-                            ) {
-                                launcher.hideWidgetResizeContainer()
-                                launcher.showWidgetResizeContainer(this as RoundedWidgetView)
-                            }
-                            true
-                        }
-                    }
-                    .also {
-                        var opts = mWidgetManager.getAppWidgetOptions(it.appWidgetId)
-                        val params =
-                            LayoutParams(
-                                -1,
-                                opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT),
-                            )
-
-                        if (backup) {
-                            if (
-                                it.appWidgetInfo.provider.equals(
-                                    DefaultWidgets.oldWeatherWidget(context)
-                                )
-                            ) {
-                                mWidgetHost.deleteAppWidgetId(it.id)
-
-                                // Swap with new widget
-                                bindWidget(DefaultWidgets.weatherWidget)
-                                return
-                            }
-                            val oldHeight =
-                                if (mOldWidgets.isNotEmpty()) {
-                                    mOldWidgets
-                                        .find { widgetItems -> widgetItems.id == widgetId }
-                                        ?.height
-                                } else {
-                                    0
-                                }
-                            val minHeight: Int = widgetInfo.minResizeHeight
-                            val maxHeight: Int =
-                                InvariantDeviceProfile.INSTANCE.get(context)
-                                    .getDeviceProfile(context)
-                                    .heightPx * 3 / 4
-                            val normalisedDifference = (maxHeight - minHeight) / 100
-
-                            if (oldHeight != null && oldHeight > 0) {
-                                params.height = minHeight + normalisedDifference * oldHeight
-                            } else {
-                                params.height = 0
-                            }
-                            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT)
-                            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
-                            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH)
-                            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
-                            it.updateAppWidgetOptions(opts)
-                        } else {
-                            params.height = widgetsDbHelper.getWidgetHeight(it.id) ?: 0
-                        }
-
-                        if (params.height > 0) {
-                            it.layoutParams = params
-                        }
-                        widgetsAdapter.addWidget(it)
-
-                        opts =
-                            WidgetSizes.getWidgetSizeOptions(
-                                launcher,
-                                info.provider,
-                                launcher.deviceProfile.inv.numColumns,
-                                launcher.deviceProfile.inv.numRows,
-                            )
-
-                        if (params.height > 0) {
-                            opts.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, params.height)
-                            opts.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, params.height)
-                        }
-
-                        val blacklistedComponents =
-                            launcher.resources.getStringArray(R.array.blacklisted_widget_options)
-                        if (!blacklistedComponents.contains(info.provider.className)) {
-                            mWidgetManager.updateAppWidgetOptions(it.appWidgetId, opts)
-                        }
-
-                        widgetsDbHelper.insert(
-                            WidgetInfo(
-                                widgetsAdapter.getWidgets().indexOf(it),
-                                it.appWidgetInfo.provider,
-                                it.appWidgetId,
-                                params.height,
-                            )
-                        )
-                    }
-            } else {
+            if (info == null) {
                 mWidgetHost.deleteAppWidgetId(widgetId)
+                return
+            }
+            val widgetInfo = LauncherAppWidgetProviderInfo.fromProviderInfo(launcher, info)
+            val view = mWidgetHost.createView(widgetId, widgetInfo)
+            configureWidgetView(view, widgetId, widgetInfo)
+
+            if (backup && isOldWeatherWidget(view)) {
+                mWidgetHost.deleteAppWidgetId(view.id)
+                // Swap with new widget
+                bindWidget(DefaultWidgets.weatherWidget)
+                return
+            }
+
+            val opts = mWidgetManager.getAppWidgetOptions(view.appWidgetId)
+            val params = LayoutParams(-1, opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT))
+            params.height =
+                if (backup) {
+                    resolveBackupHeight(widgetId, widgetInfo, opts).also {
+                        view.updateAppWidgetOptions(opts)
+                    }
+                } else {
+                    widgetsDbHelper.getWidgetHeight(view.id) ?: 0
+                }
+
+            if (params.height > 0) {
+                view.layoutParams = params
+            }
+            widgetsAdapter.addWidget(view)
+
+            updateWidgetOptionsForView(view, info, params.height)
+            widgetsDbHelper.insert(
+                WidgetInfo(
+                    widgetsAdapter.getWidgets().indexOf(view),
+                    view.appWidgetInfo.provider,
+                    view.appWidgetId,
+                    params.height,
+                )
+            )
+        }
+
+        private fun configureWidgetView(
+            view: AppWidgetHostView,
+            widgetId: Int,
+            widgetInfo: LauncherAppWidgetProviderInfo,
+        ) {
+            view.id = widgetId
+            view.layoutTransition = LayoutTransition()
+            view.setOnLongClickListener {
+                if (
+                    (widgetInfo.resizeMode and AppWidgetProviderInfo.RESIZE_VERTICAL) ==
+                        AppWidgetProviderInfo.RESIZE_VERTICAL
+                ) {
+                    launcher.hideWidgetResizeContainer()
+                    launcher.showWidgetResizeContainer(view as RoundedWidgetView)
+                }
+                true
+            }
+        }
+
+        private fun isOldWeatherWidget(view: AppWidgetHostView): Boolean {
+            return view.appWidgetInfo.provider.equals(DefaultWidgets.oldWeatherWidget(context))
+        }
+
+        private fun resolveBackupHeight(
+            widgetId: Int,
+            widgetInfo: LauncherAppWidgetProviderInfo,
+            opts: Bundle,
+        ): Int {
+            val oldHeight =
+                if (mOldWidgets.isNotEmpty()) {
+                    mOldWidgets.find { widgetItems -> widgetItems.id == widgetId }?.height
+                } else {
+                    0
+                }
+            val minHeight: Int = widgetInfo.minResizeHeight
+            val maxHeight: Int =
+                InvariantDeviceProfile.INSTANCE.get(context).getDeviceProfile(context).heightPx *
+                    3 / 4
+            val normalisedDifference = (maxHeight - minHeight) / 100
+            val resolved =
+                if (oldHeight != null && oldHeight > 0) {
+                    minHeight + normalisedDifference * oldHeight
+                } else {
+                    0
+                }
+            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT)
+            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
+            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH)
+            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
+            return resolved
+        }
+
+        private fun updateWidgetOptionsForView(
+            view: AppWidgetHostView,
+            info: AppWidgetProviderInfo,
+            height: Int,
+        ) {
+            val opts =
+                WidgetSizes.getWidgetSizeOptions(
+                    launcher,
+                    info.provider,
+                    launcher.deviceProfile.inv.numColumns,
+                    launcher.deviceProfile.inv.numRows,
+                )
+            if (height > 0) {
+                opts.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, height)
+                opts.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, height)
+            }
+            val blacklistedComponents =
+                launcher.resources.getStringArray(R.array.blacklisted_widget_options)
+            if (!blacklistedComponents.contains(info.provider.className)) {
+                mWidgetManager.updateAppWidgetOptions(view.appWidgetId, opts)
             }
         }
 
