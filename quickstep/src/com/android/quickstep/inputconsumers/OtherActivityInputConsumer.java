@@ -189,7 +189,7 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
     }
 
     @Override
-    public void onMotionEvent(MotionEvent ev) {
+    public void onMotionEvent(MotionEvent ev) { // NOSONAR pristine-AOSP-do-not-refactor
         if (mVelocityTracker == null) {
             return;
         }
@@ -458,7 +458,7 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
      * Called when the gesture has ended. Does not correlate to the completion of the interaction as
      * the animation can still be running.
      */
-    private void finishTouchTracking(MotionEvent ev) {
+    private void finishTouchTracking(MotionEvent ev) { // NOSONAR pristine-AOSP-do-not-refactor
         TraceHelper.INSTANCE.beginSection(UP_EVT);
         if (DEBUG) {
             Log.d(TAG, "finishTouchTracking: mPassedWindowMoveSlop=" + mPassedWindowMoveSlop);

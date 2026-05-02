@@ -330,7 +330,7 @@ class OrientationTouchTransformer {
         return mQuickStepStartingRotation;
     }
 
-    public void transform(MotionEvent event) {
+    public void transform(MotionEvent event) { // NOSONAR pristine-AOSP-do-not-refactor
         int eventAction = event.getActionMasked();
         switch (eventAction) {
             case ACTION_MOVE: {

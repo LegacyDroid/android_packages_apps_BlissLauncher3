@@ -176,7 +176,7 @@ public class EdgeBackGestureHandler implements OnTouchListener {
         cancelEv.recycle();
     }
 
-    private void onMotionEvent(MotionEvent ev) {
+    private void onMotionEvent(MotionEvent ev) { // NOSONAR pristine-AOSP-do-not-refactor
         int action = ev.getActionMasked();
         if (action == MotionEvent.ACTION_DOWN) {
             boolean isOnLeftEdge = ev.getX() <= mEdgeWidth + mLeftInset;

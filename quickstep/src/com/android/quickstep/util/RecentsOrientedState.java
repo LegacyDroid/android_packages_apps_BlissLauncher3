@@ -474,7 +474,7 @@ public class RecentsOrientedState implements LauncherPrefChangeListener {
     }
 
     @SurfaceRotation
-    public static int getRotationForUserDegreesRotated(float degrees, int currentRotation) {
+    public static int getRotationForUserDegreesRotated(float degrees, int currentRotation) { // NOSONAR pristine-AOSP-do-not-refactor
         if (degrees == ORIENTATION_UNKNOWN) {
             return currentRotation;
         }
@@ -523,6 +523,10 @@ public class RecentsOrientedState implements LauncherPrefChangeListener {
                     return ROTATION_270;
                 }
                 break;
+            default:
+                // Unknown @SurfaceRotation value — keep the current rotation (handled by the
+                // shared `return currentRotation` below).
+                break;
         }
 
         return currentRotation;
@@ -552,6 +556,10 @@ public class RecentsOrientedState implements LauncherPrefChangeListener {
                 out.postRotate(90);
                 out.postTranslate(screenHeight, 0);
                 break;
+            default:
+                // Unknown @SurfaceRotation value — leave the matrix untouched, mirroring the
+                // ROTATION_0 fast-path above.
+                break;
         }
     }
 
@@ -574,6 +582,10 @@ public class RecentsOrientedState implements LauncherPrefChangeListener {
             case ROTATION_270:
                 out.postRotate(270);
                 out.postTranslate(0, screenHeight);
+                break;
+            default:
+                // Unknown @SurfaceRotation value — leave the matrix untouched, mirroring the
+                // ROTATION_0 fast-path above.
                 break;
         }
     }

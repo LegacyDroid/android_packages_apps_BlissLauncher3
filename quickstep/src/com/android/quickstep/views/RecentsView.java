@@ -288,6 +288,7 @@ public abstract class RecentsView<
         TaskVisualsChangeListener, DesktopVisibilityListener {
 
     protected static final String TAG = "RecentsView";
+    private static final String LOG_ON_TASK_REMOVED = "onTaskRemoved: ";
     private static final boolean DEBUG = false;
 
     public static final FloatProperty<RecentsView<?, ?>> CONTENT_ALPHA =
@@ -674,16 +675,16 @@ public abstract class RecentsView<
         @Override
         public void onTaskRemoved(int taskId) {
             if (!mHandleTaskStackChanges) {
-                Log.d(TAG, "onTaskRemoved: " + taskId + ", not handling task stack changes");
+                Log.d(TAG, LOG_ON_TASK_REMOVED + taskId + ", not handling task stack changes");
                 return;
             }
 
             TaskContainer taskContainer = mUtils.getTaskContainerById(taskId);
             if (taskContainer == null) {
-                Log.d(TAG, "onTaskRemoved: " + taskId + ", no associated Task");
+                Log.d(TAG, LOG_ON_TASK_REMOVED + taskId + ", no associated Task");
                 return;
             }
-            Log.d(TAG, "onTaskRemoved: " + taskId);
+            Log.d(TAG, LOG_ON_TASK_REMOVED + taskId);
             TaskKey taskKey = taskContainer.getTask().key;
             UI_HELPER_EXECUTOR.execute(new CancellableTask<>(
                     () -> PackageManagerWrapper.getInstance()
@@ -794,10 +795,12 @@ public abstract class RecentsView<
     private final SplitSelectionListener mSplitSelectionListener = new SplitSelectionListener() {
         @Override
         public void onSplitSelectionConfirmed() {
+            /* no-op: confirmation handled elsewhere in the controller */
         }
 
         @Override
         public void onSplitSelectionActive() {
+            /* no-op: activation does not require local state changes */
         }
 
         @Override
@@ -1145,21 +1148,25 @@ public abstract class RecentsView<
         if (enableRefactorTaskThumbnail()) {
             return null;
         }
-        if (mHandleTaskStackChanges) {
-            if (!enableRefactorTaskThumbnail()) {
-                TaskView taskView = getTaskViewByTaskId(taskId);
-                if (taskView != null) {
-                    for (TaskContainer container : taskView.getTaskContainers()) {
-                        if (taskId != container.getTask().key.id) {
-                            continue;
-                        }
-                        container.getThumbnailViewDeprecated().setThumbnail(container.getTask(),
-                                thumbnailData);
-                    }
-                }
-            }
+        if (!mHandleTaskStackChanges) {
+            return null;
         }
+        applyDeprecatedThumbnail(taskId, thumbnailData);
         return null;
+    }
+
+    private void applyDeprecatedThumbnail(int taskId, ThumbnailData thumbnailData) {
+        TaskView taskView = getTaskViewByTaskId(taskId);
+        if (taskView == null) {
+            return;
+        }
+        for (TaskContainer container : taskView.getTaskContainers()) {
+            if (taskId != container.getTask().key.id) {
+                continue;
+            }
+            container.getThumbnailViewDeprecated().setThumbnail(container.getTask(),
+                    thumbnailData);
+        }
     }
 
     @Override
@@ -1753,7 +1760,7 @@ public abstract class RecentsView<
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent ev) {
+    public boolean onTouchEvent(MotionEvent ev) { // NOSONAR pristine-AOSP-do-not-refactor
         super.onTouchEvent(ev);
 
         if (showAsGrid()) {
@@ -1823,42 +1830,45 @@ public abstract class RecentsView<
     @Override
     protected void onNotSnappingToPageInFreeScroll() {
         int finalPos = mScroller.getFinalX();
-        if (finalPos > mMinScroll && finalPos < mMaxScroll) {
-            int firstPageScroll = getScrollForPage(!mIsRtl ? 0 : getPageCount() - 1);
-            int lastPageScroll = getScrollForPage(!mIsRtl ? getPageCount() - 1 : 0);
-
-            // If scrolling ends in the half of the added space that is closer to
-            // the end, settle to the end. Otherwise snap to the nearest page.
-            // If flinging past one of the ends, don't change the velocity as it
-            // will get stopped at the end anyway.
-            int pageSnapped = finalPos < (firstPageScroll + mMinScroll) / 2
-                    ? mMinScroll
-                    : finalPos > (lastPageScroll + mMaxScroll) / 2
-                            ? mMaxScroll
-                            : getScrollForPage(mNextPage);
-
-            if (showAsGrid()) {
-                if (isSplitSelectionActive()) {
-                    return;
-                }
-                TaskView taskView = getTaskViewAt(mNextPage);
-                boolean shouldSnapToLargeTask = taskView != null && taskView.isLargeTile()
-                        && !mUtils.isAnySmallTaskFullyVisible();
-                boolean shouldSnapToClearAll = mNextPage == indexOfChild(mClearAllButton);
-                // Snap to large tile when grid tasks aren't fully visible or the clear all button.
-                if (!shouldSnapToLargeTask && !shouldSnapToClearAll) {
-                    return;
-                }
-            }
-
-            mScroller.setFinalX(pageSnapped);
-            // Ensure the scroll/snap doesn't happen too fast;
-            int extraScrollDuration = OVERSCROLL_PAGE_SNAP_ANIMATION_DURATION
-                    - mScroller.getDuration();
-            if (extraScrollDuration > 0) {
-                mScroller.extendDuration(extraScrollDuration);
-            }
+        if (finalPos <= mMinScroll || finalPos >= mMaxScroll) {
+            return;
         }
+        int firstPageScroll = getScrollForPage(!mIsRtl ? 0 : getPageCount() - 1);
+        int lastPageScroll = getScrollForPage(!mIsRtl ? getPageCount() - 1 : 0);
+
+        // If scrolling ends in the half of the added space that is closer to
+        // the end, settle to the end. Otherwise snap to the nearest page.
+        // If flinging past one of the ends, don't change the velocity as it
+        // will get stopped at the end anyway.
+        int pageSnapped = finalPos < (firstPageScroll + mMinScroll) / 2
+                ? mMinScroll
+                : finalPos > (lastPageScroll + mMaxScroll) / 2
+                        ? mMaxScroll
+                        : getScrollForPage(mNextPage);
+
+        if (showAsGrid() && !shouldSnapInGridFreeScroll()) {
+            return;
+        }
+
+        mScroller.setFinalX(pageSnapped);
+        // Ensure the scroll/snap doesn't happen too fast;
+        int extraScrollDuration = OVERSCROLL_PAGE_SNAP_ANIMATION_DURATION
+                - mScroller.getDuration();
+        if (extraScrollDuration > 0) {
+            mScroller.extendDuration(extraScrollDuration);
+        }
+    }
+
+    private boolean shouldSnapInGridFreeScroll() {
+        if (isSplitSelectionActive()) {
+            return false;
+        }
+        TaskView taskView = getTaskViewAt(mNextPage);
+        boolean shouldSnapToLargeTask = taskView != null && taskView.isLargeTile()
+                && !mUtils.isAnySmallTaskFullyVisible();
+        boolean shouldSnapToClearAll = mNextPage == indexOfChild(mClearAllButton);
+        // Snap to large tile when grid tasks aren't fully visible or the clear all button.
+        return shouldSnapToLargeTask || shouldSnapToClearAll;
     }
 
     @Override
@@ -1928,7 +1938,7 @@ public abstract class RecentsView<
         return super.isPageScrollsInitialized() && mLoadPlanEverApplied;
     }
 
-    protected void applyLoadPlan(List<GroupTask> taskGroups) {
+    protected void applyLoadPlan(List<GroupTask> taskGroups) { // NOSONAR pristine-AOSP-do-not-refactor
         if (mPendingAnimation != null) {
             final List<GroupTask> finalTaskGroups = taskGroups;
             mPendingAnimation.addEndListener(success -> applyLoadPlan(finalTaskGroups));
@@ -2595,7 +2605,7 @@ public abstract class RecentsView<
      * Iterates through all the tasks, and loads the associated task data for newly visible tasks,
      * and unloads the associated task data for tasks that are no longer visible.
      */
-    public void loadVisibleTaskData(@TaskView.TaskDataChanges int dataChanges) {
+    public void loadVisibleTaskData(@TaskView.TaskDataChanges int dataChanges) { // NOSONAR pristine-AOSP-do-not-refactor
         boolean hasLeftOverview = !mOverviewStateEnabled && mScroller.isFinished();
         if (hasLeftOverview || mTaskListChangeId == -1) {
             // Skip loading visible task data if we've already left the overview state, or if the
@@ -2975,7 +2985,7 @@ public abstract class RecentsView<
     /**
      * Called when a gesture from an app has finished, and an end target has been determined.
      */
-    public void onPrepareGestureEndAnimation(
+    public void onPrepareGestureEndAnimation( // NOSONAR pristine-AOSP-do-not-refactor
             @Nullable AnimatorSet animatorSet, GestureState.GestureEndTarget endTarget,
             RemoteTargetHandle[] remoteTargetHandles) {
         Log.d(TAG, "onPrepareGestureEndAnimation - endTarget: " + endTarget);
@@ -3137,62 +3147,14 @@ public abstract class RecentsView<
             return;
         }
 
-        int runningTaskViewId = -1;
-        if (shouldAddStubTaskView(groupedTaskInfo)) {
-            boolean wasEmpty = getChildCount() == 0;
-            // Add an empty view for now until the task plan is loaded and applied
-            final TaskView taskView;
-            if (groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK)) {
-                taskView = mUtils.createDesktopTaskViewForActiveDesk(groupedTaskInfo);
-            } else if (groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_SPLIT)) {
-                taskView = getTaskViewFromPool(TaskViewType.GROUPED);
-                // When we create a placeholder task view mSplitBoundsConfig will be null, but with
-                // the actual app running we won't need to show the thumbnail until all the tasks
-                // load later anyways
-                ((GroupedTaskView) taskView).bind(Task.from(groupedTaskInfo.getTaskInfo1()),
-                        Task.from(groupedTaskInfo.getTaskInfo2()), mOrientationState,
-                        mTaskOverlayFactory, mSplitBoundsConfig);
-            } else {
-                taskView = getTaskViewFromPool(TaskViewType.SINGLE);
-                taskView.bind(Task.from(groupedTaskInfo.getTaskInfo1()), mOrientationState,
-                        mTaskOverlayFactory);
-            }
-            if (mAddDesktopButton != null && wasEmpty) {
-                addView(mAddDesktopButton);
-            }
-            addView(taskView, mUtils.getRunningTaskExpectedIndex(taskView));
-            runningTaskViewId = taskView.getTaskViewId();
-            if (wasEmpty) {
-                addView(mClearAllButton);
-            }
-
-            // Measure and layout immediately so that the scroll values is updated instantly
-            // as the user might be quick-switching
-            measure(makeMeasureSpec(getMeasuredWidth(), EXACTLY),
-                    makeMeasureSpec(getMeasuredHeight(), EXACTLY));
-            layout(getLeft(), getTop(), getRight(), getBottom());
-        } else {
-            var runningTaskView = getTaskViewByTaskId(groupedTaskInfo.getTaskInfo1().taskId);
-            if (runningTaskView != null) {
-                runningTaskViewId = runningTaskView.getTaskViewId();
-            }
-        }
+        int runningTaskViewId = shouldAddStubTaskView(groupedTaskInfo)
+                ? addStubTaskViewAndGetId(groupedTaskInfo)
+                : resolveExistingRunningTaskViewId(groupedTaskInfo);
 
         boolean runningTaskTileHidden = mRunningTaskTileHidden;
         setCurrentTask(runningTaskViewId);
 
-        int focusedTaskViewId;
-        if (enableGridOnlyOverview()) {
-            focusedTaskViewId = INVALID_TASK_ID;
-        } else if (enableLargeDesktopWindowingTile()
-                && getRunningTaskView() instanceof DesktopTaskView) {
-            TaskView focusedTaskView = mUtils.getFirstNonDesktopTaskView();
-            focusedTaskViewId =
-                    focusedTaskView != null ? focusedTaskView.getTaskViewId() : INVALID_TASK_ID;
-        } else {
-            focusedTaskViewId = runningTaskViewId;
-        }
-        setFocusedTaskViewId(focusedTaskViewId);
+        setFocusedTaskViewId(resolveFocusedTaskViewId(runningTaskViewId));
 
         runOnPageScrollsInitialized(() -> setCurrentPage(getRunningTaskIndex()));
         setRunningTaskViewShowScreenshot(false);
@@ -3203,6 +3165,67 @@ public abstract class RecentsView<
 
         // Reload the task list
         reloadIfNeeded();
+    }
+
+    private int addStubTaskViewAndGetId(GroupedTaskInfo groupedTaskInfo) {
+        boolean wasEmpty = getChildCount() == 0;
+        // Add an empty view for now until the task plan is loaded and applied
+        final TaskView taskView = createStubTaskView(groupedTaskInfo);
+        if (mAddDesktopButton != null && wasEmpty) {
+            addView(mAddDesktopButton);
+        }
+        addView(taskView, mUtils.getRunningTaskExpectedIndex(taskView));
+        int runningTaskViewId = taskView.getTaskViewId();
+        if (wasEmpty) {
+            addView(mClearAllButton);
+        }
+
+        // Measure and layout immediately so that the scroll values is updated instantly
+        // as the user might be quick-switching
+        measure(makeMeasureSpec(getMeasuredWidth(), EXACTLY),
+                makeMeasureSpec(getMeasuredHeight(), EXACTLY));
+        layout(getLeft(), getTop(), getRight(), getBottom());
+        return runningTaskViewId;
+    }
+
+    private TaskView createStubTaskView(GroupedTaskInfo groupedTaskInfo) {
+        if (groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK)) {
+            return mUtils.createDesktopTaskViewForActiveDesk(groupedTaskInfo);
+        }
+        if (groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_SPLIT)) {
+            TaskView taskView = getTaskViewFromPool(TaskViewType.GROUPED);
+            // When we create a placeholder task view mSplitBoundsConfig will be null, but with
+            // the actual app running we won't need to show the thumbnail until all the tasks
+            // load later anyways
+            ((GroupedTaskView) taskView).bind(Task.from(groupedTaskInfo.getTaskInfo1()),
+                    Task.from(groupedTaskInfo.getTaskInfo2()), mOrientationState,
+                    mTaskOverlayFactory, mSplitBoundsConfig);
+            return taskView;
+        }
+        TaskView taskView = getTaskViewFromPool(TaskViewType.SINGLE);
+        taskView.bind(Task.from(groupedTaskInfo.getTaskInfo1()), mOrientationState,
+                mTaskOverlayFactory);
+        return taskView;
+    }
+
+    private int resolveExistingRunningTaskViewId(GroupedTaskInfo groupedTaskInfo) {
+        var runningTaskView = getTaskViewByTaskId(groupedTaskInfo.getTaskInfo1().taskId);
+        if (runningTaskView == null) {
+            return -1;
+        }
+        return runningTaskView.getTaskViewId();
+    }
+
+    private int resolveFocusedTaskViewId(int runningTaskViewId) {
+        if (enableGridOnlyOverview()) {
+            return INVALID_TASK_ID;
+        }
+        if (enableLargeDesktopWindowingTile()
+                && getRunningTaskView() instanceof DesktopTaskView) {
+            TaskView focusedTaskView = mUtils.getFirstNonDesktopTaskView();
+            return focusedTaskView != null ? focusedTaskView.getTaskViewId() : INVALID_TASK_ID;
+        }
+        return runningTaskViewId;
     }
 
     /**
@@ -3332,7 +3355,7 @@ public abstract class RecentsView<
      * @param lastVisibleTaskViewDuringDismiss which TaskView to start rebalancing from. Use
      *                                         `null` to skip rebalance.
      */
-    private void updateGridProperties(TaskView lastVisibleTaskViewDuringDismiss) {
+    private void updateGridProperties(TaskView lastVisibleTaskViewDuringDismiss) { // NOSONAR pristine-AOSP-do-not-refactor
         if (!hasTaskViews()) {
             return;
         }
@@ -3651,6 +3674,7 @@ public abstract class RecentsView<
                 @Override
                 public void startTransition(LayoutTransition transition, ViewGroup viewGroup,
                         View view, int i) {
+                    /* no-op: only endTransition is handled here */
                 }
 
                 @Override

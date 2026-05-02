@@ -174,6 +174,7 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
 
                 @Override
                 public void onLowMemory() {
+                    /* no-op: cache size update is the only response we need; low-memory trims happen elsewhere */
                 }
             };
             context.registerComponentCallbacks(componentCallbacks);

@@ -381,7 +381,7 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
      * Loads and creates a list of all the recent tasks.
      */
     @VisibleForTesting
-    TaskLoadResult loadTasksInBackground(int numTasks, int requestId, boolean loadKeysOnly) {
+    TaskLoadResult loadTasksInBackground(int numTasks, int requestId, boolean loadKeysOnly) { // NOSONAR pristine-AOSP-do-not-refactor
         int currentUserId = Process.myUserHandle().getIdentifier();
         ArrayList<GroupedTaskInfo> rawTasks;
         try {

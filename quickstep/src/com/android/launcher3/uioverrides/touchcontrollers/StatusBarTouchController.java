@@ -105,16 +105,31 @@ public class StatusBarTouchController implements TouchController {
         }
     }
 
+    /**
+     * Tri-state result from {@link #handleActionDown(MotionEvent, int, int)} so the helper can
+     * signal "the caller should early-return with this value" vs. "the caller should fall through
+     * to the regular interception path" without using a nullable {@link Boolean}.
+     */
+    private enum DownResult {
+        CONSUME_TRUE,
+        CONSUME_FALSE,
+        FALL_THROUGH
+    }
+
     @Override
     public final boolean onControllerInterceptTouchEvent(MotionEvent ev) {
         int action = ev.getActionMasked();
         int idx = ev.getActionIndex();
         int pid = ev.getPointerId(idx);
         if (action == ACTION_DOWN) {
-            Boolean downResult = handleActionDown(ev, idx, pid);
-            if (downResult != null) {
-                return downResult;
+            DownResult downResult = handleActionDown(ev, idx, pid);
+            if (downResult == DownResult.CONSUME_TRUE) {
+                return true;
             }
+            if (downResult == DownResult.CONSUME_FALSE) {
+                return false;
+            }
+            // FALL_THROUGH: continue to the shared interception path below.
         } else if (ev.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
             // Check!! should only set it only when threshold is not entered.
             mDownEvents.put(pid, new PointF(ev.getX(idx), ev.getY(idx)));
@@ -128,10 +143,10 @@ public class StatusBarTouchController implements TouchController {
         return false;
     }
 
-    private Boolean handleActionDown(MotionEvent ev, int idx, int pid) {
+    private DownResult handleActionDown(MotionEvent ev, int idx, int pid) {
         mCanIntercept = canInterceptTouch(ev);
         if (!mCanIntercept) {
-            return false;
+            return DownResult.CONSUME_FALSE;
         }
 
         mDownEvents.clear();
@@ -141,9 +156,9 @@ public class StatusBarTouchController implements TouchController {
                 mLauncher.swipeSearchContainer.getVisibility() == View.VISIBLE &&
                 ev.getY(idx) > mLauncher.swipeSearchContainer.getHeight()) {
             setWindowSlippery(true);
-            return true;
+            return DownResult.CONSUME_TRUE;
         }
-        return null;
+        return DownResult.FALL_THROUGH;
     }
 
     private boolean handleActionMove(MotionEvent ev, int idx, int pid) {

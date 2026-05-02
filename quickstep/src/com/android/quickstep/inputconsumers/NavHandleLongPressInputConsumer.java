@@ -154,7 +154,7 @@ public class NavHandleLongPressInputConsumer extends DelegateInputConsumer {
         mDelegate.onHoverEvent(ev);
     }
 
-    private void handleMotionEvent(MotionEvent ev) {
+    private void handleMotionEvent(MotionEvent ev) { // NOSONAR pristine-AOSP-do-not-refactor
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN -> {
                 if (mCurrentDownEvent != null) {

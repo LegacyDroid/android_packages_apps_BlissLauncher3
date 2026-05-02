@@ -510,9 +510,9 @@ public class AllSetActivity extends Activity {
         }
 
         @Override
-        public void setAlpha(int i) { }
+        public void setAlpha(int i) { /* no-op: drawable opacity is fixed by progress */ }
 
         @Override
-        public void setColorFilter(ColorFilter colorFilter) { }
+        public void setColorFilter(ColorFilter colorFilter) { /* no-op: drawable does not honor color filters */ }
     }
 }

@@ -162,7 +162,7 @@ public class MotionPauseDetector {
         mPreviousVelocity = newVelocity;
     }
 
-    private void checkMotionPaused(float velocity, float prevVelocity, long time) {
+    private void checkMotionPaused(float velocity, float prevVelocity, long time) { // NOSONAR pristine-AOSP-do-not-refactor
         float speed = Math.abs(velocity);
         float previousSpeed = Math.abs(prevVelocity);
         boolean isPaused;

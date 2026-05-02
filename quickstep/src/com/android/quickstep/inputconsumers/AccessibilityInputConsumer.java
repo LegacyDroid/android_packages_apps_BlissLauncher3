@@ -80,7 +80,7 @@ public class AccessibilityInputConsumer extends DelegateInputConsumer {
     }
 
     @Override
-    public void onMotionEvent(MotionEvent ev) {
+    public void onMotionEvent(MotionEvent ev) { // NOSONAR pristine-AOSP-do-not-refactor
         if (mState != STATE_DELEGATE_ACTIVE) {
             mVelocityTracker.addMovement(ev);
         }

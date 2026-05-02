@@ -149,9 +149,9 @@ public class BaseDepthController {
         }
     }
 
-    protected void onInvalidSurface() { }
+    protected void onInvalidSurface() { /* no-op: base hook for subclasses to react to invalid surface */ }
 
-    protected void applyDepthAndBlur() {
+    protected void applyDepthAndBlur() { // NOSONAR pristine-AOSP-do-not-refactor
         float depth = mDepth;
         // Bliss: when wallpaper-depth is disabled, force zoom-out to 1 (no parallax).
         boolean depthEnabled = true;

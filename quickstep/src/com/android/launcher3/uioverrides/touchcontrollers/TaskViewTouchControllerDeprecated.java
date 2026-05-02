@@ -297,43 +297,53 @@ public class TaskViewTouchControllerDeprecated<
         float totalDisplacement = displacement + mDisplacementShift;
         boolean isGoingUp = totalDisplacement == 0 ? mCurrentAnimationIsGoingUp :
                 orientationHandler.isGoingUp(totalDisplacement, mIsRtl);
-        if (isGoingUp != mCurrentAnimationIsGoingUp) {
-            reInitAnimationController(isGoingUp);
-            mFlingBlockCheck.blockFling();
-        } else {
-            mFlingBlockCheck.onEvent();
-        }
+        updateAnimationDirection(isGoingUp);
 
         if (isGoingUp) {
-            if (mCurrentAnimation.getProgressFraction() < ANIMATION_PROGRESS_FRACTION_MIDPOINT) {
-                // Halve the value when dismissing, as we are animating the drag across the full
-                // length for only the first half of the progress
-                mCurrentAnimation.setPlayFraction(
-                        Utilities.boundToRange(totalDisplacement * mProgressMultiplier / 2, 0, 1));
-            } else {
-                // Set mOverrideVelocity to control task dismiss velocity in onDragEnd
-                int velocityDimenId = R.dimen.default_task_dismiss_drag_velocity;
-                if (mRecentsView.showAsGrid()) {
-                    if (mTaskBeingDragged.isLargeTile()) {
-                        velocityDimenId =
-                                R.dimen.default_task_dismiss_drag_velocity_grid_focus_task;
-                    } else {
-                        velocityDimenId = R.dimen.default_task_dismiss_drag_velocity_grid;
-                    }
-                }
-                mOverrideVelocity = -mTaskBeingDragged.getResources().getDimension(velocityDimenId);
-
-                // Once halfway through task dismissal interpolation, switch from reversible
-                // dragging-task animation to playing the remaining task translation animations,
-                // while this is in progress disable dragging.
-                mDraggingEnabled = false;
-            }
+            handleDismissDrag(totalDisplacement);
         } else {
             mCurrentAnimation.setPlayFraction(
                     Utilities.boundToRange(totalDisplacement * mProgressMultiplier, 0, 1));
         }
 
         return true;
+    }
+
+    private void updateAnimationDirection(boolean isGoingUp) {
+        if (isGoingUp != mCurrentAnimationIsGoingUp) {
+            reInitAnimationController(isGoingUp);
+            mFlingBlockCheck.blockFling();
+        } else {
+            mFlingBlockCheck.onEvent();
+        }
+    }
+
+    private void handleDismissDrag(float totalDisplacement) {
+        if (mCurrentAnimation.getProgressFraction() < ANIMATION_PROGRESS_FRACTION_MIDPOINT) {
+            // Halve the value when dismissing, as we are animating the drag across the full
+            // length for only the first half of the progress
+            mCurrentAnimation.setPlayFraction(
+                    Utilities.boundToRange(totalDisplacement * mProgressMultiplier / 2, 0, 1));
+            return;
+        }
+        // Set mOverrideVelocity to control task dismiss velocity in onDragEnd
+        mOverrideVelocity = -mTaskBeingDragged.getResources().getDimension(
+                resolveDismissVelocityDimenId());
+
+        // Once halfway through task dismissal interpolation, switch from reversible
+        // dragging-task animation to playing the remaining task translation animations,
+        // while this is in progress disable dragging.
+        mDraggingEnabled = false;
+    }
+
+    private int resolveDismissVelocityDimenId() {
+        if (!mRecentsView.showAsGrid()) {
+            return R.dimen.default_task_dismiss_drag_velocity;
+        }
+        if (mTaskBeingDragged.isLargeTile()) {
+            return R.dimen.default_task_dismiss_drag_velocity_grid_focus_task;
+        }
+        return R.dimen.default_task_dismiss_drag_velocity_grid;
     }
 
     @Override

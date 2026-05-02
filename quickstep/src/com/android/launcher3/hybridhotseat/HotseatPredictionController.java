@@ -36,7 +36,6 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.DragSource;
@@ -145,8 +144,15 @@ public class HotseatPredictionController implements DragController.DragListener,
         onHotseatHierarchyChanged();
     }
 
-    /** Enables/disabled the hotseat prediction icon long press edu for testing. */
-    @VisibleForTesting
+    /**
+     * Enables/disables the hotseat prediction icon long press edu for testing.
+     *
+     * <p>Internal API: only invoked by {@link
+     * com.android.launcher3.uioverrides.QuickstepLauncher#enableHotseatEdu(boolean)}, which is the
+     * actual {@code @VisibleForTesting} entry point. Keep visibility {@code public} so the override
+     * can reach it from a different package, but treat all callers other than the launcher
+     * override as test infrastructure.
+     */
     public void enableHotseatEdu(boolean enable) {
         mEnableHotseatLongPressTipForTesting = enable;
     }

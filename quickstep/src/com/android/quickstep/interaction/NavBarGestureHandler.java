@@ -134,6 +134,11 @@ public class NavBarGestureHandler implements OnTouchListener,
                     break;
                 }
                 break;
+            default:
+                // Pointer/hover/etc. actions are not relevant to the nav-bar swipe tracker; the
+                // shared tail of this method (motion-pause + swipe-up tracker) still observes the
+                // full event stream.
+                break;
         }
         if (mTouchCameFromNavBar && mGestureCallback != null) {
             mGestureCallback.setNavBarGestureProgress(event.getY() - mDownPos.y);

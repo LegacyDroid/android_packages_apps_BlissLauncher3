@@ -427,29 +427,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         if (mDp == null || mThumbnailPosition.isEmpty()) {
             return;
         }
-        if (!mLayoutValid || mOrientationStateId != mOrientationState.getStateId()) {
-            mLayoutValid = true;
-            mOrientationStateId = mOrientationState.getStateId();
-
-            getFullScreenScale();
-            if (TaskAnimationManager.SHELL_TRANSITIONS_ROTATION) {
-                // With shell transitions, the display is rotated early so we need to actually use
-                // the rotation when the gesture starts
-                mThumbnailData.rotation = mOrientationState.getTouchRotation();
-            } else {
-                mThumbnailData.rotation = mOrientationState.getDisplayRotation();
-            }
-
-            // mIsRecentsRtl is the inverse of TaskView RTL.
-            boolean isRtlEnabled = !mIsRecentsRtl;
-            mPositionHelper.updateThumbnailMatrix(
-                    mThumbnailPosition, mThumbnailData, mTaskRect.width(), mTaskRect.height(),
-                    mDp.isTablet, mOrientationState.getRecentsActivityRotation(), isRtlEnabled);
-            mPositionHelper.getMatrix().invert(mInversePositionMatrix);
-            if (DEBUG) {
-                Log.d(TAG, " taskRect: " + mTaskRect);
-            }
-        }
+        revalidateLayoutIfNeeded();
 
         float fullScreenProgress = Utilities.boundToRange(this.fullScreenProgress.value, 0, 1);
         mCurrentFullscreenParams.setProgress(fullScreenProgress, recentsViewScale.value,
@@ -526,6 +504,33 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
                 + " recentsScroll: " + recentsViewScroll.value
                 + " pivot: " + mPivot
         );
+    }
+
+    private void revalidateLayoutIfNeeded() {
+        if (mLayoutValid && mOrientationStateId == mOrientationState.getStateId()) {
+            return;
+        }
+        mLayoutValid = true;
+        mOrientationStateId = mOrientationState.getStateId();
+
+        getFullScreenScale();
+        if (TaskAnimationManager.SHELL_TRANSITIONS_ROTATION) {
+            // With shell transitions, the display is rotated early so we need to actually use
+            // the rotation when the gesture starts
+            mThumbnailData.rotation = mOrientationState.getTouchRotation();
+        } else {
+            mThumbnailData.rotation = mOrientationState.getDisplayRotation();
+        }
+
+        // mIsRecentsRtl is the inverse of TaskView RTL.
+        boolean isRtlEnabled = !mIsRecentsRtl;
+        mPositionHelper.updateThumbnailMatrix(
+                mThumbnailPosition, mThumbnailData, mTaskRect.width(), mTaskRect.height(),
+                mDp.isTablet, mOrientationState.getRecentsActivityRotation(), isRtlEnabled);
+        mPositionHelper.getMatrix().invert(mInversePositionMatrix);
+        if (DEBUG) {
+            Log.d(TAG, " taskRect: " + mTaskRect);
+        }
     }
 
     @Override

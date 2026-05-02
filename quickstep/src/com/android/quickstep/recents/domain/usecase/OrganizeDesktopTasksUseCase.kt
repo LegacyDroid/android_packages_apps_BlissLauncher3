@@ -76,11 +76,6 @@ class OrganizeDesktopTasksUseCase {
         availableLayoutBounds: Rect,
         validTaskBounds: List<DesktopTaskBoundsData>,
     ): List<RectF> {
-        // Right bound of the narrowest row.
-        var minRight: Int
-        // Right bound of the widest row.
-        var maxRight: Int
-
         // Keep track of the difference between the narrowest and the widest row.
         // Initially this is set to the worst it can ever be assuming the windows fit.
         var widthDiff = availableLayoutBounds.width()
@@ -117,27 +112,24 @@ class OrganizeDesktopTasksUseCase {
                 )
             val allWindowsFit = fitWindowResult.allWindowsFit
             resultRects = fitWindowResult.calculatedBounds
-            minRight = fitWindowResult.minRight
-            maxRight = fitWindowResult.maxRight
+            val minRight = fitWindowResult.minRight
+            val maxRight = fitWindowResult.maxRight
 
             if (heightFixed) {
-                if (!allWindowsFit) {
-                    // Revert the previous change to [rightBound] and do one last pass.
+                val outcome = handleHeightFixed(allWindowsFit, maxRight, availableLayoutBounds.left)
+                if (outcome == LoopOutcome.RevertAndExit) {
                     rightBound++
                     makeLastAdjustment = true
                     break
                 }
-                // Break if all the windows are zero-width at the current scale.
-                if (maxRight <= availableLayoutBounds.left) {
+                if (outcome == LoopOutcome.Exit) {
                     break
                 }
             } else {
-                // Find the optimal row height bisecting between [lowHeight] and [highHeight].
-                if (allWindowsFit) {
-                    lowHeight = optimalHeight.toInt()
-                } else {
-                    highHeight = optimalHeight.toInt()
-                }
+                val nextLowHigh =
+                    bisectOptimalHeight(allWindowsFit, optimalHeight.toInt(), lowHeight, highHeight)
+                lowHeight = nextLowHigh.first
+                highHeight = nextLowHigh.second
                 optimalHeight = 0.5f * (lowHeight + highHeight)
                 // When height can no longer be improved, start balancing the rows.
                 if (optimalHeight.toInt() == lowHeight) {
@@ -174,6 +166,39 @@ class OrganizeDesktopTasksUseCase {
         }
 
         return resultRects
+    }
+
+    private enum class LoopOutcome { Continue, Exit, RevertAndExit }
+
+    /** Decides how the height-fixed branch should affect the bisection loop. */
+    private fun handleHeightFixed(
+        allWindowsFit: Boolean,
+        maxRight: Int,
+        layoutLeft: Int,
+    ): LoopOutcome {
+        if (!allWindowsFit) {
+            // Revert the previous change to [rightBound] and do one last pass.
+            return LoopOutcome.RevertAndExit
+        }
+        // Break if all the windows are zero-width at the current scale.
+        if (maxRight <= layoutLeft) {
+            return LoopOutcome.Exit
+        }
+        return LoopOutcome.Continue
+    }
+
+    /** Find the optimal row height bisecting between [lowHeight] and [highHeight]. */
+    private fun bisectOptimalHeight(
+        allWindowsFit: Boolean,
+        currentOptimalHeight: Int,
+        lowHeight: Int,
+        highHeight: Int,
+    ): Pair<Int, Int> {
+        return if (allWindowsFit) {
+            currentOptimalHeight to highHeight
+        } else {
+            lowHeight to currentOptimalHeight
+        }
     }
 
     /**

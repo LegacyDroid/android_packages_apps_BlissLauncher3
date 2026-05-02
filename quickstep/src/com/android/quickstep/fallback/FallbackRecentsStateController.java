@@ -98,47 +98,10 @@ public class FallbackRecentsStateController implements StateHandler<RecentsState
 
     private void setProperties(RecentsState state, StateAnimationConfig config,
             PropertySetter setter) {
-        float clearAllButtonAlpha = state.hasClearAllButton() ? 1 : 0;
-        setter.setFloat(mRecentsView.getClearAllButton(),
-                ClearAllButton.VISIBILITY_ALPHA, clearAllButtonAlpha, LINEAR);
-        if (mRecentsView.getAddDeskButton() != null) {
-            float addDeskButtonAlpha = state.hasAddDeskButton() ? 1 : 0;
-            setter.setFloat(mRecentsView.getAddDeskButton(), AddDesktopButton.VISIBILITY_ALPHA,
-                    addDeskButtonAlpha, LINEAR);
-        }
-        float overviewButtonAlpha = state.hasOverviewActions() ? 1 : 0;
-        setter.setFloat(mRecentsViewContainer.getActionsView().getVisibilityAlpha(),
-                AnimatedFloat.VALUE_PROPERTY, overviewButtonAlpha, LINEAR);
-
-        float[] scaleAndOffset = state.getOverviewScaleAndOffset(mRecentsViewContainer);
-        setter.setFloat(mRecentsView, RECENTS_SCALE_PROPERTY, scaleAndOffset[0],
-                config.getInterpolator(ANIM_OVERVIEW_SCALE, LINEAR));
-        setter.setFloat(mRecentsView, ADJACENT_PAGE_HORIZONTAL_OFFSET, scaleAndOffset[1],
-                config.getInterpolator(ANIM_OVERVIEW_TRANSLATE_X, LINEAR));
-        setter.setFloat(mRecentsView, TASK_SECONDARY_TRANSLATION, 0f,
-                config.getInterpolator(ANIM_OVERVIEW_TRANSLATE_Y, LINEAR));
-
-        setter.setFloat(mRecentsView, TASK_MODALNESS, state.getOverviewModalness(),
-                config.getInterpolator(ANIM_OVERVIEW_MODAL,
-                        enableGridOnlyOverview() && !state.isRecentsViewVisible() ? FINAL_FRAME
-                                : LINEAR));
-        setter.setFloat(mRecentsView, FULLSCREEN_PROGRESS, state.isFullScreen() ? 1 : 0, LINEAR);
-        boolean showAsGrid =
-                state.displayOverviewTasksAsGrid(mRecentsViewContainer.getDeviceProfile());
-        setter.setFloat(mRecentsView, RECENTS_GRID_PROGRESS, showAsGrid ? 1f : 0f,
-                getOverviewInterpolator(state));
-        setter.setFloat(mRecentsView, TASK_THUMBNAIL_SPLASH_ALPHA,
-                state.showTaskThumbnailSplash() ? 1f : 0f, getOverviewInterpolator(state));
-        if (enableLargeDesktopWindowingTile()) {
-            setter.setFloat(mRecentsView, DESKTOP_CAROUSEL_DETACH_PROGRESS,
-                    state.detachDesktopCarousel() ? 1f : 0f,
-                    getOverviewInterpolator(state));
-        }
-        if (enableDesktopExplodedView()) {
-            setter.setFloat(mRecentsView, DESK_EXPLODE_PROGRESS,
-                    state.showExplodedDesktopView() ? 1f : 0f,
-                    getOverviewInterpolator(state));
-        }
+        applyButtonAlphas(state, setter);
+        applyOverviewTransforms(state, config, setter);
+        applyOverviewModeProgress(state, setter);
+        applyDesktopProgress(state, setter);
 
         setter.setViewBackgroundColor(mRecentsViewContainer.getScrimView(),
                 state.getScrimColor(mRecentsViewContainer.asContext()),
@@ -158,6 +121,59 @@ public class FallbackRecentsStateController implements StateHandler<RecentsState
         setter.setFloat(mRecentsView, taskViewsFloat.first, isSplitSelectionState(state)
                 ? mRecentsView.getSplitSelectTranslation() : 0, LINEAR);
         setter.setFloat(mRecentsView, taskViewsFloat.second, 0, LINEAR);
+    }
+
+    private void applyButtonAlphas(RecentsState state, PropertySetter setter) {
+        float clearAllButtonAlpha = state.hasClearAllButton() ? 1 : 0;
+        setter.setFloat(mRecentsView.getClearAllButton(),
+                ClearAllButton.VISIBILITY_ALPHA, clearAllButtonAlpha, LINEAR);
+        if (mRecentsView.getAddDeskButton() != null) {
+            float addDeskButtonAlpha = state.hasAddDeskButton() ? 1 : 0;
+            setter.setFloat(mRecentsView.getAddDeskButton(), AddDesktopButton.VISIBILITY_ALPHA,
+                    addDeskButtonAlpha, LINEAR);
+        }
+        float overviewButtonAlpha = state.hasOverviewActions() ? 1 : 0;
+        setter.setFloat(mRecentsViewContainer.getActionsView().getVisibilityAlpha(),
+                AnimatedFloat.VALUE_PROPERTY, overviewButtonAlpha, LINEAR);
+    }
+
+    private void applyOverviewTransforms(RecentsState state, StateAnimationConfig config,
+            PropertySetter setter) {
+        float[] scaleAndOffset = state.getOverviewScaleAndOffset(mRecentsViewContainer);
+        setter.setFloat(mRecentsView, RECENTS_SCALE_PROPERTY, scaleAndOffset[0],
+                config.getInterpolator(ANIM_OVERVIEW_SCALE, LINEAR));
+        setter.setFloat(mRecentsView, ADJACENT_PAGE_HORIZONTAL_OFFSET, scaleAndOffset[1],
+                config.getInterpolator(ANIM_OVERVIEW_TRANSLATE_X, LINEAR));
+        setter.setFloat(mRecentsView, TASK_SECONDARY_TRANSLATION, 0f,
+                config.getInterpolator(ANIM_OVERVIEW_TRANSLATE_Y, LINEAR));
+
+        setter.setFloat(mRecentsView, TASK_MODALNESS, state.getOverviewModalness(),
+                config.getInterpolator(ANIM_OVERVIEW_MODAL,
+                        enableGridOnlyOverview() && !state.isRecentsViewVisible() ? FINAL_FRAME
+                                : LINEAR));
+    }
+
+    private void applyOverviewModeProgress(RecentsState state, PropertySetter setter) {
+        setter.setFloat(mRecentsView, FULLSCREEN_PROGRESS, state.isFullScreen() ? 1 : 0, LINEAR);
+        boolean showAsGrid =
+                state.displayOverviewTasksAsGrid(mRecentsViewContainer.getDeviceProfile());
+        setter.setFloat(mRecentsView, RECENTS_GRID_PROGRESS, showAsGrid ? 1f : 0f,
+                getOverviewInterpolator(state));
+        setter.setFloat(mRecentsView, TASK_THUMBNAIL_SPLASH_ALPHA,
+                state.showTaskThumbnailSplash() ? 1f : 0f, getOverviewInterpolator(state));
+    }
+
+    private void applyDesktopProgress(RecentsState state, PropertySetter setter) {
+        if (enableLargeDesktopWindowingTile()) {
+            setter.setFloat(mRecentsView, DESKTOP_CAROUSEL_DETACH_PROGRESS,
+                    state.detachDesktopCarousel() ? 1f : 0f,
+                    getOverviewInterpolator(state));
+        }
+        if (enableDesktopExplodedView()) {
+            setter.setFloat(mRecentsView, DESK_EXPLODE_PROGRESS,
+                    state.showExplodedDesktopView() ? 1f : 0f,
+                    getOverviewInterpolator(state));
+        }
     }
 
     private Interpolator getOverviewInterpolator(RecentsState toState) {

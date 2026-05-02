@@ -417,9 +417,13 @@ class RecentsWindowManager(context: Context, wallpaperColorHints: Int) :
         return actionsView
     }
 
-    override fun addForceInvisibleFlag(flag: Int) {}
+    override fun addForceInvisibleFlag(flag: Int) {
+        /* no-op: default implementation; override to handle force-invisible flags */
+    }
 
-    override fun clearForceInvisibleFlag(flag: Int) {}
+    override fun clearForceInvisibleFlag(flag: Int) {
+        /* no-op: default implementation; override to handle force-invisible flag clearing */
+    }
 
     override fun setLocusContext(id: LocusId?, bundle: Bundle?) {
         // no op
@@ -451,7 +455,9 @@ class RecentsWindowManager(context: Context, wallpaperColorHints: Int) :
 
     override fun removeMultiWindowModeChangedListener(
         listener: BaseActivity.MultiWindowModeChangedListener?
-    ) {}
+    ) {
+        /* no-op: default implementation; override to handle multi-window listener removal */
+    }
 
     override fun returnToHomescreen() {
         startHome()

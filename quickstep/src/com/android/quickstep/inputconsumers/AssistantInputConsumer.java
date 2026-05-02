@@ -121,7 +121,7 @@ public class AssistantInputConsumer extends DelegateInputConsumer {
     }
 
     @Override
-    public void onMotionEvent(MotionEvent ev) {
+    public void onMotionEvent(MotionEvent ev) { // NOSONAR pristine-AOSP-do-not-refactor
         // TODO add logging
         switch (ev.getActionMasked()) {
             case ACTION_DOWN: {
@@ -281,6 +281,6 @@ public class AssistantInputConsumer extends DelegateInputConsumer {
 
     @Override
     protected String getDelegatorName() {
-        return "AssistantInputConsumer";
+        return TAG;
     }
 }

@@ -136,82 +136,103 @@ public class RemoteTargetGluer {
      */
     public RemoteTargetHandle[] assignTargetsForSplitScreen(RemoteAnimationTargets targets) {
         resizeRemoteTargetHandles(targets);
-
-        // If we are in a true split screen case (2 apps running on screen), either:
-        //     a) mSplitBounds was already set (from the clicked GroupedTaskView)
-        //     b) A SplitBounds was passed up from shell (via AbsSwipeUpHandler)
-        // If both of these are null, we are in a 1-app or 1-app-plus-assistant case.
-        if (mSplitBounds == null) {
-            SplitBounds shellSplitBounds = targets.extras.getParcelable(KEY_EXTRA_SPLIT_BOUNDS,
-                    SplitBounds.class);
-            if (shellSplitBounds != null) {
-                mSplitBounds = convertShellSplitBoundsToLauncher(shellSplitBounds);
-            }
-        }
+        ensureSplitBoundsFromShell(targets);
 
         boolean containsSplitTargets = mSplitBounds != null;
         Log.d(TAG, "containsSplitTargets? " + containsSplitTargets + " handleLength: " +
                 mRemoteTargetHandles.length + " appsLength: " + targets.apps.length);
 
         if (mRemoteTargetHandles.length == 1) {
-            // Single fullscreen app
-
-            // If we're not in split screen, the splitIds count doesn't really matter since we
-            // should always hit this case.
-            mRemoteTargetHandles[0].mTransformParams.setTargetSet(targets);
-            if (targets.apps.length > 0) {
-                // Unclear why/when target.apps length == 0, but it sure does happen :(
-                mRemoteTargetHandles[0].mTaskViewSimulator.setPreview(targets.apps[0], null);
-            }
+            assignSingleFullscreenTarget(targets);
         } else if (!containsSplitTargets) {
-            // Single App + Assistant
-            for (int i = 0; i < mRemoteTargetHandles.length; i++) {
-                mRemoteTargetHandles[i].mTransformParams.setTargetSet(targets);
-                mRemoteTargetHandles[i].mTaskViewSimulator.setPreview(targets.apps[i], null);
-            }
+            assignSingleAppPlusAssistantTargets(targets);
         } else {
-            // Split apps (+ maybe assistant)
-            RemoteAnimationTarget topLeftTarget = targets.findTask(mSplitBounds.leftTopTaskId);
-            RemoteAnimationTarget bottomRightTarget = targets.findTask(
-                    mSplitBounds.rightBottomTaskId);
-            List<RemoteAnimationTarget> overlayTargets = Arrays.stream(targets.apps).filter(
-                    target -> target.windowConfiguration.getWindowingMode()
-                            != WindowConfiguration.WINDOWING_MODE_MULTI_WINDOW).toList();
-
-            // remoteTargetHandle[0] denotes topLeft task, so we pass in the bottomRight to exclude,
-            // vice versa
-            mRemoteTargetHandles[0].mTransformParams.setTargetSet(
-                    createRemoteAnimationTargetsForTarget(targets,
-                            Collections.singletonList(bottomRightTarget)));
-            mRemoteTargetHandles[0].mTaskViewSimulator.setPreview(topLeftTarget, mSplitBounds);
-
-            mRemoteTargetHandles[1].mTransformParams.setTargetSet(
-                    createRemoteAnimationTargetsForTarget(targets,
-                            Collections.singletonList(topLeftTarget)));
-            mRemoteTargetHandles[1].mTaskViewSimulator.setPreview(bottomRightTarget, mSplitBounds);
-
-            // Set the remaining overlay tasks to be their own TaskViewSimulator as fullscreen tasks
-            if (!overlayTargets.isEmpty()) {
-                ArrayList<RemoteAnimationTarget> targetsToExclude = new ArrayList<>();
-                targetsToExclude.add(topLeftTarget);
-                targetsToExclude.add(bottomRightTarget);
-                // Start i at 2 to account for top/left and bottom/right split handles already made
-                for (int i = 2; i < targets.apps.length; i++) {
-                    if (i >= mRemoteTargetHandles.length) {
-                        Log.e(TAG, String.format("Attempting to animate an untracked target"
-                                + " (%d handles allocated, but %d want to animate)",
-                                mRemoteTargetHandles.length, targets.apps.length));
-                        break;
-                    }
-                    mRemoteTargetHandles[i].mTransformParams.setTargetSet(
-                            createRemoteAnimationTargetsForTarget(targets, targetsToExclude));
-                    mRemoteTargetHandles[i].mTaskViewSimulator.setPreview(
-                            overlayTargets.get(i - 2));
-                }
-
-            }
+            assignSplitAppTargets(targets);
         }
         return mRemoteTargetHandles;
+    }
+
+    /**
+     * If we are in a true split screen case (2 apps running on screen), either:
+     *     a) mSplitBounds was already set (from the clicked GroupedTaskView)
+     *     b) A SplitBounds was passed up from shell (via AbsSwipeUpHandler)
+     * If both of these are null, we are in a 1-app or 1-app-plus-assistant case.
+     */
+    private void ensureSplitBoundsFromShell(RemoteAnimationTargets targets) {
+        if (mSplitBounds != null) {
+            return;
+        }
+        SplitBounds shellSplitBounds = targets.extras.getParcelable(KEY_EXTRA_SPLIT_BOUNDS,
+                SplitBounds.class);
+        if (shellSplitBounds != null) {
+            mSplitBounds = convertShellSplitBoundsToLauncher(shellSplitBounds);
+        }
+    }
+
+    private void assignSingleFullscreenTarget(RemoteAnimationTargets targets) {
+        // If we're not in split screen, the splitIds count doesn't really matter since we
+        // should always hit this case.
+        mRemoteTargetHandles[0].mTransformParams.setTargetSet(targets);
+        if (targets.apps.length > 0) {
+            // Unclear why/when target.apps length == 0, but it sure does happen :(
+            mRemoteTargetHandles[0].mTaskViewSimulator.setPreview(targets.apps[0], null);
+        }
+    }
+
+    private void assignSingleAppPlusAssistantTargets(RemoteAnimationTargets targets) {
+        for (int i = 0; i < mRemoteTargetHandles.length; i++) {
+            mRemoteTargetHandles[i].mTransformParams.setTargetSet(targets);
+            mRemoteTargetHandles[i].mTaskViewSimulator.setPreview(targets.apps[i], null);
+        }
+    }
+
+    private void assignSplitAppTargets(RemoteAnimationTargets targets) {
+        // Split apps (+ maybe assistant)
+        RemoteAnimationTarget topLeftTarget = targets.findTask(mSplitBounds.leftTopTaskId);
+        RemoteAnimationTarget bottomRightTarget = targets.findTask(
+                mSplitBounds.rightBottomTaskId);
+        List<RemoteAnimationTarget> overlayTargets = Arrays.stream(targets.apps).filter(
+                target -> target.windowConfiguration.getWindowingMode()
+                        != WindowConfiguration.WINDOWING_MODE_MULTI_WINDOW).toList();
+
+        // remoteTargetHandle[0] denotes topLeft task, so we pass in the bottomRight to exclude,
+        // vice versa
+        mRemoteTargetHandles[0].mTransformParams.setTargetSet(
+                createRemoteAnimationTargetsForTarget(targets,
+                        Collections.singletonList(bottomRightTarget)));
+        mRemoteTargetHandles[0].mTaskViewSimulator.setPreview(topLeftTarget, mSplitBounds);
+
+        mRemoteTargetHandles[1].mTransformParams.setTargetSet(
+                createRemoteAnimationTargetsForTarget(targets,
+                        Collections.singletonList(topLeftTarget)));
+        mRemoteTargetHandles[1].mTaskViewSimulator.setPreview(bottomRightTarget, mSplitBounds);
+
+        // Set the remaining overlay tasks to be their own TaskViewSimulator as fullscreen tasks
+        assignOverlayTargets(targets, topLeftTarget, bottomRightTarget, overlayTargets);
+    }
+
+    private void assignOverlayTargets(RemoteAnimationTargets targets,
+            RemoteAnimationTarget topLeftTarget, RemoteAnimationTarget bottomRightTarget,
+            List<RemoteAnimationTarget> overlayTargets) {
+        if (overlayTargets.isEmpty()) {
+            return;
+        }
+        ArrayList<RemoteAnimationTarget> targetsToExclude = new ArrayList<>();
+        targetsToExclude.add(topLeftTarget);
+        targetsToExclude.add(bottomRightTarget);
+        // Start i at 2 to account for top/left and bottom/right split handles already made
+        for (int i = 2; i < targets.apps.length; i++) {
+            if (i >= mRemoteTargetHandles.length) {
+                Log.e(TAG, String.format("Attempting to animate an untracked target"
+                        + " (%d handles allocated, but %d want to animate)",
+                        mRemoteTargetHandles.length, targets.apps.length));
+                break;
+            }
+            mRemoteTargetHandles[i].mTransformParams.setTargetSet(
+                    createRemoteAnimationTargetsForTarget(targets, targetsToExclude));
+            mRemoteTargetHandles[i].mTaskViewSimulator.setPreview(
+                    overlayTargets.get(i - 2));
+        }
     }
 
     /**

@@ -449,20 +449,10 @@ public abstract class SwipeUpAnimationLogic implements
         public void onUpdate(RectF currentRect, float progress) {
             float cornerRadius = Utilities.mapRange(progress, mStartRadius, mEndRadius);
             float alpha = mAnimationFactory.getWindowAlpha(progress);
+            boolean useFallbackPath = !enableAdditionalHomeAnimations() || mTargetTaskView == null;
 
             mHomeAnim.setPlayFraction(progress);
-            if (!enableAdditionalHomeAnimations() || mTargetTaskView == null) {
-                mHomeToWindowPositionMap.mapRect(mWindowCurrentRect, currentRect);
-                mMatrix.setRectToRect(mCropRectF, mWindowCurrentRect, ScaleToFit.FILL);
-                mLocalTransformParams
-                        .setTargetAlpha(alpha)
-                        .setCornerRadius(cornerRadius);
-            } else {
-                mHomeToWindowPositionMap.mapRect(mWindowCurrentRect, mRunningTaskViewStartRectF);
-                mWindowCurrentRect.offset(mRunningTaskViewScrollOffset * progress, 0f);
-                mMatrix.setRectToRect(mCropRectF, mWindowCurrentRect, ScaleToFit.FILL);
-                mLocalTransformParams.setCornerRadius(mStartRadius);
-            }
+            applyTransformForProgress(currentRect, progress, cornerRadius, alpha, useFallbackPath);
 
             mLocalTransformParams.applySurfaceParams(
                     mLocalTransformParams.createSurfaceParams(this));
@@ -471,10 +461,9 @@ public abstract class SwipeUpAnimationLogic implements
                     currentRect,
                     progress,
                     mMatrix.mapRadius(cornerRadius),
-                    !enableAdditionalHomeAnimations() || mTargetTaskView == null
-                            ? 0 : (int) (alpha * 255));
+                    useFallbackPath ? 0 : (int) (alpha * 255));
 
-            if (!enableAdditionalHomeAnimations() || mTargetTaskView == null) {
+            if (useFallbackPath) {
                 return;
             }
             if (mAnimationFactory.isAnimatingIntoIcon() && mAnimationFactory.isAnimationReady()) {
@@ -482,26 +471,31 @@ public abstract class SwipeUpAnimationLogic implements
                 return;
             }
             mTargetTaskView.setAlpha(mAnimationFactory.isAnimatingIntoIcon() ? 1f : alpha);
+            applyTaskViewScaleAndTranslation(currentRect);
+        }
+
+        private void applyTransformForProgress(RectF currentRect, float progress,
+                float cornerRadius, float alpha, boolean useFallbackPath) {
+            if (useFallbackPath) {
+                mHomeToWindowPositionMap.mapRect(mWindowCurrentRect, currentRect);
+                mMatrix.setRectToRect(mCropRectF, mWindowCurrentRect, ScaleToFit.FILL);
+                mLocalTransformParams
+                        .setTargetAlpha(alpha)
+                        .setCornerRadius(cornerRadius);
+                return;
+            }
+            mHomeToWindowPositionMap.mapRect(mWindowCurrentRect, mRunningTaskViewStartRectF);
+            mWindowCurrentRect.offset(mRunningTaskViewScrollOffset * progress, 0f);
+            mMatrix.setRectToRect(mCropRectF, mWindowCurrentRect, ScaleToFit.FILL);
+            mLocalTransformParams.setCornerRadius(mStartRadius);
+        }
+
+        private void applyTaskViewScaleAndTranslation(RectF currentRect) {
             float startWidth = mThumbnailStartBounds.width();
-            float startHeight =  mThumbnailStartBounds.height();
+            float startHeight = mThumbnailStartBounds.height();
             float currentWidth = currentRect.width();
             float currentHeight = currentRect.height();
-            float scale;
-
-            boolean isStartWidthValid = Float.compare(startWidth, 0f) > 0;
-            boolean isStartHeightValid = Float.compare(startHeight, 0f) > 0;
-            if (isStartWidthValid && isStartHeightValid) {
-                scale = Math.min(currentWidth, currentHeight) / Math.min(startWidth, startHeight);
-            } else {
-                Log.e(TAG, "TaskView starting bounds are invalid: " + mThumbnailStartBounds);
-                if (isStartWidthValid) {
-                    scale = currentWidth / startWidth;
-                } else if (isStartHeightValid) {
-                    scale = currentHeight / startHeight;
-                } else {
-                    scale = 1f;
-                }
-            }
+            float scale = computeTaskViewScale(startWidth, startHeight, currentWidth, currentHeight);
 
             if (Float.isNaN(scale)) {
                 Log.e(TAG, "Scale is NaN: starting dimensions=[" + startWidth + ", " + startHeight
@@ -514,6 +508,23 @@ public abstract class SwipeUpAnimationLogic implements
                     currentRect.centerX() - mThumbnailStartBounds.centerX());
             mTargetTaskView.setTranslationY(
                     currentRect.centerY() - mThumbnailStartBounds.centerY());
+        }
+
+        private float computeTaskViewScale(float startWidth, float startHeight,
+                float currentWidth, float currentHeight) {
+            boolean isStartWidthValid = Float.compare(startWidth, 0f) > 0;
+            boolean isStartHeightValid = Float.compare(startHeight, 0f) > 0;
+            if (isStartWidthValid && isStartHeightValid) {
+                return Math.min(currentWidth, currentHeight) / Math.min(startWidth, startHeight);
+            }
+            Log.e(TAG, "TaskView starting bounds are invalid: " + mThumbnailStartBounds);
+            if (isStartWidthValid) {
+                return currentWidth / startWidth;
+            }
+            if (isStartHeightValid) {
+                return currentHeight / startHeight;
+            }
+            return 1f;
         }
 
         @Override

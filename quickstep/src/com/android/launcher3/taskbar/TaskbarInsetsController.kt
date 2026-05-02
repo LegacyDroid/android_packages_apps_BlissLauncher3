@@ -229,41 +229,62 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
     }
 
     private fun setProviderInsets(provider: InsetsFrameProvider, gravity: Int, endRotation: Int) {
+        applyPrimaryInsetsSize(provider, gravity, endRotation)
+        applyInsetsSizeOverrides(provider, gravity)
+    }
+
+    private fun applyPrimaryInsetsSize(
+        provider: InsetsFrameProvider,
+        gravity: Int,
+        endRotation: Int,
+    ) {
         val contentHeight = controllers.taskbarStashController.contentHeightToReportToApps
         val tappableHeight = controllers.taskbarStashController.tappableHeightToReportToApps
-        val res = context.resources
-        if (provider.type == navigationBars()) {
-            provider.insetsSize = getInsetsForGravityWithCutout(contentHeight, gravity, endRotation)
-        } else if (provider.type == mandatorySystemGestures()) {
-            if (context.isThreeButtonNav) {
+        when (provider.type) {
+            navigationBars() ->
                 provider.insetsSize =
                     getInsetsForGravityWithCutout(contentHeight, gravity, endRotation)
-            } else {
-                val gestureHeight =
-                    ResourceUtils.getNavbarSize(
-                        ResourceUtils.NAVBAR_BOTTOM_GESTURE_SIZE,
-                        context.resources,
-                    )
-                val isPinnedTaskbar =
-                    context.deviceProfile.isTaskbarPresent && !context.isTransientTaskbar
-                val mandatoryGestureHeight = if (isPinnedTaskbar) contentHeight else gestureHeight
+            mandatorySystemGestures() ->
                 provider.insetsSize =
-                    getInsetsForGravityWithCutout(mandatoryGestureHeight, gravity, endRotation)
-            }
-        } else if (provider.type == tappableElement()) {
-            provider.insetsSize = getInsetsForGravity(tappableHeight, gravity)
-        } else if (provider.type == systemGestures() && provider.index == INDEX_LEFT) {
+                    getMandatoryGestureInsets(contentHeight, gravity, endRotation)
+            tappableElement() ->
+                provider.insetsSize = getInsetsForGravity(tappableHeight, gravity)
+            systemGestures() -> applySystemGesturesInsets(provider)
+        }
+    }
+
+    private fun getMandatoryGestureInsets(contentHeight: Int, gravity: Int, endRotation: Int): Insets {
+        if (context.isThreeButtonNav) {
+            return getInsetsForGravityWithCutout(contentHeight, gravity, endRotation)
+        }
+        val gestureHeight =
+            ResourceUtils.getNavbarSize(
+                ResourceUtils.NAVBAR_BOTTOM_GESTURE_SIZE,
+                context.resources,
+            )
+        val isPinnedTaskbar =
+            context.deviceProfile.isTaskbarPresent && !context.isTransientTaskbar
+        val mandatoryGestureHeight = if (isPinnedTaskbar) contentHeight else gestureHeight
+        return getInsetsForGravityWithCutout(mandatoryGestureHeight, gravity, endRotation)
+    }
+
+    private fun applySystemGesturesInsets(provider: InsetsFrameProvider) {
+        val res = context.resources
+        if (provider.index == INDEX_LEFT) {
             val leftIndexInset =
                 if (context.isThreeButtonNav) 0
                 else gestureNavSettingsObserver.getLeftSensitivityForCallingUser(res)
             provider.insetsSize = Insets.of(leftIndexInset, 0, 0, 0)
-        } else if (provider.type == systemGestures() && provider.index == INDEX_RIGHT) {
+        } else if (provider.index == INDEX_RIGHT) {
             val rightIndexInset =
                 if (context.isThreeButtonNav) 0
                 else gestureNavSettingsObserver.getRightSensitivityForCallingUser(res)
             provider.insetsSize = Insets.of(0, 0, rightIndexInset, 0)
         }
+    }
 
+    private fun applyInsetsSizeOverrides(provider: InsetsFrameProvider, gravity: Int) {
+        val tappableHeight = controllers.taskbarStashController.tappableHeightToReportToApps
         // When in gesture nav, report the stashed height to the IME, to allow hiding the
         // IME navigation bar.
         val imeInsetsSize =

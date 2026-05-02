@@ -544,8 +544,8 @@ object InputConsumerUtils {
                 !launcherResumedThroughShellTransition &&
                 !previousGestureState.isRecentsAnimationRunning)
 
-        return if (gestureState.getContainerInterface<S, T>().isInLiveTileMode()) {
-            createOverviewInputConsumer<S, T>(
+        if (gestureState.getContainerInterface<S, T>().isInLiveTileMode()) {
+            return createOverviewInputConsumer<S, T>(
                 userUnlocked,
                 taskAnimationManager,
                 taskbarManager,
@@ -559,20 +559,21 @@ object InputConsumerUtils {
                     SUBSTRING_PREFIX,
                 ),
             )
-        } else if (runningTask == null) {
-            getDefaultInputConsumer(
+        }
+        if (runningTask == null) {
+            return getDefaultInputConsumer(
                 gestureState.displayId,
                 userUnlocked,
                 taskAnimationManager,
                 taskbarManager,
                 reasonString.append("%srunning task == null", SUBSTRING_PREFIX),
             )
-        } else if (
-            previousGestureAnimatedToLauncher ||
+        }
+        if (previousGestureAnimatedToLauncher ||
                 launcherResumedThroughShellTransition ||
                 forceOverviewInputConsumer
         ) {
-            createOverviewInputConsumer<S, T>(
+            return createOverviewInputConsumer<S, T>(
                 userUnlocked,
                 taskAnimationManager,
                 taskbarManager,
@@ -582,21 +583,16 @@ object InputConsumerUtils {
                 gestureState,
                 event,
                 reasonString.append(
-                    if (previousGestureAnimatedToLauncher)
-                        ("%sprevious gesture animated to launcher, " +
-                            LOG_OVERVIEW_INPUT_CONSUMER_ATTEMPT)
-                    else
-                        (if (launcherResumedThroughShellTransition)
-                            ("%slauncher resumed through a shell transition, " +
-                                LOG_OVERVIEW_INPUT_CONSUMER_ATTEMPT)
-                        else
-                            ("%sforceOverviewInputConsumer == true, " +
-                                LOG_OVERVIEW_INPUT_CONSUMER_ATTEMPT)),
+                    overviewConsumerReason(
+                        previousGestureAnimatedToLauncher,
+                        launcherResumedThroughShellTransition,
+                    ),
                     SUBSTRING_PREFIX,
                 ),
             )
-        } else if (deviceState.isGestureBlockedTask(runningTask) || launcherChildActivityResumed) {
-            getDefaultInputConsumer(
+        }
+        if (deviceState.isGestureBlockedTask(runningTask) || launcherChildActivityResumed) {
+            return getDefaultInputConsumer(
                 gestureState.displayId,
                 userUnlocked,
                 taskAnimationManager,
@@ -608,21 +604,35 @@ object InputConsumerUtils {
                     SUBSTRING_PREFIX,
                 ),
             )
-        } else {
-            reasonString.append("%susing OtherActivityInputConsumer", SUBSTRING_PREFIX)
-            createOtherActivityInputConsumer<S, T>(
-                context,
-                swipeUpHandlerFactory,
-                overviewComponentObserver,
-                deviceState,
-                taskAnimationManager,
-                inputMonitorCompat,
-                onCompleteCallback,
-                inputEventReceiver,
-                gestureState,
-                event,
-            )
         }
+        reasonString.append("%susing OtherActivityInputConsumer", SUBSTRING_PREFIX)
+        return createOtherActivityInputConsumer<S, T>(
+            context,
+            swipeUpHandlerFactory,
+            overviewComponentObserver,
+            deviceState,
+            taskAnimationManager,
+            inputMonitorCompat,
+            onCompleteCallback,
+            inputEventReceiver,
+            gestureState,
+            event,
+        )
+    }
+
+    private fun overviewConsumerReason(
+        previousGestureAnimatedToLauncher: Boolean,
+        launcherResumedThroughShellTransition: Boolean,
+    ): String {
+        if (previousGestureAnimatedToLauncher) {
+            return "%sprevious gesture animated to launcher, " +
+                LOG_OVERVIEW_INPUT_CONSUMER_ATTEMPT
+        }
+        if (launcherResumedThroughShellTransition) {
+            return "%slauncher resumed through a shell transition, " +
+                LOG_OVERVIEW_INPUT_CONSUMER_ATTEMPT
+        }
+        return "%sforceOverviewInputConsumer == true, " + LOG_OVERVIEW_INPUT_CONSUMER_ATTEMPT
     }
 
     private fun maybeReplaceRunningTaskWithVisibleNonExcluded(

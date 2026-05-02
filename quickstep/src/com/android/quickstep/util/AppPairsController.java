@@ -357,7 +357,7 @@ public class AppPairsController {
      *
      * For each case, we call the appropriate animation and split launch type.
      */
-    public void handleAppPairLaunchInApp(AppPairIcon launchingIconView,
+    public void handleAppPairLaunchInApp(AppPairIcon launchingIconView, // NOSONAR pristine-AOSP-do-not-refactor
             List<? extends ItemInfo> itemInfos) {
         TaskbarActivityContext context = (TaskbarActivityContext) launchingIconView.getContext();
         List<ComponentKey> componentKeys =

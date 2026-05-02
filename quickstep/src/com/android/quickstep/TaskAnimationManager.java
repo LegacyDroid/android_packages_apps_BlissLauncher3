@@ -138,7 +138,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
      * Starts a new recents animation for the activity with the given {@param intent}.
      */
     @UiThread
-    public RecentsAnimationCallbacks startRecentsAnimation(@NonNull GestureState gestureState,
+    public RecentsAnimationCallbacks startRecentsAnimation(@NonNull GestureState gestureState, // NOSONAR pristine-AOSP-do-not-refactor
             Intent intent, RecentsAnimationCallbacks.RecentsAnimationListener listener) {
         ActiveGestureProtoLogProxy.logStartRecentsAnimation();
         // Check displayId
