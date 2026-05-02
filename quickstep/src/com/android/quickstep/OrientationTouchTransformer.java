@@ -406,6 +406,9 @@ class OrientationTouchTransformer {
                 }
                 break;
             }
+            default:
+                // Other motion actions are not handled here.
+                break;
         }
     }
 

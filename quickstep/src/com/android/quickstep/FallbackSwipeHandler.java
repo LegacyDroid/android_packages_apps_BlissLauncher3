@@ -92,7 +92,7 @@ public class FallbackSwipeHandler extends
      * avoid leaking too make binders in case the receiving launcher does not handle the contract
      * properly.
      */
-    private static StaticMessageReceiver sMessageReceiver = null;
+    private static volatile StaticMessageReceiver sMessageReceiver = null;
 
     private FallbackHomeAnimationFactory mActiveAnimationFactory;
     private final boolean mRunningOverHome;
@@ -409,15 +409,22 @@ public class FallbackSwipeHandler extends
 
             TaskKey key = new TaskKey(runningTaskInfo);
             if (key.getComponent() != null) {
-                if (sMessageReceiver == null) {
-                    sMessageReceiver = new StaticMessageReceiver();
+                StaticMessageReceiver receiver = sMessageReceiver;
+                if (receiver == null) {
+                    synchronized (FallbackSwipeHandler.class) {
+                        receiver = sMessageReceiver;
+                        if (receiver == null) {
+                            receiver = new StaticMessageReceiver();
+                            sMessageReceiver = receiver;
+                        }
+                    }
                 }
 
                 Bundle gestureNavContract = new Bundle();
                 gestureNavContract.putParcelable(EXTRA_COMPONENT_NAME, key.getComponent());
                 gestureNavContract.putParcelable(EXTRA_USER, UserHandle.of(key.userId));
                 gestureNavContract.putParcelable(
-                        EXTRA_REMOTE_CALLBACK, sMessageReceiver.newCallback(this));
+                        EXTRA_REMOTE_CALLBACK, receiver.newCallback(this));
                 intent.putExtra(EXTRA_GESTURE_CONTRACT, gestureNavContract);
             }
         }

@@ -159,7 +159,9 @@ public class LauncherBackAnimationController {
         }
 
         @Override
-        public void onLowMemory() {}
+        public void onLowMemory() {
+            // no-op: nothing to release on low memory for back-animation resources
+        }
     };
 
     public LauncherBackAnimationController(
@@ -330,7 +332,9 @@ public class LauncherBackAnimationController {
         }
 
         @Override
-        public void onAnimationCancelled() {}
+        public void onAnimationCancelled() {
+            // no-op: cancellation is handled elsewhere via gesture/back state machinery
+        }
     }
 
     private void onCancelFinished() {

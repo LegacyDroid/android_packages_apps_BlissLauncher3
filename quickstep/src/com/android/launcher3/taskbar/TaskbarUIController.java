@@ -87,19 +87,19 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
         return true;
     }
 
-    protected void onStashedInAppChanged() { }
+    protected void onStashedInAppChanged() { /* no-op: base hook; subclasses override */ }
 
     /**
      * Called when taskbar icon layout bounds change.
      */
-    protected void onIconLayoutBoundsChanged() { }
+    protected void onIconLayoutBoundsChanged() { /* no-op: base hook; subclasses react to bounds changes */ }
 
     protected String getTaskbarUIControllerName() {
         return "TaskbarUIController";
     }
 
     /** Called when an icon is launched. */
-    public void onTaskbarIconLaunched(ItemInfo item) { }
+    public void onTaskbarIconLaunched(ItemInfo item) { /* no-op: base hook; subclasses log/track launches */ }
 
     public View getRootView() {
         return mControllers.taskbarActivityContext.getDragLayer();
@@ -139,6 +139,7 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
      * SysUI flags updated, see QuickStepContract.SYSUI_STATE_* values.
      */
     public void updateStateForSysuiFlags(@SystemUiStateFlags long sysuiFlags) {
+        /* no-op: base controller ignores SysUI flag changes; subclasses override */
     }
 
     /**
@@ -201,7 +202,7 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
      * Skips to the end of the animation to Hotseat - should only be used if
      * {@link #isAnimatingToHotseat()} returns true.
      */
-    public void endAnimationToHotseat() {}
+    public void endAnimationToHotseat() { /* no-op: base controller has no hotseat animation to end */ }
 
     /** Returns {@code true} if Taskbar is currently within overview. */
     protected boolean isInOverviewUi() {
@@ -342,7 +343,9 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
      * Launches the given task in split-screen.
      */
     public void launchSplitTasks(
-            @NonNull SplitTask splitTask, @Nullable RemoteTransition remoteTransition) { }
+            @NonNull SplitTask splitTask, @Nullable RemoteTransition remoteTransition) {
+        /* no-op: base controller doesn't launch split tasks; subclasses override */
+    }
 
     /**
      * Returns the matching view (if any) in the taskbar.
@@ -381,7 +384,7 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
     /**
      * Refreshes the resumed state of this ui controller.
      */
-    public void refreshResumedState() {}
+    public void refreshResumedState() { /* no-op: base controller has no resumed state to refresh */ }
 
     /**
      * Returns a stream of split screen menu options appropriate to the device.
@@ -394,7 +397,7 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
     }
 
     /** Adjusts the hotseat for the bubble bar. */
-    public void adjustHotseatForBubbleBar(boolean isBubbleBarVisible) {}
+    public void adjustHotseatForBubbleBar(boolean isBubbleBarVisible) { /* no-op: base controller has no hotseat to adjust */ }
 
     /**
      * Launches the focused task in the Keyboard Quick Switch view through the OverviewCommandHelper
@@ -439,24 +442,29 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
 
     /** Sets whether the hotseat is stashed */
     public void stashHotseat(boolean stash) {
+        /* no-op: base controller has no hotseat to stash; subclasses override */
     }
 
     @Override
     public void onBubbleBarLocationAnimated(BubbleBarLocation location) {
+        /* no-op: base controller doesn't react to bubble bar location animation */
     }
 
     @Override
     public void onBubbleBarLocationUpdated(BubbleBarLocation location) {
+        /* no-op: base controller doesn't react to bubble bar location updates */
     }
 
     /** Un-stash the hotseat instantly */
     public void unStashHotseatInstantly() {
+        /* no-op: base controller has no hotseat to unstash; subclasses override */
     }
 
     /**
      * Called when we want to unstash taskbar when user performs swipes up gesture.
      */
     public void onSwipeToUnstashTaskbar() {
+        /* no-op: base controller doesn't handle swipe-to-unstash; subclasses override */
     }
 
     /**

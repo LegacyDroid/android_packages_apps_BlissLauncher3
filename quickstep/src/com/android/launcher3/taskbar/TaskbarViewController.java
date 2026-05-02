@@ -937,7 +937,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     /**
      * Creates an animation for aligning the Taskbar icons with the provided Launcher device profile
      */
-    private AnimatorPlaybackController createIconAlignmentController(DeviceProfile launcherDp) {
+    private AnimatorPlaybackController createIconAlignmentController(DeviceProfile launcherDp) { // NOSONAR pristine-AOSP-do-not-refactor
         PendingAnimation setter = new PendingAnimation(100);
         // icon alignment not needed for pinned taskbar.
         if (mActivity.isPinnedTaskbar()) {

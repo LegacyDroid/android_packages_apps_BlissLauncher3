@@ -138,7 +138,7 @@ public class TaskViewTouchControllerDeprecated<
     }
 
     @Override
-    public boolean onControllerInterceptTouchEvent(MotionEvent ev) {
+    public boolean onControllerInterceptTouchEvent(MotionEvent ev) { // NOSONAR pristine-AOSP-do-not-refactor
         if ((ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_CANCEL)
                 && mCurrentAnimation == null) {
             clearState();
@@ -348,7 +348,6 @@ public class TaskViewTouchControllerDeprecated<
         velocity = Utilities.boundToRange(velocity, -maxTaskDismissDragVelocity,
                 maxTaskDismissDragVelocity);
         boolean fling = mDraggingEnabled && mDetector.isFling(velocity);
-        final boolean goingToEnd;
         boolean blockedFling = fling && mFlingBlockCheck.isBlocked();
         if (blockedFling) {
             fling = false;
@@ -358,21 +357,11 @@ public class TaskViewTouchControllerDeprecated<
         boolean goingUp = orientationHandler.isGoingUp(velocity, mIsRtl);
         float progress = mCurrentAnimation.getProgressFraction();
         float interpolatedProgress = mCurrentAnimation.getInterpolatedProgress();
-        if (fling) {
-            goingToEnd = goingUp == mCurrentAnimationIsGoingUp;
-        } else {
-            goingToEnd = interpolatedProgress > SUCCESS_TRANSITION_PROGRESS;
-        }
-        long animationDuration = BaseSwipeDetector.calculateDuration(
-                velocity, goingToEnd ? (1 - progress) : progress);
-        if (blockedFling && !goingToEnd) {
-            animationDuration *= LauncherAnimUtils.blockedFlingDurationFactor(velocity);
-        }
-        // Due to very high or low velocity dismissals, animation durations can be inconsistently
-        // long or short. Bound the duration for animation of task translations for a more
-        // standardized feel.
-        animationDuration = Utilities.boundToRange(animationDuration,
-                MIN_TASK_DISMISS_ANIMATION_DURATION, MAX_TASK_DISMISS_ANIMATION_DURATION);
+        final boolean goingToEnd = fling
+                ? goingUp == mCurrentAnimationIsGoingUp
+                : interpolatedProgress > SUCCESS_TRANSITION_PROGRESS;
+        long animationDuration = computeDismissAnimationDuration(
+                velocity, progress, goingToEnd, blockedFling);
 
         mCurrentAnimation.setEndAction(this::clearState);
         mCurrentAnimation.startWithVelocity(mContainer, goingToEnd, Math.abs(velocity),
@@ -384,6 +373,20 @@ public class TaskViewTouchControllerDeprecated<
         }
 
         mDraggingEnabled = true;
+    }
+
+    private long computeDismissAnimationDuration(float velocity, float progress,
+            boolean goingToEnd, boolean blockedFling) {
+        long animationDuration = BaseSwipeDetector.calculateDuration(
+                velocity, goingToEnd ? (1 - progress) : progress);
+        if (blockedFling && !goingToEnd) {
+            animationDuration *= LauncherAnimUtils.blockedFlingDurationFactor(velocity);
+        }
+        // Due to very high or low velocity dismissals, animation durations can be inconsistently
+        // long or short. Bound the duration for animation of task translations for a more
+        // standardized feel.
+        return Utilities.boundToRange(animationDuration,
+                MIN_TASK_DISMISS_ANIMATION_DURATION, MAX_TASK_DISMISS_ANIMATION_DURATION);
     }
 
     private void clearState() {

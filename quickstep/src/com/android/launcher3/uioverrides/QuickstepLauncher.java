@@ -111,6 +111,7 @@ import androidx.annotation.BinderThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.annotation.VisibleForTesting;
 
 import com.android.app.viewcapture.ViewCaptureFactory;
 import com.android.launcher3.AbstractFloatingView;
@@ -405,6 +406,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     }
 
     @Override
+    @VisibleForTesting
     public void enableHotseatEdu(boolean enable) {
         super.enableHotseatEdu(enable);
         mHotseatPredictionController.enableHotseatEdu(enable);
@@ -1560,6 +1562,9 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 AnalogClock ac = new AnalogClock(context, attrs);
                 ac.setClockEventDelegate(AsyncClockEventDelegate.INSTANCE.get(this));
                 return ac;
+            }
+            default -> {
+                // Fall through to super for all other view names.
             }
         }
         return super.onCreateView(parent, name, context, attrs);

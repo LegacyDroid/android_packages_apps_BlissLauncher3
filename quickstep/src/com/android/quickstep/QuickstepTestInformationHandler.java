@@ -201,6 +201,9 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             case TestProtocol.REQUEST_EJECT_FAKE_TRACKPAD:
                 runOnTISBinder(tisBinder -> tisBinder.ejectFakeTrackpadForTesting());
                 return response;
+            default:
+                // Unknown method; delegate to the base handler below.
+                break;
         }
 
         return super.call(method, arg, extras);

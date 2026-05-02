@@ -106,9 +106,13 @@ class BubbleAnimator(
                     listener.onAnimationEnd()
                 }
 
-                override fun onAnimationRepeat(animation: Animator) {}
+                override fun onAnimationRepeat(animation: Animator) {
+                    // no-op: bubble animations don't repeat
+                }
 
-                override fun onAnimationStart(animation: Animator) {}
+                override fun onAnimationStart(animation: Animator) {
+                    // no-op: start state is configured before launching the animator
+                }
             }
         )
         return animator

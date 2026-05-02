@@ -199,15 +199,7 @@ open class TaskbarEduTooltipController(context: Context) :
             suggestionsAnim.supportLightTheme()
             pinningAnim.supportLightTheme()
             handleEduAnimations(listOf(splitscreenAnim, suggestionsAnim, pinningAnim))
-            if (activityContext.isTransientTaskbar) {
-                splitscreenAnim.setAnimation(R.raw.taskbar_edu_splitscreen_transient)
-                suggestionsAnim.setAnimation(R.raw.taskbar_edu_suggestions_transient)
-                pinningEdu.visibility = if (enableTaskbarPinning()) VISIBLE else GONE
-            } else {
-                splitscreenAnim.setAnimation(R.raw.taskbar_edu_splitscreen_persistent)
-                suggestionsAnim.setAnimation(R.raw.taskbar_edu_suggestions_persistent)
-                pinningEdu.visibility = GONE
-            }
+            applyFeaturesEduVariantAnimations(splitscreenAnim, suggestionsAnim, pinningEdu)
 
             TypefaceUtils.setTypeface(
                 requireViewById(R.id.taskbar_edu_title),
@@ -229,25 +221,45 @@ open class TaskbarEduTooltipController(context: Context) :
             // Set up layout parameters.
             content.updateLayoutParams { width = MATCH_PARENT }
             updateLayoutParams<MarginLayoutParams> {
-                if (activityContext.isTransientTaskbar) {
-                    width =
-                        resources.getDimensionPixelSize(
-                            if (enableTaskbarPinning())
-                                R.dimen.taskbar_edu_features_tooltip_width_with_three_features
-                            else R.dimen.taskbar_edu_features_tooltip_width_with_two_features
-                        )
-
-                    bottomMargin += activityContext.deviceProfile.taskbarHeight
-                } else {
-                    width =
-                        resources.getDimensionPixelSize(
-                            R.dimen.taskbar_edu_features_tooltip_width_with_two_features
-                        )
-                }
+                applyFeaturesEduLayoutParams(this)
             }
 
             findViewById<View>(R.id.done_button)?.setOnClickListener { hide() }
             show()
+        }
+    }
+
+    private fun applyFeaturesEduVariantAnimations(
+        splitscreenAnim: LottieAnimationView,
+        suggestionsAnim: LottieAnimationView,
+        pinningEdu: View,
+    ) {
+        if (activityContext.isTransientTaskbar) {
+            splitscreenAnim.setAnimation(R.raw.taskbar_edu_splitscreen_transient)
+            suggestionsAnim.setAnimation(R.raw.taskbar_edu_suggestions_transient)
+            pinningEdu.visibility = if (enableTaskbarPinning()) VISIBLE else GONE
+        } else {
+            splitscreenAnim.setAnimation(R.raw.taskbar_edu_splitscreen_persistent)
+            suggestionsAnim.setAnimation(R.raw.taskbar_edu_suggestions_persistent)
+            pinningEdu.visibility = GONE
+        }
+    }
+
+    private fun applyFeaturesEduLayoutParams(params: MarginLayoutParams) {
+        if (activityContext.isTransientTaskbar) {
+            params.width =
+                activityContext.resources.getDimensionPixelSize(
+                    if (enableTaskbarPinning())
+                        R.dimen.taskbar_edu_features_tooltip_width_with_three_features
+                    else R.dimen.taskbar_edu_features_tooltip_width_with_two_features
+                )
+
+            params.bottomMargin += activityContext.deviceProfile.taskbarHeight
+        } else {
+            params.width =
+                activityContext.resources.getDimensionPixelSize(
+                    R.dimen.taskbar_edu_features_tooltip_width_with_two_features
+                )
         }
     }
 
@@ -295,7 +307,7 @@ open class TaskbarEduTooltipController(context: Context) :
                 gravity = Gravity.BOTTOM
                 marginStart = 0
                 width =
-                    resources.getDimensionPixelSize(
+                    activityContext.resources.getDimensionPixelSize(
                         R.dimen.taskbar_edu_features_tooltip_width_with_one_feature
                     )
             }
@@ -351,7 +363,7 @@ open class TaskbarEduTooltipController(context: Context) :
                 gravity = Gravity.BOTTOM
                 marginStart = 0
                 width =
-                    resources.getDimensionPixelSize(
+                    activityContext.resources.getDimensionPixelSize(
                         R.dimen.taskbar_edu_features_tooltip_width_with_one_feature
                     )
             }

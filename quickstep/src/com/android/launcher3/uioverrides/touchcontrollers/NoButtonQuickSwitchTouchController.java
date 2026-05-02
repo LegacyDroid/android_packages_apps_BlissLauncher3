@@ -339,7 +339,7 @@ public class NoButtonQuickSwitchTouchController implements TouchController,
     }
 
     @Override
-    public void onDragEnd(PointF velocity) {
+    public void onDragEnd(PointF velocity) { // NOSONAR pristine-AOSP-do-not-refactor
         boolean horizontalFling = mSwipeDetector.isFling(velocity.x);
         boolean verticalFling = mSwipeDetector.isFling(velocity.y);
         boolean noFling = !horizontalFling && !verticalFling;

@@ -254,40 +254,48 @@ public class BubbleBarController extends IBubblesListener.Stub {
         bundle.setClassLoader(BubbleBarUpdate.class.getClassLoader());
         BubbleBarUpdate update = bundle.getParcelable("update", BubbleBarUpdate.class);
         BubbleBarViewUpdate viewUpdate = new BubbleBarViewUpdate(update);
-        if (update.addedBubble != null
-                || update.updatedBubble != null
-                || !update.currentBubbleList.isEmpty()) {
-            // We have bubbles to load
-            BUBBLE_STATE_EXECUTOR.execute(() -> {
-                if (update.addedBubble != null) {
-                    viewUpdate.addedBubble = mBubbleCreator.populateBubble(mContext,
-                            update.addedBubble,
-                            mBarView,
-                            null /* existingBubble */);
-                }
-                if (update.updatedBubble != null) {
-                    BubbleBarBubble existingBubble = mBubbles.get(update.updatedBubble.getKey());
-                    viewUpdate.updatedBubble =
-                            mBubbleCreator.populateBubble(mContext, update.updatedBubble,
-                                    mBarView,
-                                    existingBubble);
-                }
-                if (update.currentBubbleList != null && !update.currentBubbleList.isEmpty()) {
-                    List<BubbleBarBubble> currentBubbles = new ArrayList<>();
-                    for (int i = 0; i < update.currentBubbleList.size(); i++) {
-                        BubbleBarBubble b = mBubbleCreator.populateBubble(mContext,
-                                update.currentBubbleList.get(i), mBarView,
-                                null /* existingBubble */);
-                        currentBubbles.add(b);
-                    }
-                    viewUpdate.currentBubbles = currentBubbles;
-                }
-                MAIN_EXECUTOR.execute(() -> applyViewChanges(viewUpdate));
-            });
-        } else {
+        if (!hasBubblesToLoad(update)) {
             // No bubbles to load, immediately apply the changes.
             BUBBLE_STATE_EXECUTOR.execute(
                     () -> MAIN_EXECUTOR.execute(() -> applyViewChanges(viewUpdate)));
+            return;
+        }
+        // We have bubbles to load
+        BUBBLE_STATE_EXECUTOR.execute(() -> {
+            populateBubbleUpdates(update, viewUpdate);
+            MAIN_EXECUTOR.execute(() -> applyViewChanges(viewUpdate));
+        });
+    }
+
+    private static boolean hasBubblesToLoad(BubbleBarUpdate update) {
+        return update.addedBubble != null
+                || update.updatedBubble != null
+                || !update.currentBubbleList.isEmpty();
+    }
+
+    private void populateBubbleUpdates(BubbleBarUpdate update, BubbleBarViewUpdate viewUpdate) {
+        if (update.addedBubble != null) {
+            viewUpdate.addedBubble = mBubbleCreator.populateBubble(mContext,
+                    update.addedBubble,
+                    mBarView,
+                    null /* existingBubble */);
+        }
+        if (update.updatedBubble != null) {
+            BubbleBarBubble existingBubble = mBubbles.get(update.updatedBubble.getKey());
+            viewUpdate.updatedBubble =
+                    mBubbleCreator.populateBubble(mContext, update.updatedBubble,
+                            mBarView,
+                            existingBubble);
+        }
+        if (update.currentBubbleList != null && !update.currentBubbleList.isEmpty()) {
+            List<BubbleBarBubble> currentBubbles = new ArrayList<>();
+            for (int i = 0; i < update.currentBubbleList.size(); i++) {
+                BubbleBarBubble b = mBubbleCreator.populateBubble(mContext,
+                        update.currentBubbleList.get(i), mBarView,
+                        null /* existingBubble */);
+                currentBubbles.add(b);
+            }
+            viewUpdate.currentBubbles = currentBubbles;
         }
     }
 

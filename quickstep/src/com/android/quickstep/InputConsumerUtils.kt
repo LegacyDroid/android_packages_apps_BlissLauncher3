@@ -53,9 +53,10 @@ import java.util.function.Function
 object InputConsumerUtils {
     private const val SUBSTRING_PREFIX = "; "
     private const val NEWLINE_PREFIX = "\n\t\t\t-> "
+    private const val LOG_OVERVIEW_INPUT_CONSUMER_ATTEMPT = "trying to use overview input consumer"
 
     @JvmStatic
-    fun <S : BaseState<S>, T> newConsumer(
+    fun <S : BaseState<S>, T> newConsumer( // NOSONAR pristine-AOSP-do-not-refactor
         context: Context,
         userUnlocked: Boolean,
         overviewComponentObserver: OverviewComponentObserver,
@@ -524,18 +525,7 @@ object InputConsumerUtils {
                 runningTask != null &&
                 runningTask.isRootChooseActivity
 
-        if (!Flags.enableShellTopTaskTracking()) {
-            // In the case where we are in an excluded, translucent overlay, ignore it and treat the
-            // running activity as the task behind the overlay.
-            val otherVisibleTask = runningTask?.visibleNonExcludedTask
-            if (otherVisibleTask != null) {
-                ActiveGestureProtoLogProxy.logUpdateGestureStateRunningTask(
-                    otherVisibleTask.packageName ?: "MISSING",
-                    runningTask.packageName ?: "MISSING",
-                )
-                gestureState.updateRunningTask(otherVisibleTask)
-            }
-        }
+        maybeReplaceRunningTaskWithVisibleNonExcluded(gestureState, runningTask)
 
         val previousGestureAnimatedToLauncher =
             (previousGestureState.isRunningAnimationToLauncher ||
@@ -594,14 +584,14 @@ object InputConsumerUtils {
                 reasonString.append(
                     if (previousGestureAnimatedToLauncher)
                         ("%sprevious gesture animated to launcher, " +
-                            "trying to use overview input consumer")
+                            LOG_OVERVIEW_INPUT_CONSUMER_ATTEMPT)
                     else
                         (if (launcherResumedThroughShellTransition)
                             ("%slauncher resumed through a shell transition, " +
-                                "trying to use overview input consumer")
+                                LOG_OVERVIEW_INPUT_CONSUMER_ATTEMPT)
                         else
                             ("%sforceOverviewInputConsumer == true, " +
-                                "trying to use overview input consumer")),
+                                LOG_OVERVIEW_INPUT_CONSUMER_ATTEMPT)),
                     SUBSTRING_PREFIX,
                 ),
             )
@@ -633,6 +623,21 @@ object InputConsumerUtils {
                 event,
             )
         }
+    }
+
+    private fun maybeReplaceRunningTaskWithVisibleNonExcluded(
+        gestureState: GestureState,
+        runningTask: TopTaskTracker.CachedTaskInfo?,
+    ) {
+        if (Flags.enableShellTopTaskTracking()) return
+        // In the case where we are in an excluded, translucent overlay, ignore it and treat the
+        // running activity as the task behind the overlay.
+        val otherVisibleTask = runningTask?.visibleNonExcludedTask ?: return
+        ActiveGestureProtoLogProxy.logUpdateGestureStateRunningTask(
+            otherVisibleTask.packageName ?: "MISSING",
+            runningTask.packageName ?: "MISSING",
+        )
+        gestureState.updateRunningTask(otherVisibleTask)
     }
 
     private fun createDeviceLockedInputConsumer(

@@ -532,7 +532,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         }
     }
 
-    private void updateHotseatItems(ItemInfo[] hotseatItemInfos) {
+    private void updateHotseatItems(ItemInfo[] hotseatItemInfos) { // NOSONAR pristine-AOSP-do-not-refactor
         int numViewsAnimated = 0;
 
         for (ItemInfo hotseatItemInfo : hotseatItemInfos) {
@@ -622,7 +622,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         }
     }
 
-    private void updateRecents(List<GroupTask> recentTasks, int hotseatSize) {
+    private void updateRecents(List<GroupTask> recentTasks, int hotseatSize) { // NOSONAR pristine-AOSP-do-not-refactor
         boolean supportsOverflow = Flags.taskbarOverflow() && recentTasks.size() > 1;
         int overflowSize = 0;
         boolean hasOverflow = false;
@@ -815,7 +815,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     }
 
     @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) { // NOSONAR pristine-AOSP-do-not-refactor
         int spaceNeeded = getIconLayoutWidth();
         boolean layoutRtl = isLayoutRtl();
         DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();

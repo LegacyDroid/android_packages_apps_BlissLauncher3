@@ -598,50 +598,10 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                 InteractionJankMonitorWrapper.begin(
                         KeyboardQuickSwitchView.this, Cuj.CUJ_LAUNCHER_KEYBOARD_QUICK_SWITCH_OPEN);
                 setClipToPadding(false);
-                setOutlineProvider(new ViewOutlineProvider() {
-                    @Override
-                    public void getOutline(View view, Outline outline) {
-                        outline.setRoundRect(
-                                /* rect= */ new Rect(
-                                        /* left= */ 0,
-                                        /* top= */ 0,
-                                        /* right= */ getWidth(),
-                                        /* bottom= */
-                                        (int) (getHeight() * Utilities.mapBoundToRange(
-                                                mOutlineAnimationProgress.value,
-                                                /* lowerBound= */ 0f,
-                                                /* upperBound= */ 1f,
-                                                /* toMin= */ OUTLINE_START_HEIGHT_FACTOR,
-                                                /* toMax= */ 1f,
-                                                OPEN_OUTLINE_INTERPOLATOR))),
-                                /* radius= */ mOutlineRadius * Utilities.mapBoundToRange(
-                                        mOutlineAnimationProgress.value,
-                                        /* lowerBound= */ 0f,
-                                        /* upperBound= */ 1f,
-                                        /* toMin= */ OUTLINE_START_RADIUS_FACTOR,
-                                        /* toMax= */ 1f,
-                                        OPEN_OUTLINE_INTERPOLATOR));
-                    }
-                });
+                setOutlineProvider(createOpenAnimationOutlineProvider());
 
                 if (mSupportsScrollArrows) {
-                    mScrollView.getViewTreeObserver().addOnGlobalLayoutListener(
-                            new ViewTreeObserver.OnGlobalLayoutListener() {
-                                @Override
-                                public void onGlobalLayout() {
-                                    if (mScrollView.getWidth() == 0) {
-                                        return;
-                                    }
-
-                                    if (mContent.getWidth() > mScrollView.getWidth()) {
-                                        mStartScrollArrow.setVisibility(VISIBLE);
-                                        mEndScrollArrow.setVisibility(VISIBLE);
-                                        updateArrowButtonsEnabledState();
-                                    }
-                                    mScrollView.getViewTreeObserver().removeOnGlobalLayoutListener(
-                                            this);
-                                }
-                            });
+                    installScrollArrowsLayoutListener();
                 }
 
                 animateFocusMove(-1, defaultFocusedTaskIndex);
@@ -675,7 +635,55 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
         mOpenAnimation.start();
     }
 
-    protected void animateFocusMove(int fromIndex, int toIndex) {
+    private ViewOutlineProvider createOpenAnimationOutlineProvider() {
+        return new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                outline.setRoundRect(
+                        /* rect= */ new Rect(
+                                /* left= */ 0,
+                                /* top= */ 0,
+                                /* right= */ getWidth(),
+                                /* bottom= */
+                                (int) (getHeight() * Utilities.mapBoundToRange(
+                                        mOutlineAnimationProgress.value,
+                                        /* lowerBound= */ 0f,
+                                        /* upperBound= */ 1f,
+                                        /* toMin= */ OUTLINE_START_HEIGHT_FACTOR,
+                                        /* toMax= */ 1f,
+                                        OPEN_OUTLINE_INTERPOLATOR))),
+                        /* radius= */ mOutlineRadius * Utilities.mapBoundToRange(
+                                mOutlineAnimationProgress.value,
+                                /* lowerBound= */ 0f,
+                                /* upperBound= */ 1f,
+                                /* toMin= */ OUTLINE_START_RADIUS_FACTOR,
+                                /* toMax= */ 1f,
+                                OPEN_OUTLINE_INTERPOLATOR));
+            }
+        };
+    }
+
+    private void installScrollArrowsLayoutListener() {
+        mScrollView.getViewTreeObserver().addOnGlobalLayoutListener(
+                new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        if (mScrollView.getWidth() == 0) {
+                            return;
+                        }
+
+                        if (mContent.getWidth() > mScrollView.getWidth()) {
+                            mStartScrollArrow.setVisibility(VISIBLE);
+                            mEndScrollArrow.setVisibility(VISIBLE);
+                            updateArrowButtonsEnabledState();
+                        }
+                        mScrollView.getViewTreeObserver().removeOnGlobalLayoutListener(
+                                this);
+                    }
+                });
+    }
+
+    protected void animateFocusMove(int fromIndex, int toIndex) { // NOSONAR pristine-AOSP-do-not-refactor
         if (!mDisplayingRecentTasks) {
             return;
         }

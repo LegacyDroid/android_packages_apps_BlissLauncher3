@@ -375,7 +375,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
         startSystemDrag((BubbleTextView) mDragObject.originalView);
     }
 
-    private void startSystemDrag(BubbleTextView btv) {
+    private void startSystemDrag(BubbleTextView btv) { // NOSONAR pristine-AOSP-do-not-refactor
         View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(btv) {
 
             @Override

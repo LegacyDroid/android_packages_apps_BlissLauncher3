@@ -184,6 +184,9 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
             case BUTTON_NOTIFICATIONS:
                 showNotifications();
                 break;
+            default:
+                // Unhandled button type; ignore.
+                break;
         }
     }
 

@@ -111,19 +111,9 @@ public class StatusBarTouchController implements TouchController {
         int idx = ev.getActionIndex();
         int pid = ev.getPointerId(idx);
         if (action == ACTION_DOWN) {
-            mCanIntercept = canInterceptTouch(ev);
-            if (!mCanIntercept) {
-                return false;
-            }
-
-            mDownEvents.clear();
-            mDownEvents.put(pid, new PointF(ev.getX(), ev.getY()));
-
-            if (MultiModeController.isSingleLayerMode() && mLauncher.swipeSearchContainer != null &&
-                    mLauncher.swipeSearchContainer.getVisibility() == View.VISIBLE &&
-                    ev.getY(idx) > mLauncher.swipeSearchContainer.getHeight()) {
-                setWindowSlippery(true);
-                return true;
+            Boolean downResult = handleActionDown(ev, idx, pid);
+            if (downResult != null) {
+                return downResult;
             }
         } else if (ev.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
             // Check!! should only set it only when threshold is not entered.
@@ -133,24 +123,47 @@ public class StatusBarTouchController implements TouchController {
             return false;
         }
         if (action == ACTION_MOVE && mDownEvents.contains(pid)) {
-            float dy = ev.getY(idx) - mDownEvents.get(pid).y;
-            float dx = ev.getX(idx) - mDownEvents.get(pid).x;
-            // Currently input dispatcher will not do touch transfer if there are more than
-            // one touch pointer. Hence, even if slope passed, only set the slippery flag
-            // when there is single touch event. (context: InputDispatcher.cpp line 1445)
-            if (dy > mTouchSlop && dy > Math.abs(dx) && ev.getPointerCount() == 1 &&
-                    (!MultiModeController.isSingleLayerMode() ||
-                            mLauncher.swipeSearchContainer.getVisibility() == View.GONE)) {
-                ev.setAction(ACTION_DOWN);
-                dispatchTouchEvent(ev);
-                if (mSystemUiProxy.isActive()) {
-                    setWindowSlippery(true);
-                }
-                return true;
+            return handleActionMove(ev, idx, pid);
+        }
+        return false;
+    }
+
+    private Boolean handleActionDown(MotionEvent ev, int idx, int pid) {
+        mCanIntercept = canInterceptTouch(ev);
+        if (!mCanIntercept) {
+            return false;
+        }
+
+        mDownEvents.clear();
+        mDownEvents.put(pid, new PointF(ev.getX(), ev.getY()));
+
+        if (MultiModeController.isSingleLayerMode() && mLauncher.swipeSearchContainer != null &&
+                mLauncher.swipeSearchContainer.getVisibility() == View.VISIBLE &&
+                ev.getY(idx) > mLauncher.swipeSearchContainer.getHeight()) {
+            setWindowSlippery(true);
+            return true;
+        }
+        return null;
+    }
+
+    private boolean handleActionMove(MotionEvent ev, int idx, int pid) {
+        float dy = ev.getY(idx) - mDownEvents.get(pid).y;
+        float dx = ev.getX(idx) - mDownEvents.get(pid).x;
+        // Currently input dispatcher will not do touch transfer if there are more than
+        // one touch pointer. Hence, even if slope passed, only set the slippery flag
+        // when there is single touch event. (context: InputDispatcher.cpp line 1445)
+        if (dy > mTouchSlop && dy > Math.abs(dx) && ev.getPointerCount() == 1 &&
+                (!MultiModeController.isSingleLayerMode() ||
+                        mLauncher.swipeSearchContainer.getVisibility() == View.GONE)) {
+            ev.setAction(ACTION_DOWN);
+            dispatchTouchEvent(ev);
+            if (mSystemUiProxy.isActive()) {
+                setWindowSlippery(true);
             }
-            if (Math.abs(dx) > mTouchSlop) {
-                mCanIntercept = false;
-            }
+            return true;
+        }
+        if (Math.abs(dx) > mTouchSlop) {
+            mCanIntercept = false;
         }
         return false;
     }
