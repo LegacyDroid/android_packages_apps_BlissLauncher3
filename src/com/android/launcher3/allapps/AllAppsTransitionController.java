@@ -84,8 +84,6 @@ public class AllAppsTransitionController
     public static final int REVERT_SWIPE_ALL_APPS_TO_HOME_ANIMATION_DURATION_MS = 200;
 
     private static final float NAV_BAR_COLOR_FORCE_UPDATE_THRESHOLD = 0.1f;
-    private static final float SWIPE_DRAG_COMMIT_THRESHOLD =
-            1 - AllAppsSwipeController.ALL_APPS_STATE_TRANSITION_MANUAL;
 
     public static final FloatProperty<AllAppsTransitionController> ALL_APPS_PROGRESS =
             new FloatProperty<AllAppsTransitionController>("allAppsProgress") {

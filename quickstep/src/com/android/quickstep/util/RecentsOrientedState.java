@@ -619,7 +619,8 @@ public class RecentsOrientedState implements LauncherPrefChangeListener {
             InvariantDeviceProfile idp = InvariantDeviceProfile.INSTANCE.get(mContext);
             Point currentSize = DisplayController.INSTANCE.get(mContext).getInfo().currentSize;
 
-            int width, height;
+            int width;
+            int height;
             if ((mRecentsActivityRotation == ROTATION_90
                     || mRecentsActivityRotation == ROTATION_270)) {
                 width = Math.max(currentSize.x, currentSize.y);

@@ -532,8 +532,7 @@ public class BubbleDragController {
                 case DRAGGING:
                     drag(view, event, dx, dy, rawX, rawY);
                     break;
-                case IDLE:
-                case CANCELLED:
+                case IDLE, CANCELLED:
                 default:
                     // No move handling required when idle or already cancelled.
                     break;

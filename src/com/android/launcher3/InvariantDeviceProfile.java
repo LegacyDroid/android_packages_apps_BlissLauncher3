@@ -478,11 +478,11 @@ public class InvariantDeviceProfile {
     }
 
     private String initGrid(Context context, String gridName) {
-        Info displayInfo = mDisplayController.getInfo();
+        Info info = mDisplayController.getInfo();
         List<DisplayOption> allOptions = getPredefinedDeviceProfiles(
                 context,
                 gridName,
-                displayInfo,
+                info,
                 (RestoreDbTask.isPending(mPrefs) && !Flags.oneGridSpecs()),
                 mPrefs.get(FIXED_LANDSCAPE_MODE)
         );
@@ -493,16 +493,16 @@ public class InvariantDeviceProfile {
                 filterByColumnCount(allOptions, deviceGridState.getColumns());
 
         DisplayOption displayOption =
-                invDistWeightedInterpolate(displayInfo, allOptionsFilteredByColCount.isEmpty()
+                invDistWeightedInterpolate(info, allOptionsFilteredByColCount.isEmpty()
                                 ? new ArrayList<>(allOptions)
                                 : new ArrayList<>(allOptionsFilteredByColCount),
-                        displayInfo.getDeviceType());
+                        info.getDeviceType());
 
         if (!displayOption.grid.name.equals(gridName)) {
             mPrefs.put(GRID_NAME, displayOption.grid.name);
         }
 
-        initGrid(context, displayInfo, displayOption);
+        initGrid(context, info, displayOption);
         FileLog.d(TAG, "After initGrid:"
                 + "gridName:" + gridName
                 + ", dbFile:" + dbFile
@@ -833,12 +833,11 @@ public class InvariantDeviceProfile {
             int minHeightPx) {
         GridSize selectedGridSize = null;
         for (GridSize item: list) {
-            if (minWidthPx >= item.mMinDeviceWidthPx && minHeightPx >= item.mMinDeviceHeightPx) {
-                if (selectedGridSize == null
-                        || (selectedGridSize.mNumColumns <= item.mNumColumns
-                        && selectedGridSize.mNumRows <= item.mNumRows)) {
-                    selectedGridSize = item;
-                }
+            if (minWidthPx >= item.mMinDeviceWidthPx && minHeightPx >= item.mMinDeviceHeightPx
+                    && (selectedGridSize == null
+                    || (selectedGridSize.mNumColumns <= item.mNumColumns
+                    && selectedGridSize.mNumRows <= item.mNumRows))) {
+                selectedGridSize = item;
             }
         }
         return selectedGridSize;
@@ -960,15 +959,15 @@ public class InvariantDeviceProfile {
             return;
         }
         try {
-            int numRows = p.getIntValue(RES_GRID_NUM_ROWS, -1);
-            int numColumns = p.getIntValue(RES_GRID_NUM_COLUMNS, -1);
+            int rows = p.getIntValue(RES_GRID_NUM_ROWS, -1);
+            int columns = p.getIntValue(RES_GRID_NUM_COLUMNS, -1);
             float iconSizePx = p.getDimenValue(RES_GRID_ICON_SIZE_DP, -1);
 
-            if (numRows > 0 && numColumns > 0) {
-                this.numRows = numRows;
-                this.numColumns = numColumns;
-                this.numRowsFixed = numRows;
-                this.numColumnsFixed = numColumns;
+            if (rows > 0 && columns > 0) {
+                this.numRows = rows;
+                this.numColumns = columns;
+                this.numRowsFixed = rows;
+                this.numColumnsFixed = columns;
             }
             if (iconSizePx > 0) {
                 this.iconSize[InvariantDeviceProfile.INDEX_DEFAULT] =

@@ -351,8 +351,7 @@ class OrientationTouchTransformer {
                 }
                 break;
             }
-            case ACTION_CANCEL:
-            case ACTION_UP: {
+            case ACTION_CANCEL, ACTION_UP: {
                 if (mLastRectTouched == null) {
                     return;
                 }
@@ -371,8 +370,7 @@ class OrientationTouchTransformer {
                 mLastRectTouched = null;
                 break;
             }
-            case ACTION_POINTER_DOWN:
-            case ACTION_DOWN: {
+            case ACTION_POINTER_DOWN, ACTION_DOWN: {
                 if (enableLog()) {
                     Log.d(TAG, "ACTION_DOWN mLastRectTouched: " + mLastRectTouched);
                 }

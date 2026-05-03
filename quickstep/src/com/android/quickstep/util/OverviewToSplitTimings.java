@@ -26,15 +26,15 @@ import android.view.animation.Interpolator;
  */
 abstract class OverviewToSplitTimings implements SplitAnimationTimings {
     // Overwritten by device-specific timings
-    abstract public int getPlaceholderFadeInStart();
-    abstract public int getPlaceholderFadeInEnd();
-    abstract public int getPlaceholderIconFadeInStart();
-    abstract public int getPlaceholderIconFadeInEnd();
-    abstract public int getStagedRectSlideStart();
-    abstract public int getStagedRectSlideEnd();
-    abstract public int getGridSlideStart();
-    abstract public int getGridSlideStagger();
-    abstract public int getGridSlideDuration();
+    public abstract int getPlaceholderFadeInStart();
+    public abstract int getPlaceholderFadeInEnd();
+    public abstract int getPlaceholderIconFadeInStart();
+    public abstract int getPlaceholderIconFadeInEnd();
+    public abstract int getStagedRectSlideStart();
+    public abstract int getStagedRectSlideEnd();
+    public abstract int getGridSlideStart();
+    public abstract int getGridSlideStagger();
+    public abstract int getGridSlideDuration();
 
     // Common timings
     public int getIconFadeStart() { return 0; }
@@ -50,11 +50,11 @@ abstract class OverviewToSplitTimings implements SplitAnimationTimings {
     public Interpolator getGridSlidePrimaryInterpolator() { return EMPHASIZED; }
     public Interpolator getGridSlideSecondaryInterpolator() { return INSTANT; }
 
-    abstract public int getDuration();
-    abstract public Interpolator getStagedRectXInterpolator();
-    abstract public Interpolator getStagedRectYInterpolator();
-    abstract public Interpolator getStagedRectScaleXInterpolator();
-    abstract public Interpolator getStagedRectScaleYInterpolator();
+    public abstract int getDuration();
+    public abstract Interpolator getStagedRectXInterpolator();
+    public abstract Interpolator getStagedRectYInterpolator();
+    public abstract Interpolator getStagedRectScaleXInterpolator();
+    public abstract Interpolator getStagedRectScaleYInterpolator();
 
     public float getGridSlideStartOffset() {
         return (float) getGridSlideStart() / getDuration();

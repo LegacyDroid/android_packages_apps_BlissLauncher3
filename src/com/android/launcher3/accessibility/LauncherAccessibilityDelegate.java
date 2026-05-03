@@ -134,10 +134,9 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
 
             if (item.container >= 0) {
                 out.add(mActions.get(MOVE_TO_WORKSPACE));
-            } else if (item instanceof LauncherAppWidgetInfo) {
-                if (!getSupportedResizeActions(host, (LauncherAppWidgetInfo) item).isEmpty()) {
-                    out.add(mActions.get(RESIZE));
-                }
+            } else if (item instanceof LauncherAppWidgetInfo
+                    && !getSupportedResizeActions(host, (LauncherAppWidgetInfo) item).isEmpty()) {
+                out.add(mActions.get(RESIZE));
             }
         }
 
@@ -498,7 +497,7 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
             return;
         }
         AnimatorSet anim = new AnimatorSet();
-        anim.addListener(forEndCallback((success) -> {
+        anim.addListener(forEndCallback(success -> {
             if (focusForAccessibility) {
                 view.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
             }

@@ -389,9 +389,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 && taskbarController != null) {
             taskbarController.setIgnoreInAppFlagForSync(true);
             mLauncher.addEventCallback(EVENT_DESTROYED, onEndCallback::executeAllAndDestroy);
-            onEndCallback.add(() -> {
-                taskbarController.setIgnoreInAppFlagForSync(false);
-            });
+            onEndCallback.add(() -> taskbarController.setIgnoreInAppFlagForSync(false));
         }
 
         return new ActivityOptionsWrapper(options, onEndCallback);

@@ -29,6 +29,9 @@ import java.util.function.Consumer;
  */
 public class AnimatorListeners {
 
+    private AnimatorListeners() {
+    }
+
     /**
      * Returns an AnimatorListener which executes the callback on successful animation completion
      */

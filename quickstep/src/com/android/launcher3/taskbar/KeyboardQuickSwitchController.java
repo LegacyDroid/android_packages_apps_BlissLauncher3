@@ -161,7 +161,7 @@ public final class KeyboardQuickSwitchController implements
                     final boolean shouldShowDesktopTasks = mControllers.taskbarDesktopModeController
                             .shouldShowDesktopTasksInTaskbar();
                     mExcludedTaskIds = taskIdsToExclude;
-                    mTaskListChangeId = mModel.getTasks((tasks) -> {
+                    mTaskListChangeId = mModel.getTasks(tasks -> {
                         processLoadedTasks(tasks, taskIdsToExclude);
                         mQuickSwitchViewController.updateQuickSwitchView(
                                 mTasks,
@@ -217,7 +217,7 @@ public final class KeyboardQuickSwitchController implements
         }
 
         mExcludedTaskIds = taskIdsToExclude;
-        mTaskListChangeId = mModel.getTasks((tasks) -> {
+        mTaskListChangeId = mModel.getTasks(tasks -> {
             processLoadedTasks(tasks, taskIdsToExclude);
             // Check if the first task is running after the recents model has updated so that we use
             // the correct index.

@@ -132,8 +132,8 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
                 }
             };
         }
-        if (workspaceView instanceof LauncherAppWidgetHostView) {
-            return createWidgetHomeAnimationFactory((LauncherAppWidgetHostView) workspaceView,
+        if (workspaceView instanceof LauncherAppWidgetHostView widgetView) {
+            return createWidgetHomeAnimationFactory(widgetView,
                     isTargetTranslucent, runningTaskTarget);
         }
         return createIconHomeAnimationFactory(workspaceView, targetTaskView);

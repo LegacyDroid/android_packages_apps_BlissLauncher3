@@ -276,9 +276,9 @@ public class AllAppsList {
      * Remove the apps for the given apk identified by packageName.
      */
     public void removePackage(String packageName, UserHandle user) {
-        final List<AppInfo> data = this.data;
-        for (int i = data.size() - 1; i >= 0; i--) {
-            AppInfo info = data.get(i);
+        final List<AppInfo> appList = this.data;
+        for (int i = appList.size() - 1; i >= 0; i--) {
+            AppInfo info = appList.get(i);
             if (info.user.equals(user) && packageName.equals(info.componentName.getPackageName())) {
                 removeApp(i);
             }
@@ -289,9 +289,9 @@ public class AllAppsList {
      * Updates the disabled flags of apps matching {@param matcher} based on {@param op}.
      */
     public void updateDisabledFlags(Predicate<ItemInfo> matcher, FlagOp op) {
-        final List<AppInfo> data = this.data;
-        for (int i = data.size() - 1; i >= 0; i--) {
-            AppInfo info = data.get(i);
+        final List<AppInfo> appList = this.data;
+        for (int i = appList.size() - 1; i >= 0; i--) {
+            AppInfo info = appList.get(i);
             if (matcher.test(info)) {
                 info.runtimeStatusFlags = op.apply(info.runtimeStatusFlags);
                 mDataChanged = true;
@@ -325,15 +325,14 @@ public class AllAppsList {
             for (int i = data.size() - 1; i >= 0; i--) {
                 final AppInfo applicationInfo = data.get(i);
                 if (user.equals(applicationInfo.user)
-                        && packageName.equals(applicationInfo.componentName.getPackageName())) {
-                    if (!findActivity(matches, applicationInfo.componentName)) {
-                        if (DEBUG) {
-                            Log.w(TAG, "Changing shortcut target due to app component name change."
-                                    + " component=" + applicationInfo.componentName
-                                    + ", user=" + user);
-                        }
-                        removeApp(i);
+                        && packageName.equals(applicationInfo.componentName.getPackageName())
+                        && !findActivity(matches, applicationInfo.componentName)) {
+                    if (DEBUG) {
+                        Log.w(TAG, "Changing shortcut target due to app component name change."
+                                + " component=" + applicationInfo.componentName
+                                + ", user=" + user);
                     }
+                    removeApp(i);
                 }
             }
 

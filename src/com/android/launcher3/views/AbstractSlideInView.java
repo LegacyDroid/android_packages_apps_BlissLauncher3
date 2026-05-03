@@ -277,12 +277,10 @@ public abstract class AbstractSlideInView<T extends Context & ActivityContext>
     @Override
     public boolean onControllerTouchEvent(MotionEvent ev) {
         mSwipeDetector.onTouchEvent(ev);
+        // If we got ACTION_UP without ever starting swipe, close the panel.
         if (ev.getAction() == MotionEvent.ACTION_UP && mSwipeDetector.isIdleState()
-                && !isOpeningAnimationRunning()) {
-            // If we got ACTION_UP without ever starting swipe, close the panel.
-            if (!isEventOverContent(ev)) {
-                close(true);
-            }
+                && !isOpeningAnimationRunning() && !isEventOverContent(ev)) {
+            close(true);
         }
         return true;
     }

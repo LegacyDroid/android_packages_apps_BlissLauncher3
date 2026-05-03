@@ -183,10 +183,8 @@ public class LauncherAppWidgetHostView extends BaseLauncherAppWidgetHostView
         } else {
             for (int i = 0; i < viewGroup.getChildCount(); i++) {
                 View child = viewGroup.getChildAt(i);
-                if (child instanceof ViewGroup) {
-                    if (checkScrollableRecursively((ViewGroup) child)) {
-                        return true;
-                    }
+                if (child instanceof ViewGroup && checkScrollableRecursively((ViewGroup) child)) {
+                    return true;
                 }
             }
         }

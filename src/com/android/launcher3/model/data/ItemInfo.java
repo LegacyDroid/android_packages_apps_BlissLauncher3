@@ -418,8 +418,7 @@ public class ItemInfo {
             folderBuilder.setGridX(cellX).setGridY(cellY).setPageIndex(screenId);
 
             switch (cInfo.container) {
-                case CONTAINER_HOTSEAT:
-                case CONTAINER_HOTSEAT_PREDICTION:
+                case CONTAINER_HOTSEAT, CONTAINER_HOTSEAT_PREDICTION:
                     folderBuilder.setHotseat(LauncherAtom.HotseatContainer.newBuilder()
                             .setIndex(cInfo.screenId));
                     break;

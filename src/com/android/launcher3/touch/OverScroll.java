@@ -20,6 +20,9 @@ package com.android.launcher3.touch;
  */
 public class OverScroll {
 
+    private OverScroll() {
+    }
+
     public static final float OVERSCROLL_DAMP_FACTOR = 0.07f;
 
     /**

@@ -377,9 +377,7 @@ public class TaskbarLauncherStateController {
         if (recentsView != null) {
             recentsView.setTaskLaunchListener(() -> mTaskBarRecentsAnimationListener
                     .endGestureStateOverride(true, false /*canceled*/));
-            recentsView.setTaskLaunchCancelledRunnable(() -> {
-                updateStateForUserFinishedToApp(false /* finishedToApp */);
-            });
+            recentsView.setTaskLaunchCancelledRunnable(() -> updateStateForUserFinishedToApp(false /* finishedToApp */));
         }
 
         return animatorSet;

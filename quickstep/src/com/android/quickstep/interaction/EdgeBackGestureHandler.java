@@ -40,7 +40,6 @@ import com.android.launcher3.testing.shared.ResourceUtils;
  */
 public class EdgeBackGestureHandler implements OnTouchListener {
 
-    private static final String TAG = "EdgeBackGestureHandler";
     private static final int MAX_LONG_PRESS_TIMEOUT = SystemProperties.getInt(
             "gestures.back_timeout", 250);
 

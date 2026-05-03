@@ -298,11 +298,11 @@ public class GestureSandboxActivity extends FragmentActivity {
 
         String[] savedStepsNames;
         Object savedSteps = extras.get(KEY_TUTORIAL_STEPS);
-        if (savedSteps instanceof String) {
-            savedStepsNames = TextUtils.isEmpty((String) savedSteps)
-                    ? null : ((String) savedSteps).split(",");
-        } else if (savedSteps instanceof String[]) {
-            savedStepsNames = (String[]) savedSteps;
+        if (savedSteps instanceof String savedStepsString) {
+            savedStepsNames = TextUtils.isEmpty(savedStepsString)
+                    ? null : savedStepsString.split(",");
+        } else if (savedSteps instanceof String[] savedStepsArray) {
+            savedStepsNames = savedStepsArray;
         } else {
             return defaultSteps;
         }

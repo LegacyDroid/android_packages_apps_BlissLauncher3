@@ -131,7 +131,8 @@ public class StaggeredWorkspaceAnim {
                             totalRows, duration);
                 }
             } else {
-                final int hotseatRow, qsbRow;
+                final int hotseatRow;
+                final int qsbRow;
                 if (grid.isTaskbarPresent) {
                     if (grid.isQsbInline) {
                         qsbRow = grid.inv.numRows + 1;

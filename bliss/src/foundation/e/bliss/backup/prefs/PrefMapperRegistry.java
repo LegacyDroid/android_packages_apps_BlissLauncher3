@@ -272,8 +272,8 @@ public final class PrefMapperRegistry {
         if (BasicMappers.mapInt(src, prefs, "pref_hotseatBGTransparency", LauncherPrefs.DOCK_BG_OPACITY))
             c++;
         Object v = src.get("pref_hotseatBG");
-        if (v instanceof Boolean) {
-            prefs.put(LauncherPrefs.DOCK_BG_OPACITY, ((Boolean) v) ? 100 : 0);
+        if (v instanceof Boolean b) {
+            prefs.put(LauncherPrefs.DOCK_BG_OPACITY, b ? 100 : 0);
             c++;
         }
         if (BasicMappers.mapInt(src, prefs, "pref_wallpaperBlur", LauncherPrefs.BLUR_INTENSITY))
@@ -336,7 +336,7 @@ public final class PrefMapperRegistry {
         Object lockSrc = src.get("lock_home_screen");
         if (lockSrc == null)
             lockSrc = src.get("pref_lockHomeScreen");
-        if (!(lockSrc instanceof Boolean) || !((Boolean) lockSrc)) {
+        if (!(lockSrc instanceof Boolean lockBool) || !lockBool) {
             prefs.put(LauncherPrefs.WORKSPACE_LOCK, false);
         }
         prefs.put(LauncherPrefs.FIRST_RUN_LAYOUT_CHOICE_DONE, true);
@@ -370,8 +370,8 @@ public final class PrefMapperRegistry {
         if (BasicMappers.mapBoolean(src, prefs, "enable_smartspace_now_playing", LauncherPrefs.SMARTSPACE_NOW_PLAYING))
             c++;
         Object v = src.get("smartspace_time_format");
-        if (v instanceof String) {
-            String s = ((String) v).toLowerCase(Locale.ROOT);
+        if (v instanceof String str) {
+            String s = str.toLowerCase(Locale.ROOT);
             String norm;
             if (s.contains("24"))
                 norm = "24";

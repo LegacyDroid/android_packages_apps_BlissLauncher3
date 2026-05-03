@@ -145,8 +145,7 @@ public class IntArray implements Iterable<Integer> {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof IntArray) {
-            IntArray arr = (IntArray) obj;
+        if (obj instanceof IntArray arr) {
             if (mSize == arr.mSize) {
                 for (int i = 0; i < mSize; i++) {
                     if (arr.mValues[i] != mValues[i]) {

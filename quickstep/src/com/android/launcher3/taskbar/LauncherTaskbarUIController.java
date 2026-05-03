@@ -80,8 +80,6 @@ import java.util.Arrays;
  */
 public class LauncherTaskbarUIController extends TaskbarUIController {
 
-    private static final String TAG = "TaskbarUIController";
-
     public static final int MINUS_ONE_PAGE_PROGRESS_INDEX = 0;
     public static final int ALL_APPS_PAGE_PROGRESS_INDEX = 1;
     public static final int WIDGETS_PAGE_PROGRESS_INDEX = 2;

@@ -37,6 +37,9 @@ import com.android.launcher3.icons.GraphicsUtils;
  */
 public class BitmapCreationCheck {
 
+    private BitmapCreationCheck() {
+    }
+
     private static final String TAG = "BitmapCreationCheck";
 
     public static final boolean ENABLED = false;

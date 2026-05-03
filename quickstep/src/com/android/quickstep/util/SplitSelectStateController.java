@@ -738,9 +738,7 @@ public class SplitSelectStateController {
         @Override
         public void onTransitionConsumed(IBinder transition, boolean aborted)
                 throws RemoteException {
-            MAIN_EXECUTOR.execute(() -> {
-                cleanup(false /*success*/);
-            });
+            MAIN_EXECUTOR.execute(() -> cleanup(false /*success*/));
         }
 
         /**

@@ -105,8 +105,6 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
         public final boolean recentsAttachedToAppWindow;
     }
 
-    private static final String TAG = "GestureState";
-
     private static final List<String> STATE_NAMES = new ArrayList<>();
     public static final GestureState DEFAULT_STATE = new GestureState();
 
@@ -451,8 +449,7 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
             case ALL_APPS:
                 ActiveGestureLog.INSTANCE.trackEvent(SET_END_TARGET_ALL_APPS);
                 break;
-            case LAST_TASK:
-            case RECENTS:
+            case LAST_TASK, RECENTS:
             default:
                 // No-Op
         }

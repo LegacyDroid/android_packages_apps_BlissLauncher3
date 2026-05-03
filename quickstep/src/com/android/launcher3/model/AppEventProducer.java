@@ -185,10 +185,8 @@ public class AppEventProducer implements StatsLogConsumer {
             sendEvent(target, atomInfo, ACTION_LAUNCH, CONTAINER_PREDICTION);
         } else if (event == LAUNCHER_DISMISS_PREDICTION_UNDO) {
             sendEvent(atomInfo, ACTION_UNDISMISS, CONTAINER_HOTSEAT_PREDICTION);
-        } else if (event == LAUNCHER_WIDGET_ADD_BUTTON_TAP) {
-            if (isTrackedForWidgetPrediction(atomInfo)) {
-                sendEvent(atomInfo, ACTION_PIN, CONTAINER_WIDGETS_PREDICTION);
-            }
+        } else if (event == LAUNCHER_WIDGET_ADD_BUTTON_TAP && isTrackedForWidgetPrediction(atomInfo)) {
+            sendEvent(atomInfo, ACTION_PIN, CONTAINER_WIDGETS_PREDICTION);
         }
     }
 

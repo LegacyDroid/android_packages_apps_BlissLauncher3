@@ -77,7 +77,6 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
     private RecentsAnimationCallbacks mCallbacks;
     private RecentsAnimationTargets mTargets;
     private TransitionInfo mTransitionInfo;
-    private RecentsAnimationDeviceState mDeviceState;
 
     // Temporary until we can hook into gesture state events
     private GestureState mLastGestureState;
@@ -114,7 +113,6 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
     public TaskAnimationManager(Context ctx, RecentsAnimationDeviceState deviceState,
             int displayId) {
         mCtx = ctx;
-        mDeviceState = deviceState;
         mDisplayId = displayId;
     }
 
@@ -375,12 +373,10 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                 SYSUI_STATE_NOTIFICATION_PANEL_EXPANDED | SYSUI_STATE_QUICK_SETTINGS_EXPANDED;
         boolean wasExpanded = hasAnyFlag(lastSysUIFlags, isShadeExpandedFlagMask);
         boolean isExpanded = hasAnyFlag(newSysUIFlags, isShadeExpandedFlagMask);
-        if (wasExpanded != isExpanded && isExpanded) {
+        if (wasExpanded != isExpanded && isExpanded && endLiveTile()) {
             // End live tile when expanding the notification panel for the first time from
             // overview.
-            if (endLiveTile()) {
-                return;
-            }
+            return;
         }
 
         boolean wasLocked = SystemUiFlagUtils.isLocked(lastSysUIFlags);

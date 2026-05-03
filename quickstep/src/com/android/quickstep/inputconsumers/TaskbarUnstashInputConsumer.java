@@ -199,8 +199,7 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
                             }
                         }
                         break;
-                    case MotionEvent.ACTION_UP:
-                    case MotionEvent.ACTION_CANCEL:
+                    case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL:
                         cleanupAfterMotionEvent();
                         break;
                     case MotionEvent.ACTION_BUTTON_RELEASE:

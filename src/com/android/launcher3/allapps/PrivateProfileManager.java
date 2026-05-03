@@ -152,7 +152,7 @@ public class PrivateProfileManager extends UserProfileManager {
             UserCache userCache) {
         super(userManager, statsLogManager, userCache);
         mAllApps = allApps;
-        mPrivateProfileMatcher = (user) -> userCache.getUserInfo(user).isPrivate();
+        mPrivateProfileMatcher = user -> userCache.getUserInfo(user).isPrivate();
 
         Context appContext = allApps.getContext().getApplicationContext();
         UI_HELPER_EXECUTOR.post(() -> initializeInBackgroundThread(appContext));

@@ -31,6 +31,10 @@ import java.util.function.BooleanSupplier;
  */
 public class ViewUtils {
 
+    private ViewUtils() {
+        // Utility class, do not instantiate.
+    }
+
     /** See {@link #postFrameDrawn(View, Runnable, BooleanSupplier)}} */
     public static boolean postFrameDrawn(View view, Runnable onFinishRunnable) {
         return postFrameDrawn(view, onFinishRunnable, () -> false);

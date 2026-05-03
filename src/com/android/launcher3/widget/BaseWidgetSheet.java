@@ -177,9 +177,9 @@ public abstract class BaseWidgetSheet extends AbstractSlideInView<BaseActivity>
             // If click is on a cell not showing an add button, show it now.
             final PendingAddItemInfo info = (PendingAddItemInfo) wc.getTag();
             if (mActivityContext instanceof Launcher) {
-                wc.showAddButton((view) -> addWidget(info));
+                wc.showAddButton(view -> addWidget(info));
             } else {
-                wc.showAddButton((view) -> mActivityContext.getItemOnClickListener()
+                wc.showAddButton(view -> mActivityContext.getItemOnClickListener()
                         .onClick(wc));
             }
         }
@@ -214,16 +214,13 @@ public abstract class BaseWidgetSheet extends AbstractSlideInView<BaseActivity>
 
             // Going to NORMAL state will also dismiss the All Apps view if it is showing.
             Launcher launcher = Launcher.getLauncher(mActivityContext);
-            launcher.getStateManager().goToState(NORMAL, forSuccessCallback(() -> {
-                launcher.getAccessibilityDelegate().addToWorkspace(info,
-                        /*accessibility=*/ false,
-                        /*finishCallback=*/ (success) -> {
-                            mActivityContext.getStatsLogManager()
+            launcher.getStateManager().goToState(NORMAL, forSuccessCallback(() ->
+                    launcher.getAccessibilityDelegate().addToWorkspace(info,
+                            /*accessibility=*/ false,
+                            /*finishCallback=*/ success -> mActivityContext.getStatsLogManager()
                                     .logger()
                                     .withItemInfo(info)
-                                    .log(LAUNCHER_WIDGET_ADD_BUTTON_TAP);
-                        });
-            }));
+                                    .log(LAUNCHER_WIDGET_ADD_BUTTON_TAP))));
         });
         close(/* animate= */ true);
     }

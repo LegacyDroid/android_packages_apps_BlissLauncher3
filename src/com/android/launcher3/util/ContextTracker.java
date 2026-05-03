@@ -64,10 +64,8 @@ public abstract class ContextTracker<CONTEXT extends ActivityContext> {
         Log.d(TAG, "Registering callback: " + callback + ", reason=" + reasonString);
         CONTEXT context = mCurrentContext.get();
         mCallbacks.add(callback);
-        if (context != null) {
-            if (!callback.init(context, isHomeStarted(context))) {
-                unregisterCallback(callback, "ContextTracker.registerCallback: Intent handled");
-            }
+        if (context != null && !callback.init(context, isHomeStarted(context))) {
+            unregisterCallback(callback, "ContextTracker.registerCallback: Intent handled");
         }
     }
 

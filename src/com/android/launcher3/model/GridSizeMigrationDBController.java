@@ -530,8 +530,7 @@ public class GridSizeMigrationDBController {
                 try {
                     // calculate weight
                     switch (entry.itemType) {
-                        case LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT:
-                        case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION: {
+                        case LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT, LauncherSettings.Favorites.ITEM_TYPE_APPLICATION: {
                             entry.mIntent = c.getString(indexIntent);
                             break;
                         }
@@ -612,8 +611,7 @@ public class GridSizeMigrationDBController {
                 try {
                     // calculate weight
                     switch (entry.itemType) {
-                        case LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT:
-                        case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION: {
+                        case LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT, LauncherSettings.Favorites.ITEM_TYPE_APPLICATION: {
                             entry.mIntent = c.getString(indexIntent);
                             break;
                         }

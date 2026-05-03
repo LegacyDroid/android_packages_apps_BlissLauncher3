@@ -25,7 +25,7 @@ public class PluginEnablerImpl implements PluginEnabler {
 
     private static final String PREFIX_PLUGIN_ENABLED = "PLUGIN_ENABLED_";
 
-    final private SharedPreferences mSharedPrefs;
+    private final SharedPreferences mSharedPrefs;
 
     public PluginEnablerImpl(Context context) {
         mSharedPrefs = LauncherPrefs.getDevicePrefs(context);

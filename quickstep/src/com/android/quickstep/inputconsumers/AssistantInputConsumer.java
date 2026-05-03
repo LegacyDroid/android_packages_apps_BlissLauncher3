@@ -192,8 +192,7 @@ public class AssistantInputConsumer extends DelegateInputConsumer {
                 }
                 break;
             }
-            case ACTION_CANCEL:
-            case ACTION_UP:
+            case ACTION_CANCEL, ACTION_UP:
                 if (mState != STATE_DELEGATE_ACTIVE && !mLaunchedAssistant) {
                     ValueAnimator animator = ValueAnimator.ofFloat(mLastProgress, 0)
                         .setDuration(RETRACT_ANIMATION_DURATION_MS);

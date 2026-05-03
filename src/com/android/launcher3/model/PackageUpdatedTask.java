@@ -171,8 +171,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                 }
                 flagOp = FlagOp.NO_OP.addFlag(WorkspaceItemInfo.FLAG_DISABLED_NOT_AVAILABLE);
                 break;
-            case OP_SUSPEND:
-            case OP_UNSUSPEND:
+            case OP_SUSPEND, OP_UNSUSPEND:
                 flagOp = FlagOp.NO_OP.setFlag(
                         WorkspaceItemInfo.FLAG_DISABLED_SUSPENDED, mOp == OP_SUSPEND);
                 appsList.updateDisabledFlags(matcher, flagOp);
@@ -302,10 +301,9 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                                 itemInfo.status = WorkspaceItemInfo.DEFAULT;
                                 infoUpdated = true;
                             }
-                        } else if (isNewApkAvailable && removedComponents.contains(cn)) {
-                            if (updateWorkspaceItemIntent(context, itemInfo, packageName)) {
-                                infoUpdated = true;
-                            }
+                        } else if (isNewApkAvailable && removedComponents.contains(cn)
+                                && updateWorkspaceItemIntent(context, itemInfo, packageName)) {
+                            infoUpdated = true;
                         }
 
                         if (isNewApkAvailable) {

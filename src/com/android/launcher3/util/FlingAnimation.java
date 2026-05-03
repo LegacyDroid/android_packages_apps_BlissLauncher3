@@ -34,14 +34,16 @@ public class FlingAnimation implements AnimatorUpdateListener, Runnable {
     protected final DragOptions mDragOptions;
     protected final DragLayer mDragLayer;
     protected final TimeInterpolator mAlphaInterpolator = new DecelerateInterpolator(0.75f);
-    protected final float mUX, mUY;
+    protected final float mUX;
+    protected final float mUY;
 
     protected Rect mIconRect;
     protected RectF mFrom;
     protected int mDuration;
     protected float mAnimationTimeFraction;
 
-    protected float mAX, mAY;
+    protected float mAX;
+    protected float mAY;
 
     public FlingAnimation(DragObject d, PointF vel, ButtonDropTarget dropTarget, Launcher launcher,
             DragOptions options) {

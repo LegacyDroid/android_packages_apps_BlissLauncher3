@@ -429,8 +429,8 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         }
         revalidateLayoutIfNeeded();
 
-        float fullScreenProgress = Utilities.boundToRange(this.fullScreenProgress.value, 0, 1);
-        mCurrentFullscreenParams.setProgress(fullScreenProgress, recentsViewScale.value,
+        float fullScreenProgressValue = Utilities.boundToRange(this.fullScreenProgress.value, 0, 1);
+        mCurrentFullscreenParams.setProgress(fullScreenProgressValue, recentsViewScale.value,
                 carouselScale.value);
 
         // Apply thumbnail matrix
@@ -481,14 +481,14 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             mTempRectF.roundOut(mTmpCropRect);
         }
 
-        params.setProgress(1f - fullScreenProgress);
+        params.setProgress(1f - fullScreenProgressValue);
         params.applySurfaceParams(surfaceTransaction == null
                 ? params.createSurfaceParams(this) : surfaceTransaction);
 
         if (!DEBUG) {
             return;
         }
-        Log.d(TAG, "progress: " + fullScreenProgress
+        Log.d(TAG, "progress: " + fullScreenProgressValue
                 + " carouselScale: " + carouselScale.value
                 + " recentsViewScale: " + recentsViewScale.value
                 + " crop: " + mTmpCropRect

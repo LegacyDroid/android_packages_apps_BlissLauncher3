@@ -458,10 +458,9 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             mDepthController.setActivityStarted(isStarted());
         }
 
-        if ((changeBits & ACTIVITY_STATE_RESUMED) != 0) {
-            if (!FeatureFlags.enableHomeTransitionListener() && mTaskbarUIController != null) {
-                mTaskbarUIController.onLauncherVisibilityChanged(hasBeenResumed());
-            }
+        if ((changeBits & ACTIVITY_STATE_RESUMED) != 0
+                && !FeatureFlags.enableHomeTransitionListener() && mTaskbarUIController != null) {
+            mTaskbarUIController.onLauncherVisibilityChanged(hasBeenResumed());
         }
 
         super.onActivityFlagsChanged(changeBits);
@@ -1438,7 +1437,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         // Potentially show the Taskbar education once the app pair launch finishes
         mSplitSelectStateController.getAppPairsController().launchAppPair(appPairIcon,
                 CUJ_LAUNCHER_LAUNCH_APP_PAIR_FROM_WORKSPACE,
-                (success) -> {
+                success -> {
                     if (success && mTaskbarUIController != null) {
                         mTaskbarUIController.showEduOnAppLaunch();
                     }

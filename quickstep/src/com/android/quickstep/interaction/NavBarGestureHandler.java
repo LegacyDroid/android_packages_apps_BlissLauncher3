@@ -46,7 +46,6 @@ import com.android.quickstep.util.TriggerSwipeUpTouchTracker;
 public class NavBarGestureHandler implements OnTouchListener,
         TriggerSwipeUpTouchTracker.OnSwipeUpListener, MotionPauseDetector.OnMotionPauseListener {
 
-    private static final String LOG_TAG = "NavBarGestureHandler";
     private final Context mContext;
     private final Point mDisplaySize = new Point();
     private final TriggerSwipeUpTouchTracker mSwipeUpTouchTracker;
@@ -124,8 +123,7 @@ public class NavBarGestureHandler implements OnTouchListener,
             case MotionEvent.ACTION_MOVE:
                 mLastPos.set(event.getX(), event.getY());
                 break;
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL:
                 mMotionPauseDetector.clear();
                 if (mGestureCallback != null && !intercepted && mTouchCameFromNavBar) {
                     mGestureCallback.onNavBarGestureAttempted(

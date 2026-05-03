@@ -32,6 +32,8 @@ import com.android.launcher3.provider.LauncherDbUtils.SQLiteTransaction;
  */
 public class HotseatRestoreHelper {
 
+    private HotseatRestoreHelper() {}
+
     /**
      * Creates a snapshot backup of Favorite table for future restoration use.
      */

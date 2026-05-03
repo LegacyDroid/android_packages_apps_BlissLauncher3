@@ -114,8 +114,10 @@ public abstract class DragView<T extends Context & ActivityContext> extends Fram
     private int mAnimatedShiftY;
 
     // Below variable only needed IF FeatureFlags.LAUNCHER3_SPRING_ICONS is {@code true}
-    private Drawable mBgSpringDrawable, mFgSpringDrawable;
-    private SpringFloatValue mTranslateX, mTranslateY;
+    private Drawable mBgSpringDrawable;
+    private Drawable mFgSpringDrawable;
+    private SpringFloatValue mTranslateX;
+    private SpringFloatValue mTranslateY;
     private Path mScaledMaskPath;
     private Drawable mBadge;
 

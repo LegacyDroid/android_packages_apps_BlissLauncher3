@@ -354,16 +354,15 @@ public class BubbleBarController extends IBubblesListener.Stub {
             mBubbles.put(update.addedBubble.getKey(), update.addedBubble);
         }
         BubbleBarBubble bubbleToSelect = null;
-        if (update.selectedBubbleKey != null) {
-            if (mSelectedBubble == null
-                    || !update.selectedBubbleKey.equals(mSelectedBubble.getKey())) {
-                BubbleBarBubble newlySelected = mBubbles.get(update.selectedBubbleKey);
-                if (newlySelected != null) {
-                    bubbleToSelect = newlySelected;
-                } else {
-                    Log.w(TAG, "trying to select bubble that doesn't exist:"
-                            + update.selectedBubbleKey);
-                }
+        if (update.selectedBubbleKey != null
+                && (mSelectedBubble == null
+                        || !update.selectedBubbleKey.equals(mSelectedBubble.getKey()))) {
+            BubbleBarBubble newlySelected = mBubbles.get(update.selectedBubbleKey);
+            if (newlySelected != null) {
+                bubbleToSelect = newlySelected;
+            } else {
+                Log.w(TAG, "trying to select bubble that doesn't exist:"
+                        + update.selectedBubbleKey);
             }
         }
         if (Flags.enableOptionalBubbleOverflow()

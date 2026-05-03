@@ -144,8 +144,6 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
 
     private final Rect mTempRect = new Rect();
 
-    private static final boolean NAV_TRANSLATION_DISABLED = true;
-
     /** Whether the IME Switcher button is visible. */
     private static final int FLAG_IME_SWITCHER_BUTTON_VISIBLE = 1 << 0;
     /** Whether the IME is visible. */
@@ -261,7 +259,6 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
     private final ViewTreeObserver.OnComputeInternalInsetsListener mSeparateWindowInsetsComputer =
             this::onComputeInsetsForSeparateWindow;
     private final RecentsHitboxExtender mHitboxExtender = new RecentsHitboxExtender();
-    private ImageView mRecentsButton;
     private Space mSpace;
 
     private TaskbarTransitions mTaskbarTransitions;
@@ -524,20 +521,20 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                         this::shouldShowHomeButtonInLockscreen));
 
         // Recents button
-        mRecentsButton = addButton(R.drawable.ic_sysbar_recent, BUTTON_RECENTS,
+        ImageView recentsButton = addButton(R.drawable.ic_sysbar_recent, BUTTON_RECENTS,
                 navContainer, navButtonController, R.id.recent_apps);
-        mHitboxExtender.init(mRecentsButton, mNavButtonsView, mContext.getDeviceProfile(),
+        mHitboxExtender.init(recentsButton, mNavButtonsView, mContext.getDeviceProfile(),
                 () -> {
                     float[] recentsCoords = new float[2];
-                    getDescendantCoordRelativeToAncestor(mRecentsButton, mNavButtonsView,
+                    getDescendantCoordRelativeToAncestor(recentsButton, mNavButtonsView,
                             recentsCoords, false);
                     return recentsCoords;
                 }, new Handler());
-        mRecentsButton.setOnClickListener(v -> {
+        recentsButton.setOnClickListener(v -> {
             navButtonController.onButtonClick(BUTTON_RECENTS, v);
             mHitboxExtender.onRecentsButtonClicked();
         });
-        mPropertyHolders.add(new StatePropertyHolder(mRecentsButton,
+        mPropertyHolders.add(new StatePropertyHolder(recentsButton,
                 flags -> (flags & FLAG_KEYGUARD_VISIBLE) == 0 && (flags & FLAG_DISABLE_RECENTS) == 0
                         && !mContext.isNavBarKidsModeActive() && !mContext.isGestureNav()));
 
@@ -1036,7 +1033,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         buttonView.setOnTouchListener((v, event) -> handleBackButtonTouchEvent(
                 v, event, rect, hasSentDownEvent, longPressTimeout, buttonView,
                 navButtonController));
-        buttonView.setOnLongClickListener((view) ->  {
+        buttonView.setOnLongClickListener(view ->  {
             navButtonController.onButtonLongClick(BUTTON_BACK, view);
             return false;
         });
@@ -1554,7 +1551,8 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
 
     private static class StatePropertyHolder {
 
-        private final float mEnabledValue, mDisabledValue;
+        private final float mEnabledValue;
+        private final float mDisabledValue;
         private final ObjectAnimator mAnimator;
         private final IntPredicate mEnableCondition;
 

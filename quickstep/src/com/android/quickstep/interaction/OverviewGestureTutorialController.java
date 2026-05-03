@@ -165,11 +165,11 @@ final class OverviewGestureTutorialController extends SwipeUpGestureTutorialCont
         switch (mTutorialType) {
             case OVERVIEW_NAVIGATION:
                 switch (result) {
-                    case BACK_COMPLETED_FROM_LEFT:
-                    case BACK_COMPLETED_FROM_RIGHT:
-                    case BACK_CANCELLED_FROM_LEFT:
-                    case BACK_CANCELLED_FROM_RIGHT:
-                    case BACK_NOT_STARTED_TOO_FAR_FROM_EDGE:
+                    case BACK_COMPLETED_FROM_LEFT,
+                            BACK_COMPLETED_FROM_RIGHT,
+                            BACK_CANCELLED_FROM_LEFT,
+                            BACK_CANCELLED_FROM_RIGHT,
+                            BACK_NOT_STARTED_TOO_FAR_FROM_EDGE:
                         resetTaskViews();
                         showFeedback(R.string.overview_gesture_feedback_swipe_too_far_from_edge);
                         break;
@@ -199,8 +199,7 @@ final class OverviewGestureTutorialController extends SwipeUpGestureTutorialCont
                         });
                         break;
                     }
-                    case HOME_NOT_STARTED_TOO_FAR_FROM_EDGE:
-                    case OVERVIEW_NOT_STARTED_TOO_FAR_FROM_EDGE:
+                    case HOME_NOT_STARTED_TOO_FAR_FROM_EDGE, OVERVIEW_NOT_STARTED_TOO_FAR_FROM_EDGE:
                         resetTaskViews();
                         showFeedback(R.string.overview_gesture_feedback_swipe_too_far_from_edge);
                         break;
@@ -210,8 +209,7 @@ final class OverviewGestureTutorialController extends SwipeUpGestureTutorialCont
                         animateTaskViewToOverview(true);
                         onMotionPaused(true /*arbitrary value*/);
                         break;
-                    case HOME_OR_OVERVIEW_NOT_STARTED_WRONG_SWIPE_DIRECTION:
-                    case HOME_OR_OVERVIEW_CANCELLED:
+                    case HOME_OR_OVERVIEW_NOT_STARTED_WRONG_SWIPE_DIRECTION, HOME_OR_OVERVIEW_CANCELLED:
                         fadeOutFakeTaskView(false, null);
                         showFeedback(R.string.overview_gesture_feedback_wrong_swipe_direction);
                         break;

@@ -324,15 +324,13 @@ public class FloatingTaskView extends FrameLayout {
 
             // SplitPlaceholderView: gray background fades in at same time, then new icon fades in
             fadeInSplitPlaceholder(animation, timings);
-        } else if (isStagedTask) {
+        } else if (isStagedTask && mSplitPlaceholderView.getAlpha() == 0) {
             // This code block runs for the placeholder view during Normal > OverviewSplitSelect
             // and for the placeholder (primary) thumbnail during OverviewSplitSelect > Confirmed
 
             // Fade in the placeholder view during Normal > OverviewSplitSelect
-            if (mSplitPlaceholderView.getAlpha() == 0) {
-                mSplitPlaceholderView.getIconView().setContentAlpha(0);
-                fadeInSplitPlaceholder(animation, timings);
-            }
+            mSplitPlaceholderView.getIconView().setContentAlpha(0);
+            fadeInSplitPlaceholder(animation, timings);
 
             // No-op for placeholder during OverviewSplitSelect > Confirmed, alpha should be set
         }

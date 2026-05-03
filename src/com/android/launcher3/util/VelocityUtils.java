@@ -20,6 +20,8 @@ package com.android.launcher3.util;
  */
 public class VelocityUtils {
 
+    private VelocityUtils() {}
+
     /**
      * Unit to pass to {@link android.view.VelocityTracker#computeCurrentVelocity(int)}.
      */

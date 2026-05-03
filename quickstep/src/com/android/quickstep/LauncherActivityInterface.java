@@ -361,8 +361,7 @@ public final class LauncherActivityInterface extends
         switch (endTarget) {
             case RECENTS:
                 return OVERVIEW;
-            case NEW_TASK:
-            case LAST_TASK:
+            case NEW_TASK, LAST_TASK:
                 return BACKGROUND_APP;
             case ALL_APPS:
                 return ALL_APPS;

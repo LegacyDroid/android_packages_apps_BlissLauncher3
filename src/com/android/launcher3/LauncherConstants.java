@@ -17,10 +17,16 @@ package com.android.launcher3;
 
 public class LauncherConstants {
 
+    private LauncherConstants() {
+    }
+
     /**
      * Trace events to visualize using Systrace tool.
      */
     public static class TraceEvents {
+
+        private TraceEvents() {
+        }
 
         public static final String DISPLAY_ALL_APPS_TRACE_METHOD_NAME = "DisplayAllApps";
         public static final int DISPLAY_WORKSPACE_TRACE_COOKIE = 0;
@@ -39,6 +45,9 @@ public class LauncherConstants {
      */
     public static class ActivityCodes {
 
+        private ActivityCodes() {
+        }
+
         public static final int REQUEST_BIND_PENDING_APPWIDGET = 12;
         public static final int REQUEST_RECONFIGURE_APPWIDGET = 13;
         public static final int REQUEST_HOME_ROLE = 14;
@@ -52,6 +61,9 @@ public class LauncherConstants {
      * Keys used to get the saved values of the previous Activity instance.
      */
     public static class SavedInstanceKeys {
+
+        private SavedInstanceKeys() {
+        }
 
         // Type: int
         public static final String RUNTIME_STATE = "launcher.state";

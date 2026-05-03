@@ -178,15 +178,14 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
             result = isInAllAppsBottomSheet;
         }
 
-        if (action == ACTION_UP || action == ACTION_POINTER_UP) {
-            if (!mWorkspace.isHandlingTouch()) {
-                final CellLayout currentPage =
-                        (CellLayout) mWorkspace.getChildAt(mWorkspace.getCurrentPage());
-                if (currentPage != null) {
-                    mWorkspace.onWallpaperTap(ev);
-                    if (mWorkspace.isWobbling()) {
-                        mWorkspace.wobbleLayouts(false /* wobble */);
-                    }
+        if ((action == ACTION_UP || action == ACTION_POINTER_UP)
+                && !mWorkspace.isHandlingTouch()) {
+            final CellLayout currentPage =
+                    (CellLayout) mWorkspace.getChildAt(mWorkspace.getCurrentPage());
+            if (currentPage != null) {
+                mWorkspace.onWallpaperTap(ev);
+                if (mWorkspace.isWobbling()) {
+                    mWorkspace.wobbleLayouts(false /* wobble */);
                 }
             }
         }

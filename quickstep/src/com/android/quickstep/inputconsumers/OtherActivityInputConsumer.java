@@ -289,16 +289,13 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
                 float displacementX = mLastPos.x - mDownPos.x;
                 float displacementY = mLastPos.y - mDownPos.y;
 
-                if (!mPassedWindowMoveSlop) {
-                    if (!mIsDeferredDownTarget) {
-                        // Normal gesture, ensure we pass the drag slop before we start tracking
-                        // the gesture
-                        if (mGestureState.isTrackpadGesture() || Math.abs(displacement)
-                                > mTouchSlop) {
-                            mPassedWindowMoveSlop = true;
-                            mStartDisplacement = -mTouchSlop;
-                        }
-                    }
+                if (!mPassedWindowMoveSlop && !mIsDeferredDownTarget
+                        && (mGestureState.isTrackpadGesture()
+                        || Math.abs(displacement) > mTouchSlop)) {
+                    // Normal gesture, ensure we pass the drag slop before we start tracking
+                    // the gesture
+                    mPassedWindowMoveSlop = true;
+                    mStartDisplacement = -mTouchSlop;
                 }
 
                 float horizontalDist = Math.abs(displacementX);
@@ -337,38 +334,36 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
                 if (DEBUG) {
                     Log.d(TAG, "ACTION_MOVE: mPassedPilferInputSlop=" + mPassedPilferInputSlop);
                 }
-                if (!mPassedPilferInputSlop) {
-                    if (passedSlop) {
-                        // Horizontal gesture is not allowed in this region
-                        boolean isHorizontalSwipeWhenDisabled =
-                                (mDisableHorizontalSwipe && Math.abs(displacementX) > Math.abs(
-                                        displacementY));
-                        // Do not allow quick switch for trackpad 3-finger gestures
-                        // TODO(b/261815244): might need to impose stronger conditions for the swipe
-                        //  angle
-                        boolean noQuickSwitchForThreeFingerGesture = isLikelyToStartNewTask
-                                && mGestureState.isThreeFingerTrackpadGesture();
-                        boolean noQuickstepForFourFingerGesture = !isLikelyToStartNewTask
-                                && mGestureState.isFourFingerTrackpadGesture();
-                        if (isHorizontalSwipeWhenDisabled || noQuickSwitchForThreeFingerGesture
-                                || noQuickstepForFourFingerGesture) {
-                            forceCancelGesture(ev);
-                            break;
-                        }
-
-                        mPassedPilferInputSlop = true;
-
-                        if (mIsDeferredDownTarget) {
-                            // Deferred gesture, start the animation and gesture tracking once
-                            // we pass the actual touch slop
-                            startTouchTrackingForWindowAnimation(ev.getEventTime());
-                        }
-                        if (!mPassedWindowMoveSlop) {
-                            mPassedWindowMoveSlop = true;
-                            mStartDisplacement = -mTouchSlop;
-                        }
-                        notifyGestureStarted(isLikelyToStartNewTask);
+                if (!mPassedPilferInputSlop && passedSlop) {
+                    // Horizontal gesture is not allowed in this region
+                    boolean isHorizontalSwipeWhenDisabled =
+                            (mDisableHorizontalSwipe && Math.abs(displacementX) > Math.abs(
+                                    displacementY));
+                    // Do not allow quick switch for trackpad 3-finger gestures
+                    // TODO(b/261815244): might need to impose stronger conditions for the swipe
+                    //  angle
+                    boolean noQuickSwitchForThreeFingerGesture = isLikelyToStartNewTask
+                            && mGestureState.isThreeFingerTrackpadGesture();
+                    boolean noQuickstepForFourFingerGesture = !isLikelyToStartNewTask
+                            && mGestureState.isFourFingerTrackpadGesture();
+                    if (isHorizontalSwipeWhenDisabled || noQuickSwitchForThreeFingerGesture
+                            || noQuickstepForFourFingerGesture) {
+                        forceCancelGesture(ev);
+                        break;
                     }
+
+                    mPassedPilferInputSlop = true;
+
+                    if (mIsDeferredDownTarget) {
+                        // Deferred gesture, start the animation and gesture tracking once
+                        // we pass the actual touch slop
+                        startTouchTrackingForWindowAnimation(ev.getEventTime());
+                    }
+                    if (!mPassedWindowMoveSlop) {
+                        mPassedWindowMoveSlop = true;
+                        mStartDisplacement = -mTouchSlop;
+                    }
+                    notifyGestureStarted(isLikelyToStartNewTask);
                 }
 
                 if (mInteractionHandler != null) {
@@ -390,8 +385,7 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
                 }
                 break;
             }
-            case ACTION_CANCEL:
-            case ACTION_UP: {
+            case ACTION_CANCEL, ACTION_UP: {
                 if (DEBUG_FAILED_QUICKSWITCH && !mPassedWindowMoveSlop) {
                     float displacementX = mLastPos.x - mDownPos.x;
                     float displacementY = mLastPos.y - mDownPos.y;

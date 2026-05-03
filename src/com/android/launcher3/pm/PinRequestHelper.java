@@ -38,6 +38,8 @@ import com.android.launcher3.model.data.WorkspaceItemInfo;
 
 public class PinRequestHelper {
 
+    private PinRequestHelper() {}
+
     /**
      * request.accept() will initiate the following flow:
      *      -> go-to-system-process for actual processing (a)

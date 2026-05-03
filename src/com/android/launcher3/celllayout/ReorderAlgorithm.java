@@ -223,11 +223,10 @@ public class ReorderAlgorithm {
 
         int[] vacantCell = new int[2];
         mCellLayout.mTmpOccupied.findVacantCell(vacantCell, c.spanX, c.spanY);
-        if (vacantCell[0] >= 0 && vacantCell[1] >= 0) {
-            if (!mCellLayout.mTmpOccupied.cells[vacantCell[0]][vacantCell[1]]) {
-                tmpLocation[0] = vacantCell[0];
-                tmpLocation[1] = vacantCell[1];
-            }
+        if (vacantCell[0] >= 0 && vacantCell[1] >= 0
+                && !mCellLayout.mTmpOccupied.cells[vacantCell[0]][vacantCell[1]]) {
+            tmpLocation[0] = vacantCell[0];
+            tmpLocation[1] = vacantCell[1];
         }
 
         if (tmpLocation[0] >= 0 && tmpLocation[1] >= 0) {
@@ -324,27 +323,24 @@ public class ReorderAlgorithm {
                 // For each view that isn't in the cluster, we see if the leading edge of the
                 // cluster is contacting the edge of that view. If so, we add that view to the
                 // cluster.
-                if (!mCellLayout.isWidget()) {
-                    if (v instanceof LauncherAppWidgetHostView) {
-                        continue;
-                    }
+                if (!mCellLayout.isWidget() && v instanceof LauncherAppWidgetHostView) {
+                    continue;
                 }
-                if (!cluster.views.contains(v) && v != dragView) {
-                    if (cluster.isViewTouchingEdge(v, whichEdge)) {
-                        CellLayoutLayoutParams lp = (CellLayoutLayoutParams) v.getLayoutParams();
-                        if (!lp.canReorder) {
-                            // The push solution includes the all apps button, this is not viable.
-                            fail = true;
-                            break;
-                        }
-                        cluster.addView(v);
-                        CellAndSpan c = currentState.map.get(v);
+                if (!cluster.views.contains(v) && v != dragView
+                        && cluster.isViewTouchingEdge(v, whichEdge)) {
+                    CellLayoutLayoutParams lp = (CellLayoutLayoutParams) v.getLayoutParams();
+                    if (!lp.canReorder) {
+                        // The push solution includes the all apps button, this is not viable.
+                        fail = true;
+                        break;
+                    }
+                    cluster.addView(v);
+                    CellAndSpan c = currentState.map.get(v);
 
-                        // Adding view to cluster, mark it as not occupied.
-                        mCellLayout.mTmpOccupied.markCells(c, false);
-                        if (!mCellLayout.isWidget()) {
-                            mCellLayout.pushIconByRow(c, countX, countY, whichEdge);
-                        }
+                    // Adding view to cluster, mark it as not occupied.
+                    mCellLayout.mTmpOccupied.markCells(c, false);
+                    if (!mCellLayout.isWidget()) {
+                        mCellLayout.pushIconByRow(c, countX, countY, whichEdge);
                     }
                 }
             }

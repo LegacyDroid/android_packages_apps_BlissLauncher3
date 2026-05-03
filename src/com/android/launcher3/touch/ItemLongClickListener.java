@@ -55,6 +55,8 @@ import com.android.launcher3.widget.WidgetImageView;
  */
 public class ItemLongClickListener {
 
+    private ItemLongClickListener() {}
+
     public static final OnLongClickListener INSTANCE_WORKSPACE =
             ItemLongClickListener::onWorkspaceItemLongClick;
 

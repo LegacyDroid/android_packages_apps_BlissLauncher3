@@ -242,11 +242,11 @@ public class TaskbarControllers {
         uiController.init(this);
         uiController.updateStateForSysuiFlags(mSharedState.sysuiStateFlags);
         // if bubble controllers are present configure the UI controller
-        bubbleControllers.ifPresentOrElse(bubbleControllers -> {
+        bubbleControllers.ifPresentOrElse(controllers -> {
             BubbleBarLocation location =
-                    bubbleControllers.bubbleBarViewController.getBubbleBarLocation();
+                    controllers.bubbleBarViewController.getBubbleBarLocation();
             boolean hiddenForBubbles =
-                    bubbleControllers.bubbleBarViewController.isHiddenForNoBubbles();
+                    controllers.bubbleBarViewController.isHiddenForNoBubbles();
             if (!hiddenForBubbles) {
                 uiController.adjustHotseatForBubbleBar(/* isBubbleBarVisible= */ true);
             }

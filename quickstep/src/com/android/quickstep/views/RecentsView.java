@@ -1008,9 +1008,7 @@ public abstract class RecentsView<
                         updateClearAllFunction();
                         reloadIfNeeded();
                         if (mPendingAnimation != null) {
-                            mPendingAnimation.addEndListener(success -> {
-                                animatorAppear.start();
-                            });
+                            mPendingAnimation.addEndListener(success -> animatorAppear.start());
                         } else {
                             animatorAppear.start();
                         }
@@ -1046,9 +1044,7 @@ public abstract class RecentsView<
     public void updateClearAllFunction() {
         if (mFilterState.isFiltered()) {
             mClearAllButton.setText(R.string.recents_back);
-            mClearAllButton.setOnClickListener((view) -> {
-                this.setAndApplyFilter(null);
-            });
+            mClearAllButton.setOnClickListener(view -> this.setAndApplyFilter(null));
         } else {
             mClearAllButton.setText(R.string.recents_clear_all);
             mClearAllButton.setOnClickListener(this::dismissAllTasks);
@@ -2613,7 +2609,10 @@ public abstract class RecentsView<
             return;
         }
 
-        int lowerIndex, upperIndex, visibleStart, visibleEnd;
+        int lowerIndex;
+        int upperIndex;
+        int visibleStart;
+        int visibleEnd;
         if (showAsGrid()) {
             int screenStart = getPagedOrientationHandler().getPrimaryScroll(this);
             int pageOrientedSize = getPagedOrientationHandler().getMeasuredSize(this);
@@ -2654,7 +2653,7 @@ public abstract class RecentsView<
                         .collect(Collectors.toCollection(ArrayList::new));
                 if (enableRefactorTaskThumbnail()) {
                     visibleTaskIds.addAll(
-                            tasksToUpdate.stream().map((task) -> task.key.id).toList());
+                            tasksToUpdate.stream().map(task -> task.key.id).toList());
                 }
                 if (tasksToUpdate.isEmpty()) {
                     return;
@@ -4761,7 +4760,7 @@ public abstract class RecentsView<
         createTaskDismissAnimation(pa, taskView, false /* animateTaskView */, true /* removeTask */,
                 DISMISS_TASK_DURATION, false /* dismissingForSplitSelection*/,
                 true /* isExpressiveDismiss */);
-        pa.addEndListener((success) -> onEndRunnable.invoke());
+        pa.addEndListener(success -> onEndRunnable.invoke());
         runDismissAnimation(pa);
     }
 
@@ -4810,8 +4809,7 @@ public abstract class RecentsView<
             case KeyEvent.KEYCODE_DPAD_DOWN:
                 return snapToPageRelative(1, false /* cycle */,
                         TaskGridNavHelper.TaskNavDirection.DOWN);
-            case KeyEvent.KEYCODE_DEL:
-            case KeyEvent.KEYCODE_FORWARD_DEL:
+            case KeyEvent.KEYCODE_DEL, KeyEvent.KEYCODE_FORWARD_DEL:
                 dismissCurrentTask();
                 return true;
             case KeyEvent.KEYCODE_NUMPAD_DOT:
@@ -4833,9 +4831,7 @@ public abstract class RecentsView<
                 case FOCUS_FORWARD:
                     setCurrentPage(0);
                     break;
-                case FOCUS_BACKWARD:
-                case FOCUS_RIGHT:
-                case FOCUS_LEFT:
+                case FOCUS_BACKWARD, FOCUS_RIGHT, FOCUS_LEFT:
                     setCurrentPage(getChildCount() - 1);
                     break;
             }
@@ -5594,13 +5590,11 @@ public abstract class RecentsView<
                 clampToProgress(LINEAR, timings.getInstructionsFadeStartOffset(),
                         timings.getInstructionsFadeEndOffset()));
 
-        pendingAnimation.addEndListener(aBoolean -> {
-            mSplitSelectStateController.launchSplitTasks(
-                    aBoolean1 -> {
-                        InteractionJankMonitorWrapper.end(Cuj.CUJ_SPLIT_SCREEN_ENTER);
-                        mSplitSelectStateController.resetState();
-                    });
-        });
+        pendingAnimation.addEndListener(aBoolean -> mSplitSelectStateController.launchSplitTasks(
+                aBoolean1 -> {
+                    InteractionJankMonitorWrapper.end(Cuj.CUJ_SPLIT_SCREEN_ENTER);
+                    mSplitSelectStateController.resetState();
+                }));
 
         mSecondSplitHiddenView = containerTaskView;
         if (mSecondSplitHiddenView != null) {
@@ -5833,10 +5827,8 @@ public abstract class RecentsView<
                     // If live tile is not launching, reset the pivot applied above.
                     if (!taskView.isRunningTask()) {
                         runActionOnRemoteHandles(
-                                remoteTargetHandle -> {
-                                    remoteTargetHandle.getTaskViewSimulator().setPivotOverride(
-                                            null);
-                                });
+                                remoteTargetHandle -> remoteTargetHandle.getTaskViewSimulator().setPivotOverride(
+                                        null));
                     }
                 }
             });
@@ -5969,7 +5961,7 @@ public abstract class RecentsView<
                     // TODO(b/194414938): make this part of the animations instead.
                     TaskViewUtils.createSplitAuxiliarySurfacesAnimator(
                             mRemoteTargetHandles[0].getTransformParams().getTargetSet().nonApps,
-                            true /*shown*/, (dividerAnimator) -> {
+                            true /*shown*/, dividerAnimator -> {
                                 dividerAnimator.start();
                                 dividerAnimator.end();
                             });

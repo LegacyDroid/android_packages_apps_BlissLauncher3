@@ -702,7 +702,7 @@ public final class TaskViewUtils {
             PendingAnimation pa) {
         // TODO(b/182592057): differentiate between "restore split" vs "launch fullscreen app"
         TaskViewUtils.createSplitAuxiliarySurfacesAnimator(nonAppTargets, true /*shown*/,
-                (dividerAnimator) -> {
+                dividerAnimator -> {
                     // If split apps are launching, we want to delay showing the divider bar
                     // until the very end once the apps are mostly in place. This is because we
                     // aren't moving the divider leash in the relative position with the
@@ -743,17 +743,15 @@ public final class TaskViewUtils {
             // interfere with a rapid swipe up to home in the live tile + running task case.
             @Override
             public void onAnimationSuccess(Animator animation) {
-                recentsView.finishRecentsAnimation(false /* toRecents */, () -> {
-                    recentsView.post(() -> {
-                        stateManager.moveToRestState();
-                        stateManager.reapplyState();
+                recentsView.finishRecentsAnimation(false /* toRecents */, () -> recentsView.post(() -> {
+                    stateManager.moveToRestState();
+                    stateManager.reapplyState();
 
-                        // We may have notified launcher is not visible so that taskbar can
-                        // stash immediately. Now that the animation is over, we can update
-                        // that launcher is still visible.
-                        notifyTaskbarLauncherVisibilityIfNeeded(recentsView, appTargets);
-                    });
-                });
+                    // We may have notified launcher is not visible so that taskbar can
+                    // stash immediately. Now that the animation is over, we can update
+                    // that launcher is still visible.
+                    notifyTaskbarLauncherVisibilityIfNeeded(recentsView, appTargets);
+                }));
             }
 
             @Override

@@ -273,9 +273,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     private float mYDown;
     private View mFirstPagePinnedItem;
 
-    final static float START_DAMPING_TOUCH_SLOP_ANGLE = (float) Math.PI / 6;
-    final static float MAX_SWIPE_ANGLE = (float) Math.PI / 3;
-    final static float TOUCH_SLOP_DAMPING_FACTOR = 4;
+    static final float START_DAMPING_TOUCH_SLOP_ANGLE = (float) Math.PI / 6;
+    static final float MAX_SWIPE_ANGLE = (float) Math.PI / 3;
+    static final float TOUCH_SLOP_DAMPING_FACTOR = 4;
 
     // Relating to the animation of items being dropped externally
     public static final int ANIMATE_INTO_POSITION_AND_DISAPPEAR = 0;
@@ -533,12 +533,12 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         if (getChildCount() > 0) {
             // Use the first page to estimate the child position
             CellLayout cl = (CellLayout) getChildAt(0);
-            boolean isWidget = itemInfo.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET;
+            boolean isWidgetItem = itemInfo.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET;
 
             Rect r = estimateItemPosition(cl, 0, 0, itemInfo.spanX, itemInfo.spanY);
 
             float scale = 1;
-            if (isWidget) {
+            if (isWidgetItem) {
                 DeviceProfile profile = mLauncher.getDeviceProfile();
                 final PointF appWidgetScale = profile.getAppWidgetScale(null);
                 scale = Utilities.shrinkRect(r, appWidgetScale.x, appWidgetScale.y);
@@ -546,7 +546,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             size[0] = r.width();
             size[1] = r.height();
 
-            if (isWidget) {
+            if (isWidgetItem) {
                 size[0] /= scale;
                 size[1] /= scale;
             }
@@ -1384,12 +1384,10 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         super.onPageEndTransition();
         updateChildrenLayersEnabled();
 
-        if (mDragController.isDragging()) {
-            if (workspaceInModalState()) {
-                // If we are in springloaded mode, then force an event to check if the current touch
-                // is under a new page (to scroll to)
-                mDragController.forceTouchMove();
-            }
+        if (mDragController.isDragging() && workspaceInModalState()) {
+            // If we are in springloaded mode, then force an event to check if the current touch
+            // is under a new page (to scroll to)
+            mDragController.forceTouchMove();
         }
 
         if (mStripScreensOnPageStopMoving) {
@@ -1517,11 +1515,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 mOverlayShown = true;
                 mLauncher.onOverlayVisibilityChanged(true);
             }
-        } else if (Float.compare(mOverlayProgress, 0f) == 0) {
-            if (mOverlayShown) {
-                mOverlayShown = false;
-                mLauncher.onOverlayVisibilityChanged(false);
-            }
+        } else if (Float.compare(mOverlayProgress, 0f) == 0 && mOverlayShown) {
+            mOverlayShown = false;
+            mLauncher.onOverlayVisibilityChanged(false);
         }
         int count = mOverlayCallbacks.size();
         for (int i = 0; i < count; i++) {
@@ -2493,9 +2489,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     return;
                 }
                 final ItemInfo info = (ItemInfo) cell.getTag();
-                boolean isWidget = info.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET
+                boolean isWidgetItem = info.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET
                         || info.itemType == LauncherSettings.Favorites.ITEM_TYPE_CUSTOM_APPWIDGET;
-                if (isWidget && dropTargetLayout != null) {
+                if (isWidgetItem && dropTargetLayout != null) {
                     // animate widget to a valid place
                     int animationType = resizeOnDrop ? ANIMATE_INTO_POSITION_AND_RESIZE :
                             ANIMATE_INTO_POSITION_AND_DISAPPEAR;
@@ -2813,11 +2809,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             manageReorderOnDragOver(d, targetCellDistance, nearestDropOccupied, minSpanX, minSpanY,
                     reorderX, reorderY);
 
-            if (mDragMode == DRAG_MODE_CREATE_FOLDER || mDragMode == DRAG_MODE_ADD_TO_FOLDER ||
-                    !nearestDropOccupied) {
-                if (mDragTargetLayout != null) {
-                    mDragTargetLayout.revertTempState();
-                }
+            if ((mDragMode == DRAG_MODE_CREATE_FOLDER || mDragMode == DRAG_MODE_ADD_TO_FOLDER
+                    || !nearestDropOccupied) && mDragTargetLayout != null) {
+                mDragTargetLayout.revertTempState();
             }
         }
     }
@@ -3063,7 +3057,10 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
     class ReorderAlarmListener implements OnAlarmListener {
         final float[] dragViewCenter;
-        final int minSpanX, minSpanY, spanX, spanY;
+        final int minSpanX;
+        final int minSpanY;
+        final int spanX;
+        final int spanY;
         final DragObject dragObject;
         final View child;
 
@@ -3196,10 +3193,10 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                             .log(LauncherEvent.LAUNCHER_ITEM_DROP_COMPLETED);
                 }
             };
-            boolean isWidget = pendingInfo.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET
+            boolean isWidgetItem = pendingInfo.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET
                     || pendingInfo.itemType == LauncherSettings.Favorites.ITEM_TYPE_CUSTOM_APPWIDGET;
 
-            AppWidgetHostView finalView = isWidget ?
+            AppWidgetHostView finalView = isWidgetItem ?
                     ((PendingAddWidgetInfo) pendingInfo).boundWidget : null;
 
             if (finalView != null && updateWidgetSize) {
@@ -3207,7 +3204,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             }
 
             int animationStyle = ANIMATE_INTO_POSITION_AND_DISAPPEAR;
-            if (isWidget && ((PendingAddWidgetInfo) pendingInfo).info != null &&
+            if (isWidgetItem && ((PendingAddWidgetInfo) pendingInfo).info != null &&
                     ((PendingAddWidgetInfo) pendingInfo).getHandler().needsConfigure()) {
                 animationStyle = ANIMATE_INTO_POSITION_AND_REMAIN;
             }
@@ -3353,14 +3350,14 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         Resources res = mLauncher.getResources();
         final int duration = res.getInteger(R.integer.config_dropAnimMaxDuration) - 200;
 
-        boolean isWidget = info.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET ||
+        boolean isWidgetItem = info.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET ||
                 info.itemType == LauncherSettings.Favorites.ITEM_TYPE_CUSTOM_APPWIDGET;
         if ((animationType == ANIMATE_INTO_POSITION_AND_RESIZE || external)
                 && finalView != null
                 && dragView.getContentView() != finalView) {
             Drawable crossFadeDrawable = createWidgetDrawable(info, finalView);
             dragView.crossFadeContent(crossFadeDrawable, (int) (duration * 0.8f));
-        } else if (isWidget && external) {
+        } else if (isWidgetItem && external) {
             scaleXY[0] = scaleXY[1] = Math.min(scaleXY[0], scaleXY[1]);
         }
 
@@ -3675,11 +3672,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                             folder.close(false /* animate */);
                         }
                     }
-                } else if (info instanceof AppPairInfo api) {
+                } else if (info instanceof AppPairInfo api && api.anyMatch(matcher)) {
                     // If an app pair's member apps are being removed, delete the whole app pair.
-                    if (api.anyMatch(matcher)) {
-                        mLauncher.removeItem(child, info, true);
-                    }
+                    mLauncher.removeItem(child, info, true);
                 }
             }
         }
@@ -3887,12 +3882,11 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     view.setOnTouchListener(ItemLongClickListener.INSTANCE_WORKSPACE_WOBBLE);
                 }
 
-                if (excludeDraggingView && mDragObjectInfo != null) {
-                    if ((mDragObjectInfo instanceof WorkspaceItemInfo ||
-                            mDragObjectInfo instanceof FolderInfo)
-                            && mDragObjectInfo.equals(view.getTag())) {
-                        return false;
-                    }
+                if (excludeDraggingView && mDragObjectInfo != null
+                        && (mDragObjectInfo instanceof WorkspaceItemInfo
+                        || mDragObjectInfo instanceof FolderInfo)
+                        && mDragObjectInfo.equals(view.getTag())) {
+                    return false;
                 }
                 view.setLayerType(LAYER_TYPE_HARDWARE, null);
                 index.getAndIncrement();

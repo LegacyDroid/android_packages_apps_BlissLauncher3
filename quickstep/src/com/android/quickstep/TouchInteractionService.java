@@ -147,8 +147,6 @@ import foundation.e.bliss.LauncherAppMonitor;
  */
 public class TouchInteractionService extends Service {
 
-    private static final String SUBSTRING_PREFIX = "; ";
-
     private static final String TAG = "TouchInteractionService";
 
     private static final String LOG_INSTANCE_PREFIX = " instance=";
@@ -338,9 +336,8 @@ public class TouchInteractionService extends Service {
         @BinderThread
         @Override
         public void onDisplayRemoveSystemDecorations(int displayId) {
-            executeForTouchInteractionService(tis -> {
-                tis.mSystemDecorationChangeObserver.notifyDisplayRemoveSystemDecorations(displayId);
-            });
+            executeForTouchInteractionService(tis ->
+                    tis.mSystemDecorationChangeObserver.notifyDisplayRemoveSystemDecorations(displayId));
         }
 
         @BinderThread

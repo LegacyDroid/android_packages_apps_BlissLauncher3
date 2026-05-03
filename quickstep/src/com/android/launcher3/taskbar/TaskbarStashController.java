@@ -199,11 +199,6 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
      */
     private static final float UNSTASHED_TASKBAR_HANDLE_HINT_SCALE = 1.1f;
 
-    /**
-     * Whether taskbar should be stashed out of the box.
-     */
-    private static final boolean DEFAULT_STASHED_PREF = false;
-
     // Auto stashes when user has not interacted with the Taskbar after X ms.
     private static final long NO_TOUCH_TIMEOUT_TO_STASH_MS = 5000;
 
@@ -879,8 +874,10 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         final float backgroundAlphaTarget = isStashed ? 0 : 1;
 
         // Timing for the alpha values depend on the animation played
-        long iconAlphaStartDelay = 0, iconAlphaDuration = 0, backgroundAndHandleAlphaStartDelay = 0,
-                backgroundAndHandleAlphaDuration = 0;
+        long iconAlphaStartDelay = 0;
+        long iconAlphaDuration = 0;
+        long backgroundAndHandleAlphaStartDelay = 0;
+        long backgroundAndHandleAlphaDuration = 0;
         if (duration > 0) {
             if (animationType == TRANSITION_HANDLE_FADE) {
                 // When fading, the handle fades in/out at the beginning of the transition with
@@ -977,11 +974,10 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
                     return;
                 }
 
-                if (valueAnimator.getAnimatedFraction() >= ANIMATED_FRACTION_THRESHOLD) {
-                    if (mUserIsNotGoingHome) {
-                        playTaskbarBackgroundAlphaAnimation();
-                        mTaskbarBgAlphaAnimationStarted = true;
-                    }
+                if (valueAnimator.getAnimatedFraction() >= ANIMATED_FRACTION_THRESHOLD
+                        && mUserIsNotGoingHome) {
+                    playTaskbarBackgroundAlphaAnimation();
+                    mTaskbarBgAlphaAnimationStarted = true;
                 }
             }
         });

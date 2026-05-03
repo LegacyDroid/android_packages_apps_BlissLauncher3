@@ -84,8 +84,8 @@ public class PendingAddWidgetInfo extends PendingAddItemInfo {
     @Override
     public LauncherAtom.ItemInfo buildProto(
             @Nullable CollectionInfo collectionInfo, Context context) {
-        LauncherAtom.ItemInfo info = super.buildProto(collectionInfo, context);
-        return info.toBuilder()
+        LauncherAtom.ItemInfo proto = super.buildProto(collectionInfo, context);
+        return proto.toBuilder()
                 .addItemAttributes(LauncherAppWidgetInfo.getAttribute(sourceContainer))
                 .build();
     }

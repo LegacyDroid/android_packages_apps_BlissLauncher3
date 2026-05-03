@@ -130,14 +130,11 @@ abstract class TutorialFragment extends GestureSandboxFragment implements OnTouc
     private static TutorialFragment getFragmentForTutorialType(
             TutorialType tutorialType, boolean fromTutorialMenu) {
         switch (tutorialType) {
-            case BACK_NAVIGATION:
-            case BACK_NAVIGATION_COMPLETE:
+            case BACK_NAVIGATION, BACK_NAVIGATION_COMPLETE:
                 return new BackGestureTutorialFragment(fromTutorialMenu);
-            case HOME_NAVIGATION:
-            case HOME_NAVIGATION_COMPLETE:
+            case HOME_NAVIGATION, HOME_NAVIGATION_COMPLETE:
                 return new HomeGestureTutorialFragment(fromTutorialMenu);
-            case OVERVIEW_NAVIGATION:
-            case OVERVIEW_NAVIGATION_COMPLETE:
+            case OVERVIEW_NAVIGATION, OVERVIEW_NAVIGATION_COMPLETE:
                 return new OverviewGestureTutorialFragment(fromTutorialMenu);
             default:
                 Log.e(LOG_TAG, "Failed to find an appropriate fragment for " + tutorialType.name());

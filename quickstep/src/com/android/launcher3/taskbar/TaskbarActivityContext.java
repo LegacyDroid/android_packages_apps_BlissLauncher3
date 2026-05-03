@@ -971,9 +971,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     public void onSplitScreenMenuButtonClicked() {
         PopupContainerWithArrow popup = PopupContainerWithArrow.getOpen(this);
         if (popup != null) {
-            popup.addOnCloseCallback(() -> {
-                mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(true);
-            });
+            popup.addOnCloseCallback(() ->
+                    mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(true));
         }
     }
 

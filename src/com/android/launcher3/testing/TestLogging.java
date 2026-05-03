@@ -27,6 +27,8 @@ import com.android.launcher3.testing.shared.TestProtocol;
 import java.util.function.BiConsumer;
 
 public final class TestLogging {
+    private TestLogging() {}
+
     private static final String TAPL_EVENTS_TAG = "TaplEvents";
     private static final String LAUNCHER_EVENTS_TAG = "LauncherEvents";
     private static BiConsumer<String, String> sEventConsumer;

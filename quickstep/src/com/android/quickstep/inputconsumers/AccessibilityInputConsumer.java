@@ -41,8 +41,6 @@ import com.android.systemui.shared.system.InputMonitorCompat;
  */
 public class AccessibilityInputConsumer extends DelegateInputConsumer {
 
-    private static final String TAG = "A11yInputConsumer";
-
     private final Context mContext;
     private final VelocityTracker mVelocityTracker;
     private final MotionPauseDetector mMotionPauseDetector;

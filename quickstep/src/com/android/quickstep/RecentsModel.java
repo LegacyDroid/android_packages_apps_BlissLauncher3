@@ -272,7 +272,7 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
         // Invalidate the existing list before checking to ensure this reflects the current state in
         // the system
         mTaskList.onRecentTasksChanged();
-        mTaskList.getTasks(true /* loadKeysOnly */, (taskGroups) -> {
+        mTaskList.getTasks(true /* loadKeysOnly */, taskGroups -> {
             for (GroupTask group : taskGroups) {
                 if (group.containsTask(taskId)) {
                     callback.accept(false);

@@ -219,7 +219,6 @@ import com.android.launcher3.dragndrop.DragView;
 import com.android.launcher3.dragndrop.LauncherDragController;
 import com.android.launcher3.folder.Folder;
 import com.android.launcher3.folder.FolderIcon;
-import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.keyboard.ViewGroupFocusHelper;
 import com.android.launcher3.logger.LauncherAtom;
 import com.android.launcher3.logger.LauncherAtom.ContainerInfo;
@@ -418,7 +417,6 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     private LauncherModel mModel;
     private ModelWriter mModelWriter;
-    private IconCache mIconCache;
     private LauncherAccessibilityDelegate mAccessibilityDelegate;
 
     private PopupDataProvider mPopupDataProvider;
@@ -600,7 +598,6 @@ public class Launcher extends StatefulActivity<LauncherState>
         initDeviceProfile(idp);
         idp.addOnChangeListener(this);
         mSharedPrefs = LauncherPrefs.getPrefs(this);
-        mIconCache = app.getIconCache();
         mAccessibilityDelegate = createAccessibilityDelegate();
 
         initDragController();
@@ -625,12 +622,10 @@ public class Launcher extends StatefulActivity<LauncherState>
         PillColorProvider.getInstance(mWorkspace.getContext()).registerObserver();
 
         boolean internalStateHandled = ACTIVITY_TRACKER.handleCreate(this);
-        if (internalStateHandled) {
-            if (savedInstanceState != null) {
-                // InternalStateHandler has already set the appropriate state.
-                // We dont need to do anything.
-                savedInstanceState.remove(RUNTIME_STATE);
-            }
+        if (internalStateHandled && savedInstanceState != null) {
+            // InternalStateHandler has already set the appropriate state.
+            // We dont need to do anything.
+            savedInstanceState.remove(RUNTIME_STATE);
         }
         restoreState(savedInstanceState);
         mStateManager.reapplyState();
@@ -643,12 +638,10 @@ public class Launcher extends StatefulActivity<LauncherState>
         }
 
         mStartupLatencyLogger.logWorkspaceLoadStartTime();
-        if (!mModel.addCallbacksAndLoad(this)) {
-            if (!internalStateHandled) {
-                // If we are not binding synchronously, pause drawing until initial bind complete,
-                // so that the system could continue to show the device loading prompt
-                mOnInitialBindListener = Boolean.FALSE::booleanValue;
-            }
+        if (!mModel.addCallbacksAndLoad(this) && !internalStateHandled) {
+            // If we are not binding synchronously, pause drawing until initial bind complete,
+            // so that the system could continue to show the device loading prompt
+            mOnInitialBindListener = Boolean.FALSE::booleanValue;
         }
 
         // For handling default keys
@@ -2330,7 +2323,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         try {
             foundation.e.bliss.animations.FullScreenOverlayView
                     .showForCloseTransition(this, v);
-        } catch (Throwable ignored) { }
+        } catch (Throwable ignored) {
+            // Intentionally ignored.
+        }
         RunnableList result = super.startActivitySafely(v, intent, item);
         // Apply custom app launch animation
         try {
@@ -2584,12 +2579,10 @@ public class Launcher extends StatefulActivity<LauncherState>
                     .logCardinality(workspaceItemCount)
                     .logEnd(LauncherLatencyEvent.LAUNCHER_LATENCY_STARTUP_WORKSPACE_LOADER_ASYNC);
         }
-        MAIN_EXECUTOR.getHandler().postAtFrontOfQueue(() -> {
-            mStartupLatencyLogger
-                    .logEnd(LAUNCHER_LATENCY_STARTUP_TOTAL_DURATION)
-                    .log()
-                    .reset();
-        });
+        MAIN_EXECUTOR.getHandler().postAtFrontOfQueue(() -> mStartupLatencyLogger
+                .logEnd(LAUNCHER_LATENCY_STARTUP_TOTAL_DURATION)
+                .log()
+                .reset());
     }
 
     @Override
@@ -2961,7 +2954,9 @@ public class Launcher extends StatefulActivity<LauncherState>
                                 androidx.appcompat.app.AppCompatDelegate
                                         .MODE_NIGHT_FOLLOW_SYSTEM);
             }
-        } catch (Exception e) { }
+        } catch (Exception e) {
+            // Intentionally ignored.
+        }
     }
 
     /**
@@ -3076,7 +3071,11 @@ public class Launcher extends StatefulActivity<LauncherState>
             }
         } else {
             if (mAtAGlanceTickReceiver == null) return;
-            try { unregisterReceiver(mAtAGlanceTickReceiver); } catch (Throwable ignored) {}
+            try {
+                unregisterReceiver(mAtAGlanceTickReceiver);
+            } catch (Throwable ignored) {
+                // Intentionally ignored.
+            }
             mAtAGlanceTickReceiver = null;
         }
     }

@@ -13,6 +13,9 @@ import java.util.List;
  */
 public class LauncherFiles {
 
+    private LauncherFiles() {
+    }
+
     private static final String XML = ".xml";
 
     public static final String LAUNCHER_DB = "launcher.db";

@@ -28,6 +28,9 @@ import android.graphics.Rect;
  */
 public class RotationUtils {
 
+    private RotationUtils() {
+    }
+
     /**
      * Rotates an Rect according to the given rotation.
      */
@@ -54,11 +57,9 @@ public class RotationUtils {
      */
     public static void rotateSize(Point size, int rotation) {
         switch (rotation) {
-            case ROTATION_0:
-            case ROTATION_180:
+            case ROTATION_0, ROTATION_180:
                 return;
-            case ROTATION_90:
-            case ROTATION_270:
+            case ROTATION_90, ROTATION_270:
                 size.set(size.y, size.x);
                 return;
             default:

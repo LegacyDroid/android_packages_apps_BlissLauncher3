@@ -90,8 +90,7 @@ public class CheckLongPressHelper {
                 }
                 break;
             }
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP:
                 cancelLongPress();
                 break;
             case MotionEvent.ACTION_MOVE:

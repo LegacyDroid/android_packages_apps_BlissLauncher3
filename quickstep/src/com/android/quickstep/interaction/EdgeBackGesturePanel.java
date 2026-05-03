@@ -48,8 +48,6 @@ import com.android.launcher3.util.VibratorWrapper;
 /** Forked from platform/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/NavigationBarEdgePanel.java. */
 public class EdgeBackGesturePanel extends View {
 
-    private static final String LOG_TAG = "EdgeBackGesturePanel";
-
     private static final long DISAPPEAR_FADE_ANIMATION_DURATION_MS = 80;
     private static final long DISAPPEAR_ARROW_ANIMATION_DURATION_MS = 100;
 

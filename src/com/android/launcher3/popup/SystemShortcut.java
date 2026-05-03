@@ -271,7 +271,7 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                         try {
                             com.android.launcher3.LauncherAppState.getInstance(ctx)
                                     .getModel().forceReload();
-                        } catch (Throwable ignored) { }
+                        } catch (Throwable ignored) { /* model not ready yet */ }
                     })
                     .setNeutralButton(R.string.reset_app_renames_title, (d, w) -> {
                         foundation.e.bliss.preferences.AppNameOverrides.setOverride(
@@ -279,7 +279,7 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                         try {
                             com.android.launcher3.LauncherAppState.getInstance(ctx)
                                     .getModel().forceReload();
-                        } catch (Throwable ignored) { }
+                        } catch (Throwable ignored) { /* model not ready yet */ }
                     })
                     .setNegativeButton(android.R.string.cancel, null)
                     .show();
@@ -567,8 +567,8 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
         public BubbleShortcut(T target, ItemInfo itemInfo, View originalView) {
             super(R.drawable.ic_bubble_button, R.string.bubble, target,
                     itemInfo, originalView);
-            if (target instanceof BubbleActivityStarter) {
-                mStarter = (BubbleActivityStarter) target;
+            if (target instanceof BubbleActivityStarter starter) {
+                mStarter = starter;
             }
         }
 

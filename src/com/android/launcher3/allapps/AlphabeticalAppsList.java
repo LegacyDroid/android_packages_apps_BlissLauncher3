@@ -408,8 +408,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
                     mPrivateProfileAppScrollerBadge, position));
             int privateSpaceState = mPrivateProviderManager.getCurrentState();
             switch (privateSpaceState) {
-                case PrivateProfileManager.STATE_DISABLED:
-                case PrivateProfileManager.STATE_TRANSITION:
+                case PrivateProfileManager.STATE_DISABLED, PrivateProfileManager.STATE_TRANSITION:
                     break;
                 case PrivateProfileManager.STATE_ENABLED:
                     // Add PS Apps only in Enabled State.

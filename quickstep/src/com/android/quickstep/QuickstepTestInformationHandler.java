@@ -45,7 +45,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             case TestProtocol.REQUEST_RECENT_TASKS_LIST: {
                 ArrayList<String> taskBaseIntentComponents = new ArrayList<>();
                 CountDownLatch latch = new CountDownLatch(1);
-                RecentsModel.INSTANCE.get(mContext).getTasks((taskGroups) -> {
+                RecentsModel.INSTANCE.get(mContext).getTasks(taskGroups -> {
                     for (GroupTask group : taskGroups) {
                         for (Task t : group.getTasks()) {
                             taskBaseIntentComponents.add(
@@ -128,12 +128,10 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             }
 
             case TestProtocol.REQUEST_STASHED_TASKBAR_SCALE: {
-                runOnTISBinder(tisBinder -> {
-                    response.putFloat(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                            tisBinder.getTaskbarManager()
-                                    .getCurrentActivityContext()
-                                    .getStashedTaskbarScale());
-                });
+                runOnTISBinder(tisBinder -> response.putFloat(TestProtocol.TEST_INFO_RESPONSE_FIELD,
+                        tisBinder.getTaskbarManager()
+                                .getCurrentActivityContext()
+                                .getStashedTaskbarScale()));
                 return response;
             }
 
@@ -152,15 +150,11 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             }
 
             case TestProtocol.REQUEST_ENABLE_BLOCK_TIMEOUT:
-                runOnTISBinder(tisBinder -> {
-                    enableBlockingTimeout(tisBinder, true);
-                });
+                runOnTISBinder(tisBinder -> enableBlockingTimeout(tisBinder, true));
                 return response;
 
             case TestProtocol.REQUEST_DISABLE_BLOCK_TIMEOUT:
-                runOnTISBinder(tisBinder -> {
-                    enableBlockingTimeout(tisBinder, false);
-                });
+                runOnTISBinder(tisBinder -> enableBlockingTimeout(tisBinder, false));
                 return response;
 
             case TestProtocol.REQUEST_ENABLE_TRANSIENT_TASKBAR:

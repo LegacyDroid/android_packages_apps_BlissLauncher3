@@ -97,8 +97,6 @@ abstract class TutorialController implements BackGestureAttemptCallback,
     private static final String GLIF_EXPRESSIVE_LIGHT_THEME = "glif_expressive_light";
 
     private static final int FEEDBACK_ANIMATION_MS = 133;
-    private static final int SUBTITLE_ANNOUNCE_DELAY_MS = 3000;
-    private static final int DONE_BUTTON_ANNOUNCE_DELAY_MS = 4000;
     private static final int ADVANCE_TUTORIAL_TIMEOUT_MS = 3000;
     private static final long GESTURE_ANIMATION_PAUSE_DURATION_MILLIS = 1000;
     protected float mExitingAppEndingCornerRadius;

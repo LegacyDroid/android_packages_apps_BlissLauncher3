@@ -334,7 +334,7 @@ public abstract class AbsSwipeUpHandler<
     private AnimatorControllerWithResistance mLauncherTransitionController;
     private boolean mHasEndedLauncherTransition;
 
-    private AnimationFactory mAnimationFactory = (t) -> { };
+    private AnimationFactory mAnimationFactory = t -> { };
 
     private boolean mWasLauncherAlreadyVisible;
 
@@ -697,9 +697,7 @@ public abstract class AbsSwipeUpHandler<
 
     private void onDeferredActivityLaunch() {
         mContainerInterface.switchRunningTaskViewToScreenshot(
-                null, () -> {
-                    mTaskAnimationManager.finishRunningRecentsAnimation(true /* toHome */);
-                });
+                null, () -> mTaskAnimationManager.finishRunningRecentsAnimation(true /* toHome */));
     }
 
     private void setupRecentsViewUi() {
@@ -1330,12 +1328,11 @@ public abstract class AbsSwipeUpHandler<
 
         if (DesktopModeStatusCompat.canEnterDesktopMode(mContext)
                 && !(DesktopFlagsCompat.enableDesktopWindowingWallpaperActivity()
-                && DesktopFlagsCompat.enableDesktopWindowingQuickSwitch())) {
-            if ((nextPageTaskView instanceof DesktopTaskView
-                    || currentPageTaskView instanceof DesktopTaskView)
-                    && endTarget == NEW_TASK) {
-                return LAST_TASK;
-            }
+                && DesktopFlagsCompat.enableDesktopWindowingQuickSwitch())
+                && (nextPageTaskView instanceof DesktopTaskView
+                        || currentPageTaskView instanceof DesktopTaskView)
+                && endTarget == NEW_TASK) {
+            return LAST_TASK;
         }
         return endTarget;
     }
@@ -1578,8 +1575,7 @@ public abstract class AbsSwipeUpHandler<
             case RECENTS:
                 events.add(LAUNCHER_OVERVIEW_GESTURE);
                 break;
-            case LAST_TASK:
-            case NEW_TASK:
+            case LAST_TASK, NEW_TASK:
                 events.add(mLogDirectionUpOrLeft ? LAUNCHER_QUICKSWITCH_LEFT
                         : LAUNCHER_QUICKSWITCH_RIGHT);
                 addDesktopQuickSwitchEvent(events, targetTaskView);
@@ -1799,9 +1795,7 @@ public abstract class AbsSwipeUpHandler<
         } else {
             AnimatorSet animatorSet = new AnimatorSet();
             ValueAnimator windowAnim = mCurrentShift.animateToValue(start, end);
-            windowAnim.addUpdateListener(valueAnimator -> {
-                computeRecentsScrollIfInvisible();
-            });
+            windowAnim.addUpdateListener(valueAnimator -> computeRecentsScrollIfInvisible());
             windowAnim.addListener(new AnimationSuccessListener() {
                 @Override
                 public void onAnimationSuccess(Animator animator) {
@@ -2055,9 +2049,7 @@ public abstract class AbsSwipeUpHandler<
     }
 
     private void setupWindowAnimation(RectFSpringAnim[] anims) {
-        anims[0].addOnUpdateListener((r, p) -> {
-            updateSysUiFlags(Math.max(p, mCurrentShift.value));
-        });
+        anims[0].addOnUpdateListener((r, p) -> updateSysUiFlags(Math.max(p, mCurrentShift.value)));
         anims[0].addAnimatorListener(new AnimationSuccessListener() {
             @Override
             public void onAnimationSuccess(Animator animator) {
@@ -2428,12 +2420,11 @@ public abstract class AbsSwipeUpHandler<
 
         if (DesktopModeStatusCompat.canEnterDesktopMode(mContext)
                 && !(DesktopFlagsCompat.enableDesktopWindowingWallpaperActivity()
-                        && DesktopFlagsCompat.enableDesktopWindowingQuickSwitch())) {
-            if (mRecentsView.getNextPageTaskView() instanceof DesktopTaskView
-                    || mRecentsView.getCurrentPageTaskView() instanceof DesktopTaskView) {
-                mRecentsViewScrollLinked = false;
-                return;
-            }
+                        && DesktopFlagsCompat.enableDesktopWindowingQuickSwitch())
+                && (mRecentsView.getNextPageTaskView() instanceof DesktopTaskView
+                        || mRecentsView.getCurrentPageTaskView() instanceof DesktopTaskView)) {
+            mRecentsViewScrollLinked = false;
+            return;
         }
 
         // Disable scrolling in RecentsView for trackpad 3-finger swipe up gesture.

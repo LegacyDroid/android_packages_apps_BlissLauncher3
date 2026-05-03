@@ -78,8 +78,7 @@ public final class DomainMappers {
      */
     public static int mapDarkMode(Map<String, Object> src, LauncherPrefs prefs) {
         Object val = src.get("pref_launcherTheme");
-        if (val instanceof String) {
-            String theme = (String) val;
+        if (val instanceof String theme) {
             String mapped;
             switch (theme) {
                 case "light" :
@@ -138,12 +137,12 @@ public final class DomainMappers {
         if (val == null)
             return 0;
         int argb;
-        if (val instanceof Integer) {
-            argb = (Integer) val;
+        if (val instanceof Integer integer) {
+            argb = integer;
         } else if (val instanceof Long) {
             argb = (int) ((long) ((Long) val));
-        } else if (val instanceof String) {
-            String s = ((String) val).trim();
+        } else if (val instanceof String string) {
+            String s = string.trim();
             try {
                 argb = (int) Long.parseLong(s.startsWith("#") ? s.substring(1) : s, 16);
             } catch (NumberFormatException e) {
@@ -174,16 +173,10 @@ public final class DomainMappers {
             case "circle" :
                 mapped = ShapesProvider.CIRCLE_KEY;
                 break;
-            case "square" :
-            case "rounded_square" :
-            case "roundedsquare" :
+            case "square", "rounded_square", "roundedsquare" :
                 mapped = ShapesProvider.SQUARE_KEY;
                 break;
-            case "squircle" :
-            case "cylinder" :
-            case "teardrop" :
-            case "cookie" :
-            case "four_sided_cookie" :
+            case "squircle", "cylinder", "teardrop", "cookie", "four_sided_cookie" :
                 mapped = ShapesProvider.FOUR_SIDED_COOKIE_KEY;
                 break;
             case "seven_sided_cookie" :

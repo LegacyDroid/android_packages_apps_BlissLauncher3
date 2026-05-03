@@ -106,7 +106,6 @@ public class PreviewBackground extends DelegatedCellDrawing {
     @VisibleForTesting protected static final float ACCEPT_SCALE_FACTOR = 1.20f;
 
     // Expressed on a scale from 0 to 255.
-    private static final int BG_OPACITY = 255;
     private static final int MAX_BG_OPACITY = 255;
     private static final int SHADOW_OPACITY = 40;
 

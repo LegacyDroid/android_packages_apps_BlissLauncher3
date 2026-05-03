@@ -155,11 +155,10 @@ public class AppPairsController {
             return false;
         }
 
-        if (PackageManagerHelper.isSameAppForMultiInstance(leftTopAppInfo, rightBottomAppInfo)) {
-            if (!leftTopAppInfo.supportsMultiInstance()
-                    || !rightBottomAppInfo.supportsMultiInstance()) {
-                return false;
-            }
+        if (PackageManagerHelper.isSameAppForMultiInstance(leftTopAppInfo, rightBottomAppInfo)
+                && (!leftTopAppInfo.supportsMultiInstance()
+                        || !rightBottomAppInfo.supportsMultiInstance())) {
+            return false;
         }
         return true;
     }
@@ -228,7 +227,7 @@ public class AppPairsController {
                 LauncherAccessibilityDelegate delegate = QuickstepLauncher.getLauncher(
                         mContext.asContext()).getAccessibilityDelegate();
                 if (delegate != null) {
-                    delegate.addToWorkspace(newAppPair, true, (success) -> {
+                    delegate.addToWorkspace(newAppPair, true, success -> {
                         if (success) {
                             InteractionJankMonitorWrapper.end(Cuj.CUJ_LAUNCHER_SAVE_APP_PAIR);
                         } else {

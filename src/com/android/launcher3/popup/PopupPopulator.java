@@ -46,6 +46,9 @@ import java.util.List;
  */
 public class PopupPopulator {
 
+    private PopupPopulator() {
+    }
+
     public static final int MAX_SHORTCUTS = 4;
     @VisibleForTesting
     static final int NUM_DYNAMIC = 2;

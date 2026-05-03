@@ -45,6 +45,8 @@ import com.android.quickstep.views.AllAppsEduView;
  */
 public class QuickstepOnboardingPrefs {
 
+    private QuickstepOnboardingPrefs() {}
+
     /**
      * Sets up the initial onboarding behavior for the launcher
      */

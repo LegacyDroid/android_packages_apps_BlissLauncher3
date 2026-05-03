@@ -591,7 +591,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             rememberPosition = com.android.launcher3.dagger.LauncherComponentProvider
                     .get(getContext()).getLauncherPrefs()
                     .get(com.android.launcher3.LauncherPrefs.REMEMBER_DRAWER_POSITION);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { /* Pref read failure is non-fatal; fall back to default. */ }
 
         // Scroll Main and Work RV to top. Search RV is done in `resetSearch`.
         if (!rememberPosition) {

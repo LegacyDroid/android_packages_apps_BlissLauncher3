@@ -183,18 +183,17 @@ public class NavHandleLongPressInputConsumer extends DelegateInputConsumer {
                 if (DEBUG_NAV_HANDLE) {
                     Log.d(TAG, "ACTION_MOVE distanceSquared=" + distanceSquared);
                 }
-                if (DeviceConfigWrapper.get().getEnableLpnhTwoStages()) {
-                    if (mTouchSlopSquared < distanceSquared
-                            && distanceSquared <= mOuterTouchSlopSquared) {
-                        MAIN_EXECUTOR.getHandler().removeCallbacks(mTriggerLongPress);
-                        int delay = mOuterLongPressTimeout
-                                - (int) (ev.getEventTime() - ev.getDownTime());
-                        MAIN_EXECUTOR.getHandler().postDelayed(mTriggerLongPress, delay);
-                        mTouchSlopSquared = mOuterTouchSlopSquared;
-                        mGestureState.setIsInExtendedSlopRegion(true);
-                        if (DEBUG_NAV_HANDLE) {
-                            Log.d(TAG, "Touch in middle region!");
-                        }
+                if (DeviceConfigWrapper.get().getEnableLpnhTwoStages()
+                        && mTouchSlopSquared < distanceSquared
+                        && distanceSquared <= mOuterTouchSlopSquared) {
+                    MAIN_EXECUTOR.getHandler().removeCallbacks(mTriggerLongPress);
+                    int delay = mOuterLongPressTimeout
+                            - (int) (ev.getEventTime() - ev.getDownTime());
+                    MAIN_EXECUTOR.getHandler().postDelayed(mTriggerLongPress, delay);
+                    mTouchSlopSquared = mOuterTouchSlopSquared;
+                    mGestureState.setIsInExtendedSlopRegion(true);
+                    if (DEBUG_NAV_HANDLE) {
+                        Log.d(TAG, "Touch in middle region!");
                     }
                 }
                 if (distanceSquared > mTouchSlopSquared) {

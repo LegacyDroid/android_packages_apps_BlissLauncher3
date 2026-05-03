@@ -31,6 +31,11 @@ import java.util.stream.Collectors;
 
 /** An utility class which groups {@link WidgetItem}s into a table. */
 public final class WidgetsTableUtils {
+
+    private WidgetsTableUtils() {
+        // Utility class.
+    }
+
     private static final int MAX_ITEMS_IN_ROW = 3;
 
     /**

@@ -182,8 +182,7 @@ public class DeviceLockedInputConsumer implements InputConsumer,
                 }
                 break;
             }
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP:
                 finishTouchTracking(ev);
                 break;
         }

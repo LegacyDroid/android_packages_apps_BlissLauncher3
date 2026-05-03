@@ -58,8 +58,10 @@ public class SpringAnimationBuilder {
     private double beta;
     private double gamma;
 
-    private double a, b;
-    private double va, vb;
+    private double a;
+    private double b;
+    private double va;
+    private double vb;
 
     // Threshold for velocity and value to determine when it's reasonable to assume that the spring
     // is approximately at rest.

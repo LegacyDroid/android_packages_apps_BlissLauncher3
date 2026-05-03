@@ -43,7 +43,6 @@ public class SysUiOverlayInputConsumer implements InputConsumer,
     // Should match the values in PhoneWindowManager
     private static final String SYSTEM_DIALOG_REASON_GESTURE_NAV = "gestureNav";
 
-    private final Context mContext;
     private final InputMonitorCompat mInputMonitor;
     private final TriggerSwipeUpTouchTracker mTriggerSwipeUpTracker;
 
@@ -54,7 +53,6 @@ public class SysUiOverlayInputConsumer implements InputConsumer,
             int displayId,
             RecentsAnimationDeviceState deviceState,
             InputMonitorCompat inputMonitor) {
-        mContext = context;
         mDisplayId = displayId;
         mInputMonitor = inputMonitor;
         mTriggerSwipeUpTracker = new TriggerSwipeUpTouchTracker(context, true,

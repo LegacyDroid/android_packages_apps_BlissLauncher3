@@ -30,6 +30,8 @@ import java.util.function.Predicate;
  */
 public class ModelUtils {
 
+    private ModelUtils() {}
+
     /**
      * Returns a filter for items on hotseat or current screens
      */

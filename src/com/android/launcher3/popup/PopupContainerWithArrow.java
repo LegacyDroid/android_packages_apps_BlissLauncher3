@@ -107,7 +107,6 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
     private int mContainerWidth;
 
     private ViewGroup mWidgetContainer;
-    private ViewGroup mDeepShortcutContainer;
     private ViewGroup mSystemShortcutContainer;
 
     protected PopupItemDragHandler mPopupItemDragHandler;
@@ -157,9 +156,7 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
     }
 
     public OnClickListener getItemClickListener() {
-        return (view) -> {
-            mActivityContext.getItemOnClickListener().onClick(view);
-        };
+        return view -> mActivityContext.getItemOnClickListener().onClick(view);
     }
 
     public void setPopupItemDragHandler(PopupItemDragHandler popupItemDragHandler) {
@@ -418,13 +415,13 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
      * @param currentHeight height of popup before adding deep shortcuts
      */
     private void addDeepShortcuts(int deepShortcutCount, float currentHeight) {
-        mDeepShortcutContainer = inflateAndAdd(R.layout.deep_shortcut_container, this);
+        ViewGroup deepShortcutContainer = inflateAndAdd(R.layout.deep_shortcut_container, this);
         for (int i = deepShortcutCount; i > 0; i--) {
             currentHeight += mShortcutHeight;
             // when there is limited vertical screen space, limit total popup rows to fit
             if (currentHeight >= mActivityContext.getDeviceProfile().availableHeightPx) break;
             DeepShortcutView v = inflateAndAdd(R.layout.deep_shortcut,
-                    mDeepShortcutContainer);
+                    deepShortcutContainer);
             v.getLayoutParams().width = mContainerWidth;
             mDeepShortcuts.add(v);
         }
@@ -647,8 +644,7 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
             // Touched a shortcut, update where it was touched so we can drag from there on
             // long click.
             switch (ev.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_MOVE:
+                case MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE:
                     mIconLastTouchPos.set((int) ev.getX(), (int) ev.getY());
                     break;
             }

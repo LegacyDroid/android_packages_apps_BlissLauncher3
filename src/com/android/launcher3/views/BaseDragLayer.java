@@ -295,8 +295,7 @@ public abstract class BaseDragLayer<T extends Context & ActivityContext>
                 }
                 break;
             }
-            case ACTION_CANCEL:
-            case ACTION_UP:
+            case ACTION_CANCEL, ACTION_UP:
                 mTouchDispatchState &= ~TOUCH_DISPATCHING_FROM_VIEW_GESTURE_REGION;
                 mTouchDispatchState &= ~TOUCH_DISPATCHING_FROM_VIEW;
                 mTouchDispatchState &= ~TOUCH_DISPATCHING_TO_VIEW_IN_PROGRESS;
@@ -519,7 +518,8 @@ public abstract class BaseDragLayer<T extends Context & ActivityContext>
     }
 
     public static class LayoutParams extends InsettableFrameLayout.LayoutParams {
-        public int x, y;
+        public int x;
+        public int y;
         public boolean customPosition = false;
 
         public LayoutParams(Context c, AttributeSet attrs) {
@@ -541,11 +541,8 @@ public abstract class BaseDragLayer<T extends Context & ActivityContext>
         for (int i = 0; i < count; i++) {
             View child = getChildAt(i);
             final FrameLayout.LayoutParams flp = (FrameLayout.LayoutParams) child.getLayoutParams();
-            if (flp instanceof LayoutParams) {
-                final LayoutParams lp = (LayoutParams) flp;
-                if (lp.customPosition) {
-                    child.layout(lp.x, lp.y, lp.x + lp.width, lp.y + lp.height);
-                }
+            if (flp instanceof LayoutParams lp && lp.customPosition) {
+                child.layout(lp.x, lp.y, lp.x + lp.width, lp.y + lp.height);
             }
         }
     }

@@ -128,16 +128,13 @@ public class OverviewInputConsumer<S extends BaseState<S>,
     @Override
     public void onKeyEvent(KeyEvent ev) {
         switch (ev.getKeyCode()) {
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
-            case KeyEvent.KEYCODE_VOLUME_UP:
-            case KeyEvent.KEYCODE_VOLUME_MUTE:
+            case KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_VOLUME_MUTE:
                 MediaSessionManager mgr = mContainer.asContext()
                         .getSystemService(MediaSessionManager.class);
                 mgr.dispatchVolumeKeyEventAsSystemService(ev,
                         AudioManager.USE_DEFAULT_STREAM_TYPE);
                 break;
-            case KeyEvent.KEYCODE_DPAD_LEFT:
-            case KeyEvent.KEYCODE_DPAD_RIGHT:
+            case KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT:
                 if (mHasSetTouchModeForFirstDPadEvent) {
                     break;
                 }

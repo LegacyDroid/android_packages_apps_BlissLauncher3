@@ -222,17 +222,13 @@ public class BubbleView extends ConstraintLayout {
             }
             return true;
         }
-        if (action == R.id.action_move_left) {
-            if (mController != null) {
-                mController.updateBubbleBarLocation(BubbleBarLocation.LEFT,
-                        BubbleBarLocation.UpdateSource.A11Y_ACTION_BUBBLE);
-            }
+        if (action == R.id.action_move_left && mController != null) {
+            mController.updateBubbleBarLocation(BubbleBarLocation.LEFT,
+                    BubbleBarLocation.UpdateSource.A11Y_ACTION_BUBBLE);
         }
-        if (action == R.id.action_move_right) {
-            if (mController != null) {
-                mController.updateBubbleBarLocation(BubbleBarLocation.RIGHT,
-                        BubbleBarLocation.UpdateSource.A11Y_ACTION_BUBBLE);
-            }
+        if (action == R.id.action_move_right && mController != null) {
+            mController.updateBubbleBarLocation(BubbleBarLocation.RIGHT,
+                    BubbleBarLocation.UpdateSource.A11Y_ACTION_BUBBLE);
         }
         return false;
     }
@@ -446,7 +442,7 @@ public class BubbleView extends ConstraintLayout {
         animate()
                 .setDuration(SCALE_ANIMATION_DURATION_MS)
                 .setInterpolator(Interpolators.FAST_OUT_SLOW_IN)
-                .setUpdateListener((valueAnimator) -> {
+                .setUpdateListener(valueAnimator -> {
                     float fraction = valueAnimator.getAnimatedFraction();
                     fraction = showDot ? fraction : 1f - fraction;
                     setDotScale(fraction);

@@ -405,13 +405,9 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
             @Override
             public void onClick(View v) {
                 if (mIsRtl) {
-                    runScrollCommand(false, () -> {
-                        mScrollView.smoothScrollBy(mScrollView.getWidth(), 0);
-                    });
+                    runScrollCommand(false, () -> mScrollView.smoothScrollBy(mScrollView.getWidth(), 0));
                 } else {
-                    runScrollCommand(false, () -> {
-                        mScrollView.smoothScrollBy(-mScrollView.getWidth(), 0);
-                    });
+                    runScrollCommand(false, () -> mScrollView.smoothScrollBy(-mScrollView.getWidth(), 0));
                 }
             }
         });
@@ -420,13 +416,9 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
             @Override
             public void onClick(View v) {
                 if (mIsRtl) {
-                    runScrollCommand(false, () -> {
-                        mScrollView.smoothScrollBy(-mScrollView.getWidth(), 0);
-                    });
+                    runScrollCommand(false, () -> mScrollView.smoothScrollBy(-mScrollView.getWidth(), 0));
                 } else {
-                    runScrollCommand(false, () -> {
-                        mScrollView.smoothScrollBy(mScrollView.getWidth(), 0);
-                    });
+                    runScrollCommand(false, () -> mScrollView.smoothScrollBy(mScrollView.getWidth(), 0));
                 }
             }
         });
