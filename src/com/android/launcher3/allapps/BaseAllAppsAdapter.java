@@ -110,19 +110,19 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
         public final int viewType;
 
         // The row that this item shows up on
-        public int rowIndex;
+        int rowIndex;
         // The index of this app in the row
-        public int rowAppIndex;
+        int rowAppIndex;
         // The associated ItemInfoWithIcon for the item
         public AppInfo itemInfo = null;
         // Private App Decorator
-        public SectionDecorationInfo decorationInfo = null;
+        SectionDecorationInfo decorationInfo = null;
         // Drawer-folder backing model (Migration02 / Phase 1). Non-null only for
         // VIEW_TYPE_FOLDER items.
-        public FolderInfo folderInfo = null;
+        private FolderInfo folderInfo = null;
         // Suggested-apps payload (Migration02 / Phase 7.3). Non-null only for
         // VIEW_TYPE_SUGGESTIONS items.
-        public java.util.List<AppInfo> suggestions = null;
+        private java.util.List<AppInfo> suggestions = null;
         public AdapterItem(int viewType) {
             this.viewType = viewType;
         }

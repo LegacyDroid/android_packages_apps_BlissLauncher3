@@ -87,7 +87,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
     private final Runnable mOnEmptyDbCreateCallback;
     private final AtomicInteger mMaxItemId = new AtomicInteger(-1);
 
-    public boolean mHotseatRestoreTableExists;
+    boolean mHotseatRestoreTableExists;
 
     /**
      * Constructor used in tests and for restore.

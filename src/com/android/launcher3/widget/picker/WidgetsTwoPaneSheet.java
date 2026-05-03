@@ -662,7 +662,7 @@ public class WidgetsTwoPaneSheet extends WidgetsFullSheet {
          * UI state indicating whether to show default or all widgets.
          * <p>If true, shows all widgets; else shows the default widgets.</p>
          */
-        public boolean showAllWidgets = false;
+        private boolean showAllWidgets = false;
     }
 
     private static class HighresPackageItemInfo extends PackageItemInfo {

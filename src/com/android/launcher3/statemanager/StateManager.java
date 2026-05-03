@@ -614,12 +614,12 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
 
         private static final StateAnimationConfig DEFAULT = new StateAnimationConfig();
 
-        public AnimatorPlaybackController playbackController;
-        public AnimatorSet currentAnimation;
-        public STATE_TYPE targetState;
+        private AnimatorPlaybackController playbackController;
+        private AnimatorSet currentAnimation;
+        private STATE_TYPE targetState;
 
         // Id to keep track of config changes, to tie an animation with the corresponding request
-        public int changeId = 0;
+        private int changeId = 0;
 
         /**
          * Cancels the current animation and resets config variables.
@@ -744,6 +744,8 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
          * - Setting some start values (e.g. scale) for views that are hidden but about to be shown.
          */
         public void prepareForAtomicAnimation(
-                STATE_TYPE fromState, STATE_TYPE toState, StateAnimationConfig config) { }
+                STATE_TYPE fromState, STATE_TYPE toState, StateAnimationConfig config) {
+            // intentionally empty — base hook; subclasses override to set up start values.
+        }
     }
 }

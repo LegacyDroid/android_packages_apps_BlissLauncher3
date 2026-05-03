@@ -50,9 +50,9 @@ public abstract class BaseAccessibilityDelegate<T extends Context & ActivityCont
     }
 
     public static class DragInfo {
-        public DragType dragType;
-        public ItemInfo info;
-        public View item;
+        DragType dragType;
+        ItemInfo info;
+        View item;
     }
 
     protected final SparseArray<LauncherAction> mActions = new SparseArray<>();

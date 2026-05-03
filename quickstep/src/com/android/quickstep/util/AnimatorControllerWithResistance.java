@@ -241,9 +241,9 @@ public class AnimatorControllerWithResistance {
 
         // These are not required, or can have a default value that is generally correct.
         @Nullable public PendingAnimation resistAnim = null;
-        public RecentsResistanceParams resistanceParams;
-        public float startScale = 1f;
-        public float startTranslation = 0f;
+        private RecentsResistanceParams resistanceParams;
+        private float startScale = 1f;
+        private float startTranslation = 0f;
 
         private RecentsParams(Context context, RecentsOrientedState recentsOrientedState,
                 DeviceProfile dp, S scaleTarget, FloatProperty<S> scaleProperty,

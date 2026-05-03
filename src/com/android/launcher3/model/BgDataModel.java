@@ -126,12 +126,12 @@ public class BgDataModel {
     /**
      * Id when the model was last bound
      */
-    public int lastBindId = 0;
+    int lastBindId = 0;
 
     /**
      * Load id for which the callbacks were successfully bound
      */
-    public int lastLoadId = -1;
+    int lastLoadId = -1;
     public boolean isFirstPagePinnedItemEnabled = FeatureFlags.QSB_ON_FIRST_SCREEN.get()
             && !enableSmartspaceRemovalToggle();
 

@@ -793,8 +793,8 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
      */
     private static class IntRange {
 
-        public int start;
-        public int end;
+        int start;
+        int end;
 
         public int clamp(int value) {
             return Utilities.boundToRange(value, start, end);

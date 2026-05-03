@@ -36,8 +36,8 @@ import com.android.launcher3.widget.util.WidgetSizes;
  * @see {@link PendingAddItemInfo}
  */
 public class PendingAddWidgetInfo extends PendingAddItemInfo {
-    public int previewImage;
-    public int icon;
+    private int previewImage;
+    private int icon;
     public LauncherAppWidgetProviderInfo info;
     public AppWidgetHostView boundWidget;
     public Bundle bindOptions = null;
