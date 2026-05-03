@@ -117,7 +117,7 @@ public final class TaskViewUtils {
      * Otherwise, we will assume we are using a normal app transition, but it's possible that the
      * opening remote target (which we don't get until onAnimationStart) will resolve to a TaskView.
      */
-    public static TaskView findTaskViewToLaunch(
+    public static TaskView findTaskViewToLaunch( // NOSONAR pristine-AOSP-do-not-refactor
             RecentsView<?, ?> recentsView, View v, RemoteAnimationTarget[] targets) {
         if (v instanceof TaskView) {
             TaskView taskView = (TaskView) v;
@@ -170,7 +170,7 @@ public final class TaskViewUtils {
     }
 
     public static <T extends Context & RecentsViewContainer & StatefulContainer<?>>
-    void createRecentsWindowAnimator(
+    void createRecentsWindowAnimator( // NOSONAR pristine-AOSP-do-not-refactor
             @NonNull RecentsView<T, ?> recentsView,
             @NonNull TaskView taskView,
             boolean skipViewChanges,
@@ -267,12 +267,12 @@ public final class TaskViewUtils {
         for (RemoteTargetHandle targetHandle : remoteTargetHandles) {
             TaskViewSimulator tvsLocal = targetHandle.getTaskViewSimulator();
             out.setFloat(tvsLocal.fullScreenProgress,
-                    AnimatedFloat.VALUE, 1, TOUCH_RESPONSE);
+                    AnimatedFloat.VALUE_PROPERTY, 1, TOUCH_RESPONSE);
             out.setFloat(tvsLocal.recentsViewScale,
-                    AnimatedFloat.VALUE, tvsLocal.getFullScreenScale(),
+                    AnimatedFloat.VALUE_PROPERTY, tvsLocal.getFullScreenScale(),
                     TOUCH_RESPONSE);
             if (!enableGridOnlyOverview()) {
-                out.setFloat(tvsLocal.recentsViewScroll, AnimatedFloat.VALUE, 0,
+                out.setFloat(tvsLocal.recentsViewScroll, AnimatedFloat.VALUE_PROPERTY, 0,
                         TOUCH_RESPONSE);
             }
 
@@ -515,24 +515,42 @@ public final class TaskViewUtils {
             @Nullable DepthController depthController,
             @NonNull Runnable finishCallback) {
         if (launchingTaskView != null) {
-            AnimatorSet animatorSet = new AnimatorSet();
-            RecentsView recentsView = launchingTaskView.getRecentsView();
-            animatorSet.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    finishCallback.run();
-                }
-            });
-            composeRecentsLaunchAnimator(animatorSet, launchingTaskView,
-                    appTargets, wallpaperTargets, nonAppTargets,
-                    true, stateManager,
-                    recentsView, depthController, /* transitionInfo= */ null);
-            animatorSet.start();
+            playLegacyTaskViewLaunchAnimator(launchingTaskView, appTargets, wallpaperTargets,
+                    nonAppTargets, stateManager, depthController, finishCallback);
             return;
         }
 
         final ArrayList<SurfaceControl> openingTargets = new ArrayList<>();
         final ArrayList<SurfaceControl> closingTargets = new ArrayList<>();
+        partitionLegacyAppTargets(appTargets, initialTaskId, secondTaskId,
+                openingTargets, closingTargets);
+        addDockDividerOpeningTargets(nonAppTargets, openingTargets);
+
+        playLegacySplitFadeAnimator(openingTargets, closingTargets, finishCallback);
+    }
+
+    private static void playLegacyTaskViewLaunchAnimator(GroupedTaskView launchingTaskView,
+            RemoteAnimationTarget[] appTargets, RemoteAnimationTarget[] wallpaperTargets,
+            RemoteAnimationTarget[] nonAppTargets, StateManager stateManager,
+            DepthController depthController, Runnable finishCallback) {
+        AnimatorSet animatorSet = new AnimatorSet();
+        RecentsView recentsView = launchingTaskView.getRecentsView();
+        animatorSet.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                finishCallback.run();
+            }
+        });
+        composeRecentsLaunchAnimator(animatorSet, launchingTaskView,
+                appTargets, wallpaperTargets, nonAppTargets,
+                true, stateManager,
+                recentsView, depthController, /* transitionInfo= */ null);
+        animatorSet.start();
+    }
+
+    private static void partitionLegacyAppTargets(RemoteAnimationTarget[] appTargets,
+            int initialTaskId, int secondTaskId, ArrayList<SurfaceControl> openingTargets,
+            ArrayList<SurfaceControl> closingTargets) {
         for (RemoteAnimationTarget appTarget : appTargets) {
             final int taskId = appTarget.taskInfo != null ? appTarget.taskInfo.taskId : -1;
             final int mode = appTarget.mode;
@@ -549,14 +567,20 @@ public final class TaskViewUtils {
                 closingTargets.add(leash);
             }
         }
+    }
 
+    private static void addDockDividerOpeningTargets(RemoteAnimationTarget[] nonAppTargets,
+            ArrayList<SurfaceControl> openingTargets) {
         for (int i = 0; i < nonAppTargets.length; ++i) {
             final SurfaceControl leash = nonAppTargets[i].leash;
             if (nonAppTargets[i].windowType == TYPE_DOCK_DIVIDER && leash != null) {
                 openingTargets.add(leash);
             }
         }
+    }
 
+    private static void playLegacySplitFadeAnimator(ArrayList<SurfaceControl> openingTargets,
+            ArrayList<SurfaceControl> closingTargets, Runnable finishCallback) {
         final SurfaceControl.Transaction t = new SurfaceControl.Transaction();
         ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
         animator.setDuration(SPLIT_LAUNCH_DURATION);
@@ -636,17 +660,7 @@ public final class TaskViewUtils {
         createRecentsWindowAnimator(recentsView, taskView, skipLauncherChanges, appTargets,
                 wallpaperTargets, nonAppTargets, depthController, transitionInfo, pa);
         if (launcherClosing) {
-            // TODO(b/182592057): differentiate between "restore split" vs "launch fullscreen app"
-            TaskViewUtils.createSplitAuxiliarySurfacesAnimator(nonAppTargets, true /*shown*/,
-                    (dividerAnimator) -> {
-                        // If split apps are launching, we want to delay showing the divider bar
-                        // until the very end once the apps are mostly in place. This is because we
-                        // aren't moving the divider leash in the relative position with the
-                        // launching apps.
-                        dividerAnimator.setStartDelay(pa.getDuration()
-                                - SPLIT_DIVIDER_ANIM_DURATION);
-                        pa.add(dividerAnimator);
-                    });
+            addSplitAuxDividerToPendingAnim(nonAppTargets, pa);
         }
 
         Animator childStateAnimation = null;
@@ -654,65 +668,9 @@ public final class TaskViewUtils {
         Animator launcherAnim;
         final AnimatorListenerAdapter windowAnimEndListener;
         if (launcherClosing) {
-            // Since Overview is in launcher, just opening overview sets willFinishToHome to true.
-            // Now that we are closing the launcher, we need to (re)set willFinishToHome back to
-            // false. Otherwise, RecentsAnimationController can't differentiate between closing
-            // overview to 3p home vs closing overview to app.
-            final RecentsAnimationController raController =
-                    recentsView.getRecentsAnimationController();
-            if (raController != null) {
-                raController.setWillFinishToHome(false);
-            }
-            launcherAnim = recentsView.createAdjacentPageAnimForTaskLaunch(taskView);
-            launcherAnim.setInterpolator(Interpolators.TOUCH_RESPONSE);
-            launcherAnim.setDuration(RECENTS_LAUNCH_DURATION);
-
-            windowAnimEndListener = new AnimationSuccessListener() {
-                @Override
-                public void onAnimationStart(Animator animation) {
-                    recentsView.onTaskLaunchedInLiveTileMode();
-                }
-
-                // Make sure recents gets fixed up by resetting task alphas and scales, etc.
-                // This should only be run onAnimationSuccess, otherwise finishRecentsAnimation will
-                // interfere with a rapid swipe up to home in the live tile + running task case.
-                @Override
-                public void onAnimationSuccess(Animator animation) {
-                    recentsView.finishRecentsAnimation(false /* toRecents */, () -> {
-                        recentsView.post(() -> {
-                            stateManager.moveToRestState();
-                            stateManager.reapplyState();
-
-                            // We may have notified launcher is not visible so that taskbar can
-                            // stash immediately. Now that the animation is over, we can update
-                            // that launcher is still visible.
-                            TaskbarUIController controller = recentsView.getSizeStrategy()
-                                    .getTaskbarController();
-                            if (controller != null) {
-                                boolean launcherVisible = true;
-                                for (RemoteAnimationTarget target : appTargets) {
-                                    launcherVisible &= target.isTranslucent;
-                                }
-                                if (launcherVisible) {
-                                    controller.onLauncherVisibilityChanged(true);
-                                }
-                            }
-                        });
-                    });
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-                    super.onAnimationCancel(animation);
-                    recentsView.onTaskLaunchedInLiveTileModeCancelled();
-                }
-
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    super.onAnimationEnd(animation);
-                    recentsView.setTaskLaunchCancelledRunnable(null);
-                }
-            };
+            launcherAnim = buildClosingLauncherAnim(recentsView, taskView);
+            windowAnimEndListener = buildClosingWindowAnimEndListener(
+                    appTargets, recentsView, stateManager);
         } else {
             AnimatorPlaybackController controller =
                     stateManager.createAnimationToNewWorkspace(NORMAL, RECENTS_LAUNCH_DURATION);
@@ -740,6 +698,91 @@ public final class TaskViewUtils {
         anim.addListener(windowAnimEndListener);
     }
 
+    private static void addSplitAuxDividerToPendingAnim(RemoteAnimationTarget[] nonAppTargets,
+            PendingAnimation pa) {
+        // TODO(b/182592057): differentiate between "restore split" vs "launch fullscreen app"
+        TaskViewUtils.createSplitAuxiliarySurfacesAnimator(nonAppTargets, true /*shown*/,
+                dividerAnimator -> {
+                    // If split apps are launching, we want to delay showing the divider bar
+                    // until the very end once the apps are mostly in place. This is because we
+                    // aren't moving the divider leash in the relative position with the
+                    // launching apps.
+                    dividerAnimator.setStartDelay(pa.getDuration()
+                            - SPLIT_DIVIDER_ANIM_DURATION);
+                    pa.add(dividerAnimator);
+                });
+    }
+
+    private static Animator buildClosingLauncherAnim(RecentsView recentsView, TaskView taskView) {
+        // Since Overview is in launcher, just opening overview sets willFinishToHome to true.
+        // Now that we are closing the launcher, we need to (re)set willFinishToHome back to
+        // false. Otherwise, RecentsAnimationController can't differentiate between closing
+        // overview to 3p home vs closing overview to app.
+        final RecentsAnimationController raController =
+                recentsView.getRecentsAnimationController();
+        if (raController != null) {
+            raController.setWillFinishToHome(false);
+        }
+        Animator launcherAnim = recentsView.createAdjacentPageAnimForTaskLaunch(taskView);
+        launcherAnim.setInterpolator(Interpolators.TOUCH_RESPONSE);
+        launcherAnim.setDuration(RECENTS_LAUNCH_DURATION);
+        return launcherAnim;
+    }
+
+    private static AnimatorListenerAdapter buildClosingWindowAnimEndListener(
+            RemoteAnimationTarget[] appTargets, RecentsView recentsView,
+            StateManager stateManager) {
+        return new AnimationSuccessListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                recentsView.onTaskLaunchedInLiveTileMode();
+            }
+
+            // Make sure recents gets fixed up by resetting task alphas and scales, etc.
+            // This should only be run onAnimationSuccess, otherwise finishRecentsAnimation will
+            // interfere with a rapid swipe up to home in the live tile + running task case.
+            @Override
+            public void onAnimationSuccess(Animator animation) {
+                recentsView.finishRecentsAnimation(false /* toRecents */, () -> recentsView.post(() -> {
+                    stateManager.moveToRestState();
+                    stateManager.reapplyState();
+
+                    // We may have notified launcher is not visible so that taskbar can
+                    // stash immediately. Now that the animation is over, we can update
+                    // that launcher is still visible.
+                    notifyTaskbarLauncherVisibilityIfNeeded(recentsView, appTargets);
+                }));
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                super.onAnimationCancel(animation);
+                recentsView.onTaskLaunchedInLiveTileModeCancelled();
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                recentsView.setTaskLaunchCancelledRunnable(null);
+            }
+        };
+    }
+
+    private static void notifyTaskbarLauncherVisibilityIfNeeded(RecentsView recentsView,
+            RemoteAnimationTarget[] appTargets) {
+        TaskbarUIController controller = recentsView.getSizeStrategy().getTaskbarController();
+        if (controller == null) {
+            return;
+        }
+        boolean launcherVisible = true;
+        for (RemoteAnimationTarget target : appTargets) {
+            launcherVisible &= target.isTranslucent;
+        }
+        if (launcherVisible) {
+            controller.onLauncherVisibilityChanged(true);
+        }
+    }
+
     /**
      * Creates an animation to show/hide the auxiliary surfaces (aka. divider bar), only calling
      * {@param animatorHandler} if there are valid surfaces to animate.
@@ -747,7 +790,7 @@ public final class TaskViewUtils {
      *
      * @return the animator animating the surfaces
      */
-    public static ValueAnimator createSplitAuxiliarySurfacesAnimator(
+    public static ValueAnimator createSplitAuxiliarySurfacesAnimator( // NOSONAR pristine-AOSP-do-not-refactor
             @Nullable RemoteAnimationTarget[] nonApps, boolean shown,
             @Nullable Consumer<ValueAnimator> animatorHandler) {
         if (nonApps == null || nonApps.length == 0) {

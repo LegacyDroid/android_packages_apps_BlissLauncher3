@@ -505,25 +505,37 @@ public class LauncherAppMonitor extends LauncherApps.Callback
 
     @Override
     public void dump(@Nullable String prefix, @Nullable FileDescriptor fd, @Nullable PrintWriter w, boolean dumpAll) {
+        // no-op default; concrete LauncherAppMonitorCallback subclasses override what
+        // they care about
     }
 
     @Override
     public void onLauncherLocaleChanged() {
+        // no-op default; concrete LauncherAppMonitorCallback subclasses override what
+        // they care about
     }
 
     @Override
     public void onLauncherOrientationChanged() {
+        // no-op default; concrete LauncherAppMonitorCallback subclasses override what
+        // they care about
     }
 
     @Override
     public void onLauncherScreensizeChanged() {
+        // no-op default; concrete LauncherAppMonitorCallback subclasses override what
+        // they care about
     }
 
     @Override
     public void onAppSharedPreferenceChanged(@Nullable String key) {
+        // no-op default; concrete LauncherAppMonitorCallback subclasses override what
+        // they care about
     }
 
     @Override
     public void close() {
+        // no-op default; concrete LauncherAppMonitorCallback subclasses override what
+        // they care about
     }
 }

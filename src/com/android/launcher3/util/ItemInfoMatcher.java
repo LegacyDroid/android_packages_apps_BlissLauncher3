@@ -36,6 +36,10 @@ import java.util.function.Predicate;
  */
 public abstract class ItemInfoMatcher {
 
+    private ItemInfoMatcher() {
+        // Utility class.
+    }
+
     /**
      * Empty component used for match testing
      */

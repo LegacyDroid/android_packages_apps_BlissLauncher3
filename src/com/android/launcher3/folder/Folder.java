@@ -184,7 +184,6 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     private static final float ICON_OVERSCROLL_WIDTH_FACTOR = 0.45f;
 
     private static final int FOLDER_NAME_ANIMATION_DURATION = 633;
-    private static final int FOLDER_COLOR_ANIMATION_DURATION = 200;
 
     private static final int REORDER_DELAY = 250;
     static final int ON_EXIT_CLOSE_DELAY = 400;
@@ -232,7 +231,11 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
 
     // Cell ranks used for drag and drop
     @Thunk
-    int mTargetRank, mPrevTargetRank, mEmptyCellRank;
+    int mTargetRank;
+    @Thunk
+    int mPrevTargetRank;
+    @Thunk
+    int mEmptyCellRank;
 
     private Path mClipPath;
 
@@ -602,12 +605,11 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         }
         if (mInfo.suggestedFolderNames.hasSuggestions()) {
             // update the primary suggestion if the folder name is empty.
-            if (isEmpty(mFolderName.getText())) {
-                if (mInfo.suggestedFolderNames.hasPrimary()) {
-                    mFolderName.setHint("");
-                    mFolderName.setText(mInfo.suggestedFolderNames.getLabels()[0]);
-                    mFolderName.selectAll();
-                }
+            if (isEmpty(mFolderName.getText())
+                    && mInfo.suggestedFolderNames.hasPrimary()) {
+                mFolderName.setHint("");
+                mFolderName.setText(mInfo.suggestedFolderNames.getLabels()[0]);
+                mFolderName.selectAll();
             }
             mFolderName.showKeyboard();
             mFolderName.displayCompletions(
@@ -920,10 +922,8 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         if (!useSpring) {
             return new FolderAnimationManager(this, isOpening).getAnimator();
         }
-        // Migration04 §06: AnimatorFallback centralises the spring → AOSP fallback.
-        // Same behaviour as the Migration02 §2.4 inline catch (Throwable): on any
-        // exception (NaN propagation, NPE in the spring builder, …) we silently
-        // fall through to FolderAnimationManager. AnimatorFallback also logs at WARN.
+        // AnimatorFallback centralises the spring-to-AOSP fallback policy: any throw from the
+        // spring builder is logged at WARN and falls through to FolderAnimationManager.
         return AnimatorFallback.tryBuild(
                 "Folder.buildOpenCloseAnimator",
                 () -> {
@@ -1204,15 +1204,13 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             }
         }
 
-        if (target != this) {
-            if (mOnExitAlarm.alarmPending()) {
-                mOnExitAlarm.cancelAlarm();
-                if (!success) {
-                    mSuppressFolderDeletion = true;
-                }
-                mScrollPauseAlarm.cancelAlarm();
-                completeDragExit();
+        if (target != this && mOnExitAlarm.alarmPending()) {
+            mOnExitAlarm.cancelAlarm();
+            if (!success) {
+                mSuppressFolderDeletion = true;
             }
+            mScrollPauseAlarm.cancelAlarm();
+            completeDragExit();
         }
 
         mDeleteFolderOnDropCompleted = false;

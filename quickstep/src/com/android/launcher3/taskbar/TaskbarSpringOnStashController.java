@@ -15,7 +15,7 @@
  */
 package com.android.launcher3.taskbar;
 
-import static com.android.launcher3.anim.AnimatedFloat.VALUE;
+import static com.android.launcher3.anim.AnimatedFloat.VALUE_PROPERTY;
 
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
@@ -82,7 +82,7 @@ public class TaskbarSpringOnStashController implements LoggableTaskbarController
                 .setDampingRatio(SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY)
                 .setStiffness(SpringForce.STIFFNESS_LOW)
                 .setStartVelocity(mStartVelocityPxPerS)
-                .build(mTranslationForStash, VALUE);
+                .build(mTranslationForStash, VALUE_PROPERTY);
     }
 
     /**

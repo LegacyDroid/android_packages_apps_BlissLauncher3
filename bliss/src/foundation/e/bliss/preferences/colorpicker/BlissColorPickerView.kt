@@ -143,9 +143,13 @@ constructor(context: Context, attrs: AttributeSet? = null) : LinearLayout(contex
                     notifyChange()
                 }
 
-                override fun onStartTrackingTouch(seekBar: SeekBar) {}
+                override fun onStartTrackingTouch(seekBar: SeekBar) {
+                    // no-op: only onProgressChanged is interesting for the hue slider
+                }
 
-                override fun onStopTrackingTouch(seekBar: SeekBar) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar) {
+                    // no-op: only onProgressChanged is interesting for the hue slider
+                }
             }
         )
     }
@@ -162,9 +166,13 @@ constructor(context: Context, attrs: AttributeSet? = null) : LinearLayout(contex
                     notifyChange()
                 }
 
-                override fun onStartTrackingTouch(seekBar: SeekBar) {}
+                override fun onStartTrackingTouch(seekBar: SeekBar) {
+                    // no-op: only onProgressChanged is interesting for the alpha slider
+                }
 
-                override fun onStopTrackingTouch(seekBar: SeekBar) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar) {
+                    // no-op: only onProgressChanged is interesting for the alpha slider
+                }
             }
         )
     }
@@ -178,9 +186,13 @@ constructor(context: Context, attrs: AttributeSet? = null) : LinearLayout(contex
                     start: Int,
                     count: Int,
                     after: Int,
-                ) {}
+                ) {
+                    // No-op: only afterTextChanged drives the parse + debounce path.
+                }
 
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    // No-op: see beforeTextChanged.
+                }
 
                 override fun afterTextChanged(s: Editable?) {
                     if (suppressHexSync) return
@@ -348,7 +360,10 @@ constructor(context: Context, attrs: AttributeSet? = null) : LinearLayout(contex
                     if (s.isNotEmpty()) {
                         try {
                             out.add(Color.parseColor(s))
-                        } catch (_: Throwable) {}
+                        } catch (_: Throwable) {
+                            // Skip unparseable recents; persisted JSON may pre-date a format
+                            // change.
+                        }
                     }
                 }
                 out

@@ -203,8 +203,7 @@ public class PortraitStatesTouchController extends AbstractStateChangeTouchContr
                         mLauncher.getRootView(), Cuj.CUJ_LAUNCHER_CLOSE_ALL_APPS_SWIPE);
                 break;
 
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP:
                 InteractionJankMonitorWrapper.cancel(Cuj.CUJ_LAUNCHER_OPEN_ALL_APPS);
                 InteractionJankMonitorWrapper.cancel(Cuj.CUJ_LAUNCHER_CLOSE_ALL_APPS_SWIPE);
                 break;

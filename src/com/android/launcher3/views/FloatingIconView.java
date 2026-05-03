@@ -700,6 +700,10 @@ public class FloatingIconView extends FrameLayout implements
         mLauncher.getViewCache().recycleView(R.layout.floating_icon_view, this);
     }
 
+    private static void markRecycledFetchIconId() {
+        sRecycledFetchIconId = sFetchIconId;
+    }
+
     private void recycle() {
         setTranslationX(0);
         setTranslationY(0);
@@ -718,7 +722,7 @@ public class FloatingIconView extends FrameLayout implements
         mOriginalIcon = null;
         mOnTargetChangeRunnable = null;
         mBadge = null;
-        sRecycledFetchIconId = sFetchIconId;
+        markRecycledFetchIconId();
         mIconLoadResult = null;
         mClipIconView.recycle();
         mBtvDrawable.setBackground(null);

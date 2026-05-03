@@ -262,40 +262,20 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
             animationData: FolderAnimationData,
         ) {
             with(folder) {
-                val folderBackground = folder.background as GradientDrawable
-                // Set up the Folder background.
                 val isOpening = animationData.isOpening
-                val initialColor = Themes.getAttrColor(context, R.attr.folderPreviewColor)
-                val finalColor = Themes.getAttrColor(context, R.attr.folderBackgroundColor)
-                folderBackground.mutate()
-                folderBackground.setColor(if (isOpening) initialColor else finalColor)
-                // TODO: convert to spring animation?
-                animatorSet.play(
-                    ObjectAnimator.ofArgb(
-                            folderBackground,
-                            "color",
-                            if (isOpening) initialColor else finalColor,
-                            if (isOpening) finalColor else initialColor,
-                        )
-                        .apply { duration = animationData.defaultDuration.toLong() }
-                )
+                addFolderBackgroundColorAnimator(folder, animatorSet, isOpening, animationData)
 
-                val footerAlphaDuration: Int
                 var footerStartDelay = 0
-                val isLargeFolder = folder.itemCount > MAX_NUM_ITEMS_IN_PREVIEW
-                if (isLargeFolder) {
-                    if (isOpening) {
-                        folder.mFooter.alpha = 0f
-                        footerAlphaDuration = LARGE_FOLDER_FOOTER_DURATION
-                        footerStartDelay = animationData.defaultDuration - footerAlphaDuration
-                    }
+                if (folder.itemCount > MAX_NUM_ITEMS_IN_PREVIEW && isOpening) {
+                    folder.mFooter.alpha = 0f
+                    footerStartDelay = animationData.defaultDuration - LARGE_FOLDER_FOOTER_DURATION
                 }
 
                 playSpringAnimation(
                     context = folder.context,
                     animatorSet = animatorSet,
                     isOpening = isOpening,
-                    startDelay = if (animationData.isOpening) footerStartDelay else 0,
+                    startDelay = if (isOpening) footerStartDelay else 0,
                     stiffness = STIFFNESS_ALPHA,
                     damping = DAMPING_ALPHA,
                     startValue = 0f,
@@ -304,14 +284,12 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
                     property = View.ALPHA,
                     view = mFooter,
                 )
-                // Fade in the folder name, as the text can overlap the icons when grid size is
-                // small.
-                folder.mFolderName.alpha = if (animationData.isOpening) 0f else 1f
+                folder.mFolderName.alpha = if (isOpening) 0f else 1f
                 playSpringAnimation(
                     context = folder.context,
                     animatorSet = animatorSet,
                     isOpening = isOpening,
-                    startDelay = if (animationData.isOpening) FOLDER_NAME_ALPHA_DURATION else 0,
+                    startDelay = if (isOpening) FOLDER_NAME_ALPHA_DURATION else 0,
                     stiffness = STIFFNESS_ALPHA,
                     damping = DAMPING_ALPHA,
                     startValue = 0f,
@@ -321,6 +299,26 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
                     view = mFolderName,
                 )
             }
+        }
+
+        private fun addFolderBackgroundColorAnimator(
+            folder: Folder,
+            animatorSet: AnimatorSet,
+            isOpening: Boolean,
+            animationData: FolderAnimationData,
+        ) {
+            val folderBackground = folder.background as GradientDrawable
+            val initialColor = Themes.getAttrColor(folder.context, R.attr.folderPreviewColor)
+            val finalColor = Themes.getAttrColor(folder.context, R.attr.folderBackgroundColor)
+            val startColor = if (isOpening) initialColor else finalColor
+            val endColor = if (isOpening) finalColor else initialColor
+            folderBackground.mutate()
+            folderBackground.setColor(startColor)
+            animatorSet.play(
+                ObjectAnimator.ofArgb(folderBackground, "color", startColor, endColor).apply {
+                    duration = animationData.defaultDuration.toLong()
+                }
+            )
         }
 
         private fun addClipRevealAnimators(

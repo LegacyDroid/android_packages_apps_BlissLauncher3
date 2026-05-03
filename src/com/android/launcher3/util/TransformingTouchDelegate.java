@@ -87,8 +87,7 @@ public class TransformingTouchDelegate extends TouchDelegate {
             case MotionEvent.ACTION_MOVE:
                 sendToDelegate = mDelegateTargeted;
                 break;
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL:
                 sendToDelegate = mDelegateTargeted;
                 mDelegateTargeted = false;
                 break;

@@ -32,6 +32,10 @@ import java.util.concurrent.TimeUnit;
  */
 public final class FileLog {
 
+    private FileLog() {
+        // Utility class, do not instantiate.
+    }
+
     protected static final boolean ENABLED = true;
     private static final String FILE_NAME_PREFIX = "log-";
     private static final DateFormat DATE_FORMAT =

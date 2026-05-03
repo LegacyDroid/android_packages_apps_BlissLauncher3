@@ -25,6 +25,10 @@ import android.view.MotionEvent;
 /** Handles motion events from trackpad. */
 public class MotionEventsUtils {
 
+    private MotionEventsUtils() {
+        // Utility class, do not instantiate.
+    }
+
     /** {@link MotionEvent#CLASSIFICATION_MULTI_FINGER_SWIPE} is hidden. */
     public static final int CLASSIFICATION_MULTI_FINGER_SWIPE = 4;
 

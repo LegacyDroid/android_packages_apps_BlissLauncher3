@@ -121,7 +121,7 @@ public class BaseLauncherBinder {
             ArrayList<FixedContainerItems> extraItems = new ArrayList<>();
             final int workspaceItemCount;
             synchronized (mBgDataModel.mLock) {
-                itemsIdMap = mBgDataModel.itemsIdMap.clone();
+                itemsIdMap = mBgDataModel.itemsIdMap.copy();
                 orderedScreenIds.addAll(mBgDataModel.collectWorkspaceScreens());
                 mBgDataModel.extraItems.forEach(extraItems::add);
                 if (incrementBindId) {
@@ -351,7 +351,7 @@ public class BaseLauncherBinder {
         private void setupPendingBind(
                 IntSet currentScreenIds,
                 Executor pendingExecutor) {
-            StringCache cacheClone = mBgDataModel.stringCache.clone();
+            StringCache cacheClone = new StringCache(mBgDataModel.stringCache);
             executeCallbacksTask(c -> c.bindStringCache(cacheClone), pendingExecutor);
 
             executeCallbacksTask(c -> c.finishBindingItems(currentScreenIds), pendingExecutor);

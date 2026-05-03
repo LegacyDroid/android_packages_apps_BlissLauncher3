@@ -114,8 +114,7 @@ public final class WidgetsListHeader extends LinearLayout implements ItemInfoUpd
                 @Override
                 public boolean performAccessibilityAction(View host, int action, Bundle args) {
                     switch (action) {
-                        case AccessibilityNodeInfo.ACTION_EXPAND:
-                        case AccessibilityNodeInfo.ACTION_COLLAPSE:
+                        case AccessibilityNodeInfo.ACTION_EXPAND, AccessibilityNodeInfo.ACTION_COLLAPSE:
                             callOnClick();
                             return true;
                         default:

@@ -40,10 +40,19 @@ import foundation.e.bliss.multimode.MultiModeController;
  */
 public class LauncherSettings {
 
+    private LauncherSettings() {
+        // Utility class.
+    }
+
     /**
      * Types of animations.
      */
     public static final class Animation {
+
+        private Animation() {
+            // Utility class.
+        }
+
         /**
          * The default animation for a given view/item info type.
          */
@@ -62,6 +71,11 @@ public class LauncherSettings {
      * Favorites.
      */
     public static final class Favorites implements BaseColumns {
+
+        private Favorites() {
+            // Utility class.
+        }
+
         /**
          * The time of the last update to this row.
          * <P>Type: INTEGER</P>
@@ -387,6 +401,11 @@ public class LauncherSettings {
      * Launcher settings
      */
     public static final class Settings {
+
+        private Settings() {
+            // Utility class.
+        }
+
         public static final String LAYOUT_PROVIDER_KEY = "launcher3.layout.provider";
         public static final String LAYOUT_DIGEST_LABEL = "launcher-layout";
         public static final String LAYOUT_DIGEST_TAG = "ignore";

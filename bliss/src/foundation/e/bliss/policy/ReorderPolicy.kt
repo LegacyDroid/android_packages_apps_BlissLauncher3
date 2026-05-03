@@ -43,7 +43,7 @@ import com.android.launcher3.celllayout.ReorderParameters
  * unconditionally; returning null lets the AOSP algorithm proceed unmodified (with whatever
  * `mDirectionVector` was set to here).
  */
-interface ReorderPolicy {
+fun interface ReorderPolicy {
     fun overrideDirectionAndPreference(
         cellLayout: CellLayout,
         params: ReorderParameters,

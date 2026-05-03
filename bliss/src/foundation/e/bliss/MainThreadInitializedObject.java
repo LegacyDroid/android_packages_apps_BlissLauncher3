@@ -64,9 +64,9 @@ public class MainThreadInitializedObject<T> {
                     return MAIN_EXECUTOR.submit(() -> get(context)).get();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    throw new RuntimeException(e);
+                    throw new IllegalStateException(e);
                 } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
+                    throw new IllegalStateException(e);
                 }
             }
         }
@@ -164,9 +164,9 @@ public class MainThreadInitializedObject<T> {
                 return MAIN_EXECUTOR.submit(() -> getObject(object)).get();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new RuntimeException(e);
+                throw new IllegalStateException(e);
             } catch (ExecutionException e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException(e);
             }
         }
 

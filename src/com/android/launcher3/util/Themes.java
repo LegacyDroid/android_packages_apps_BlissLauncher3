@@ -41,6 +41,8 @@ import com.android.launcher3.views.ActivityContext;
 @SuppressWarnings("NewApi")
 public class Themes {
 
+    private Themes() {}
+
     /** Gets the WallpaperColorHints and then uses those to get the correct activity theme res. */
     public static int getActivityThemeRes(Context context) {
         return getActivityThemeRes(context, WallpaperColorHints.get(context).getHints());

@@ -1201,19 +1201,18 @@ public class WidgetsFullSheet extends BaseWidgetSheet
                 clearFocus = true;
                 mFirstInteractionY = -1;
                 mFirstInteractionX = -1;
-            } else if (action == MotionEvent.ACTION_MOVE) {
+            } else if (action == MotionEvent.ACTION_MOVE
+                    && mFirstInteractionX != -1 && mFirstInteractionY != -1) {
                 // Sometimes, on move, we may not receive ACTION_UP, but if the move was within
                 // touch slop and we didn't know if its moved or cancelled, we can clear focus.
                 // Example case: Apps list is small and you do a little scroll on list - in such, we
                 // want to still hide the keyboard.
-                if (mFirstInteractionX != -1 && mFirstInteractionY != -1) {
-                    float distY = abs(mFirstInteractionY - ev.getY());
-                    float distX = abs(mFirstInteractionX - ev.getX());
-                    if (distY >= touchSlop || distX >= touchSlop) {
-                        clearFocus = true;
-                        mFirstInteractionY = -1;
-                        mFirstInteractionX = -1;
-                    }
+                float distY = abs(mFirstInteractionY - ev.getY());
+                float distX = abs(mFirstInteractionX - ev.getX());
+                if (distY >= touchSlop || distX >= touchSlop) {
+                    clearFocus = true;
+                    mFirstInteractionY = -1;
+                    mFirstInteractionX = -1;
                 }
             }
 

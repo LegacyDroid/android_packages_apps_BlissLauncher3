@@ -128,7 +128,7 @@ public class AppEventProducer implements StatsLogConsumer {
     }
 
     @Override
-    public void consume(EventEnum event, LauncherAtom.ItemInfo atomInfo) {
+    public void consume(EventEnum event, LauncherAtom.ItemInfo atomInfo) { // NOSONAR pristine-AOSP-do-not-refactor
         if (event == LAUNCHER_APP_LAUNCH_TAP
                 || event == LAUNCHER_TASK_LAUNCH_SWIPE_DOWN
                 || event == LAUNCHER_TASK_LAUNCH_TAP
@@ -185,10 +185,8 @@ public class AppEventProducer implements StatsLogConsumer {
             sendEvent(target, atomInfo, ACTION_LAUNCH, CONTAINER_PREDICTION);
         } else if (event == LAUNCHER_DISMISS_PREDICTION_UNDO) {
             sendEvent(atomInfo, ACTION_UNDISMISS, CONTAINER_HOTSEAT_PREDICTION);
-        } else if (event == LAUNCHER_WIDGET_ADD_BUTTON_TAP) {
-            if (isTrackedForWidgetPrediction(atomInfo)) {
-                sendEvent(atomInfo, ACTION_PIN, CONTAINER_WIDGETS_PREDICTION);
-            }
+        } else if (event == LAUNCHER_WIDGET_ADD_BUTTON_TAP && isTrackedForWidgetPrediction(atomInfo)) {
+            sendEvent(atomInfo, ACTION_PIN, CONTAINER_WIDGETS_PREDICTION);
         }
     }
 
@@ -203,60 +201,57 @@ public class AppEventProducer implements StatsLogConsumer {
         if (userHandle == null) {
             return null;
         }
-        ComponentName cn = null;
-        ShortcutInfo shortcutInfo = null;
-        String id = null;
-
         switch (info.getItemCase()) {
-            case APPLICATION: {
-                LauncherAtom.Application app = info.getApplication();
-                if ((cn = parseNullable(app.getComponentName())) != null) {
-                    id = "app:" + cn.getPackageName();
-                }
-                break;
-            }
-            case SHORTCUT: {
-                LauncherAtom.Shortcut si = info.getShortcut();
-                if (!TextUtils.isEmpty(si.getShortcutId())
-                        && (cn = parseNullable(si.getShortcutName())) != null) {
-                    Optional<ShortcutInfo> opt = new ShortcutRequest(mContext,
-                            userHandle).forPackage(cn.getPackageName(), si.getShortcutId()).query(
-                            ShortcutRequest.ALL).stream().findFirst();
-                    if (opt.isPresent()) {
-                        shortcutInfo = opt.get();
-                    } else {
-                        return null;
-                    }
-                    id = "shortcut:" + si.getShortcutId();
-                }
-                break;
-            }
-            case WIDGET: {
-                LauncherAtom.Widget widget = info.getWidget();
-                if ((cn = parseNullable(widget.getComponentName())) != null) {
-                    id = "widget:" + cn.getPackageName();
-                }
-                break;
-            }
-            case TASK: {
-                LauncherAtom.Task task = info.getTask();
-                if ((cn = parseNullable(task.getComponentName())) != null) {
-                    id = "app:" + cn.getPackageName();
-                }
-                break;
-            }
+            case APPLICATION:
+                return appTargetFromComponent(
+                        parseNullable(info.getApplication().getComponentName()),
+                        "app:", userHandle);
+            case SHORTCUT:
+                return appTargetFromShortcut(info.getShortcut(), userHandle);
+            case WIDGET:
+                return appTargetFromComponent(
+                        parseNullable(info.getWidget().getComponentName()),
+                        "widget:", userHandle);
+            case TASK:
+                return appTargetFromComponent(
+                        parseNullable(info.getTask().getComponentName()),
+                        "app:", userHandle);
             case FOLDER_ICON:
                 return createTempFolderTarget();
+            default:
+                return null;
         }
-        if (id != null && cn != null) {
-            if (shortcutInfo != null) {
-                return new AppTarget.Builder(new AppTargetId(id), shortcutInfo).build();
-            }
-            return new AppTarget.Builder(new AppTargetId(id), cn.getPackageName(), userHandle)
-                    .setClassName(cn.getClassName())
-                    .build();
+    }
+
+    @Nullable
+    private AppTarget appTargetFromComponent(@Nullable ComponentName cn, String idPrefix,
+            UserHandle userHandle) {
+        if (cn == null) {
+            return null;
         }
-        return null;
+        return new AppTarget.Builder(
+                new AppTargetId(idPrefix + cn.getPackageName()), cn.getPackageName(), userHandle)
+                .setClassName(cn.getClassName())
+                .build();
+    }
+
+    @Nullable
+    private AppTarget appTargetFromShortcut(LauncherAtom.Shortcut si, UserHandle userHandle) {
+        if (TextUtils.isEmpty(si.getShortcutId())) {
+            return null;
+        }
+        ComponentName cn = parseNullable(si.getShortcutName());
+        if (cn == null) {
+            return null;
+        }
+        Optional<ShortcutInfo> opt = new ShortcutRequest(mContext, userHandle)
+                .forPackage(cn.getPackageName(), si.getShortcutId())
+                .query(ShortcutRequest.ALL).stream().findFirst();
+        if (!opt.isPresent()) {
+            return null;
+        }
+        return new AppTarget.Builder(
+                new AppTargetId("shortcut:" + si.getShortcutId()), opt.get()).build();
     }
 
 
@@ -313,6 +308,7 @@ public class AppEventProducer implements StatsLogConsumer {
                         == DEVICE_SEARCH_RESULT_CONTAINER) {
                     return "search-results";
                 }
+                break;
             }
             default: // fall out
         }

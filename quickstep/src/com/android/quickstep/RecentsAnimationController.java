@@ -172,9 +172,7 @@ public class RecentsAnimationController {
                 @Override
                 public void send(int i, Bundle bundle) throws RemoteException {
                     ActiveGestureProtoLogProxy.logFinishRecentsAnimationCallback();
-                    MAIN_EXECUTOR.execute(() -> {
-                        mPendingFinishCallbacks.executeAllAndDestroy();
-                    });
+                    MAIN_EXECUTOR.execute(() -> mPendingFinishCallbacks.executeAllAndDestroy());
                 }
             });
             InteractionJankMonitorWrapper.end(Cuj.CUJ_LAUNCHER_QUICK_SWITCH);
@@ -224,9 +222,7 @@ public class RecentsAnimationController {
      * Enables the input consumer to start intercepting touches in the app window.
      */
     public void enableInputConsumer() {
-        UI_HELPER_EXECUTOR.submit(() -> {
-            mController.setInputConsumerEnabled(true);
-        });
+        UI_HELPER_EXECUTOR.submit(() -> mController.setInputConsumerEnabled(true));
     }
 
     /** @return wrapper controller. */

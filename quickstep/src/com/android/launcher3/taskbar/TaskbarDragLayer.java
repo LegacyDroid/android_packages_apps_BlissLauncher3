@@ -79,7 +79,6 @@ public class TaskbarDragLayer extends BaseDragLayer<TaskbarActivityContext> {
 
     private float mTaskbarBackgroundOffset;
     private float mTaskbarBackgroundProgress;
-    private boolean mIsAnimatingTaskbarPinning = false;
 
     private final MultiPropertyFactory<TaskbarDragLayer> mTaskbarBackgroundAlpha;
 
@@ -206,8 +205,7 @@ public class TaskbarDragLayer extends BaseDragLayer<TaskbarActivityContext> {
      * Sets animation boolean when taskbar pinning animation starts or stops.
      */
     public void setAnimatingTaskbarPinning(boolean animatingTaskbarPinning) {
-        mIsAnimatingTaskbarPinning = animatingTaskbarPinning;
-        mBackgroundRenderer.setAnimatingPinning(mIsAnimatingTaskbarPinning);
+        mBackgroundRenderer.setAnimatingPinning(animatingTaskbarPinning);
     }
 
     protected MultiProperty getBackgroundRendererAlpha() {

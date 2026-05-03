@@ -34,6 +34,7 @@
 package foundation.e.bliss.firstrun.ui
 
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.android.launcher3.R
 import foundation.e.bliss.firstrun.FirstRunStateStore
@@ -55,6 +56,16 @@ class FirstRunActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_first_run)
+
+        // Swallow the back press: progressing requires picking an option.
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    // Intentionally swallow.
+                }
+            },
+        )
 
         // Snapshot the pending steps once. If the queue is empty (e.g. the
         // launcher start-up gate raced and fired this Activity after a
@@ -110,11 +121,5 @@ class FirstRunActivity : AppCompatActivity() {
         }
         current = null
         finish()
-    }
-
-    /** No-op: the wizard is one-shot; back press shouldn't dismiss it mid-flow. */
-    @Deprecated("AOSP back-press shim retained for safety; intentional no-op.")
-    override fun onBackPressed() {
-        // Intentionally swallow: progressing requires picking an option.
     }
 }

@@ -40,6 +40,11 @@ import java.util.Map;
 
 /** A helper class to parse widget sections (categories) resource overlay. */
 public final class WidgetSections {
+
+    private WidgetSections() {
+        // Utility class, do not instantiate.
+    }
+
     /** The package is not categorized in the widget tray. */
     public static final int NO_CATEGORY = -1;
 

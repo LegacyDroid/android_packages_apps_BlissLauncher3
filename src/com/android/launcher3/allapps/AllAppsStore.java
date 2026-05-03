@@ -216,7 +216,7 @@ public class AllAppsStore<T extends Context & ActivityContext> {
     }
 
     public void updateNotificationDots(Predicate<PackageUserKey> updatedDots) {
-        updateAllIcons((child) -> {
+        updateAllIcons(child -> {
             if (child.getTag() instanceof ItemInfo) {
                 ItemInfo info = (ItemInfo) child.getTag();
                 if (mTempKey.updateFromItemInfo(info) && updatedDots.test(mTempKey)) {
@@ -236,7 +236,7 @@ public class AllAppsStore<T extends Context & ActivityContext> {
      * If this app is fully downloaded, the app icon will be reapplied.
      */
     public void updateProgressBar(AppInfo app) {
-        updateAllIcons((child) -> {
+        updateAllIcons(child -> {
             if (child.getTag() == app) {
                 child.applyFromApplicationInfo(app);
             }

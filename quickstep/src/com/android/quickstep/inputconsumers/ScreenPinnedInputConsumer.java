@@ -31,8 +31,6 @@ import com.android.quickstep.views.RecentsViewContainer;
  */
 public class ScreenPinnedInputConsumer implements InputConsumer {
 
-    private static final String TAG = "ScreenPinnedConsumer";
-
     private final float mMotionPauseMinDisplacement;
     private final MotionPauseDetector mMotionPauseDetector;
 
@@ -80,8 +78,7 @@ public class ScreenPinnedInputConsumer implements InputConsumer {
                 mMotionPauseDetector.setDisallowPause(displacement < mMotionPauseMinDisplacement);
                 mMotionPauseDetector.addPosition(ev);
                 break;
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP:
                 mMotionPauseDetector.clear();
                 break;
         }

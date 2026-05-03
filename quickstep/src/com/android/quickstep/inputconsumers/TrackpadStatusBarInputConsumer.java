@@ -53,29 +53,33 @@ public class TrackpadStatusBarInputConsumer extends DelegateInputConsumer {
 
     @Override
     public void onMotionEvent(MotionEvent ev) {
-        if (mState != STATE_ACTIVE) {
-            mDelegate.onMotionEvent(ev);
+        if (mState == STATE_ACTIVE) {
+            dispatchTouchEvent(ev);
+            return;
+        }
+        mDelegate.onMotionEvent(ev);
 
-            switch (ev.getActionMasked()) {
-                case ACTION_DOWN -> {
-                    mDown.set(ev.getX(), ev.getY());
-                    mHasPassedTouchSlop = false;
-                }
-                case ACTION_MOVE -> {
-                    if (!mHasPassedTouchSlop) {
-                        float displacementY = ev.getY() - mDown.y;
-                        if (Math.abs(displacementY) > mTouchSlop) {
-                            mHasPassedTouchSlop = true;
-                            if (displacementY > 0) {
-                                setActive(ev);
-                                ev.setAction(ACTION_DOWN);
-                                dispatchTouchEvent(ev);
-                            }
-                        }
-                    }
-                }
+        switch (ev.getActionMasked()) {
+            case ACTION_DOWN -> {
+                mDown.set(ev.getX(), ev.getY());
+                mHasPassedTouchSlop = false;
             }
-        } else {
+            case ACTION_MOVE -> handleMoveBeforeActive(ev);
+        }
+    }
+
+    private void handleMoveBeforeActive(MotionEvent ev) {
+        if (mHasPassedTouchSlop) {
+            return;
+        }
+        float displacementY = ev.getY() - mDown.y;
+        if (Math.abs(displacementY) <= mTouchSlop) {
+            return;
+        }
+        mHasPassedTouchSlop = true;
+        if (displacementY > 0) {
+            setActive(ev);
+            ev.setAction(ACTION_DOWN);
             dispatchTouchEvent(ev);
         }
     }

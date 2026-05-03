@@ -126,7 +126,7 @@ public class RecentsFilterState {
             return getDesktopTaskFilter();
         }
 
-        return (groupTask) -> (groupTask.containsPackage(packageName)
+        return groupTask -> (groupTask.containsPackage(packageName)
                 && shouldKeepGroupTask(groupTask));
     }
 

@@ -185,6 +185,33 @@ public class StringCache {
     public String disabledByAdminMessage;
 
     /**
+     * Creates an empty cache.
+     */
+    public StringCache() {
+    }
+
+    /**
+     * Copy constructor that creates a shallow copy of {@code other}. All fields are immutable
+     * {@link String} references, so a shallow copy is sufficient.
+     */
+    public StringCache(StringCache other) {
+        this.workProfileEdu = other.workProfileEdu;
+        this.workProfileEduAccept = other.workProfileEduAccept;
+        this.workProfilePausedTitle = other.workProfilePausedTitle;
+        this.workProfilePausedDescription = other.workProfilePausedDescription;
+        this.workProfilePauseButton = other.workProfilePauseButton;
+        this.workProfileEnableButton = other.workProfileEnableButton;
+        this.allAppsWorkTab = other.allAppsWorkTab;
+        this.allAppsPersonalTab = other.allAppsPersonalTab;
+        this.allAppsWorkTabAccessibility = other.allAppsWorkTabAccessibility;
+        this.allAppsPersonalTabAccessibility = other.allAppsPersonalTabAccessibility;
+        this.workFolderName = other.workFolderName;
+        this.widgetsWorkTab = other.widgetsWorkTab;
+        this.widgetsPersonalTab = other.widgetsPersonalTab;
+        this.disabledByAdminMessage = other.disabledByAdminMessage;
+    }
+
+    /**
      * Sets the default values for the strings.
      */
     public void loadStrings(Context context) {
@@ -258,23 +285,4 @@ public class StringCache {
         return dpm.getResources().getString(updatableStringId, defaultStringSupplier);
     }
 
-    @Override
-    public StringCache clone() {
-        StringCache clone = new StringCache();
-        clone.workProfileEdu = this.workProfileEdu;
-        clone.workProfileEduAccept = this.workProfileEduAccept;
-        clone.workProfilePausedTitle = this.workProfilePausedTitle;
-        clone.workProfilePausedDescription = this.workProfilePausedDescription;
-        clone.workProfilePauseButton = this.workProfilePauseButton;
-        clone.workProfileEnableButton = this.workProfileEnableButton;
-        clone.allAppsWorkTab = this.allAppsWorkTab;
-        clone.allAppsPersonalTab = this.allAppsPersonalTab;
-        clone.allAppsWorkTabAccessibility = this.allAppsWorkTabAccessibility;
-        clone.allAppsPersonalTabAccessibility = this.allAppsPersonalTabAccessibility;
-        clone.workFolderName = this.workFolderName;
-        clone.widgetsWorkTab = this.widgetsWorkTab;
-        clone.widgetsPersonalTab = this.widgetsPersonalTab;
-        clone.disabledByAdminMessage = this.disabledByAdminMessage;
-        return clone;
-    }
 }

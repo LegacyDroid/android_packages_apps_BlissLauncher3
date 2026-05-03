@@ -155,9 +155,7 @@ public class SimpleBroadcastReceiver extends BroadcastReceiver {
         if (Looper.myLooper() == mHandler.getLooper()) {
             mContext.registerReceiver(this, getPackageFilter(pkg, actions));
         } else {
-            mHandler.post(() -> {
-                mContext.registerReceiver(this, getPackageFilter(pkg, actions));
-            });
+            mHandler.post(() -> mContext.registerReceiver(this, getPackageFilter(pkg, actions)));
         }
     }
 
@@ -171,9 +169,7 @@ public class SimpleBroadcastReceiver extends BroadcastReceiver {
         if (Looper.myLooper() == mHandler.getLooper()) {
             unregisterReceiverSafelyInternal(mContext);
         } else {
-            mHandler.post(() -> {
-                unregisterReceiverSafelyInternal(mContext);
-            });
+            mHandler.post(() -> unregisterReceiverSafelyInternal(mContext));
         }
     }
 

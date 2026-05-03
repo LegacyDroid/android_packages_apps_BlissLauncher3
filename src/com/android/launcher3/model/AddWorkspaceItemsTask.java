@@ -135,10 +135,9 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
                     }
                 }
 
-                if (item.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPLICATION) {
-                    if (item instanceof WorkspaceItemFactory) {
-                        item = ((WorkspaceItemFactory) item).makeWorkspaceItem(context);
-                    }
+                if (item.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
+                        && item instanceof WorkspaceItemFactory) {
+                    item = ((WorkspaceItemFactory) item).makeWorkspaceItem(context);
                 }
                 if (item != null) {
                     filteredItems.add(item);
@@ -261,7 +260,9 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
      */
     protected boolean shortcutExists(@NonNull final BgDataModel dataModel,
             @Nullable final Intent intent, @NonNull final UserHandle user) {
-        final String compPkgName, intentWithPkg, intentWithoutPkg;
+        final String compPkgName;
+        final String intentWithPkg;
+        final String intentWithoutPkg;
         if (intent == null) {
             // Skip items with null intents
             return true;

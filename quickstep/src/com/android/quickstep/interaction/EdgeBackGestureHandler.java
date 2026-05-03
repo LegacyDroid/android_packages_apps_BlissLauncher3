@@ -40,7 +40,6 @@ import com.android.launcher3.testing.shared.ResourceUtils;
  */
 public class EdgeBackGestureHandler implements OnTouchListener {
 
-    private static final String TAG = "EdgeBackGestureHandler";
     private static final int MAX_LONG_PRESS_TIMEOUT = SystemProperties.getInt(
             "gestures.back_timeout", 250);
 
@@ -176,7 +175,7 @@ public class EdgeBackGestureHandler implements OnTouchListener {
         cancelEv.recycle();
     }
 
-    private void onMotionEvent(MotionEvent ev) {
+    private void onMotionEvent(MotionEvent ev) { // NOSONAR pristine-AOSP-do-not-refactor
         int action = ev.getActionMasked();
         if (action == MotionEvent.ACTION_DOWN) {
             boolean isOnLeftEdge = ev.getX() <= mEdgeWidth + mLeftInset;

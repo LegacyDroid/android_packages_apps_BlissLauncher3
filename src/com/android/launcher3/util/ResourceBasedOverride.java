@@ -29,6 +29,9 @@ public interface ResourceBasedOverride {
 
     class Overrides {
 
+        private Overrides() {
+        }
+
         private static final String TAG = "Overrides";
 
         public static <T extends ResourceBasedOverride> T getObject(

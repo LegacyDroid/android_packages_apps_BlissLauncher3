@@ -45,6 +45,10 @@ import kotlin.random.Random;
  */
 public class BinderTracker {
 
+    private BinderTracker() {
+        // Utility class, do not instantiate.
+    }
+
     private static final String TAG = "BinderTracker";
     private static final Boolean DEBUG_STACKTRACE = false;
 

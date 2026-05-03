@@ -195,15 +195,13 @@ final class BackGestureTutorialController extends TutorialController {
         resetViewsForBackGesture();
 
         switch (result) {
-            case BACK_COMPLETED_FROM_LEFT:
-            case BACK_COMPLETED_FROM_RIGHT:
+            case BACK_COMPLETED_FROM_LEFT, BACK_COMPLETED_FROM_RIGHT:
                 mTutorialFragment.releaseFeedbackAnimation();
                 mExitingAppView.setVisibility(View.GONE);
                 updateFakeAppTaskViewLayout(getMockAppTaskPreviousPageLayoutResId());
                 showSuccessFeedback();
                 break;
-            case BACK_CANCELLED_FROM_LEFT:
-            case BACK_CANCELLED_FROM_RIGHT:
+            case BACK_CANCELLED_FROM_LEFT, BACK_CANCELLED_FROM_RIGHT:
                 showFeedback(R.string.back_gesture_feedback_cancelled);
                 break;
             case BACK_NOT_STARTED_TOO_FAR_FROM_EDGE:
@@ -226,14 +224,10 @@ final class BackGestureTutorialController extends TutorialController {
             }
         } else if (mTutorialType == BACK_NAVIGATION) {
             switch (result) {
-                case HOME_NOT_STARTED_TOO_FAR_FROM_EDGE:
-                case OVERVIEW_NOT_STARTED_TOO_FAR_FROM_EDGE:
-                case HOME_OR_OVERVIEW_CANCELLED:
+                case HOME_NOT_STARTED_TOO_FAR_FROM_EDGE, OVERVIEW_NOT_STARTED_TOO_FAR_FROM_EDGE, HOME_OR_OVERVIEW_CANCELLED:
                     showFeedback(R.string.back_gesture_feedback_swipe_too_far_from_edge);
                     break;
-                case HOME_GESTURE_COMPLETED:
-                case OVERVIEW_GESTURE_COMPLETED:
-                case HOME_OR_OVERVIEW_NOT_STARTED_WRONG_SWIPE_DIRECTION:
+                case HOME_GESTURE_COMPLETED, OVERVIEW_GESTURE_COMPLETED, HOME_OR_OVERVIEW_NOT_STARTED_WRONG_SWIPE_DIRECTION:
                 default:
                     showFeedback(R.string.back_gesture_feedback_swipe_in_nav_bar);
 

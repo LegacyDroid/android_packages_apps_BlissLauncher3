@@ -53,8 +53,7 @@ public class RecentsAtomicAnimationFactory<CONTAINER extends Context & RecentsVi
                 ObjectAnimator alpha = ObjectAnimator.ofFloat(mContainer.getOverviewPanel(),
                         RecentsView.CONTENT_ALPHA, values);
                 return alpha;
-            case INDEX_RECENTS_ATTACHED_ALPHA_ANIM:
-            case INDEX_RECENTS_TRANSLATE_X_ANIM: {
+            case INDEX_RECENTS_ATTACHED_ALPHA_ANIM, INDEX_RECENTS_TRANSLATE_X_ANIM: {
                 RecentsView rv = mContainer.getOverviewPanel();
                 return new SpringAnimationBuilder(mContainer)
                         .setMinimumVisibleChange(DynamicAnimation.MIN_VISIBLE_CHANGE_SCALE)

@@ -92,50 +92,61 @@ public class TaskbarShortcutMenuAccessibilityDelegate
         if (action == DEEP_SHORTCUTS) {
             mContext.showPopupMenuForIcon((BubbleTextView) host);
             return true;
-        } else if (action == CREATE_APPLICATION_BUBBLE) {
-            if (item.itemType == LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT
-                    && item instanceof WorkspaceItemInfo) {
-                ShortcutInfo shortcutInfo = ((WorkspaceItemInfo) item).getDeepShortcutInfo();
-                SystemUiProxy.INSTANCE.get(mContext).showShortcutBubble(shortcutInfo);
-                return true;
-            } else if (item.getIntent() != null && item.getIntent().getPackage() != null) {
-                SystemUiProxy.INSTANCE.get(mContext).showAppBubble(item.getIntent(), item.user);
-                return true;
-            }
-        } else if (item instanceof ItemInfoWithIcon
+        }
+        if (action == CREATE_APPLICATION_BUBBLE) {
+            return performCreateApplicationBubble(item);
+        }
+        if (item instanceof ItemInfoWithIcon
                 && (action == MOVE_TO_TOP_OR_LEFT || action == MOVE_TO_BOTTOM_OR_RIGHT)) {
-            ItemInfoWithIcon info = (ItemInfoWithIcon) item;
-            int side = action == MOVE_TO_TOP_OR_LEFT
-                    ? STAGE_POSITION_TOP_OR_LEFT : STAGE_POSITION_BOTTOM_OR_RIGHT;
-
-            Pair<InstanceId, com.android.launcher3.logging.InstanceId> instanceIds =
-                    LogUtils.getShellShareableInstanceId();
-            mStatsLogManager.logger()
-                    .withItemInfo(item)
-                    .withInstanceId(instanceIds.second)
-                    .log(getLogEventForPosition(side));
-
-            if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT
-                    && item instanceof WorkspaceItemInfo) {
-                SystemUiProxy.INSTANCE.get(mContext).startShortcut(
-                        info.getIntent().getPackage(),
-                        ((WorkspaceItemInfo) info).getDeepShortcutId(),
-                        side,
-                        /* bundleOpts= */ null,
-                        info.user,
-                        instanceIds.first);
-            } else {
-                SystemUiProxy.INSTANCE.get(mContext).startIntent(
-                        mLauncherApps.getMainActivityLaunchIntent(
-                                item.getIntent().getComponent(),
-                                /* startActivityOptions= */null,
-                                item.user),
-                        item.user.getIdentifier(), new Intent(), side, null,
-                        instanceIds.first);
-            }
+            performMoveAction((ItemInfoWithIcon) item, action);
             return true;
         }
         return false;
+    }
+
+    private boolean performCreateApplicationBubble(ItemInfo item) {
+        if (item.itemType == LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT
+                && item instanceof WorkspaceItemInfo) {
+            ShortcutInfo shortcutInfo = ((WorkspaceItemInfo) item).getDeepShortcutInfo();
+            SystemUiProxy.INSTANCE.get(mContext).showShortcutBubble(shortcutInfo);
+            return true;
+        }
+        if (item.getIntent() != null && item.getIntent().getPackage() != null) {
+            SystemUiProxy.INSTANCE.get(mContext).showAppBubble(item.getIntent(), item.user);
+            return true;
+        }
+        return false;
+    }
+
+    private void performMoveAction(ItemInfoWithIcon info, int action) {
+        int side = action == MOVE_TO_TOP_OR_LEFT
+                ? STAGE_POSITION_TOP_OR_LEFT : STAGE_POSITION_BOTTOM_OR_RIGHT;
+
+        Pair<InstanceId, com.android.launcher3.logging.InstanceId> instanceIds =
+                LogUtils.getShellShareableInstanceId();
+        mStatsLogManager.logger()
+                .withItemInfo(info)
+                .withInstanceId(instanceIds.second)
+                .log(getLogEventForPosition(side));
+
+        if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT
+                && info instanceof WorkspaceItemInfo) {
+            SystemUiProxy.INSTANCE.get(mContext).startShortcut(
+                    info.getIntent().getPackage(),
+                    ((WorkspaceItemInfo) info).getDeepShortcutId(),
+                    side,
+                    /* bundleOpts= */ null,
+                    info.user,
+                    instanceIds.first);
+        } else {
+            SystemUiProxy.INSTANCE.get(mContext).startIntent(
+                    mLauncherApps.getMainActivityLaunchIntent(
+                            info.getIntent().getComponent(),
+                            /* startActivityOptions= */null,
+                            info.user),
+                    info.user.getIdentifier(), new Intent(), side, null,
+                    instanceIds.first);
+        }
     }
 
     @Override

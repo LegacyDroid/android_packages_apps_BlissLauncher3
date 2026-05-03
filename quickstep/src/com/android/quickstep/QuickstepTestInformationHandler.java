@@ -45,7 +45,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             case TestProtocol.REQUEST_RECENT_TASKS_LIST: {
                 ArrayList<String> taskBaseIntentComponents = new ArrayList<>();
                 CountDownLatch latch = new CountDownLatch(1);
-                RecentsModel.INSTANCE.get(mContext).getTasks((taskGroups) -> {
+                RecentsModel.INSTANCE.get(mContext).getTasks(taskGroups -> {
                     for (GroupTask group : taskGroups) {
                         for (Task t : group.getTasks()) {
                             taskBaseIntentComponents.add(
@@ -56,11 +56,11 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                 });
                 try {
                     if (!latch.await(2, TimeUnit.SECONDS)) {
-                        throw new RuntimeException("Timed out waiting for recent tasks");
+                        throw new IllegalStateException("Timed out waiting for recent tasks");
                     }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    throw new RuntimeException(e);
+                    throw new IllegalStateException(e);
                 }
                 response.putStringArrayList(TestProtocol.TEST_INFO_RESPONSE_FIELD,
                         taskBaseIntentComponents);
@@ -128,12 +128,10 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             }
 
             case TestProtocol.REQUEST_STASHED_TASKBAR_SCALE: {
-                runOnTISBinder(tisBinder -> {
-                    response.putFloat(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                            tisBinder.getTaskbarManager()
-                                    .getCurrentActivityContext()
-                                    .getStashedTaskbarScale());
-                });
+                runOnTISBinder(tisBinder -> response.putFloat(TestProtocol.TEST_INFO_RESPONSE_FIELD,
+                        tisBinder.getTaskbarManager()
+                                .getCurrentActivityContext()
+                                .getStashedTaskbarScale()));
                 return response;
             }
 
@@ -152,15 +150,11 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             }
 
             case TestProtocol.REQUEST_ENABLE_BLOCK_TIMEOUT:
-                runOnTISBinder(tisBinder -> {
-                    enableBlockingTimeout(tisBinder, true);
-                });
+                runOnTISBinder(tisBinder -> enableBlockingTimeout(tisBinder, true));
                 return response;
 
             case TestProtocol.REQUEST_DISABLE_BLOCK_TIMEOUT:
-                runOnTISBinder(tisBinder -> {
-                    enableBlockingTimeout(tisBinder, false);
-                });
+                runOnTISBinder(tisBinder -> enableBlockingTimeout(tisBinder, false));
                 return response;
 
             case TestProtocol.REQUEST_ENABLE_TRANSIENT_TASKBAR:
@@ -201,6 +195,9 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             case TestProtocol.REQUEST_EJECT_FAKE_TRACKPAD:
                 runOnTISBinder(tisBinder -> tisBinder.ejectFakeTrackpadForTesting());
                 return response;
+            default:
+                // Unknown method; delegate to the base handler below.
+                break;
         }
 
         return super.call(method, arg, extras);
@@ -254,9 +251,9 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             MAIN_EXECUTOR.execute(helper::onDestroy);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         } catch (ExecutionException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 

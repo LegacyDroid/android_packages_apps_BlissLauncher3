@@ -182,8 +182,7 @@ public class DeviceLockedInputConsumer implements InputConsumer,
                 }
                 break;
             }
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP:
                 finishTouchTracking(ev);
                 break;
         }
@@ -194,55 +193,62 @@ public class DeviceLockedInputConsumer implements InputConsumer,
      * the animation can still be running.
      */
     private void finishTouchTracking(MotionEvent ev) {
-        if (mThresholdCrossed && ev.getAction() == ACTION_UP) {
-            mVelocityTracker.computeCurrentVelocity(PX_PER_MS);
-
-            float velocityY = mVelocityTracker.getYVelocity();
-            float flingThreshold = mContext.getResources()
-                    .getDimension(R.dimen.quickstep_fling_threshold_speed);
-
-            boolean dismissTask;
-            if (Math.abs(velocityY) > flingThreshold) {
-                // Is fling
-                dismissTask = velocityY < 0;
-            } else {
-                dismissTask = mProgress.value >= (1 - MIN_PROGRESS_FOR_OVERVIEW);
-            }
-
-            // Animate back to fullscreen before finishing
-            ObjectAnimator animator = mProgress.animateToValue(mProgress.value, 0);
-            animator.setDuration(100);
-            animator.setInterpolator(Interpolators.ACCELERATE);
-            animator.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    if (dismissTask) {
-                        // Just start the home intent so the user is prompted to unlock the device.
-                        // This will come back and cancel the interaction.
-                        startHomeIntentSafely(mContext, mGestureState.getHomeIntent(), null, TAG);
-                        mHomeLaunched = true;
-                    } else if (mTaskAnimationManager.getCurrentCallbacks() != null) {
-                        if (mRecentsAnimationController != null) {
-                            finishRecentsAnimationForShell(dismissTask);
-                        } else {
-                            // the transition of recents animation hasn't started, wait for it
-                            mCancelWhenRecentsStart = true;
-                            mDismissTask = dismissTask;
-                        }
-                    }
-                    mStateCallback.setState(STATE_HANDLER_INVALIDATED);
-                }
-            });
-            RemoteAnimationTargets targets = mTransformParams.getTargetSet();
-            if (targets != null) {
-                targets.addReleaseCheck(new DeviceLockedReleaseCheck(animator));
-            }
-            animator.start();
-        } else {
+        if (!mThresholdCrossed || ev.getAction() != ACTION_UP) {
             mStateCallback.setState(STATE_HANDLER_INVALIDATED);
+            mVelocityTracker.recycle();
+            mVelocityTracker = null;
+            return;
         }
+        mVelocityTracker.computeCurrentVelocity(PX_PER_MS);
+
+        boolean dismissTask = computeDismissTask();
+
+        // Animate back to fullscreen before finishing
+        ObjectAnimator animator = mProgress.animateToValue(mProgress.value, 0);
+        animator.setDuration(100);
+        animator.setInterpolator(Interpolators.ACCELERATE);
+        animator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                onFinishTouchAnimationEnd(dismissTask);
+            }
+        });
+        RemoteAnimationTargets targets = mTransformParams.getTargetSet();
+        if (targets != null) {
+            targets.addReleaseCheck(new DeviceLockedReleaseCheck(animator));
+        }
+        animator.start();
         mVelocityTracker.recycle();
         mVelocityTracker = null;
+    }
+
+    private boolean computeDismissTask() {
+        float velocityY = mVelocityTracker.getYVelocity();
+        float flingThreshold = mContext.getResources()
+                .getDimension(R.dimen.quickstep_fling_threshold_speed);
+        if (Math.abs(velocityY) > flingThreshold) {
+            // Is fling
+            return velocityY < 0;
+        }
+        return mProgress.value >= (1 - MIN_PROGRESS_FOR_OVERVIEW);
+    }
+
+    private void onFinishTouchAnimationEnd(boolean dismissTask) {
+        if (dismissTask) {
+            // Just start the home intent so the user is prompted to unlock the device.
+            // This will come back and cancel the interaction.
+            startHomeIntentSafely(mContext, mGestureState.getHomeIntent(), null, TAG);
+            mHomeLaunched = true;
+        } else if (mTaskAnimationManager.getCurrentCallbacks() != null) {
+            if (mRecentsAnimationController != null) {
+                finishRecentsAnimationForShell(dismissTask);
+            } else {
+                // the transition of recents animation hasn't started, wait for it
+                mCancelWhenRecentsStart = true;
+                mDismissTask = dismissTask;
+            }
+        }
+        mStateCallback.setState(STATE_HANDLER_INVALIDATED);
     }
 
     private void startRecentsTransition() {

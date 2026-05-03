@@ -132,20 +132,19 @@ public class ModelWriter {
             // check all the data is consistent
             if (!Utilities.IS_DEBUG_DEVICE && !FeatureFlags.IS_STUDIO_BUILD
                     && modelItem instanceof WorkspaceItemInfo
-                    && item instanceof WorkspaceItemInfo) {
-                if (modelItem.title.toString().equals(item.title.toString()) &&
-                        modelItem.getIntent().filterEquals(item.getIntent()) &&
-                        modelItem.id == item.id &&
-                        modelItem.itemType == item.itemType &&
-                        modelItem.container == item.container &&
-                        modelItem.screenId == item.screenId &&
-                        modelItem.cellX == item.cellX &&
-                        modelItem.cellY == item.cellY &&
-                        modelItem.spanX == item.spanX &&
-                        modelItem.spanY == item.spanY) {
-                    // For all intents and purposes, this is the same object
-                    return;
-                }
+                    && item instanceof WorkspaceItemInfo
+                    && modelItem.title.toString().equals(item.title.toString()) &&
+                    modelItem.getIntent().filterEquals(item.getIntent()) &&
+                    modelItem.id == item.id &&
+                    modelItem.itemType == item.itemType &&
+                    modelItem.container == item.container &&
+                    modelItem.screenId == item.screenId &&
+                    modelItem.cellX == item.cellX &&
+                    modelItem.cellY == item.cellY &&
+                    modelItem.spanX == item.spanX &&
+                    modelItem.spanY == item.spanY) {
+                // For all intents and purposes, this is the same object
+                return;
             }
 
             // the modelItem needs to match up perfectly with item if our model is
@@ -294,7 +293,7 @@ public class ModelWriter {
             @Nullable final String reason) {
         ModelVerifier verifier = new ModelVerifier();
         FileLog.d(TAG, "removing items from db " + items.stream().map(
-                (item) -> item.getTargetComponent() == null ? ""
+                item -> item.getTargetComponent() == null ? ""
                         : item.getTargetComponent().getPackageName()).collect(
                 Collectors.joining(","))
                 + ". Reason: [" + (TextUtils.isEmpty(reason) ? "unknown" : reason) + "]");
@@ -465,16 +464,15 @@ public class ModelWriter {
             synchronized (mBgDataModel.mLock) {
                 checkItemInfoLocked(itemId, item, mStackTrace);
 
+                // Item is in a collection, make sure this collection exists
                 if (item.container != Favorites.CONTAINER_DESKTOP &&
-                        item.container != Favorites.CONTAINER_HOTSEAT) {
-                    // Item is in a collection, make sure this collection exists
-                    if (!(mBgDataModel.itemsIdMap.get(item.container) instanceof CollectionInfo)) {
-                        // An items container is being set to a that of an item which is not in
-                        // the list of collections.
-                        String msg = "item: " + item + " container being set to: " +
-                                item.container + ", not in the list of collections";
-                        Log.e(TAG, msg);
-                    }
+                        item.container != Favorites.CONTAINER_HOTSEAT &&
+                        !(mBgDataModel.itemsIdMap.get(item.container) instanceof CollectionInfo)) {
+                    // An items container is being set to a that of an item which is not in
+                    // the list of collections.
+                    String msg = "item: " + item + " container being set to: " +
+                            item.container + ", not in the list of collections";
+                    Log.e(TAG, msg);
                 }
                 mVerifier.verifyModel();
             }

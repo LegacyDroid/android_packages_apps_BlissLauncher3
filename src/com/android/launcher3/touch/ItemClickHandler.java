@@ -100,10 +100,9 @@ public class ItemClickHandler {
         final Workspace<?> workspace = launcher.getWorkspace();
         if (!launcher.getWorkspace().isFinishedSwitchingState()) return;
 
-        if (v instanceof BubbleTextView && launcher.getWorkspace().isWobbling()) {
-            if (((BubbleTextView) v).tryToHandleUninstallClick(launcher)) {
-                return;
-            }
+        if (v instanceof BubbleTextView && launcher.getWorkspace().isWobbling()
+                && ((BubbleTextView) v).tryToHandleUninstallClick(launcher)) {
+            return;
         }
 
         Object tag = v.getTag();
@@ -143,8 +142,8 @@ public class ItemClickHandler {
                             + " package=" + targetPackage);
                 }
             }
-        } else if (tag instanceof ItemClickProxy) {
-            ((ItemClickProxy) tag).onItemClicked(v);
+        } else if (tag instanceof ItemClickProxy itemClickProxy) {
+            itemClickProxy.onItemClicked(v);
         }
     }
 
@@ -172,8 +171,8 @@ public class ItemClickHandler {
         Launcher launcher = Launcher.getLauncher(v.getContext());
         AppPairIcon icon = (AppPairIcon) v;
         AppPairInfo info = icon.getInfo();
-        boolean isApp1Launchable = info.isLaunchable(launcher).getFirst(),
-                isApp2Launchable = info.isLaunchable(launcher).getSecond();
+        boolean isApp1Launchable = info.isLaunchable(launcher).getFirst();
+        boolean isApp2Launchable = info.isLaunchable(launcher).getSecond();
         if (!isApp1Launchable || !isApp2Launchable) {
             // App pair is unlaunchable due to screen size.
             boolean isFoldable = InvariantDeviceProfile.INSTANCE.get(launcher)

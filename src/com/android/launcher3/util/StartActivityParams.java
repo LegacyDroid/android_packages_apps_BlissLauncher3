@@ -101,10 +101,11 @@ public class StartActivityParams implements Parcelable {
 
     /** Perform the operation on the pendingIntent. */
     public void deliverResult(Context context, int resultCode, Intent data) {
-        ActivityOptions options = allowBGLaunch(ActivityOptions.makeBasic());
+        ActivityOptions activityOptions = allowBGLaunch(ActivityOptions.makeBasic());
         try {
             if (mPICallback != null) {
-                mPICallback.send(context, resultCode, data, null, null, null, options.toBundle());
+                mPICallback.send(context, resultCode, data, null, null, null,
+                        activityOptions.toBundle());
             }
         } catch (CanceledException e) {
             Log.e(TAG, "Unable to send back result", e);

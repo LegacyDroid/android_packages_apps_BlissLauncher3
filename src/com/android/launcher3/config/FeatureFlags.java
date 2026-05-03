@@ -53,6 +53,11 @@ public final class FeatureFlags {
      */
     @Deprecated
     public static class QSB_ON_FIRST_SCREEN {
+
+        private QSB_ON_FIRST_SCREEN() {
+            // Utility class.
+        }
+
         public static boolean get() {
             return MultiModeController.isSingleLayerMode();
         }

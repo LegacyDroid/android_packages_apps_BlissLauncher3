@@ -124,7 +124,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Objects;
 
-import foundation.e.bliss.LauncherAppMonitor;
 import foundation.e.bliss.multimode.MultiModeController;
 import foundation.e.bliss.wobble.UninstallButtonRenderer;
 
@@ -165,8 +164,6 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     private IntArray mBreakPointsIntArray;
     private CharSequence mLastOriginalText;
     private CharSequence mLastModifiedText;
-
-    private int mStartDragThreshold;
 
     private UninstallButtonRenderer mUninstallButtonRenderer;
 
@@ -311,8 +308,6 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
     private boolean mHighResUpdateInProgress = false;
 
-    private Launcher mLauncher;
-
     public int translationX = 0;
     public int translationY = 0;
 
@@ -327,7 +322,6 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     public BubbleTextView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mActivity = ActivityContext.lookupContext(context);
-        mLauncher = LauncherAppMonitor.getInstance(context).getLauncher();
 
         FastBitmapDrawable.setFlagHoverEnabled(enableCursorHoverStates());
         mMinimizedStateDescription = getContext().getString(
@@ -401,9 +395,6 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
         mDotParams = new DotRenderer.DrawParams();
         mUninstallButtonRenderer = new UninstallButtonRenderer(getContext(), mActivity.getDeviceProfile().iconSizePx);
-
-        mStartDragThreshold = getResources().getDimensionPixelSize(
-                R.dimen.deep_shortcuts_start_drag_threshold);
 
         setEllipsize(TruncateAt.END);
         setAccessibilityDelegate(mActivity.getAccessibilityDelegate());
@@ -989,11 +980,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     private void drawUninstallIcon(Canvas canvas) {
         ItemInfo tag = (ItemInfo) this.getTag();
 
-        if (tag == null || tag.getIntent() == null || tag.itemType == ITEM_TYPE_FOLDER ||
-                !isDeepShortcut(tag)) {
-            if (isSystemApp(getContext(), tag.getIntent())) {
-                return;
-            }
+        if ((tag == null || tag.getIntent() == null || tag.itemType == ITEM_TYPE_FOLDER ||
+                !isDeepShortcut(tag)) && isSystemApp(getContext(), tag.getIntent())) {
+            return;
         }
 
         Rect tempBounds = mDotParams.iconBounds;
@@ -1486,7 +1475,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         if (title == null || paint.measureText(title, 0, title.length()) <= limitedWidth) {
             return title;
         }
-        float currentWordWidth, runningWidth = 0;
+        float currentWordWidth;
+        float runningWidth = 0;
         CharSequence currentWord;
         StringBuilder newString = new StringBuilder();
         paint.setLetterSpacing(MIN_LETTER_SPACING);
@@ -1824,9 +1814,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         resetIconScale();
         setForceHideDot(true);
         applyUninstallIconState(false);
-        return () -> {
-            setForceHideDot(false);
-        };
+        return () -> setForceHideDot(false);
     }
 
     private void resetIconScale() {
@@ -1858,7 +1846,6 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
      */
     public PreDragCondition startLongPressAction() {
         if (MultiModeController.isSingleLayerMode()) {
-            mLauncher = LauncherAppMonitor.getInstance(getContext()).getLauncher();
             return createWobblePreDragCondition();
         } else {
             PopupContainerWithArrow popup = PopupContainerWithArrow.showForIcon(this);

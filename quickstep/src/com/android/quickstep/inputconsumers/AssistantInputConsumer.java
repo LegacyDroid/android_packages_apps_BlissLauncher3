@@ -121,7 +121,7 @@ public class AssistantInputConsumer extends DelegateInputConsumer {
     }
 
     @Override
-    public void onMotionEvent(MotionEvent ev) {
+    public void onMotionEvent(MotionEvent ev) { // NOSONAR pristine-AOSP-do-not-refactor
         // TODO add logging
         switch (ev.getActionMasked()) {
             case ACTION_DOWN: {
@@ -192,8 +192,7 @@ public class AssistantInputConsumer extends DelegateInputConsumer {
                 }
                 break;
             }
-            case ACTION_CANCEL:
-            case ACTION_UP:
+            case ACTION_CANCEL, ACTION_UP:
                 if (mState != STATE_DELEGATE_ACTIVE && !mLaunchedAssistant) {
                     ValueAnimator animator = ValueAnimator.ofFloat(mLastProgress, 0)
                         .setDuration(RETRACT_ANIMATION_DURATION_MS);
@@ -281,6 +280,6 @@ public class AssistantInputConsumer extends DelegateInputConsumer {
 
     @Override
     protected String getDelegatorName() {
-        return "AssistantInputConsumer";
+        return TAG;
     }
 }

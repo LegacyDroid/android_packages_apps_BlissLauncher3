@@ -32,10 +32,10 @@ public interface FloatingIconViewCompanion {
      * Sets the visibility of icon and dot of the view
      */
     static void setPropertiesVisible(View view, boolean visible) {
-        if (view instanceof FloatingIconViewCompanion) {
-            ((FloatingIconViewCompanion) view).setIconVisible(visible);
-            ((FloatingIconViewCompanion) view).setForceHideDot(!visible);
-            ((FloatingIconViewCompanion) view).setForceHideRing(!visible);
+        if (view instanceof FloatingIconViewCompanion floatingIconViewCompanion) {
+            floatingIconViewCompanion.setIconVisible(visible);
+            floatingIconViewCompanion.setForceHideDot(!visible);
+            floatingIconViewCompanion.setForceHideRing(!visible);
         } else {
             view.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
         }

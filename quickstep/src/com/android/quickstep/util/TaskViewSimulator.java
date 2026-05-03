@@ -318,12 +318,12 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
      * Adds animation for all the components corresponding to transition from an app to carousel.
      */
     public void addAppToCarouselAnim(PendingAnimation pa, Interpolator interpolator) {
-        pa.addFloat(fullScreenProgress, AnimatedFloat.VALUE, 1, 0, interpolator);
+        pa.addFloat(fullScreenProgress, AnimatedFloat.VALUE_PROPERTY, 1, 0, interpolator);
         if (enableGridOnlyOverview() && mDp.isTablet && mDp.isGestureMode) {
             mIsAnimatingToCarousel = true;
             carouselScale.value = mCarouselTaskSize.width() / (float) mFullTaskSize.width();
         }
-        pa.addFloat(recentsViewScale, AnimatedFloat.VALUE, getFullScreenScale(), 1,
+        pa.addFloat(recentsViewScale, AnimatedFloat.VALUE_PROPERTY, getFullScreenScale(), 1,
                 interpolator);
     }
 
@@ -331,8 +331,8 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
      * Adds animation for all the components corresponding to transition from overview to the app.
      */
     public void addOverviewToAppAnim(PendingAnimation pa, TimeInterpolator interpolator) {
-        pa.addFloat(fullScreenProgress, AnimatedFloat.VALUE, 0, 1, interpolator);
-        pa.addFloat(recentsViewScale, AnimatedFloat.VALUE, 1, getFullScreenScale(), interpolator);
+        pa.addFloat(fullScreenProgress, AnimatedFloat.VALUE_PROPERTY, 0, 1, interpolator);
+        pa.addFloat(recentsViewScale, AnimatedFloat.VALUE_PROPERTY, 1, getFullScreenScale(), interpolator);
     }
 
     /**
@@ -427,32 +427,10 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         if (mDp == null || mThumbnailPosition.isEmpty()) {
             return;
         }
-        if (!mLayoutValid || mOrientationStateId != mOrientationState.getStateId()) {
-            mLayoutValid = true;
-            mOrientationStateId = mOrientationState.getStateId();
+        revalidateLayoutIfNeeded();
 
-            getFullScreenScale();
-            if (TaskAnimationManager.SHELL_TRANSITIONS_ROTATION) {
-                // With shell transitions, the display is rotated early so we need to actually use
-                // the rotation when the gesture starts
-                mThumbnailData.rotation = mOrientationState.getTouchRotation();
-            } else {
-                mThumbnailData.rotation = mOrientationState.getDisplayRotation();
-            }
-
-            // mIsRecentsRtl is the inverse of TaskView RTL.
-            boolean isRtlEnabled = !mIsRecentsRtl;
-            mPositionHelper.updateThumbnailMatrix(
-                    mThumbnailPosition, mThumbnailData, mTaskRect.width(), mTaskRect.height(),
-                    mDp.isTablet, mOrientationState.getRecentsActivityRotation(), isRtlEnabled);
-            mPositionHelper.getMatrix().invert(mInversePositionMatrix);
-            if (DEBUG) {
-                Log.d(TAG, " taskRect: " + mTaskRect);
-            }
-        }
-
-        float fullScreenProgress = Utilities.boundToRange(this.fullScreenProgress.value, 0, 1);
-        mCurrentFullscreenParams.setProgress(fullScreenProgress, recentsViewScale.value,
+        float fullScreenProgressValue = Utilities.boundToRange(this.fullScreenProgress.value, 0, 1);
+        mCurrentFullscreenParams.setProgress(fullScreenProgressValue, recentsViewScale.value,
                 carouselScale.value);
 
         // Apply thumbnail matrix
@@ -503,14 +481,14 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             mTempRectF.roundOut(mTmpCropRect);
         }
 
-        params.setProgress(1f - fullScreenProgress);
+        params.setProgress(1f - fullScreenProgressValue);
         params.applySurfaceParams(surfaceTransaction == null
                 ? params.createSurfaceParams(this) : surfaceTransaction);
 
         if (!DEBUG) {
             return;
         }
-        Log.d(TAG, "progress: " + fullScreenProgress
+        Log.d(TAG, "progress: " + fullScreenProgressValue
                 + " carouselScale: " + carouselScale.value
                 + " recentsViewScale: " + recentsViewScale.value
                 + " crop: " + mTmpCropRect
@@ -526,6 +504,33 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
                 + " recentsScroll: " + recentsViewScroll.value
                 + " pivot: " + mPivot
         );
+    }
+
+    private void revalidateLayoutIfNeeded() {
+        if (mLayoutValid && mOrientationStateId == mOrientationState.getStateId()) {
+            return;
+        }
+        mLayoutValid = true;
+        mOrientationStateId = mOrientationState.getStateId();
+
+        getFullScreenScale();
+        if (TaskAnimationManager.SHELL_TRANSITIONS_ROTATION) {
+            // With shell transitions, the display is rotated early so we need to actually use
+            // the rotation when the gesture starts
+            mThumbnailData.rotation = mOrientationState.getTouchRotation();
+        } else {
+            mThumbnailData.rotation = mOrientationState.getDisplayRotation();
+        }
+
+        // mIsRecentsRtl is the inverse of TaskView RTL.
+        boolean isRtlEnabled = !mIsRecentsRtl;
+        mPositionHelper.updateThumbnailMatrix(
+                mThumbnailPosition, mThumbnailData, mTaskRect.width(), mTaskRect.height(),
+                mDp.isTablet, mOrientationState.getRecentsActivityRotation(), isRtlEnabled);
+        mPositionHelper.getMatrix().invert(mInversePositionMatrix);
+        if (DEBUG) {
+            Log.d(TAG, " taskRect: " + mTaskRect);
+        }
     }
 
     @Override

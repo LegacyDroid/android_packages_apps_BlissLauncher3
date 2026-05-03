@@ -48,8 +48,6 @@ import com.android.launcher3.util.VibratorWrapper;
 /** Forked from platform/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/NavigationBarEdgePanel.java. */
 public class EdgeBackGesturePanel extends View {
 
-    private static final String LOG_TAG = "EdgeBackGesturePanel";
-
     private static final long DISAPPEAR_FADE_ANIMATION_DURATION_MS = 80;
     private static final long DISAPPEAR_ARROW_ANIMATION_DURATION_MS = 100;
 
@@ -525,72 +523,20 @@ public class EdgeBackGesturePanel extends View {
         float y = event.getY();
         float touchTranslation = Math.abs(x - mStartX);
         float yOffset = y - mStartY;
-        float delta = touchTranslation - mPreviousTouchTranslation;
-        if (Math.abs(delta) > 0) {
-            if (Math.signum(delta) == Math.signum(mTotalTouchDelta)) {
-                mTotalTouchDelta += delta;
-            } else {
-                mTotalTouchDelta = delta;
-            }
-        }
+        updateTotalTouchDelta(touchTranslation);
         mPreviousTouchTranslation = touchTranslation;
 
-        // Apply a haptic on drag slop passed
-        if (!mDragSlopPassed && touchTranslation > mSwipeThreshold) {
-            mDragSlopPassed = true;
-            VibratorWrapper.INSTANCE.get(getContext()).vibrate(VibratorWrapper.EFFECT_CLICK);
-            mVibrationTime = SystemClock.uptimeMillis();
+        maybeTriggerDragSlopHaptic(touchTranslation);
 
-            // Let's show the arrow and animate it in!
-            mDisappearAmount = 0.0f;
-            setAlpha(1f);
-            // And animate it go to back by default!
-            setTriggerBack(true /* triggerBack */, true /* animated */);
-        }
+        touchTranslation = applyRubberBand(touchTranslation);
+        updateAngleOffsetFromVelocity();
 
-        // Let's make sure we only go to the baseextend and apply rubberbanding afterwards
-        if (touchTranslation > mBaseTranslation) {
-            float diff = touchTranslation - mBaseTranslation;
-            float progress = MathUtils.clamp(diff / (mScreenSize - mBaseTranslation), 0, 1);
-            progress = RUBBER_BAND_INTERPOLATOR.getInterpolation(progress)
-                    * (mMaxTranslation - mBaseTranslation);
-            touchTranslation = mBaseTranslation + progress;
-        } else {
-            float diff = mBaseTranslation - touchTranslation;
-            float progress = MathUtils.clamp(diff / mBaseTranslation, 0, 1);
-            progress = RUBBER_BAND_INTERPOLATOR_APPEAR.getInterpolation(progress)
-                    * (mBaseTranslation / RUBBER_BAND_AMOUNT_APPEAR);
-            touchTranslation = mBaseTranslation - progress;
-        }
-        // By default we just assume the current direction is kept
-        boolean triggerBack = mTriggerBack;
-
-        //  First lets see if we had continuous motion in one direction for a while
-        if (Math.abs(mTotalTouchDelta) > mMinDeltaForSwitch) {
-            triggerBack = mTotalTouchDelta > 0;
-        }
-
-        // Then, let's see if our velocity tells us to change direction
-        mVelocityTracker.computeCurrentVelocity(1000);
-        float xVelocity = mVelocityTracker.getXVelocity();
-        float yVelocity = mVelocityTracker.getYVelocity();
-        float velocity = (float) Math.hypot(xVelocity, yVelocity);
-        mAngleOffset = Math.min(velocity / 1000 * ARROW_ANGLE_ADDED_PER_1000_SPEED,
-                ARROW_MAX_ANGLE_SPEED_OFFSET_DEGREES) * Math.signum(xVelocity);
-        if (mIsLeftPanel && mArrowsPointLeft || !mIsLeftPanel && !mArrowsPointLeft) {
-            mAngleOffset *= -1;
-        }
-
-        // Last if the direction in Y is bigger than X * 2 we also abort
-        if (Math.abs(yOffset) > Math.abs(x - mStartX) * 2) {
-            triggerBack = false;
-        }
+        boolean triggerBack = computeTriggerBack(x, yOffset);
         setTriggerBack(triggerBack, true /* animated */);
 
         if (!mTriggerBack) {
             touchTranslation = 0;
-        } else if (mIsLeftPanel && mArrowsPointLeft
-                || (!mIsLeftPanel && !mArrowsPointLeft)) {
+        } else if (mIsLeftPanel == mArrowsPointLeft) {
             // If we're on the left we should move less, because the arrow is facing the other
             // direction
             touchTranslation -= getStaticArrowWidth();
@@ -598,12 +544,86 @@ public class EdgeBackGesturePanel extends View {
         setDesiredTranslation(touchTranslation, true /* animated */);
         updateAngle(true /* animated */);
 
+        setDesiredVerticalTransition(computeVerticalTranslation(yOffset), true /* animated */);
+    }
+
+    private void updateTotalTouchDelta(float touchTranslation) {
+        float delta = touchTranslation - mPreviousTouchTranslation;
+        if (Math.abs(delta) <= 0) {
+            return;
+        }
+        if (Math.signum(delta) == Math.signum(mTotalTouchDelta)) {
+            mTotalTouchDelta += delta;
+        } else {
+            mTotalTouchDelta = delta;
+        }
+    }
+
+    private void maybeTriggerDragSlopHaptic(float touchTranslation) {
+        // Apply a haptic on drag slop passed
+        if (mDragSlopPassed || touchTranslation <= mSwipeThreshold) {
+            return;
+        }
+        mDragSlopPassed = true;
+        VibratorWrapper.INSTANCE.get(getContext()).vibrate(VibratorWrapper.EFFECT_CLICK);
+        mVibrationTime = SystemClock.uptimeMillis();
+
+        // Let's show the arrow and animate it in!
+        mDisappearAmount = 0.0f;
+        setAlpha(1f);
+        // And animate it go to back by default!
+        setTriggerBack(true /* triggerBack */, true /* animated */);
+    }
+
+    private float applyRubberBand(float touchTranslation) {
+        // Let's make sure we only go to the baseextend and apply rubberbanding afterwards
+        if (touchTranslation > mBaseTranslation) {
+            float diff = touchTranslation - mBaseTranslation;
+            float progress = MathUtils.clamp(diff / (mScreenSize - mBaseTranslation), 0, 1);
+            progress = RUBBER_BAND_INTERPOLATOR.getInterpolation(progress)
+                    * (mMaxTranslation - mBaseTranslation);
+            return mBaseTranslation + progress;
+        }
+        float diff = mBaseTranslation - touchTranslation;
+        float progress = MathUtils.clamp(diff / mBaseTranslation, 0, 1);
+        progress = RUBBER_BAND_INTERPOLATOR_APPEAR.getInterpolation(progress)
+                * (mBaseTranslation / RUBBER_BAND_AMOUNT_APPEAR);
+        return mBaseTranslation - progress;
+    }
+
+    private void updateAngleOffsetFromVelocity() {
+        // Then, let's see if our velocity tells us to change direction
+        mVelocityTracker.computeCurrentVelocity(1000);
+        float xVelocity = mVelocityTracker.getXVelocity();
+        float yVelocity = mVelocityTracker.getYVelocity();
+        float velocity = (float) Math.hypot(xVelocity, yVelocity);
+        mAngleOffset = Math.min(velocity / 1000 * ARROW_ANGLE_ADDED_PER_1000_SPEED,
+                ARROW_MAX_ANGLE_SPEED_OFFSET_DEGREES) * Math.signum(xVelocity);
+        if (mIsLeftPanel == mArrowsPointLeft) {
+            mAngleOffset *= -1;
+        }
+    }
+
+    private boolean computeTriggerBack(float x, float yOffset) {
+        // By default we just assume the current direction is kept
+        boolean triggerBack = mTriggerBack;
+        //  First lets see if we had continuous motion in one direction for a while
+        if (Math.abs(mTotalTouchDelta) > mMinDeltaForSwitch) {
+            triggerBack = mTotalTouchDelta > 0;
+        }
+        // Last if the direction in Y is bigger than X * 2 we also abort
+        if (Math.abs(yOffset) > Math.abs(x - mStartX) * 2) {
+            triggerBack = false;
+        }
+        return triggerBack;
+    }
+
+    private float computeVerticalTranslation(float yOffset) {
         float maxYOffset = getHeight() / 2.0f - mArrowLength;
         float progress =
                 MathUtils.clamp(Math.abs(yOffset) / (maxYOffset * RUBBER_BAND_AMOUNT), 0, 1);
-        float verticalTranslation = RUBBER_BAND_INTERPOLATOR.getInterpolation(progress)
+        return RUBBER_BAND_INTERPOLATOR.getInterpolation(progress)
                 * maxYOffset * Math.signum(yOffset);
-        setDesiredVerticalTransition(verticalTranslation, true /* animated */);
     }
 
     private void updatePosition(float touchY) {

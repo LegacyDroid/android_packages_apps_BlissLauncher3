@@ -73,5 +73,7 @@ class AlreadyStartedBackAnimState(private val onEndCallback: RunnableList) : Bac
         addOnAnimCompleteCallback(result::onAnimationFinished)
     }
 
-    override fun start() {}
+    override fun start() {
+        // no-op: animation has already started by the time this state is constructed
+    }
 }

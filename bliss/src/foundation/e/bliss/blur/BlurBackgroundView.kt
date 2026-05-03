@@ -40,7 +40,9 @@ class BlurBackgroundView(context: Context, attrs: AttributeSet?) :
         mBlurDelegate.draw(canvas)
     }
 
-    override fun setInsets(insets: Rect) {}
+    override fun setInsets(insets: Rect) {
+        // no-op: this background view ignores insets; positioning is handled by parent layout
+    }
 
     override val offsetX: Float
         get() = translationX

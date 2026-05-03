@@ -36,7 +36,6 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.DragSource;
@@ -145,8 +144,15 @@ public class HotseatPredictionController implements DragController.DragListener,
         onHotseatHierarchyChanged();
     }
 
-    /** Enables/disabled the hotseat prediction icon long press edu for testing. */
-    @VisibleForTesting
+    /**
+     * Enables/disables the hotseat prediction icon long press edu for testing.
+     *
+     * <p>Internal API: only invoked by {@link
+     * com.android.launcher3.uioverrides.QuickstepLauncher#enableHotseatEdu(boolean)}, which is the
+     * actual {@code @VisibleForTesting} entry point. Keep visibility {@code public} so the override
+     * can reach it from a different package, but treat all callers other than the launcher
+     * override as test infrastructure.
+     */
     public void enableHotseatEdu(boolean enable) {
         mEnableHotseatLongPressTipForTesting = enable;
     }
@@ -193,21 +199,13 @@ public class HotseatPredictionController implements DragController.DragListener,
         if (mPauseFlags != 0) {
             return;
         }
+        if (deferUntilIconRemovalFinishes(animate)) {
+            return;
+        }
 
         int predictionIndex = 0;
         int numViewsAnimated = 0;
         ArrayList<WorkspaceItemInfo> newItems = new ArrayList<>();
-        // make sure predicted icon removal and filling predictions don't step on each other
-        if (mIconRemoveAnimators != null && mIconRemoveAnimators.isRunning()) {
-            mIconRemoveAnimators.addListener(new AnimationSuccessListener() {
-                @Override
-                public void onAnimationSuccess(Animator animator) {
-                    fillGapsWithPrediction(animate);
-                    mIconRemoveAnimators.removeListener(this);
-                }
-            });
-            return;
-        }
 
         mPauseFlags |= FLAG_FILL_IN_PROGRESS;
         for (int rank = 0; rank < mHotSeatItemsCount; rank++) {
@@ -227,20 +225,42 @@ public class HotseatPredictionController implements DragController.DragListener,
             }
             WorkspaceItemInfo predictedItem =
                     (WorkspaceItemInfo) mPredictedItems.get(predictionIndex++);
-            if (isPredictedIcon(child) && child.isEnabled()) {
-                PredictedAppIcon icon = (PredictedAppIcon) child;
-                if (icon.applyFromWorkspaceItemWithAnimation(predictedItem, numViewsAnimated)) {
-                    numViewsAnimated++;
-                }
-                icon.finishBinding(mPredictionLongClickListener);
-            } else {
-                newItems.add(predictedItem);
-            }
+            numViewsAnimated = applyOrEnqueuePrediction(
+                    child, predictedItem, newItems, numViewsAnimated);
             preparePredictionInfo(predictedItem, rank);
         }
         bindItems(newItems, animate);
 
         mPauseFlags &= ~FLAG_FILL_IN_PROGRESS;
+    }
+
+    private boolean deferUntilIconRemovalFinishes(boolean animate) {
+        // make sure predicted icon removal and filling predictions don't step on each other
+        if (mIconRemoveAnimators == null || !mIconRemoveAnimators.isRunning()) {
+            return false;
+        }
+        mIconRemoveAnimators.addListener(new AnimationSuccessListener() {
+            @Override
+            public void onAnimationSuccess(Animator animator) {
+                fillGapsWithPrediction(animate);
+                mIconRemoveAnimators.removeListener(this);
+            }
+        });
+        return true;
+    }
+
+    private int applyOrEnqueuePrediction(View child, WorkspaceItemInfo predictedItem,
+            ArrayList<WorkspaceItemInfo> newItems, int numViewsAnimated) {
+        if (!isPredictedIcon(child) || !child.isEnabled()) {
+            newItems.add(predictedItem);
+            return numViewsAnimated;
+        }
+        PredictedAppIcon icon = (PredictedAppIcon) child;
+        if (icon.applyFromWorkspaceItemWithAnimation(predictedItem, numViewsAnimated)) {
+            numViewsAnimated++;
+        }
+        icon.finishBinding(mPredictionLongClickListener);
+        return numViewsAnimated;
     }
 
     private void bindItems(List<WorkspaceItemInfo> itemsToAdd, boolean animate) {
@@ -531,7 +551,7 @@ public class HotseatPredictionController implements DragController.DragListener,
     }
 
     public void dump(String prefix, PrintWriter writer) {
-        writer.println(prefix + "HotseatPredictionController");
+        writer.println(prefix + TAG);
         writer.println(prefix + "\tFlags: " + getStateString(mPauseFlags));
         writer.println(prefix + "\tmHotSeatItemsCount: " + mHotSeatItemsCount);
         writer.println(prefix + "\tmPredictedItems: " + mPredictedItems.size());

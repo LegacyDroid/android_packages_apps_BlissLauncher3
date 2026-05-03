@@ -66,7 +66,9 @@ constructor(
                 taskViewScale
     }
 
-    override fun close() {}
+    override fun close() {
+        // no-op: no resources to release; AutoCloseable contract is satisfied trivially
+    }
 
     companion object {
         private fun computeTaskCornerRadius(context: Context): Float = TaskCornerRadius.get(context)

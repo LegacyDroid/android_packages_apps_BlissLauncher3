@@ -113,10 +113,8 @@ public final class FallbackActivityInterface extends
     @Override
     public RecentsView getVisibleRecentsView() {
         RecentsActivity activity = getCreatedContainer();
-        if (activity != null) {
-            if (activity.hasBeenResumed() || isInLiveTileMode()) {
-                return activity.getOverviewPanel();
-            }
+        if (activity != null && (activity.hasBeenResumed() || isInLiveTileMode())) {
+            return activity.getOverviewPanel();
         }
         return null;
     }
@@ -187,11 +185,9 @@ public final class FallbackActivityInterface extends
         switch (endTarget) {
             case RECENTS:
                 return DEFAULT;
-            case NEW_TASK:
-            case LAST_TASK:
+            case NEW_TASK, LAST_TASK:
                 return BACKGROUND_APP;
-            case HOME:
-            case ALL_APPS:
+            case HOME, ALL_APPS:
             default:
                 return HOME;
         }

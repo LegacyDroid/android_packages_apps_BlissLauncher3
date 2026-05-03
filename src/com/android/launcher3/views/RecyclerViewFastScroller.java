@@ -99,8 +99,8 @@ public class RecyclerViewFastScroller extends View {
                 }
             };
 
-    private final static int MAX_TRACK_ALPHA = 30;
-    private final static int SCROLL_BAR_VIS_DURATION = 150;
+    private static final int MAX_TRACK_ALPHA = 30;
+    private static final int SCROLL_BAR_VIS_DURATION = 150;
 
     private static final List<Rect> SYSTEM_GESTURE_EXCLUSION_RECT =
             Collections.singletonList(new Rect());
@@ -112,7 +112,6 @@ public class RecyclerViewFastScroller extends View {
     /** Keeps the last known scrolling delta/velocity along y-axis. */
     private int mDy = 0;
     private final float mDeltaThreshold;
-    private final float mScrollbarLeftOffsetTouchDelegate;
 
     private final ViewConfiguration mConfig;
 
@@ -195,8 +194,6 @@ public class RecyclerViewFastScroller extends View {
 
         mConfig = ViewConfiguration.get(context);
         mDeltaThreshold = res.getDisplayMetrics().density * SCROLL_DELTA_THRESHOLD_DP;
-        mScrollbarLeftOffsetTouchDelegate = res.getDisplayMetrics().density
-                * SCROLLBAR_LEFT_OFFSET_TOUCH_DELEGATE_DP;
         mActivityContext = ActivityContext.lookupContext(context);
         TypedArray ta =
                 context.obtainStyledAttributes(attrs, R.styleable.RecyclerViewFastScroller, defStyleAttr, 0);
@@ -304,11 +301,10 @@ public class RecyclerViewFastScroller extends View {
                 // exceeded some fixed movement
                 mIgnoreDragGesture |= absDeltaY > mConfig.getScaledPagingTouchSlop();
 
-                if (!mIsDragging && !mIgnoreDragGesture && mRv.supportsFastScrolling()) {
-                    if ((isNearThumb(mDownX, mLastY) && ev.getEventTime() - mDownTimeStampMillis
-                                    > FASTSCROLL_THRESHOLD_MILLIS)) {
-                        calcTouchOffsetAndPrepToFastScroll(mDownY, mLastY);
-                    }
+                if (!mIsDragging && !mIgnoreDragGesture && mRv.supportsFastScrolling()
+                        && isNearThumb(mDownX, mLastY)
+                        && ev.getEventTime() - mDownTimeStampMillis > FASTSCROLL_THRESHOLD_MILLIS) {
+                    calcTouchOffsetAndPrepToFastScroll(mDownY, mLastY);
                 }
                 if (mIsDragging) {
                     if (isScrollingDown) {
@@ -322,8 +318,7 @@ public class RecyclerViewFastScroller extends View {
                     updateFastScrollSectionNameAndThumbOffset(y);
                 }
                 break;
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL:
                 endFastScrolling();
                 break;
         }

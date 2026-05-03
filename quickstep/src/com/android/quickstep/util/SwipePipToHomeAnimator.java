@@ -222,7 +222,8 @@ public class SwipePipToHomeAnimator extends RectFSpringAnim {
      */
     private Rect getEnterPipWithOverlaySrcRectHint(Rect appBounds, float aspectRatio) {
         final float appBoundsAspectRatio = appBounds.width() / (float) appBounds.height();
-        final int width, height;
+        final int width;
+        final int height;
         int left = appBounds.left;
         int top = appBounds.top;
         if (appBoundsAspectRatio < aspectRatio) {
@@ -308,7 +309,9 @@ public class SwipePipToHomeAnimator extends RectFSpringAnim {
     }
 
     private RotatedPosition getRotatedPosition(float progress) {
-        final float degree, positionX, positionY;
+        final float degree;
+        final float positionX;
+        final float positionY;
         if (TaskAnimationManager.SHELL_TRANSITIONS_ROTATION) {
             if (mFromRotation == Surface.ROTATION_90) {
                 degree = -90 * (1 - progress);

@@ -85,8 +85,6 @@ public class AnimatorControllerWithResistance {
     private static final TimeInterpolator RECENTS_SCALE_RESIST_INTERPOLATOR = DECELERATE;
     private static final TimeInterpolator RECENTS_TRANSLATE_RESIST_INTERPOLATOR = LINEAR;
 
-    private static final Rect TEMP_RECT = new Rect();
-
     private final AnimatorPlaybackController mNormalController;
     private final AnimatorPlaybackController mResistanceController;
 

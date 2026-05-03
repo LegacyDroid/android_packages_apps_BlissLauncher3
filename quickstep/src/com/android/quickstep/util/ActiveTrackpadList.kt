@@ -45,7 +45,9 @@ class ActiveTrackpadList(ctx: Context, private val updateCallback: Runnable) :
         }
     }
 
-    override fun onInputDeviceChanged(deviceId: Int) {}
+    override fun onInputDeviceChanged(deviceId: Int) {
+        // no-op: this list only tracks add/remove of trackpad devices
+    }
 
     override fun onInputDeviceRemoved(deviceId: Int) {
         // This updates internal TIS state so it needs to also run on the main thread.

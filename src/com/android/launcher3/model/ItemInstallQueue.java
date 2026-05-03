@@ -339,8 +339,7 @@ public class ItemInstallQueue {
 
         @Override
         public boolean equals(Object obj) {
-            if (obj instanceof PendingInstallShortcutInfo) {
-                PendingInstallShortcutInfo other = (PendingInstallShortcutInfo) obj;
+            if (obj instanceof PendingInstallShortcutInfo other) {
 
                 boolean userMatches = user.equals(other.user);
                 boolean itemTypeMatches = itemType == other.itemType;

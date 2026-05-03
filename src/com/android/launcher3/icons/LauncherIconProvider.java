@@ -148,7 +148,9 @@ public class LauncherIconProvider extends IconProvider {
                     if (d instanceof AdaptiveIconDrawable) {
                         return maybeWrapAdaptive(d);
                     }
-                } catch (Resources.NotFoundException exc) { }
+                } catch (Resources.NotFoundException exc) {
+                    // Ignore: fall back to the standard app icon below.
+                }
             }
         }
         return maybeWrapAdaptive(super.loadAppInfoIcon(info, resources, density));

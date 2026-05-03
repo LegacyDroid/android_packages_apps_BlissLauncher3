@@ -205,7 +205,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
     public void bindAllModelExtras(@NonNull BgDataModel.Callbacks[] callbacks) {
         Iterable<FixedContainerItems> containerItems;
         synchronized (mDataModel.extraItems) {
-            containerItems = mDataModel.extraItems.clone();
+            containerItems = mDataModel.extraItems.copy();
         }
         Executors.MAIN_EXECUTOR.execute(() -> {
             for (BgDataModel.Callbacks c : callbacks) {
@@ -250,7 +250,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
         } else {
             IntSparseArrayMap<ItemInfo> itemsIdMap;
             synchronized (mDataModel.mLock) {
-                itemsIdMap = mDataModel.itemsIdMap.clone();
+                itemsIdMap = mDataModel.itemsIdMap.copy();
             }
             InstanceId instanceId = new InstanceIdSequence().newInstanceId();
             for (ItemInfo info : itemsIdMap) {
@@ -264,7 +264,11 @@ public class QuickstepModelDelegate extends ModelDelegate {
         registerSnapshotLoggingCallback();
     }
 
-    protected void additionalSnapshotEvents(InstanceId snapshotInstanceId){}
+    protected void additionalSnapshotEvents(InstanceId snapshotInstanceId) {
+        /* no-op: subclasses may override to log additional snapshot events; the base
+           QuickstepModelDelegate has no extra events to emit beyond the per-item snapshot
+           writes performed by snapshotIfNeeded(). */
+    }
 
     /**
      * Registers a callback to log launcher workspace layout using Statsd pulled atom.
@@ -283,7 +287,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
                         InstanceId instanceId = new InstanceIdSequence().newInstanceId();
                         IntSparseArrayMap<ItemInfo> itemsIdMap;
                         synchronized (mDataModel.mLock) {
-                            itemsIdMap = mDataModel.itemsIdMap.clone();
+                            itemsIdMap = mDataModel.itemsIdMap.copy();
                         }
 
                         for (ItemInfo info : itemsIdMap) {
@@ -614,6 +618,10 @@ public class QuickstepModelDelegate extends ModelDelegate {
                     mReadCount++;
                     return wii;
                 }
+                default:
+                    // Unhandled item types (folders, widgets, etc.) are intentionally ignored
+                    // here; this factory only materializes apps and pinned deep shortcuts.
+                    break;
             }
             return null;
         }

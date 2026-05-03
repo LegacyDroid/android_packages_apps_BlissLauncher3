@@ -112,7 +112,7 @@ public class LauncherApplication extends Application {
             // and on subsequent changes. iconloaderlib doesn't depend on Bliss so we
             // pump the value from this side via a static field.
             applyDotTextColor(prefs);
-            prefs.addListener((key) -> applyDotTextColor(prefs),
+            prefs.addListener(key -> applyDotTextColor(prefs),
                     LauncherPrefs.DOT_TEXT_COLOR);
 
             // Migration02 Phase 3.6: when THEMED_ICONS or DRAWER_THEMED_ICONS toggles,
@@ -121,7 +121,7 @@ public class LauncherApplication extends Application {
             // BitmapInfo. ThemeManager itself listens to both prefs (parseIconState
             // regenerates IconState when either toggles) so the themedBitmap is also
             // re-materialised when a user enables theming for the first time.
-            prefs.addListener((key) -> {
+            prefs.addListener(key -> {
                 if (com.android.launcher3.graphics.ThemeManager.THEMED_ICONS
                             .getSharedPrefKey().equals(key)
                         || LauncherPrefs.DRAWER_THEMED_ICONS.getSharedPrefKey().equals(key)) {
@@ -135,7 +135,7 @@ public class LauncherApplication extends Application {
 
             // Migration02 Phase 7.4/7.5 (XC-6 fan-out): re-render workspace + drawer when label
             // mode toggles, and re-apply the work-tab background tint when its color pref changes.
-            prefs.addListener((key) -> {
+            prefs.addListener(key -> {
                 try {
                     if (LauncherPrefs.HOME_LABEL_COLOR_MODE.getSharedPrefKey().equals(key)) {
                         primeAutoLabelColor();

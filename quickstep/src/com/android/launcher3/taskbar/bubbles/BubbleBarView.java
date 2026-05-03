@@ -1007,7 +1007,7 @@ public class BubbleBarView extends FrameLayout {
      * Updates the z order, positions, and badge visibility of the bubble views in the bar based
      * on the expanded state.
      */
-    private void updateBubblesLayoutProperties(BubbleBarLocation bubbleBarLocation) {
+    private void updateBubblesLayoutProperties(BubbleBarLocation bubbleBarLocation) { // NOSONAR pristine-AOSP-do-not-refactor
         final float widthState = (float) mWidthAnimator.getAnimatedValue();
         final float currentWidth = getWidth();
         final float expandedWidth = expandedWidth();
@@ -1519,7 +1519,7 @@ public class BubbleBarView extends FrameLayout {
         animator.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationCancel(Animator animator) {
-
+                // no-op: cancel doesn't need to invoke the optional callbacks
             }
 
             @Override
@@ -1534,7 +1534,7 @@ public class BubbleBarView extends FrameLayout {
 
             @Override
             public void onAnimationRepeat(Animator animator) {
-
+                // no-op: repeat is not used for these animators
             }
         });
     }

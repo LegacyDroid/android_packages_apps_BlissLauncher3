@@ -133,7 +133,6 @@ public class LauncherAnimationRunner extends RemoteAnimationRunnerCompat {
         private final Runnable mSyncFinishRunnable;
         private final Runnable mASyncFinishRunnable;
 
-        private AnimatorSet mAnimator;
         private Runnable mOnCompleteCallback;
         private boolean mFinished = false;
         private boolean mInitialized = false;
@@ -174,7 +173,7 @@ public class LauncherAnimationRunner extends RemoteAnimationRunnerCompat {
                 throw new IllegalStateException("Animation already initialized");
             }
             mInitialized = true;
-            mAnimator = animation;
+            AnimatorSet mAnimator = animation;
             mOnCompleteCallback = onCompleteCallback;
             if (mAnimator == null) {
                 finish();

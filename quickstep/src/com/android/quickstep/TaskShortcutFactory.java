@@ -210,12 +210,11 @@ public interface TaskShortcutFactory {
         public void onClick(View view) {
             dismissTaskMenuView();
             RecentsView rv = mTarget.getOverviewPanel();
-            rv.switchToScreenshot(() -> {
-                rv.finishRecentsAnimation(true /* toRecents */, false /* shouldPip */, () -> {
-                    mTarget.returnToHomescreen();
-                    rv.getHandler().post(this::startActivity);
-                });
-            });
+            rv.switchToScreenshot(() -> rv.finishRecentsAnimation(
+                    true /* toRecents */, false /* shouldPip */, () -> {
+                        mTarget.returnToHomescreen();
+                        rv.getHandler().post(this::startActivity);
+                    }));
         }
 
         private void startActivity() {
@@ -462,8 +461,6 @@ public interface TaskShortcutFactory {
     };
 
     class PinSystemShortcut extends SystemShortcut<RecentsViewContainer> {
-
-        private static final String TAG = "PinSystemShortcut";
 
         private final TaskContainer mTaskContainer;
 

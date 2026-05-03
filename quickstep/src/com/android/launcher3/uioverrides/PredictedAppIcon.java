@@ -233,7 +233,7 @@ public class PredictedAppIcon extends DoubleShadowBubbleTextView {
             AnimatorSet changeIconAnim = new AnimatorSet();
 
             ObjectAnimator plateColorAnim =
-                    ObjectAnimator.ofFloat(mPlateColor.progress, AnimatedFloat.VALUE, 0, 1);
+                    ObjectAnimator.ofFloat(mPlateColor.progress, AnimatedFloat.VALUE_PROPERTY, 0, 1);
             plateColorAnim.setAutoCancel(true);
             changeIconAnim.play(plateColorAnim);
 

@@ -188,9 +188,8 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
 
         // Make focusable to receive back events
         context.onPopupVisibilityChanged(true);
-        container.addOnCloseCallback(() -> {
-            context.getDragLayer().post(() -> context.onPopupVisibilityChanged(false));
-        });
+        container.addOnCloseCallback(() ->
+                context.getDragLayer().post(() -> context.onPopupVisibilityChanged(false)));
 
         return container;
     }
@@ -257,8 +256,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
             // Touched a shortcut, update where it was touched so we can drag from there on
             // long click.
             switch (ev.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_MOVE:
+                case MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE:
                     mIconLastTouchPos.set((int) ev.getX(), (int) ev.getY());
                     break;
             }

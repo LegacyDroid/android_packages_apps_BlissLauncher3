@@ -52,13 +52,9 @@ public class HotseatEduDialog extends AbstractSlideInView<Launcher> implements I
     private static final int DEFAULT_CLOSE_DURATION = 200;
     protected static final int FINAL_SCRIM_BG_COLOR = 0x88000000;
 
-    // we use this value to keep track of migration logs as we experiment with different migrations
-    private static final int MIGRATION_EXPERIMENT_IDENTIFIER = 1;
-
     private final Rect mInsets = new Rect();
     private View mHotseatWrapper;
     private CellLayout mSampleHotseat;
-    private Button mDismissBtn;
 
     public void setHotseatEduController(HotseatEduController hotseatEduController) {
         mHotseatEduController = hotseatEduController;
@@ -99,8 +95,8 @@ public class HotseatEduDialog extends AbstractSlideInView<Launcher> implements I
         Button turnOnBtn = findViewById(R.id.turn_predictions_on);
         turnOnBtn.setOnClickListener(this::onAccept);
 
-        mDismissBtn = findViewById(R.id.no_thanks);
-        mDismissBtn.setOnClickListener(this::onDismiss);
+        Button dismissBtn = findViewById(R.id.no_thanks);
+        dismissBtn.setOnClickListener(this::onDismiss);
 
         LinearLayout buttonContainer = findViewById(R.id.button_container);
         int adjustedMarginEnd = grid.hotseatBarEndOffset - buttonContainer.getPaddingEnd();

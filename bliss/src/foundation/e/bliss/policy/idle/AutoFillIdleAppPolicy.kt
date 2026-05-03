@@ -25,6 +25,4 @@ package foundation.e.bliss.policy.idle
 
 import foundation.e.bliss.policy.IdleAppPolicy
 
-object AutoFillIdleAppPolicy : IdleAppPolicy {
-    override fun shouldAutoFillIdle(): Boolean = true
-}
+val AutoFillIdleAppPolicy = IdleAppPolicy { true }

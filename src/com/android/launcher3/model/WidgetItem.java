@@ -24,7 +24,8 @@ public class WidgetItem extends ComponentKey {
     public BitmapInfo bitmap = BitmapInfo.LOW_RES_INFO;
     public final String label;
     public final CharSequence description;
-    public final int spanX, spanY;
+    public final int spanX;
+    public final int spanY;
 
     public WidgetItem(LauncherAppWidgetProviderInfo info,
             InvariantDeviceProfile idp, IconCache iconCache, Context context) {

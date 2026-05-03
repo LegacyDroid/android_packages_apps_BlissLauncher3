@@ -483,8 +483,10 @@ public interface ActivityContext extends SavedStateRegistryOwner {
      */
     @NonNull
     default ActivityOptionsWrapper getActivityLaunchOptions(View v, @Nullable ItemInfo item) {
-        int left = 0, top = 0;
-        int width = v.getMeasuredWidth(), height = v.getMeasuredHeight();
+        int left = 0;
+        int top = 0;
+        int width = v.getMeasuredWidth();
+        int height = v.getMeasuredHeight();
         if (v instanceof BubbleTextView) {
             // Launch from center of icon, not entire view
             Drawable icon = ((BubbleTextView) v).getIcon();

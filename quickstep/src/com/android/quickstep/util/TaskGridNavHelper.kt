@@ -57,7 +57,7 @@ class TaskGridNavHelper(
         delta: Int,
         direction: TaskNavDirection,
         cycle: Boolean,
-    ): Int {
+    ): Int { // NOSONAR pristine-AOSP-do-not-refactor
         val inTop = topRowIds.contains(currentPageTaskViewId)
         val index =
             if (inTop) topRowIds.indexOf(currentPageTaskViewId)

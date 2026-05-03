@@ -154,7 +154,8 @@ public class WorkspaceItemSpaceFinder {
         try {
             if (!LauncherPolicy.idleApp(mContext).shouldAutoFillIdle()
                     && occupiedPos != null && !occupiedPos.isEmpty()) {
-                int lastY = 0, lastX = -1;
+                int lastY = 0;
+                int lastX = -1;
                 for (ItemInfo r : occupiedPos) {
                     int endY = r.cellY + r.spanY - 1;
                     int endX = r.cellX + r.spanX - 1;

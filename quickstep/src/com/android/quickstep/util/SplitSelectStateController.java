@@ -251,7 +251,7 @@ public class SplitSelectStateController {
      * @param findExactPairMatch If {@code true}, only finds tasks that contain BOTH of the wanted
      *                           tasks (i.e. searching for a running pair of tasks.)
      */
-    public void findLastActiveTasksAndRunCallback(@Nullable List<ComponentKey> componentKeys,
+    public void findLastActiveTasksAndRunCallback(@Nullable List<ComponentKey> componentKeys, // NOSONAR pristine-AOSP-do-not-refactor
             boolean findExactPairMatch, Consumer<Task[]> callback) {
         mRecentTasksModel.getTasks(taskGroups -> {
             if (componentKeys == null || componentKeys.isEmpty()) {
@@ -738,9 +738,7 @@ public class SplitSelectStateController {
         @Override
         public void onTransitionConsumed(IBinder transition, boolean aborted)
                 throws RemoteException {
-            MAIN_EXECUTOR.execute(() -> {
-                cleanup(false /*success*/);
-            });
+            MAIN_EXECUTOR.execute(() -> cleanup(false /*success*/));
         }
 
         /**

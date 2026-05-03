@@ -375,9 +375,7 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
                         == STATE_DISABLED ? null : new SectionDecorationInfo(mActivityContext,
                         ROUND_NOTHING, true /* decorateTogether */);
                 break;
-            case VIEW_TYPE_BOTTOM_VIEW_TO_SCROLL_TO:
-            case VIEW_TYPE_ALL_APPS_DIVIDER:
-            case VIEW_TYPE_WORK_DISABLED_CARD:
+            case VIEW_TYPE_BOTTOM_VIEW_TO_SCROLL_TO, VIEW_TYPE_ALL_APPS_DIVIDER, VIEW_TYPE_WORK_DISABLED_CARD:
                 // nothing to do
                 break;
             case VIEW_TYPE_FOLDER: {

@@ -323,8 +323,7 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
         if (mSendTouchToWorkspace) {
             final int action = event.getAction();
             switch (action & MotionEvent.ACTION_MASK) {
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_CANCEL:
+                case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL:
                     mSendTouchToWorkspace = false;
             }
             return mWorkspace.onTouchEvent(event);

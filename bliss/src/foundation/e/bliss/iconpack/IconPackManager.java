@@ -98,31 +98,32 @@ public class IconPackManager {
             return;
 
         try {
-            final String compStart = "ComponentInfo{";
-            final int compStartLen = compStart.length();
-
             while (parser.next() != XmlPullParser.END_DOCUMENT) {
                 if (parser.getEventType() != XmlPullParser.START_TAG)
                     continue;
-
                 if ("item".equals(parser.getName())) {
-                    String component = parser.getAttributeValue(null, "component");
-                    String drawable = parser.getAttributeValue(null, "drawable");
-
-                    if (component != null && drawable != null) {
-                        // Normalize ComponentInfo{pkg/class} → pkg/class
-                        if (component.startsWith(compStart) && component.endsWith("}")) {
-                            component = component.substring(compStartLen, component.length() - 1);
-                        }
-                        ComponentName cn = ComponentName.unflattenFromString(component);
-                        if (cn != null) {
-                            mComponentToDrawable.put(cn.flattenToString(), drawable);
-                        }
-                    }
+                    handleAppFilterItem(parser);
                 }
             }
         } catch (Exception e) {
             Log.w(TAG, "Error parsing appfilter.xml from " + mCurrentPackPackage, e);
+        }
+    }
+
+    private void handleAppFilterItem(XmlPullParser parser) {
+        String component = parser.getAttributeValue(null, "component");
+        String drawable = parser.getAttributeValue(null, "drawable");
+        if (component == null || drawable == null) {
+            return;
+        }
+        // Normalize ComponentInfo{pkg/class} → pkg/class
+        final String compStart = "ComponentInfo{";
+        if (component.startsWith(compStart) && component.endsWith("}")) {
+            component = component.substring(compStart.length(), component.length() - 1);
+        }
+        ComponentName cn = ComponentName.unflattenFromString(component);
+        if (cn != null) {
+            mComponentToDrawable.put(cn.flattenToString(), drawable);
         }
     }
 

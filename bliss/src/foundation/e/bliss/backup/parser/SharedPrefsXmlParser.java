@@ -47,9 +47,19 @@ import java.io.ByteArrayInputStream;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /** Parses Lawnchair's SharedPreferences XML format into a typed Map. */
 public final class SharedPrefsXmlParser {
+
+    private static final String ATTR_NAME = "name";
+    private static final String ATTR_VALUE = "value";
+    private static final String TAG_BOOLEAN = "boolean";
+    private static final String TAG_INT = "int";
+    private static final String TAG_LONG = "long";
+    private static final String TAG_FLOAT = "float";
+    private static final String TAG_STRING = "string";
+    private static final String TAG_SET = "set";
 
     private SharedPrefsXmlParser() {
     }
@@ -66,53 +76,75 @@ public final class SharedPrefsXmlParser {
         int eventType = parser.getEventType();
         while (eventType != XmlPullParser.END_DOCUMENT) {
             if (eventType == XmlPullParser.START_TAG) {
-                String tag = parser.getName();
-                String name = parser.getAttributeValue(null, "name");
-                if (name == null) {
-                    eventType = parser.next();
-                    continue;
-                }
-                switch (tag) {
-                    case "boolean" :
-                        String boolVal = parser.getAttributeValue(null, "value");
-                        if (boolVal != null) {
-                            prefs.put(name, Boolean.parseBoolean(boolVal));
-                        }
-                        break;
-                    case "int" :
-                        String intVal = parser.getAttributeValue(null, "value");
-                        if (intVal != null) {
-                            prefs.put(name, Integer.parseInt(intVal));
-                        }
-                        break;
-                    case "long" :
-                        String longVal = parser.getAttributeValue(null, "value");
-                        if (longVal != null) {
-                            prefs.put(name, Long.parseLong(longVal));
-                        }
-                        break;
-                    case "float" :
-                        String floatVal = parser.getAttributeValue(null, "value");
-                        if (floatVal != null) {
-                            prefs.put(name, Float.parseFloat(floatVal));
-                        }
-                        break;
-                    case "string" :
-                        String strVal = parser.nextText();
-                        prefs.put(name, strVal);
-                        break;
-                    case "set" :
-                        Set<String> set = new HashSet<>();
-                        while (parser.next() != XmlPullParser.END_TAG || !"set".equals(parser.getName())) {
-                            if (parser.getEventType() == XmlPullParser.START_TAG && "string".equals(parser.getName())) {
-                                set.add(parser.nextText());
-                            }
-                        }
-                        prefs.put(name, set);
-                        break;
-                }
+                handleStartTag(parser, prefs);
             }
             eventType = parser.next();
         }
+    }
+
+    /**
+     * Reads one START_TAG; if it carries a {@code name=} attribute, dispatches by
+     * tag.
+     */
+    private static void handleStartTag(XmlPullParser parser, Map<String, Object> prefs) throws Exception {
+        String name = parser.getAttributeValue(null, ATTR_NAME);
+        if (name == null) {
+            return;
+        }
+        dispatchTag(parser, parser.getName(), name, prefs);
+    }
+
+    /** Routes a named pref entry to its type-specific reader. */
+    private static void dispatchTag(XmlPullParser parser, String tag, String name, Map<String, Object> prefs)
+            throws Exception {
+        switch (tag) {
+            case TAG_BOOLEAN :
+                putIfPresent(parser, prefs, name, Boolean::parseBoolean);
+                break;
+            case TAG_INT :
+                putIfPresent(parser, prefs, name, Integer::parseInt);
+                break;
+            case TAG_LONG :
+                putIfPresent(parser, prefs, name, Long::parseLong);
+                break;
+            case TAG_FLOAT :
+                putIfPresent(parser, prefs, name, Float::parseFloat);
+                break;
+            case TAG_STRING :
+                prefs.put(name, parser.nextText());
+                break;
+            case TAG_SET :
+                prefs.put(name, readStringSet(parser));
+                break;
+            default :
+                // Unknown SharedPreferences tag; ignore for forward-compatibility.
+                break;
+        }
+    }
+
+    /**
+     * Reads the {@code value=} attribute, parses it via {@code parse}, and stores
+     * it under {@code name}.
+     */
+    private static <T> void putIfPresent(XmlPullParser parser, Map<String, Object> prefs, String name,
+            Function<String, T> parse) {
+        String raw = parser.getAttributeValue(null, ATTR_VALUE);
+        if (raw != null) {
+            prefs.put(name, parse.apply(raw));
+        }
+    }
+
+    /**
+     * Consumes the body of a {@code <set>} element, collecting nested
+     * {@code <string>} children.
+     */
+    private static Set<String> readStringSet(XmlPullParser parser) throws Exception {
+        Set<String> set = new HashSet<>();
+        while (parser.next() != XmlPullParser.END_TAG || !TAG_SET.equals(parser.getName())) {
+            if (parser.getEventType() == XmlPullParser.START_TAG && TAG_STRING.equals(parser.getName())) {
+                set.add(parser.nextText());
+            }
+        }
+        return set;
     }
 }

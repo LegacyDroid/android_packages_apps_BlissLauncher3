@@ -34,8 +34,9 @@ public class AppFilter {
             return false;
         }
         Set<String> hiddenApps = mPrefs.get(LauncherPrefs.HIDDEN_APPS);
-        if (hiddenApps != null && !hiddenApps.isEmpty()) {
-            if (hiddenApps.contains(app.getPackageName())) return false;
+        if (hiddenApps != null && !hiddenApps.isEmpty()
+                && hiddenApps.contains(app.getPackageName())) {
+            return false;
         }
         // NOTE: Migration02 / Phase 1.10 — the JSON-backed drawer-folder filter that
         // previously hid folder members has been removed. Folder grouping now lives in

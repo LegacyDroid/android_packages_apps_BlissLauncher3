@@ -40,6 +40,9 @@ import java.util.List;
 /** A utility class for widget sizes related calculations. */
 public final class WidgetSizes {
 
+    private WidgetSizes() {
+    }
+
     /**
      * Returns the list of all possible sizes, in dp, for a widget of given spans on this device.
      */

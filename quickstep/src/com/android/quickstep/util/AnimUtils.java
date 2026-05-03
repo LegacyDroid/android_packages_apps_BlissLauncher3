@@ -43,6 +43,9 @@ import com.android.quickstep.views.RecentsViewContainer;
  * Utility class containing methods to help manage animations, interpolators, and timings.
  */
 public class AnimUtils {
+    private AnimUtils() {
+    }
+
     private static final int DURATION_DEFAULT_SPLIT_DISMISS = 350;
 
     /**

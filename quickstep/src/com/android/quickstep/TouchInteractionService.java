@@ -147,9 +147,9 @@ import foundation.e.bliss.LauncherAppMonitor;
  */
 public class TouchInteractionService extends Service {
 
-    private static final String SUBSTRING_PREFIX = "; ";
-
     private static final String TAG = "TouchInteractionService";
+
+    private static final String LOG_INSTANCE_PREFIX = " instance=";
 
     private static final ConstantItem<Boolean> HAS_ENABLED_QUICKSTEP_ONCE = backedUpItem(
             "launcher.has_enabled_quickstep_once", false, EncryptionType.ENCRYPTED);
@@ -336,9 +336,8 @@ public class TouchInteractionService extends Service {
         @BinderThread
         @Override
         public void onDisplayRemoveSystemDecorations(int displayId) {
-            executeForTouchInteractionService(tis -> {
-                tis.mSystemDecorationChangeObserver.notifyDisplayRemoveSystemDecorations(displayId);
-            });
+            executeForTouchInteractionService(tis ->
+                    tis.mSystemDecorationChangeObserver.notifyDisplayRemoveSystemDecorations(displayId));
         }
 
         @BinderThread
@@ -592,7 +591,7 @@ public class TouchInteractionService extends Service {
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "onCreate: user=" + android.os.Process.myUserHandle().getIdentifier()
-                + " instance=" + System.identityHashCode(this));
+                + LOG_INSTANCE_PREFIX + System.identityHashCode(this));
         // Initialize anything here that is needed in direct boot mode.
         // Everything else should be initialized in onUserUnlocked() below.
         mMainChoreographer = Choreographer.getInstance();
@@ -648,7 +647,7 @@ public class TouchInteractionService extends Service {
 
     private void disposeEventHandlers(String reason) {
         Log.d(TAG, "disposeEventHandlers: Reason: " + reason
-                + " instance=" + System.identityHashCode(this));
+                + LOG_INSTANCE_PREFIX + System.identityHashCode(this));
         if (DesktopFlagsCompat.enableGestureNavOnConnectedDisplays()) {
             if (mInputMonitorDisplayModel == null) return;
             mInputMonitorDisplayModel.destroy();
@@ -694,7 +693,7 @@ public class TouchInteractionService extends Service {
     @UiThread
     public void onUserUnlocked() {
         Log.d(TAG, "onUserUnlocked: userId=" + android.os.Process.myUserHandle().getIdentifier()
-                + " instance=" + System.identityHashCode(this));
+                + LOG_INSTANCE_PREFIX + System.identityHashCode(this));
         LauncherAppMonitor.getInstance(this);
         mOverviewComponentObserver = OverviewComponentObserver.INSTANCE.get(this);
         SystemUiProxy systemUiProxy = SystemUiProxy.INSTANCE.get(this);
@@ -802,7 +801,7 @@ public class TouchInteractionService extends Service {
     @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy: user=" + android.os.Process.myUserHandle().getIdentifier()
-                + " instance=" + System.identityHashCode(this));
+                + LOG_INSTANCE_PREFIX + System.identityHashCode(this));
         if (LockedUserState.get(this).isUserUnlocked()) {
             mInputConsumer.unregisterInputConsumer();
             mOverviewComponentObserver.setHomeDisabled(false);
@@ -828,7 +827,7 @@ public class TouchInteractionService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         Log.d(TAG, "onBind: user=" + android.os.Process.myUserHandle().getIdentifier()
-                + " instance=" + System.identityHashCode(this));
+                + LOG_INSTANCE_PREFIX + System.identityHashCode(this));
         return mTISBinder;
     }
 
@@ -843,7 +842,7 @@ public class TouchInteractionService extends Service {
         cancelEvent.recycle();
     }
 
-    private void onInputEvent(InputEvent ev) {
+    private void onInputEvent(InputEvent ev) { // NOSONAR pristine-AOSP-do-not-refactor
         int displayId = ev.getDisplayId();
         if (!(ev instanceof MotionEvent)) {
             ActiveGestureProtoLogProxy.logUnknownInputEvent(displayId, ev.toString());

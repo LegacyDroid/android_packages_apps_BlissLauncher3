@@ -75,7 +75,8 @@ public class SysUiScrim implements View.OnAttachStateChangeListener {
     private static final int BOTTOM_MASK_HEIGHT_DP = 200;
     private static final int TOP_MASK_HEIGHT_DP = 70;
 
-    private boolean mDrawTopScrim, mDrawBottomScrim;
+    private boolean mDrawTopScrim;
+    private boolean mDrawBottomScrim;
 
     private final RectF mTopMaskRect = new RectF();
     private final Paint mTopMaskPaint = new Paint(FILTER_BITMAP_FLAG | DITHER_FLAG);

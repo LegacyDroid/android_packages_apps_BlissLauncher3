@@ -210,8 +210,10 @@ public class LauncherPreviewRenderer extends BaseContext
             deleteSharedPreferences(mPrefName);
             if (mDbDir != null) {
                 emptyDbDir();
-                if (!mDbDir.delete()) {
-                    Log.w(TAG, "Failed to delete preview db dir: " + mDbDir);
+                try {
+                    java.nio.file.Files.delete(mDbDir.toPath());
+                } catch (java.io.IOException e) {
+                    Log.w(TAG, "Failed to delete preview db dir: " + mDbDir, e);
                 }
             }
         }
@@ -257,8 +259,8 @@ public class LauncherPreviewRenderer extends BaseContext
         mIdp = idp;
         mDp = getDeviceProfileForPreview(context).toBuilder(context).setViewScaleProvider(
                 this::getAppWidgetScale).build();
-        if (context instanceof PreviewContext) {
-            Context tempContext = ((PreviewContext) context).getBaseContext();
+        if (context instanceof PreviewContext previewContext) {
+            Context tempContext = previewContext.getBaseContext();
             mDpOrig = InvariantDeviceProfile.INSTANCE.get(tempContext)
                     .getDeviceProfile(tempContext)
                     .copy(tempContext);
@@ -564,16 +566,13 @@ public class LauncherPreviewRenderer extends BaseContext
                 .filter(currentScreenContentFilter(IntSet.wrap(mWorkspaceScreens.keySet())))
                 .forEach(itemInfo -> {
                     switch (itemInfo.itemType) {
-                        case Favorites.ITEM_TYPE_APPLICATION:
-                        case Favorites.ITEM_TYPE_DEEP_SHORTCUT:
+                        case Favorites.ITEM_TYPE_APPLICATION, Favorites.ITEM_TYPE_DEEP_SHORTCUT:
                             inflateAndAddIcon((WorkspaceItemInfo) itemInfo);
                             break;
-                        case Favorites.ITEM_TYPE_FOLDER:
-                        case Favorites.ITEM_TYPE_APP_PAIR:
+                        case Favorites.ITEM_TYPE_FOLDER, Favorites.ITEM_TYPE_APP_PAIR:
                             inflateAndAddCollectionIcon((CollectionInfo) itemInfo);
                             break;
-                        case Favorites.ITEM_TYPE_APPWIDGET:
-                        case Favorites.ITEM_TYPE_CUSTOM_APPWIDGET:
+                        case Favorites.ITEM_TYPE_APPWIDGET, Favorites.ITEM_TYPE_CUSTOM_APPWIDGET:
                             if (widgetsMap[0] == null) {
                                 widgetsMap[0] = dataModel.widgetsModel.getWidgetsByComponentKey()
                                         .entrySet()

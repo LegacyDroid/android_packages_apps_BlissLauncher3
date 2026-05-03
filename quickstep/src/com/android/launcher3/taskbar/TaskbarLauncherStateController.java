@@ -377,9 +377,7 @@ public class TaskbarLauncherStateController {
         if (recentsView != null) {
             recentsView.setTaskLaunchListener(() -> mTaskBarRecentsAnimationListener
                     .endGestureStateOverride(true, false /*canceled*/));
-            recentsView.setTaskLaunchCancelledRunnable(() -> {
-                updateStateForUserFinishedToApp(false /* finishedToApp */);
-            });
+            recentsView.setTaskLaunchCancelledRunnable(() -> updateStateForUserFinishedToApp(false /* finishedToApp */));
         }
 
         return animatorSet;
@@ -501,7 +499,7 @@ public class TaskbarLauncherStateController {
         return animator;
     }
 
-    private Animator onStateChangeApplied(int changedFlags, long duration, boolean start) {
+    private Animator onStateChangeApplied(int changedFlags, long duration, boolean start) { // NOSONAR pristine-AOSP-do-not-refactor
         final boolean isInLauncher = isInLauncher();
         final boolean isInOverview = mControllers.uiController.isInOverviewUi();
         final boolean isIconAlignedWithHotseat = isIconAlignedWithHotseat();

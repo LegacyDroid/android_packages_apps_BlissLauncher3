@@ -127,31 +127,23 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
 
             @Override
             public void onRunningTaskAppeared(RunningTaskInfo taskInfo) {
-                mMainThreadExecutor.execute(() -> {
-                    RecentTasksList.this.onRunningTaskAppeared(taskInfo);
-                });
+                mMainThreadExecutor.execute(() -> RecentTasksList.this.onRunningTaskAppeared(taskInfo));
             }
 
             @Override
             public void onRunningTaskVanished(RunningTaskInfo taskInfo) {
-                mMainThreadExecutor.execute(() -> {
-                    RecentTasksList.this.onRunningTaskVanished(taskInfo);
-                });
+                mMainThreadExecutor.execute(() -> RecentTasksList.this.onRunningTaskVanished(taskInfo));
             }
 
             @Override
             public void onRunningTaskChanged(RunningTaskInfo taskInfo) {
-                mMainThreadExecutor.execute(() -> {
-                    RecentTasksList.this.onRunningTaskChanged(taskInfo);
-                });
+                mMainThreadExecutor.execute(() -> RecentTasksList.this.onRunningTaskChanged(taskInfo));
             }
 
             @Override
             public void onTaskMovedToFront(GroupedTaskInfo taskToFront) {
-                mMainThreadExecutor.execute(() -> {
-                    topTaskTracker.handleTaskMovedToFront(
-                            taskToFront.getBaseGroupedTask().getTaskInfo1());
-                });
+                mMainThreadExecutor.execute(() -> topTaskTracker.handleTaskMovedToFront(
+                        taskToFront.getBaseGroupedTask().getTaskInfo1()));
             }
 
             @Override
@@ -161,9 +153,7 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
 
             @Override
             public void onVisibleTasksChanged(GroupedTaskInfo[] visibleTasks) {
-                mMainThreadExecutor.execute(() -> {
-                    topTaskTracker.onVisibleTasksChanged(visibleTasks);
-                });
+                mMainThreadExecutor.execute(() -> topTaskTracker.onVisibleTasksChanged(visibleTasks));
             }
         };
 
@@ -222,9 +212,7 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
                         .map(GroupTask::copy)
                         .collect(Collectors.toCollection(ArrayList<GroupTask>::new));
 
-                mMainThreadExecutor.post(() -> {
-                    callback.accept(result);
-                });
+                mMainThreadExecutor.post(() -> callback.accept(result));
             }
 
             return requestLoadId;
@@ -381,7 +369,7 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
      * Loads and creates a list of all the recent tasks.
      */
     @VisibleForTesting
-    TaskLoadResult loadTasksInBackground(int numTasks, int requestId, boolean loadKeysOnly) {
+    TaskLoadResult loadTasksInBackground(int numTasks, int requestId, boolean loadKeysOnly) { // NOSONAR pristine-AOSP-do-not-refactor
         int currentUserId = Process.myUserHandle().getIdentifier();
         ArrayList<GroupedTaskInfo> rawTasks;
         try {

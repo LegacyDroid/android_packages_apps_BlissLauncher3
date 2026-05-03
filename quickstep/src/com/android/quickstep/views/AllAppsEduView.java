@@ -144,8 +144,7 @@ public class AllAppsEduView extends AbstractFloatingView {
             case MotionEvent.ACTION_DOWN:
                 mAnimation.pause();
                 return;
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL:
                 mAnimation.resume();
                 return;
         }
@@ -229,9 +228,8 @@ public class AllAppsEduView extends AbstractFloatingView {
         mAnimation.play(intro);
 
         ValueAnimator closeAllApps = ValueAnimator.ofFloat(maxAllAppsProgress, 0f);
-        closeAllApps.addUpdateListener(valueAnimator -> {
-            stateAnimationController.setPlayFraction((float) valueAnimator.getAnimatedValue());
-        });
+        closeAllApps.addUpdateListener(valueAnimator ->
+                stateAnimationController.setPlayFraction((float) valueAnimator.getAnimatedValue()));
         closeAllApps.setInterpolator(FAST_OUT_SLOW_IN);
         closeAllApps.setStartDelay(introDuration);
         closeAllApps.setDuration(250);

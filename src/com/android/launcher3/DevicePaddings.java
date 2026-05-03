@@ -91,12 +91,11 @@ public class DevicePaddings {
                                 }
                             }
 
-                            if (workspaceTopPadding == null
+                            if ((workspaceTopPadding == null
                                     || workspaceBottomPadding == null
-                                    || hotseatBottomPadding == null) {
-                                if (Utilities.IS_DEBUG_DEVICE) {
-                                    throw new RuntimeException("DevicePadding missing padding.");
-                                }
+                                    || hotseatBottomPadding == null)
+                                    && Utilities.IS_DEBUG_DEVICE) {
+                                throw new RuntimeException("DevicePadding missing padding.");
                             }
 
                             DevicePadding dp = new DevicePadding(maxWidthPx, workspaceTopPadding,
@@ -174,15 +173,15 @@ public class DevicePaddings {
         }
 
         public boolean isValid() {
-            int workspaceTopPadding = getWorkspaceTopPadding(maxEmptySpacePx);
-            int workspaceBottomPadding = getWorkspaceBottomPadding(maxEmptySpacePx);
-            int hotseatBottomPadding = getHotseatBottomPadding(maxEmptySpacePx);
-            int sum = workspaceTopPadding + workspaceBottomPadding + hotseatBottomPadding;
+            int wsTopPadding = getWorkspaceTopPadding(maxEmptySpacePx);
+            int wsBottomPadding = getWorkspaceBottomPadding(maxEmptySpacePx);
+            int hsBottomPadding = getHotseatBottomPadding(maxEmptySpacePx);
+            int sum = wsTopPadding + wsBottomPadding + hsBottomPadding;
             int diff = Math.abs(sum - maxEmptySpacePx);
             if (DEBUG) {
-                Log.d(TAG, "isValid: workspaceTopPadding=" + workspaceTopPadding
-                        + ", workspaceBottomPadding=" + workspaceBottomPadding
-                        + ", hotseatBottomPadding=" + hotseatBottomPadding
+                Log.d(TAG, "isValid: workspaceTopPadding=" + wsTopPadding
+                        + ", workspaceBottomPadding=" + wsBottomPadding
+                        + ", hotseatBottomPadding=" + hsBottomPadding
                         + ", sum=" + sum
                         + ", diff=" + diff);
             }

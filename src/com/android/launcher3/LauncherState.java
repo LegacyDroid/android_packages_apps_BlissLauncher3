@@ -483,7 +483,7 @@ public abstract class LauncherState implements BaseState<LauncherState> {
         lsm.onBackCancelled(toState);
     }
 
-    public static abstract class PageAlphaProvider {
+    public abstract static class PageAlphaProvider {
 
         public final Interpolator interpolator;
 

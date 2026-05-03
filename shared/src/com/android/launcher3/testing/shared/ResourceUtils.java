@@ -21,6 +21,8 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 
 public class ResourceUtils {
+    private ResourceUtils() {}
+
     private static final float EPSILON = 0.0001f;
     public static final int DEFAULT_NAVBAR_VALUE = 48;
     public static final int INVALID_RESOURCE_HANDLE = -1;

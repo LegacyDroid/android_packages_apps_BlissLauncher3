@@ -97,8 +97,8 @@ public class IconButtonView extends BubbleTextView {
     /** Updates the color of the icon's foreground layer. */
     public void setForegroundTint(@ColorInt int tintColor) {
         FastBitmapDrawable icon = getIcon();
-        if (icon instanceof IconDrawable) {
-            ((IconDrawable) icon).mFg.setTint(tintColor);
+        if (icon instanceof IconDrawable iconDrawable) {
+            iconDrawable.mFg.setTint(tintColor);
         }
     }
 

@@ -323,7 +323,9 @@ public class WindowManagerProxy {
         int statusBarHeightLandscape = getDimenByName(systemRes,
                 STATUS_BAR_HEIGHT_LANDSCAPE, STATUS_BAR_HEIGHT);
 
-        int navBarHeightPortrait, navBarHeightLandscape, navbarWidthLandscape;
+        int navBarHeightPortrait;
+        int navBarHeightLandscape;
+        int navbarWidthLandscape;
 
         navBarHeightPortrait = isTablet
                 ? (mTaskbarDrawnInProcess
@@ -347,7 +349,9 @@ public class WindowManagerProxy {
             rotateSize(tempSize, rotationChange);
             Rect bounds = new Rect(0, 0, tempSize.x, tempSize.y);
 
-            int navBarHeight, navbarWidth, statusBarHeight;
+            int navBarHeight;
+            int navbarWidth;
+            int statusBarHeight;
             if (tempSize.y > tempSize.x) {
                 navBarHeight = navBarHeightPortrait;
                 navbarWidth = 0;

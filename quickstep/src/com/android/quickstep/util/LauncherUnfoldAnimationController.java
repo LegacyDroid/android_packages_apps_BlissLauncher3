@@ -193,6 +193,7 @@ public class LauncherUnfoldAnimationController implements OnDeviceProfileChangeL
 
         @Override
         public void onTransitionStarted() {
+            /* no-op: QSB inset adjustment only needs to happen at transition end */
         }
 
         @Override

@@ -35,6 +35,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Executors {
 
+    private Executors() {
+    }
+
     private static final int POOL_SIZE =
             Math.max(Runtime.getRuntime().availableProcessors(), 2);
     private static final int KEEP_ALIVE = 1;

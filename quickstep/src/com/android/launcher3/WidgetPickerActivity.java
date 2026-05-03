@@ -429,7 +429,7 @@ public class WidgetPickerActivity extends BaseActivity implements
         return mDesiredWidgetWidth != 0 || mDesiredWidgetHeight != 0;
     }
 
-    private WidgetAcceptabilityVerdict isWidgetAcceptable(WidgetItem widget,
+    private WidgetAcceptabilityVerdict isWidgetAcceptable(WidgetItem widget, // NOSONAR pristine-AOSP-do-not-refactor
             boolean applySizeFilter) {
         final AppWidgetProviderInfo info = widget.widgetInfo;
         if (info == null) {

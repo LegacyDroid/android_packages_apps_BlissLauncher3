@@ -312,7 +312,9 @@ public abstract class ItemInfoWithIcon extends ItemInfo {
     /**
      * @return a copy of this
      */
-    public abstract ItemInfoWithIcon clone();
+    @NonNull
+    @Override
+    public abstract ItemInfoWithIcon makeShallowCopy();
 
 
     /**

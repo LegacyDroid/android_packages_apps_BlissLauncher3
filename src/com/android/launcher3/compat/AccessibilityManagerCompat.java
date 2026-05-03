@@ -31,6 +31,9 @@ import com.android.launcher3.testing.shared.TestProtocol;
 
 public class AccessibilityManagerCompat {
 
+    private AccessibilityManagerCompat() {
+    }
+
     public static boolean isAccessibilityEnabled(Context context) {
         return getManager(context).isEnabled();
     }

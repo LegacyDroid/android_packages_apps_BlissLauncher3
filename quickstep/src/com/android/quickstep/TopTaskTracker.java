@@ -162,42 +162,54 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
         // Workaround for b/372067617, if the home task is being brought to front, then it will
         // occlude all other tasks, so mark them as not-visible
         if (taskInfo.getActivityType() == ACTIVITY_TYPE_HOME) {
-            // We've moved the task to the front of the list above, so only iterate the tasks after
-            for (int i = 1; i < mOrderedTaskList.size(); i++) {
-                final TaskInfo info = mOrderedTaskList.get(i);
-                if (info.displayId != taskInfo.displayId) {
-                    // Only fall through to reset visibility for tasks on the same display as the
-                    // home task being brought forward
-                    continue;
-                }
-                info.isVisible = false;
-                info.isVisibleRequested = false;
-            }
+            markOtherTasksOnDisplayNotVisible(taskInfo.displayId);
         }
 
         // Keep the home display's top running task in the first while adding a non-home
         // display's task to the list, to avoid showing non-home display's task upon going to
         // Recents animation.
         if (taskInfo.displayId != DEFAULT_DISPLAY) {
-            final TaskInfo topTaskOnHomeDisplay = mOrderedTaskList.stream()
-                    .filter(rto -> rto.displayId == DEFAULT_DISPLAY).findFirst().orElse(null);
-            if (topTaskOnHomeDisplay != null) {
-                mOrderedTaskList.removeIf(rto -> rto.taskId == topTaskOnHomeDisplay.taskId);
-                mOrderedTaskList.addFirst(topTaskOnHomeDisplay);
-            }
+            promoteTopHomeDisplayTaskToFront();
         }
 
         if (mOrderedTaskList.size() >= HISTORY_SIZE) {
             // If we grow in size, remove the last taskInfo which is not part of the split task.
-            Iterator<TaskInfo> itr = mOrderedTaskList.descendingIterator();
-            while (itr.hasNext()) {
-                TaskInfo info = itr.next();
-                if (info.taskId != taskInfo.taskId
-                        && info.taskId != mMainStagePosition.taskId
-                        && info.taskId != mSideStagePosition.taskId) {
-                    itr.remove();
-                    return;
-                }
+            trimOldestNonStageTask(taskInfo);
+        }
+    }
+
+    private void markOtherTasksOnDisplayNotVisible(int displayId) {
+        // We've moved the task to the front of the list above, so only iterate the tasks after
+        for (int i = 1; i < mOrderedTaskList.size(); i++) {
+            final TaskInfo info = mOrderedTaskList.get(i);
+            if (info.displayId != displayId) {
+                // Only fall through to reset visibility for tasks on the same display as the
+                // home task being brought forward
+                continue;
+            }
+            info.isVisible = false;
+            info.isVisibleRequested = false;
+        }
+    }
+
+    private void promoteTopHomeDisplayTaskToFront() {
+        final TaskInfo topTaskOnHomeDisplay = mOrderedTaskList.stream()
+                .filter(rto -> rto.displayId == DEFAULT_DISPLAY).findFirst().orElse(null);
+        if (topTaskOnHomeDisplay != null) {
+            mOrderedTaskList.removeIf(rto -> rto.taskId == topTaskOnHomeDisplay.taskId);
+            mOrderedTaskList.addFirst(topTaskOnHomeDisplay);
+        }
+    }
+
+    private void trimOldestNonStageTask(TaskInfo taskInfo) {
+        Iterator<TaskInfo> itr = mOrderedTaskList.descendingIterator();
+        while (itr.hasNext()) {
+            TaskInfo info = itr.next();
+            if (info.taskId != taskInfo.taskId
+                    && info.taskId != mMainStagePosition.taskId
+                    && info.taskId != mSideStagePosition.taskId) {
+                itr.remove();
+                return;
             }
         }
     }

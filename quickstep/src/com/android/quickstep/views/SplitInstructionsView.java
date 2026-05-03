@@ -127,7 +127,7 @@ public class SplitInstructionsView extends LinearLayout {
         TextView instructionTextView = findViewById(R.id.split_instructions_text);
 
         cancelTextView.setVisibility(VISIBLE);
-        cancelTextView.setOnClickListener((v) -> exitSplitSelection());
+        cancelTextView.setOnClickListener(v -> exitSplitSelection());
         instructionTextView.setText(R.string.toast_contextual_split_select_app);
         TypefaceUtils.setTypeface(instructionTextView, FontFamily.GSF_BODY_MEDIUM);
 

@@ -161,18 +161,6 @@ public class DeviceProfile {
 
     private boolean isNoHintGesture = false;
 
-    /**
-     * The maximum amount of left/right workspace padding as a percentage of the screen width.
-     * To be clear, this means that up to 7% of the screen width can be used as left padding, and
-     * 7% of the screen width can be used as right padding.
-     */
-    private static final float MAX_HORIZONTAL_PADDING_PERCENT = 0.14f;
-
-    private static final float TALL_DEVICE_ASPECT_RATIO_THRESHOLD = 2.0f;
-    private static final float TALLER_DEVICE_ASPECT_RATIO_THRESHOLD = 2.15f;
-    private static final float TALL_DEVICE_EXTRA_SPACE_THRESHOLD_DP = 252;
-    private static final float TALL_DEVICE_MORE_EXTRA_SPACE_THRESHOLD_DP = 268;
-
     // Workspace
     public final int desiredWorkspaceHorizontalMarginOriginalPx;
     public int desiredWorkspaceHorizontalMarginPx;
@@ -411,8 +399,8 @@ public class DeviceProfile {
         isTransientTaskbar = false;
     }
 
-    private final static boolean FORCE_SHOW_LABELS = false;
-    private final static boolean FORCE_LAYOUT_ALL_HOTSEAT_ICONS = true;
+    private static final boolean FORCE_SHOW_LABELS = false;
+    private static final boolean FORCE_LAYOUT_ALL_HOTSEAT_ICONS = true;
 
     /** TODO: Once we fully migrate to staged split, remove "isMultiWindowMode" */
     DeviceProfile(Context context, InvariantDeviceProfile inv, Info info,
@@ -995,7 +983,9 @@ public class DeviceProfile {
                 if (factor != 100 && factor >= 0 && factor <= 170) {
                     hotseatBarBottomSpace = (hotseatBarBottomSpace * factor) / 100;
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+                // Intentionally ignored.
+            }
         }
 
         if (!isVerticalBarLayout()) {
@@ -1633,7 +1623,9 @@ public class DeviceProfile {
                 allAppsPadding.left = (allAppsPadding.left * marginF) / 100;
                 allAppsPadding.right = (allAppsPadding.right * marginF) / 100;
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            // Intentionally ignored.
+        }
     }
 
     /** Whether All Apps should be presented on a bottom sheet. */
@@ -1736,7 +1728,9 @@ public class DeviceProfile {
                 folderLabelTextSizePx = Math.max(minLabelTextSize,
                         (folderLabelTextSizePx * folderLabelFactor) / 100);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            // Intentionally ignored.
+        }
         int textHeight = Utilities.calculateTextHeight(folderChildTextSizePx);
 
         if (mIsScalableGrid) {
@@ -1946,7 +1940,9 @@ public class DeviceProfile {
                 topF = prefs.get(LauncherPrefs.WORKSPACE_TOP_PADDING_FACTOR);
                 botF = prefs.get(LauncherPrefs.WORKSPACE_BOTTOM_PADDING_FACTOR);
                 piF = prefs.get(LauncherPrefs.PAGE_INDICATOR_HEIGHT_FACTOR);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+                // Intentionally ignored.
+            }
 
             int effectiveWorkspaceTopPadding = (workspaceTopPadding * topF) / 100;
             int effectiveWorkspaceBottomPadding = (workspaceBottomPadding * botF) / 100;
@@ -2059,9 +2055,9 @@ public class DeviceProfile {
     public Rect getHotseatLayoutPadding(Context context) {
         // Make sure to update all relevant sizes for cutout and orientation
         int hotseatIconSizePx = pxFromDp(inv.iconSize[mTypeIndex], mMetrics);
-        boolean isTaskbarPresent = this.isTaskbarPresent &&
+        boolean taskbarPresent = this.isTaskbarPresent &&
                 SettingsCache.INSTANCE.get(context).getValue(ENABLE_TASKBAR, 1);
-        if (!isTaskbarPresent && isNoHintGesture) {
+        if (!taskbarPresent && isNoHintGesture) {
             hotseatIconSizePx = (int) (hotseatIconSizePx / 1.2f);
         }
         updateHotseatSizes(hotseatIconSizePx);
@@ -2109,7 +2105,7 @@ public class DeviceProfile {
             } else {
                 hotseatBarPadding.left += qsbWidth;
             }
-        } else if (isTaskbarPresent) {
+        } else if (taskbarPresent) {
             // Center the QSB vertically with hotseat
             int hotseatBarBottomPadding = getHotseatBarBottomPadding();
             int hotseatBarTopPadding =

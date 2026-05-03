@@ -160,7 +160,8 @@ public abstract class ButtonDropTarget extends TextView
             message.setText(mText);
 
             mToolTip = new PopupWindow(message, WRAP_CONTENT, WRAP_CONTENT);
-            int x = 0, y = 0;
+            int x = 0;
+            int y = 0;
             if (mToolTipLocation != TOOLTIP_DEFAULT) {
                 y = -getMeasuredHeight();
                 message.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);

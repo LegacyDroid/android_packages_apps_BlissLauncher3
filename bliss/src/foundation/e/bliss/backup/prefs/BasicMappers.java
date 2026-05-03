@@ -56,8 +56,8 @@ public final class BasicMappers {
     public static boolean mapBoolean(Map<String, Object> src, LauncherPrefs prefs, String srcKey,
             ConstantItem<Boolean> destItem) {
         Object val = src.get(srcKey);
-        if (val instanceof Boolean) {
-            prefs.put(destItem, (Boolean) val);
+        if (val instanceof Boolean b) {
+            prefs.put(destItem, b);
             return true;
         }
         return false;
@@ -66,11 +66,11 @@ public final class BasicMappers {
     public static boolean mapInt(Map<String, Object> src, LauncherPrefs prefs, String srcKey,
             ConstantItem<Integer> destItem) {
         Object val = src.get(srcKey);
-        if (val instanceof Integer) {
-            prefs.put(destItem, (Integer) val);
+        if (val instanceof Integer i) {
+            prefs.put(destItem, i);
             return true;
-        } else if (val instanceof Long) {
-            prefs.put(destItem, ((Long) val).intValue());
+        } else if (val instanceof Long l) {
+            prefs.put(destItem, l.intValue());
             return true;
         }
         return false;
@@ -79,8 +79,8 @@ public final class BasicMappers {
     public static boolean mapString(Map<String, Object> src, LauncherPrefs prefs, String srcKey,
             ConstantItem<String> destItem) {
         Object val = src.get(srcKey);
-        if (val instanceof String && !((String) val).isEmpty()) {
-            prefs.put(destItem, (String) val);
+        if (val instanceof String s && !s.isEmpty()) {
+            prefs.put(destItem, s);
             return true;
         }
         return false;
@@ -93,11 +93,11 @@ public final class BasicMappers {
             ConstantItem<Integer> destItem) {
         for (String key : srcKeys) {
             Object val = src.get(key);
-            if (val instanceof Float) {
-                prefs.put(destItem, Math.round((Float) val * 100));
+            if (val instanceof Float f) {
+                prefs.put(destItem, Math.round(f * 100));
                 return 1;
-            } else if (val instanceof Double) {
-                prefs.put(destItem, (int) Math.round((Double) val * 100));
+            } else if (val instanceof Double d) {
+                prefs.put(destItem, (int) Math.round(d * 100));
                 return 1;
             }
         }
@@ -112,7 +112,7 @@ public final class BasicMappers {
         Object val = src.get(srcKey);
         if (!(val instanceof Float) && !(val instanceof Double))
             return 0;
-        double f = val instanceof Float ? ((Float) val).doubleValue() : (Double) val;
+        double f = val instanceof Float fv ? fv.doubleValue() : (Double) val;
         int pct = (int) Math.round(f * 100);
         if (pct < 0)
             pct = 0;
@@ -128,11 +128,11 @@ public final class BasicMappers {
     public static int mapFloatToIntOpacity(Map<String, Object> src, LauncherPrefs prefs, String srcKey,
             ConstantItem<Integer> destItem) {
         Object val = src.get(srcKey);
-        if (val instanceof Float) {
-            prefs.put(destItem, Math.round((Float) val * 100));
+        if (val instanceof Float f) {
+            prefs.put(destItem, Math.round(f * 100));
             return 1;
-        } else if (val instanceof Double) {
-            prefs.put(destItem, (int) Math.round((Double) val * 100));
+        } else if (val instanceof Double d) {
+            prefs.put(destItem, (int) Math.round(d * 100));
             return 1;
         }
         return 0;

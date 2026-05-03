@@ -54,8 +54,8 @@ public final class WidgetsListTableViewHolderBinder
 
     private final LayoutInflater mLayoutInflater;
     private final OnClickListener mIconClickListener;
-    private @NonNull final Context mContext;
-    private @NonNull final ActivityContext mActivityContext;
+    @NonNull private final Context mContext;
+    @NonNull private final ActivityContext mActivityContext;
     @Px private final int mCellPadding;
     private final OnLongClickListener mIconLongClickListener;
 

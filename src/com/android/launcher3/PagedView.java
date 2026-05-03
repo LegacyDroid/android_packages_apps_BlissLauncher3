@@ -80,7 +80,7 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
 
     public static final int ACTION_MOVE_ALLOW_EASY_FLING = MotionEvent.ACTION_MASK - 1;
     public static final int INVALID_PAGE = -1;
-    protected static final ComputePageScrollsLogic SIMPLE_SCROLL_LOGIC = (v) -> v.getVisibility() != GONE;
+    protected static final ComputePageScrollsLogic SIMPLE_SCROLL_LOGIC = v -> v.getVisibility() != GONE;
 
     private static final float RETURN_TO_ORIGINAL_PAGE_THRESHOLD = 0.33f;
     // The page is moved more than halfway, automatically move to the next page on touch up.
@@ -543,16 +543,15 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
     }
 
     private void sendScrollAccessibilityEvent() {
-        if (isObservedEventType(getContext(), AccessibilityEvent.TYPE_VIEW_SCROLLED)) {
-            if (mCurrentPage != getNextPage()) {
-                AccessibilityEvent ev =
-                        AccessibilityEvent.obtain(AccessibilityEvent.TYPE_VIEW_SCROLLED);
-                ev.setScrollable(true);
-                ev.setScrollX(getScrollX());
-                ev.setScrollY(getScrollY());
-                mOrientationHandler.setMaxScroll(ev, mMaxScroll);
-                sendAccessibilityEventUnchecked(ev);
-            }
+        if (isObservedEventType(getContext(), AccessibilityEvent.TYPE_VIEW_SCROLLED)
+                && mCurrentPage != getNextPage()) {
+            AccessibilityEvent ev =
+                    AccessibilityEvent.obtain(AccessibilityEvent.TYPE_VIEW_SCROLLED);
+            ev.setScrollable(true);
+            ev.setScrollX(getScrollX());
+            ev.setScrollY(getScrollY());
+            mOrientationHandler.setMaxScroll(ev, mMaxScroll);
+            sendAccessibilityEventUnchecked(ev);
         }
     }
 
@@ -1232,8 +1231,7 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
                 break;
             }
 
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL:
                 resetTouchState();
                 break;
 
@@ -1376,10 +1374,8 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
 
         if (mFreeScroll) {
             setCurrentPage(getNextPage());
-        } else if (wasFreeScroll) {
-            if (getScrollForPage(getNextPage()) != getScrollX()) {
-                snapToPage(getNextPage());
-            }
+        } else if (wasFreeScroll && getScrollForPage(getNextPage()) != getScrollX()) {
+            snapToPage(getNextPage());
         }
     }
 

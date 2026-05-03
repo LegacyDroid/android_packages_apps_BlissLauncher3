@@ -18,6 +18,8 @@ package com.android.quickstep.util;
 import android.os.VibrationEffect;
 
 public class VibrationConstants {
+    private VibrationConstants() {}
+
     public static final VibrationEffect EFFECT_TEXTURE_TICK =
             VibrationEffect.createPredefined(VibrationEffect.EFFECT_TEXTURE_TICK);
 }

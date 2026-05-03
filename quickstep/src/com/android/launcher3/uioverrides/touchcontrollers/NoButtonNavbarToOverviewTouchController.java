@@ -69,7 +69,6 @@ public class NoButtonNavbarToOverviewTouchController extends PortraitStatesTouch
     private static final long TRANSLATION_ANIM_MIN_DURATION_MS = 80;
     private static final float TRANSLATION_ANIM_VELOCITY_DP_PER_MS = 0.8f;
 
-    private final VibratorWrapper mVibratorWrapper;
     private final BiConsumer<AnimatorSet, Long> mCancelSplitRunnable;
     private final RecentsView mRecentsView;
     private final MotionPauseDetector mMotionPauseDetector;
@@ -100,7 +99,6 @@ public class NoButtonNavbarToOverviewTouchController extends PortraitStatesTouch
         mRecentsView = l.getOverviewPanel();
         mMotionPauseDetector = new MotionPauseDetector(l);
         mMotionPauseMinDisplacement = ViewConfiguration.get(l).getScaledTouchSlop();
-        mVibratorWrapper = VibratorWrapper.INSTANCE.get(l.getApplicationContext());
         mCancelSplitRunnable = cancelSplitRunnable;
     }
 

@@ -264,6 +264,7 @@ public class DatabaseWidgetPreviewLoader {
                         icon.draw(c);
                     }
                 } catch (Resources.NotFoundException e) {
+                    // Widget preview resources may be unavailable; ignore and continue.
                 }
             }
         });

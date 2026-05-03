@@ -42,6 +42,7 @@ package foundation.e.bliss.backup.blissformat;
 
 import android.content.ComponentName;
 
+import com.android.launcher3.ConstantItem;
 import com.android.launcher3.LauncherPrefs;
 
 import foundation.e.bliss.gestures.GestureHandler;
@@ -108,140 +109,98 @@ public final class BlissPrefsDeserializer {
     }
 
     private static void applyBooleans(JSONObject json, LauncherPrefs prefs) throws JSONException {
-        if (json.has("show_home_labels"))
-            prefs.put(LauncherPrefs.SHOW_HOME_LABELS, json.getBoolean("show_home_labels"));
-        if (json.has("show_drawer_labels"))
-            prefs.put(LauncherPrefs.SHOW_DRAWER_LABELS, json.getBoolean("show_drawer_labels"));
-        if (json.has("show_dock"))
-            prefs.put(LauncherPrefs.SHOW_DOCK, json.getBoolean("show_dock"));
-        if (json.has("show_folder_labels"))
-            prefs.put(LauncherPrefs.SHOW_FOLDER_LABELS, json.getBoolean("show_folder_labels"));
-        if (json.has("wallpaper_scrolling"))
-            prefs.put(LauncherPrefs.WALLPAPER_SCROLLING, json.getBoolean("wallpaper_scrolling"));
-        if (json.has("infinite_scrolling"))
-            prefs.put(LauncherPrefs.INFINITE_SCROLLING, json.getBoolean("infinite_scrolling"));
-        if (json.has("show_status_bar"))
-            prefs.put(LauncherPrefs.SHOW_STATUS_BAR, json.getBoolean("show_status_bar"));
-        if (json.has("force_widget_resize"))
-            prefs.put(LauncherPrefs.FORCE_WIDGET_RESIZE, json.getBoolean("force_widget_resize"));
-        if (json.has("widget_rounded_corners"))
-            prefs.put(LauncherPrefs.WIDGET_ROUNDED_CORNERS, json.getBoolean("widget_rounded_corners"));
-        if (json.has("widget_unlimited_size"))
-            prefs.put(LauncherPrefs.WIDGET_UNLIMITED_SIZE, json.getBoolean("widget_unlimited_size"));
-        if (json.has("show_at_a_glance"))
-            prefs.put(LauncherPrefs.SHOW_AT_A_GLANCE, json.getBoolean("show_at_a_glance"));
-        if (json.has("hide_drawer_search"))
-            prefs.put(LauncherPrefs.HIDE_DRAWER_SEARCH, json.getBoolean("hide_drawer_search"));
-        if (json.has("auto_show_keyboard"))
-            prefs.put(LauncherPrefs.AUTO_SHOW_KEYBOARD, json.getBoolean("auto_show_keyboard"));
-        if (json.has("fuzzy_search"))
-            prefs.put(LauncherPrefs.FUZZY_SEARCH, json.getBoolean("fuzzy_search"));
-        if (json.has("show_calculator"))
-            prefs.put(LauncherPrefs.SHOW_CALCULATOR, json.getBoolean("show_calculator"));
-        if (json.has("drawer_list_view"))
-            prefs.put(LauncherPrefs.DRAWER_LIST_VIEW, json.getBoolean("drawer_list_view"));
-        if (json.has("contact_search"))
-            prefs.put(LauncherPrefs.CONTACT_SEARCH, json.getBoolean("contact_search"));
-        if (json.has("shortcut_search"))
-            prefs.put(LauncherPrefs.SHORTCUT_SEARCH, json.getBoolean("shortcut_search"));
-        if (json.has("search_bar_bottom"))
-            prefs.put(LauncherPrefs.SEARCH_BAR_BOTTOM, json.getBoolean("search_bar_bottom"));
-        if (json.has("dock_labels"))
-            prefs.put(LauncherPrefs.DOCK_LABELS, json.getBoolean("dock_labels"));
-        if (json.has("keyboard_auto_hide"))
-            prefs.put(LauncherPrefs.KEYBOARD_AUTO_HIDE, json.getBoolean("keyboard_auto_hide"));
-        if (json.has("folder_badges"))
-            prefs.put(LauncherPrefs.FOLDER_BADGES, json.getBoolean("folder_badges"));
+        putBool(json, "show_home_labels", prefs, LauncherPrefs.SHOW_HOME_LABELS);
+        putBool(json, "show_drawer_labels", prefs, LauncherPrefs.SHOW_DRAWER_LABELS);
+        putBool(json, "show_dock", prefs, LauncherPrefs.SHOW_DOCK);
+        putBool(json, "show_folder_labels", prefs, LauncherPrefs.SHOW_FOLDER_LABELS);
+        putBool(json, "wallpaper_scrolling", prefs, LauncherPrefs.WALLPAPER_SCROLLING);
+        putBool(json, "infinite_scrolling", prefs, LauncherPrefs.INFINITE_SCROLLING);
+        putBool(json, "show_status_bar", prefs, LauncherPrefs.SHOW_STATUS_BAR);
+        putBool(json, "force_widget_resize", prefs, LauncherPrefs.FORCE_WIDGET_RESIZE);
+        putBool(json, "widget_rounded_corners", prefs, LauncherPrefs.WIDGET_ROUNDED_CORNERS);
+        putBool(json, "widget_unlimited_size", prefs, LauncherPrefs.WIDGET_UNLIMITED_SIZE);
+        putBool(json, "show_at_a_glance", prefs, LauncherPrefs.SHOW_AT_A_GLANCE);
+        putBool(json, "hide_drawer_search", prefs, LauncherPrefs.HIDE_DRAWER_SEARCH);
+        putBool(json, "auto_show_keyboard", prefs, LauncherPrefs.AUTO_SHOW_KEYBOARD);
+        putBool(json, "fuzzy_search", prefs, LauncherPrefs.FUZZY_SEARCH);
+        putBool(json, "show_calculator", prefs, LauncherPrefs.SHOW_CALCULATOR);
+        putBool(json, "drawer_list_view", prefs, LauncherPrefs.DRAWER_LIST_VIEW);
+        putBool(json, "contact_search", prefs, LauncherPrefs.CONTACT_SEARCH);
+        putBool(json, "shortcut_search", prefs, LauncherPrefs.SHORTCUT_SEARCH);
+        putBool(json, "search_bar_bottom", prefs, LauncherPrefs.SEARCH_BAR_BOTTOM);
+        putBool(json, "dock_labels", prefs, LauncherPrefs.DOCK_LABELS);
+        putBool(json, "keyboard_auto_hide", prefs, LauncherPrefs.KEYBOARD_AUTO_HIDE);
+        putBool(json, "folder_badges", prefs, LauncherPrefs.FOLDER_BADGES);
     }
 
     private static void applyIntegers(JSONObject json, LauncherPrefs prefs) throws JSONException {
-        if (json.has("icon_size_factor"))
-            prefs.put(LauncherPrefs.ICON_SIZE_FACTOR, json.getInt("icon_size_factor"));
-        if (json.has("drawer_icon_size_factor"))
-            prefs.put(LauncherPrefs.DRAWER_ICON_SIZE_FACTOR, json.getInt("drawer_icon_size_factor"));
-        if (json.has("home_label_size_factor"))
-            prefs.put(LauncherPrefs.HOME_LABEL_SIZE_FACTOR, json.getInt("home_label_size_factor"));
-        if (json.has("drawer_label_size_factor"))
-            prefs.put(LauncherPrefs.DRAWER_LABEL_SIZE_FACTOR, json.getInt("drawer_label_size_factor"));
-        if (json.has("dock_icon_count"))
-            prefs.put(LauncherPrefs.DOCK_ICON_COUNT, json.getInt("dock_icon_count"));
-        if (json.has("blur_intensity"))
-            prefs.put(LauncherPrefs.BLUR_INTENSITY, json.getInt("blur_intensity"));
-        if (json.has("drawer_columns"))
-            prefs.put(LauncherPrefs.DRAWER_COLUMNS, json.getInt("drawer_columns"));
-        if (json.has("folder_columns"))
-            prefs.put(LauncherPrefs.FOLDER_COLUMNS, json.getInt("folder_columns"));
-        if (json.has("drawer_opacity"))
-            prefs.put(LauncherPrefs.DRAWER_OPACITY, json.getInt("drawer_opacity"));
-        if (json.has("folder_bg_opacity"))
-            prefs.put(LauncherPrefs.FOLDER_BG_OPACITY, json.getInt("folder_bg_opacity"));
-        if (json.has("folder_preview_bg_opacity"))
-            prefs.put(LauncherPrefs.FOLDER_PREVIEW_BG_OPACITY, json.getInt("folder_preview_bg_opacity"));
-        if (json.has("search_result_count"))
-            prefs.put(LauncherPrefs.SEARCH_RESULT_COUNT, json.getInt("search_result_count"));
-        if (json.has("dock_bg_opacity"))
-            prefs.put(LauncherPrefs.DOCK_BG_OPACITY, json.getInt("dock_bg_opacity"));
-        if (json.has("search_bar_radius"))
-            prefs.put(LauncherPrefs.SEARCH_BAR_RADIUS, json.getInt("search_bar_radius"));
+        putInt(json, "icon_size_factor", prefs, LauncherPrefs.ICON_SIZE_FACTOR);
+        putInt(json, "drawer_icon_size_factor", prefs, LauncherPrefs.DRAWER_ICON_SIZE_FACTOR);
+        putInt(json, "home_label_size_factor", prefs, LauncherPrefs.HOME_LABEL_SIZE_FACTOR);
+        putInt(json, "drawer_label_size_factor", prefs, LauncherPrefs.DRAWER_LABEL_SIZE_FACTOR);
+        putInt(json, "dock_icon_count", prefs, LauncherPrefs.DOCK_ICON_COUNT);
+        putInt(json, "blur_intensity", prefs, LauncherPrefs.BLUR_INTENSITY);
+        putInt(json, "drawer_columns", prefs, LauncherPrefs.DRAWER_COLUMNS);
+        putInt(json, "folder_columns", prefs, LauncherPrefs.FOLDER_COLUMNS);
+        putInt(json, "drawer_opacity", prefs, LauncherPrefs.DRAWER_OPACITY);
+        putInt(json, "folder_bg_opacity", prefs, LauncherPrefs.FOLDER_BG_OPACITY);
+        putInt(json, "folder_preview_bg_opacity", prefs, LauncherPrefs.FOLDER_PREVIEW_BG_OPACITY);
+        putInt(json, "search_result_count", prefs, LauncherPrefs.SEARCH_RESULT_COUNT);
+        putInt(json, "dock_bg_opacity", prefs, LauncherPrefs.DOCK_BG_OPACITY);
+        putInt(json, "search_bar_radius", prefs, LauncherPrefs.SEARCH_BAR_RADIUS);
     }
 
     private static void applyStrings(JSONObject json, LauncherPrefs prefs) throws JSONException {
-        if (json.has("gesture_double_tap")) {
-            String val = json.getString("gesture_double_tap");
-            if (isValidGestureHandler(val))
-                prefs.put(LauncherPrefs.GESTURE_DOUBLE_TAP, val);
-        }
-        if (json.has("gesture_swipe_down")) {
-            String val = json.getString("gesture_swipe_down");
-            if (isValidGestureHandler(val))
-                prefs.put(LauncherPrefs.GESTURE_SWIPE_DOWN, val);
-        }
-        if (json.has("drawer_bg_color"))
-            prefs.put(LauncherPrefs.DRAWER_BG_COLOR, json.getString("drawer_bg_color"));
-        if (json.has("folder_bg_color"))
-            prefs.put(LauncherPrefs.FOLDER_BG_COLOR, json.getString("folder_bg_color"));
-        if (json.has("search_provider"))
-            prefs.put(LauncherPrefs.SEARCH_PROVIDER, json.getString("search_provider"));
-        if (json.has("icon_pack"))
-            prefs.put(LauncherPrefs.ICON_PACK, json.getString("icon_pack"));
-        if (json.has("font_family"))
-            prefs.put(LauncherPrefs.FONT_FAMILY, json.getString("font_family"));
-        if (json.has("accent_color"))
-            prefs.put(LauncherPrefs.ACCENT_COLOR, json.getString("accent_color"));
-        if (json.has("drawer_sort_order"))
-            prefs.put(LauncherPrefs.DRAWER_SORT_ORDER, json.getString("drawer_sort_order"));
-        if (json.has("dock_bg_color"))
-            prefs.put(LauncherPrefs.DOCK_BG_COLOR, json.getString("dock_bg_color"));
-        if (json.has("search_bar_color"))
-            prefs.put(LauncherPrefs.SEARCH_BAR_COLOR, json.getString("search_bar_color"));
-        if (json.has("dot_color"))
-            prefs.put(LauncherPrefs.DOT_COLOR, json.getString("dot_color"));
-        if (json.has("page_transition"))
-            prefs.put(LauncherPrefs.PAGE_TRANSITION, json.getString("page_transition"));
-        if (json.has("dark_mode"))
-            prefs.put(LauncherPrefs.DARK_MODE, json.getString("dark_mode"));
-        if (json.has("gesture_edge_left")) {
-            String val = json.getString("gesture_edge_left");
-            if (isValidGestureHandler(val))
-                prefs.put(LauncherPrefs.GESTURE_EDGE_LEFT, val);
-        }
-        if (json.has("gesture_edge_right")) {
-            String val = json.getString("gesture_edge_right");
-            if (isValidGestureHandler(val))
-                prefs.put(LauncherPrefs.GESTURE_EDGE_RIGHT, val);
-        }
+        putGesture(json, "gesture_double_tap", prefs, LauncherPrefs.GESTURE_DOUBLE_TAP);
+        putGesture(json, "gesture_swipe_down", prefs, LauncherPrefs.GESTURE_SWIPE_DOWN);
+        putString(json, "drawer_bg_color", prefs, LauncherPrefs.DRAWER_BG_COLOR);
+        putString(json, "folder_bg_color", prefs, LauncherPrefs.FOLDER_BG_COLOR);
+        putString(json, "search_provider", prefs, LauncherPrefs.SEARCH_PROVIDER);
+        putString(json, "icon_pack", prefs, LauncherPrefs.ICON_PACK);
+        putString(json, "font_family", prefs, LauncherPrefs.FONT_FAMILY);
+        putString(json, "accent_color", prefs, LauncherPrefs.ACCENT_COLOR);
+        putString(json, "drawer_sort_order", prefs, LauncherPrefs.DRAWER_SORT_ORDER);
+        putString(json, "dock_bg_color", prefs, LauncherPrefs.DOCK_BG_COLOR);
+        putString(json, "search_bar_color", prefs, LauncherPrefs.SEARCH_BAR_COLOR);
+        putString(json, "dot_color", prefs, LauncherPrefs.DOT_COLOR);
+        putString(json, "page_transition", prefs, LauncherPrefs.PAGE_TRANSITION);
+        putString(json, "dark_mode", prefs, LauncherPrefs.DARK_MODE);
+        putGesture(json, "gesture_edge_left", prefs, LauncherPrefs.GESTURE_EDGE_LEFT);
+        putGesture(json, "gesture_edge_right", prefs, LauncherPrefs.GESTURE_EDGE_RIGHT);
     }
 
     private static void applyTrailingExtras(JSONObject json, LauncherPrefs prefs) throws JSONException {
-        if (json.has("widget_padding"))
-            prefs.put(LauncherPrefs.WIDGET_PADDING, json.getInt("widget_padding"));
-        if (json.has("dock_corner_radius"))
-            prefs.put(LauncherPrefs.DOCK_CORNER_RADIUS, json.getInt("dock_corner_radius"));
-        if (json.has("app_launch_animation"))
-            prefs.put(LauncherPrefs.APP_LAUNCH_ANIMATION, json.getString("app_launch_animation"));
-        if (json.has("font_weight"))
-            prefs.put(LauncherPrefs.FONT_WEIGHT, json.getString("font_weight"));
-        if (json.has("drawer_animation"))
-            prefs.put(LauncherPrefs.DRAWER_ANIMATION, json.getString("drawer_animation"));
+        putInt(json, "widget_padding", prefs, LauncherPrefs.WIDGET_PADDING);
+        putInt(json, "dock_corner_radius", prefs, LauncherPrefs.DOCK_CORNER_RADIUS);
+        putString(json, "app_launch_animation", prefs, LauncherPrefs.APP_LAUNCH_ANIMATION);
+        putString(json, "font_weight", prefs, LauncherPrefs.FONT_WEIGHT);
+        putString(json, "drawer_animation", prefs, LauncherPrefs.DRAWER_ANIMATION);
+    }
+
+    private static void putBool(JSONObject json, String key, LauncherPrefs prefs, ConstantItem<Boolean> prefKey)
+            throws JSONException {
+        if (json.has(key))
+            prefs.put(prefKey, json.getBoolean(key));
+    }
+
+    private static void putInt(JSONObject json, String key, LauncherPrefs prefs, ConstantItem<Integer> prefKey)
+            throws JSONException {
+        if (json.has(key))
+            prefs.put(prefKey, json.getInt(key));
+    }
+
+    private static void putString(JSONObject json, String key, LauncherPrefs prefs, ConstantItem<String> prefKey)
+            throws JSONException {
+        if (json.has(key))
+            prefs.put(prefKey, json.getString(key));
+    }
+
+    private static void putGesture(JSONObject json, String key, LauncherPrefs prefs, ConstantItem<String> prefKey)
+            throws JSONException {
+        if (json.has(key)) {
+            String val = json.getString(key);
+            if (isValidGestureHandler(val))
+                prefs.put(prefKey, val);
+        }
     }
 }

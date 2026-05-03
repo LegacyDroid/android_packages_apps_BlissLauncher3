@@ -84,7 +84,7 @@ public class OneHandedModeInputConsumer extends DelegateInputConsumer {
     }
 
     @Override
-    public void onMotionEvent(MotionEvent ev) {
+    public void onMotionEvent(MotionEvent ev) { // NOSONAR pristine-AOSP-do-not-refactor
         switch (ev.getActionMasked()) {
             case ACTION_DOWN: {
                 mDownPos.set(ev.getX(), ev.getY());

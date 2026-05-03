@@ -65,8 +65,6 @@ public class NavBarToHomeTouchController implements TouchController,
         SingleAxisSwipeDetector.Listener {
 
     private static final Interpolator PULLBACK_INTERPOLATOR = DECELERATE_3;
-    // The min amount of overview scrim we keep during the transition.
-    private static final float OVERVIEW_TO_HOME_SCRIM_MULTIPLIER = 0.5f;
 
     private final Launcher mLauncher;
     private final BiConsumer<AnimatorSet, Long> mCancelSplitRunnable;

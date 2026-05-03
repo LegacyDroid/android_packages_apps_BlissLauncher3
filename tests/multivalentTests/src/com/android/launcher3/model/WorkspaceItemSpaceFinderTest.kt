@@ -104,7 +104,7 @@ class WorkspaceItemSpaceFinderTest : AbstractWorkspaceModelTest() {
             screen2 = listOf(Rect(1, 0, 2, 2), Rect(3, 2, 5, 4)),
         )
 
-        val oldScreens = mExistingScreens.clone()
+        val oldScreens = mExistingScreens.copy()
         val spaceFound = findSpace(3, 3)
 
         assertThat(oldScreens.contains(spaceFound.screenId)).isFalse()

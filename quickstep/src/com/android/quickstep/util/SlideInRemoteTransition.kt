@@ -54,21 +54,7 @@ class SlideInRemoteTransition(
         val closingStartBounds: HashMap<SurfaceControl, Rect> = HashMap()
         val openingEndBounds: HashMap<SurfaceControl, Rect> = HashMap()
         for (chg in info.changes) {
-            val leash = chg.leash
-            startT.show(leash)
-
-            val taskInfo = chg.taskInfo
-            if (taskInfo?.activityType == ACTIVITY_TYPE_HOME || taskInfo?.parentTaskId != -1) {
-                continue
-            }
-            if (TransitionUtil.isClosingType(chg.mode)) {
-                closingStartBounds[leash] = chg.startAbsBounds
-                startT.setCrop(leash, chg.startAbsBounds).setCornerRadius(leash, cornerRadius)
-            }
-            if (TransitionUtil.isOpeningType(chg.mode)) {
-                openingEndBounds[leash] = chg.endAbsBounds
-                startT.setCrop(leash, chg.endAbsBounds).setCornerRadius(leash, cornerRadius)
-            }
+            collectChangeBounds(chg, startT, closingStartBounds, openingEndBounds)
         }
         onStartCallback.run()
         startT.apply()
@@ -109,5 +95,28 @@ class SlideInRemoteTransition(
         )
 
         Executors.MAIN_EXECUTOR.execute { anim.start() }
+    }
+
+    private fun collectChangeBounds(
+        chg: TransitionInfo.Change,
+        startT: Transaction,
+        closingStartBounds: HashMap<SurfaceControl, Rect>,
+        openingEndBounds: HashMap<SurfaceControl, Rect>,
+    ) {
+        val leash = chg.leash
+        startT.show(leash)
+
+        val taskInfo = chg.taskInfo
+        if (taskInfo?.activityType == ACTIVITY_TYPE_HOME || taskInfo?.parentTaskId != -1) {
+            return
+        }
+        if (TransitionUtil.isClosingType(chg.mode)) {
+            closingStartBounds[leash] = chg.startAbsBounds
+            startT.setCrop(leash, chg.startAbsBounds).setCornerRadius(leash, cornerRadius)
+        }
+        if (TransitionUtil.isOpeningType(chg.mode)) {
+            openingEndBounds[leash] = chg.endAbsBounds
+            startT.setCrop(leash, chg.endAbsBounds).setCornerRadius(leash, cornerRadius)
+        }
     }
 }

@@ -192,11 +192,9 @@ public final class FallbackWindowInterface extends BaseWindowInterface{
         switch (endTarget) {
             case RECENTS:
                 return DEFAULT;
-            case NEW_TASK:
-            case LAST_TASK:
+            case NEW_TASK, LAST_TASK:
                 return BACKGROUND_APP;
-            case HOME:
-            case ALL_APPS:
+            case HOME, ALL_APPS:
             default:
                 return HOME;
         }

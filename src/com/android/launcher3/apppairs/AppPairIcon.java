@@ -54,7 +54,6 @@ import java.util.function.Predicate;
  * member apps are set into these rectangles.
  */
 public class AppPairIcon extends FrameLayout implements DraggableView, Reorderable {
-    private static final String TAG = "AppPairIcon";
 
     // The duration of the scaling animation on hover enter/exit.
     private static final int HOVER_SCALE_DURATION = 150;

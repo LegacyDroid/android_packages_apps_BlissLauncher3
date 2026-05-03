@@ -148,7 +148,7 @@ public class TaskbarScrimViewController implements TaskbarControllers.LoggableTa
     }
 
     private void showScrim(boolean showScrim, float alpha, boolean skipAnim) {
-        mScrimView.setOnClickListener(showScrim ? (view) -> onClick() : null);
+        mScrimView.setOnClickListener(showScrim ? view -> onClick() : null);
         mScrimView.setClickable(showScrim);
         if (skipAnim) {
             mScrimAlpha.updateValue(alpha);

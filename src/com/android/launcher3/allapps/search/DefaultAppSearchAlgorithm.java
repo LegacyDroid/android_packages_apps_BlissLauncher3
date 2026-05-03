@@ -130,7 +130,7 @@ public class DefaultAppSearchAlgorithm implements SearchAlgorithm<AdapterItem> {
                 if (lp.get(LauncherPrefs.SEARCH_SETTINGS) && query.length() >= 2) {
                     result.addAll(searchSettings(ctx, query.trim(), 3));
                 }
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) { /* search disabled or pref unavailable */ }
 
             // File search: query MediaStore.Files for filename matches.
             try {
@@ -138,7 +138,7 @@ public class DefaultAppSearchAlgorithm implements SearchAlgorithm<AdapterItem> {
                 if (lp.get(LauncherPrefs.SEARCH_FILES) && query.length() >= 3) {
                     result.addAll(searchMediaStore(ctx, query.trim(), 3, /*audioOnly=*/false));
                 }
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) { /* search disabled or pref unavailable */ }
 
             // Audio search
             try {
@@ -146,7 +146,7 @@ public class DefaultAppSearchAlgorithm implements SearchAlgorithm<AdapterItem> {
                 if (lp.get(LauncherPrefs.SEARCH_AUDIO) && query.length() >= 3) {
                     result.addAll(searchAudio(ctx, query.trim(), 3));
                 }
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) { /* search disabled or pref unavailable */ }
 
             // Visual media (photos + videos) — Phase 6.1: separate MediaStore backend so
             // images/videos surface even when the Files toggle is off, and they show
@@ -156,7 +156,7 @@ public class DefaultAppSearchAlgorithm implements SearchAlgorithm<AdapterItem> {
                 if (lp.get(LauncherPrefs.SEARCH_VISUAL_MEDIA) && query.length() >= 3) {
                     result.addAll(searchVisualMedia(ctx, query.trim(), 3));
                 }
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) { /* search disabled or pref unavailable */ }
 
             // Suggested apps: when no query is typed and SHOW_SUGGESTED_APPS is on,
             // surface the top 3 most-used apps as a suggestion header in the drawer.
@@ -241,10 +241,9 @@ public class DefaultAppSearchAlgorithm implements SearchAlgorithm<AdapterItem> {
             if (hiddenApps.contains(info.componentName.getPackageName())) {
                 if ("never".equals(hiddenPolicy)) {
                     continue;
-                } else if ("if_name_typed".equals(hiddenPolicy)) {
-                    if (!info.title.toString().equalsIgnoreCase(query)) {
-                        continue;
-                    }
+                } else if ("if_name_typed".equals(hiddenPolicy)
+                        && !info.title.toString().equalsIgnoreCase(query)) {
+                    continue;
                 }
                 // else "always" — fall through, include in search results
             }
@@ -486,7 +485,7 @@ public class DefaultAppSearchAlgorithm implements SearchAlgorithm<AdapterItem> {
                         .setAction(Intent.ACTION_MAIN);
                 results.add(AdapterItem.asApp(info));
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) { /* settings query unavailable */ }
         return results;
     }
 
@@ -537,7 +536,7 @@ public class DefaultAppSearchAlgorithm implements SearchAlgorithm<AdapterItem> {
                 }
                 c.close();
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) { /* MediaStore query unavailable */ }
         return results;
     }
 
@@ -591,7 +590,7 @@ public class DefaultAppSearchAlgorithm implements SearchAlgorithm<AdapterItem> {
                     }
                     c.close();
                 }
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) { /* MediaStore query unavailable */ }
         }
         return results;
     }

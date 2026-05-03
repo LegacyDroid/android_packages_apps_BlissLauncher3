@@ -77,38 +77,74 @@ public final class DrawerFoldersWriter {
     public static void write(Context context, String json) {
         try {
             JSONObject obj = new JSONObject(json);
-            Iterator<String> keys = obj.keys();
             LauncherApps la = (LauncherApps) context.getSystemService(Context.LAUNCHER_APPS_SERVICE);
             UserHandle user = Process.myUserHandle();
             DrawerFolderService svc = DrawerFolderService.get(context);
-            int rank = 0;
-            while (keys.hasNext()) {
-                String name = keys.next();
-                Object raw = obj.opt(name);
-                if (!(raw instanceof JSONArray pkgs))
-                    continue;
-                List<ComponentKey> contents = new ArrayList<>();
-                for (int i = 0; i < pkgs.length(); i++) {
-                    String pkg = pkgs.optString(i);
-                    if (pkg == null || pkg.isEmpty())
-                        continue;
-                    try {
-                        List<LauncherActivityInfo> acts = la.getActivityList(pkg, user);
-                        if (acts != null && !acts.isEmpty()) {
-                            contents.add(new ComponentKey(acts.get(0).getComponentName(), user));
-                        }
-                    } catch (Throwable ignored) {
-                        /* package not installed */ }
-                }
-                if (!contents.isEmpty()) {
-                    svc.upsertBlocking(0, name, rank++, contents);
-                }
-            }
-            // Mark as migrated so the LauncherApplication one-shot path doesn't re-import.
-            LauncherPrefs prefs = LauncherComponentProvider.get(context).getLauncherPrefs();
-            prefs.put(LauncherPrefs.DRAWER_FOLDERS_MIGRATED_V1, true);
+            writeFolders(obj, la, user, svc);
+            markMigrated(context);
         } catch (Throwable t) {
             LOG.w("writeDrawerFoldersToRoom: failed", t);
         }
+    }
+
+    /**
+     * Iterates the JSON map and upserts each non-empty folder to the Room store.
+     */
+    private static void writeFolders(JSONObject obj, LauncherApps la, UserHandle user, DrawerFolderService svc) {
+        int rank = 0;
+        Iterator<String> keys = obj.keys();
+        while (keys.hasNext()) {
+            String name = keys.next();
+            Object raw = obj.opt(name);
+            if (!(raw instanceof JSONArray pkgs))
+                continue;
+            List<ComponentKey> contents = resolveComponents(pkgs, la, user);
+            if (!contents.isEmpty()) {
+                svc.upsertBlocking(0, name, rank++, contents);
+            }
+        }
+    }
+
+    /**
+     * Resolves each package name in {@code pkgs} to its first launcher activity,
+     * skipping uninstalled ones.
+     */
+    private static List<ComponentKey> resolveComponents(JSONArray pkgs, LauncherApps la, UserHandle user) {
+        List<ComponentKey> contents = new ArrayList<>();
+        for (int i = 0; i < pkgs.length(); i++) {
+            String pkg = pkgs.optString(i);
+            if (pkg == null || pkg.isEmpty())
+                continue;
+            ComponentKey ck = firstLauncherComponent(la, pkg, user);
+            if (ck != null) {
+                contents.add(ck);
+            }
+        }
+        return contents;
+    }
+
+    /**
+     * Returns the first launcher activity for {@code pkg}, or {@code null} if none
+     * / package not installed.
+     */
+    private static ComponentKey firstLauncherComponent(LauncherApps la, String pkg, UserHandle user) {
+        try {
+            List<LauncherActivityInfo> acts = la.getActivityList(pkg, user);
+            if (acts != null && !acts.isEmpty()) {
+                return new ComponentKey(acts.get(0).getComponentName(), user);
+            }
+        } catch (Throwable ignored) {
+            /* package not installed */
+        }
+        return null;
+    }
+
+    /**
+     * Marks the migration as done so the LauncherApplication one-shot path doesn't
+     * re-import.
+     */
+    private static void markMigrated(Context context) {
+        LauncherPrefs prefs = LauncherComponentProvider.get(context).getLauncherPrefs();
+        prefs.put(LauncherPrefs.DRAWER_FOLDERS_MIGRATED_V1, true);
     }
 }

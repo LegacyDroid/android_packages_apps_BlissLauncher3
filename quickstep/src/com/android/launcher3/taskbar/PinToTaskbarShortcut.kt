@@ -68,7 +68,7 @@ class PinToTaskbarShortcut<T>(
             if (mItemInfo is com.android.launcher3.model.data.AppInfo) {
                 mItemInfo.makeWorkspaceItem(mOriginalView.context)
             } else if (mItemInfo is WorkspaceItemInfo) {
-                mItemInfo.clone()
+                mItemInfo.makeShallowCopy()
             } else {
                 return
             }

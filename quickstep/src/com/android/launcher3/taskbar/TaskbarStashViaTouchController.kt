@@ -75,7 +75,9 @@ class TaskbarStashViaTouchController(val controllers: TaskbarControllers) : Touc
         object : SingleAxisSwipeDetector.Listener {
             private var lastDisplacement = 0f
 
-            override fun onDragStart(start: Boolean, startDisplacement: Float) {}
+            override fun onDragStart(start: Boolean, startDisplacement: Float) {
+                // no-op: drag start carries no state for this listener
+            }
 
             override fun onDrag(displacement: Float): Boolean {
                 lastDisplacement = displacement

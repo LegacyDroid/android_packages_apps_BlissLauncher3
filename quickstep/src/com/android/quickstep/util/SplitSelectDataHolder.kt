@@ -330,25 +330,11 @@ class SplitSelectDataHolder(var context: Context?) {
         }
 
         // Prioritize task launches first
-        if (initialTaskId != INVALID_TASK_ID) {
-            if (secondTaskId != INVALID_TASK_ID) {
-                return SPLIT_TASK_TASK
-            }
-            if (secondShortcut != null) {
-                return SPLIT_TASK_SHORTCUT
-            }
-            if (secondPendingIntent != null) {
-                return SPLIT_TASK_PENDINGINTENT
-            }
+        getInitialTaskSplitLaunchType()?.let {
+            return it
         }
-
-        if (secondTaskId != INVALID_TASK_ID) {
-            if (initialShortcut != null) {
-                return SPLIT_SHORTCUT_TASK
-            }
-            if (initialPendingIntent != null) {
-                return SPLIT_PENDINGINTENT_TASK
-            }
+        getSecondTaskSplitLaunchType()?.let {
+            return it
         }
 
         // All task+shortcut combinations are handled above, only launch left is with multiple
@@ -357,6 +343,37 @@ class SplitSelectDataHolder(var context: Context?) {
             return SPLIT_PENDINGINTENT_PENDINGINTENT
         }
         throw IllegalStateException("Unidentified split launch type")
+    }
+
+    @SplitLaunchType
+    private fun getInitialTaskSplitLaunchType(): Int? {
+        if (initialTaskId == INVALID_TASK_ID) {
+            return null
+        }
+        if (secondTaskId != INVALID_TASK_ID) {
+            return SPLIT_TASK_TASK
+        }
+        if (secondShortcut != null) {
+            return SPLIT_TASK_SHORTCUT
+        }
+        if (secondPendingIntent != null) {
+            return SPLIT_TASK_PENDINGINTENT
+        }
+        return null
+    }
+
+    @SplitLaunchType
+    private fun getSecondTaskSplitLaunchType(): Int? {
+        if (secondTaskId == INVALID_TASK_ID) {
+            return null
+        }
+        if (initialShortcut != null) {
+            return SPLIT_SHORTCUT_TASK
+        }
+        if (initialPendingIntent != null) {
+            return SPLIT_PENDINGINTENT_TASK
+        }
+        return null
     }
 
     @SplitLaunchType

@@ -266,13 +266,21 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
     }
 
     interface Listener {
-        fun onWallpaperChanged() {}
+        fun onWallpaperChanged() {
+            // no-op default; specific blur views override the lifecycle steps they care about
+        }
 
-        fun onEnabledChanged() {}
+        fun onEnabledChanged() {
+            // no-op default; specific blur views override the lifecycle steps they care about
+        }
 
-        fun onScrollOffsetChanged(offset: Float) {}
+        fun onScrollOffsetChanged(offset: Float) {
+            // no-op default; specific blur views override the lifecycle steps they care about
+        }
 
-        fun onOffsetChanged(offset: Float) {}
+        fun onOffsetChanged(offset: Float) {
+            // no-op default; specific blur views override the lifecycle steps they care about
+        }
     }
 
     data class BlurSizes(
@@ -335,5 +343,8 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
         var isEnabled: Boolean = false
     }
 
-    override fun close() {}
+    override fun close() {
+        // no-op: provider is process-scoped via MainThreadInitializedObject; nothing to release
+        // here
+    }
 }

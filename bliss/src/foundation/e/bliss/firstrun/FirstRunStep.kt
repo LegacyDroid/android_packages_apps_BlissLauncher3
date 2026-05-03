@@ -62,5 +62,7 @@ interface FirstRunStep {
      * Side-effects to run when the user dismisses or completes the step. Receives the `result`
      * payload that the fragment posted (anything the step's UI wants to communicate back).
      */
-    fun onComplete(ctx: Context, result: Bundle) {}
+    fun onComplete(ctx: Context, result: Bundle) {
+        // No-op default: most steps have nothing to do on completion.
+    }
 }

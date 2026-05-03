@@ -123,16 +123,14 @@ data class FolderAnimationData(
                     baseIconSize,
                     fallback = 1f,
                 ) * scaleRelativeToDragLayer
-            if (
-                !FloatGuard.requireAllFinite(
+            check(
+                FloatGuard.requireAllFinite(
                     "FolderAnimationData.scaleRelativeToDragLayer",
                     scaleRelativeToDragLayer,
-                ) || scaleRelativeToDragLayer <= 0f
+                ) && scaleRelativeToDragLayer > 0f
             ) {
-                throw IllegalStateException(
-                    "FolderAnimationData not ready: baseIconSize=$baseIconSize " +
-                        "scaleRelativeToDragLayer=$scaleRelativeToDragLayer"
-                )
+                "FolderAnimationData not ready: baseIconSize=$baseIconSize " +
+                    "scaleRelativeToDragLayer=$scaleRelativeToDragLayer"
             }
 
             // Get offsets for Previews and Content
@@ -186,8 +184,8 @@ data class FolderAnimationData(
             // Final NaN/Inf scan via FloatGuard — anything non-finite would propagate
             // through SpringAnimationBuilder.getInterpolatedValue into setScaleX(NaN) /
             // setTranslationX(NaN) and crash the launcher. Throwing triggers AnimatorFallback.
-            if (
-                !FloatGuard.requireAllFinite(
+            check(
+                FloatGuard.requireAllFinite(
                     "FolderAnimationData.output",
                     data.startScale,
                     data.folderScale,
@@ -198,7 +196,7 @@ data class FolderAnimationData(
                     data.initialFolderSize,
                 )
             ) {
-                throw IllegalStateException("FolderAnimationData has non-finite value: $data")
+                "FolderAnimationData has non-finite value: $data"
             }
             return data
         }

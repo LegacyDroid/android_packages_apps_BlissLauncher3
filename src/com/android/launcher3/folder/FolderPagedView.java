@@ -626,8 +626,10 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
         int pagePosE = empty % maxItemsPerPage;
         int pageE = empty / maxItemsPerPage;
 
-        int startPos, endPos;
-        int moveStart, moveEnd;
+        int startPos;
+        int endPos;
+        int moveStart;
+        int moveEnd;
         int direction;
 
         if (target == empty) {

@@ -176,8 +176,7 @@ public class TaskbarForceVisibleImmersiveController implements TouchController {
             case MotionEvent.ACTION_DOWN:
                 startIconUndimming();
                 break;
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL:
                 startIconDimming();
                 break;
         }

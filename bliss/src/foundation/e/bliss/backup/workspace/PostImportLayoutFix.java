@@ -81,6 +81,11 @@ public final class PostImportLayoutFix {
 
     private static final Logger LOG = Logger.tag("LawnchairImport");
 
+    private static final String COL_CONTAINER = "container";
+    private static final String COL_SCREEN = "screen";
+    private static final String COL_CELL_X = "cellX";
+    private static final String COL_CELL_Y = "cellY";
+
     private PostImportLayoutFix() {
     }
 
@@ -116,9 +121,9 @@ public final class PostImportLayoutFix {
         }
 
         // Second fixup pass + final forceReload at +4 s.
-        Executors.MAIN_EXECUTOR.getHandler().postDelayed(() -> {
-            Executors.MODEL_EXECUTOR.execute(() -> applyPositionFixupSecondPass(context, originalPositions));
-        }, 4000L);
+        Executors.MAIN_EXECUTOR.getHandler().postDelayed(
+                () -> Executors.MODEL_EXECUTOR.execute(() -> applyPositionFixupSecondPass(context, originalPositions)),
+                4000L);
 
         // Trailing pref writes (Migration03 acceptance: preserve gaps + 2×2 folder
         // previews).
@@ -128,31 +133,43 @@ public final class PostImportLayoutFix {
     }
 
     private static void repinDeepShortcuts(Context context, List<ContentValues> finalItems) {
-        Map<String, List<String>> shortcutIdsByPkg = new HashMap<>();
-        for (ContentValues cv : finalItems) {
-            Integer t = cv.getAsInteger("itemType");
-            if (t == null || t != ItemTypes.ITEM_TYPE_DEEP_SHORTCUT)
-                continue;
-            String intentUri = cv.getAsString("intent");
-            if (intentUri == null)
-                continue;
-            try {
-                android.content.Intent shortcutIntent = android.content.Intent.parseUri(intentUri, 0);
-                String pkg = shortcutIntent.getPackage();
-                if (pkg == null && shortcutIntent.getComponent() != null) {
-                    pkg = shortcutIntent.getComponent().getPackageName();
-                }
-                String id = shortcutIntent.getStringExtra("shortcut_id");
-                if (pkg == null || id == null)
-                    continue;
-                shortcutIdsByPkg.computeIfAbsent(pkg, k -> new ArrayList<>()).add(id);
-            } catch (java.net.URISyntaxException e) {
-                LOG.w("Unparseable deep-shortcut intent (id=" + cv.getAsLong("_id") + "): " + e.getMessage());
-            }
-        }
+        Map<String, List<String>> shortcutIdsByPkg = collectDeepShortcutIds(finalItems);
         if (shortcutIdsByPkg.isEmpty())
             return;
+        pinDeepShortcuts(context, shortcutIdsByPkg);
+    }
 
+    private static Map<String, List<String>> collectDeepShortcutIds(List<ContentValues> finalItems) {
+        Map<String, List<String>> shortcutIdsByPkg = new HashMap<>();
+        for (ContentValues cv : finalItems) {
+            collectDeepShortcutIfPresent(cv, shortcutIdsByPkg);
+        }
+        return shortcutIdsByPkg;
+    }
+
+    private static void collectDeepShortcutIfPresent(ContentValues cv, Map<String, List<String>> shortcutIdsByPkg) {
+        Integer t = cv.getAsInteger("itemType");
+        if (t == null || t != ItemTypes.ITEM_TYPE_DEEP_SHORTCUT)
+            return;
+        String intentUri = cv.getAsString("intent");
+        if (intentUri == null)
+            return;
+        try {
+            android.content.Intent shortcutIntent = android.content.Intent.parseUri(intentUri, 0);
+            String pkg = shortcutIntent.getPackage();
+            if (pkg == null && shortcutIntent.getComponent() != null) {
+                pkg = shortcutIntent.getComponent().getPackageName();
+            }
+            String id = shortcutIntent.getStringExtra("shortcut_id");
+            if (pkg != null && id != null) {
+                shortcutIdsByPkg.computeIfAbsent(pkg, k -> new ArrayList<>()).add(id);
+            }
+        } catch (java.net.URISyntaxException e) {
+            LOG.w("Unparseable deep-shortcut intent (id=" + cv.getAsLong("_id") + "): " + e.getMessage());
+        }
+    }
+
+    private static void pinDeepShortcuts(Context context, Map<String, List<String>> shortcutIdsByPkg) {
         LauncherApps la = (LauncherApps) context.getSystemService(Context.LAUNCHER_APPS_SERVICE);
         UserHandle me = Process.myUserHandle();
         for (Map.Entry<String, List<String>> entry : shortcutIdsByPkg.entrySet()) {
@@ -180,10 +197,10 @@ public final class PostImportLayoutFix {
         Map<Long, int[]> originalPositions = new HashMap<>();
         for (ContentValues cv : finalItems) {
             Long id = cv.getAsLong("_id");
-            Integer container = cv.getAsInteger("container");
-            Integer screen = cv.getAsInteger("screen");
-            Integer cellX = cv.getAsInteger("cellX");
-            Integer cellY = cv.getAsInteger("cellY");
+            Integer container = cv.getAsInteger(COL_CONTAINER);
+            Integer screen = cv.getAsInteger(COL_SCREEN);
+            Integer cellX = cv.getAsInteger(COL_CELL_X);
+            Integer cellY = cv.getAsInteger(COL_CELL_Y);
             if (id == null || container == null || screen == null || cellX == null || cellY == null)
                 continue;
             // Only desktop items — folder children keep whatever the loader gives them.
@@ -219,10 +236,10 @@ public final class PostImportLayoutFix {
                 for (Map.Entry<Long, int[]> e : originalPositions.entrySet()) {
                     int[] pos = e.getValue();
                     ContentValues v = new ContentValues();
-                    v.put("screen", pos[0]);
-                    v.put("cellX", pos[1]);
-                    v.put("cellY", pos[2]);
-                    v.put("container", ItemTypes.CONTAINER_DESKTOP);
+                    v.put(COL_SCREEN, pos[0]);
+                    v.put(COL_CELL_X, pos[1]);
+                    v.put(COL_CELL_Y, pos[2]);
+                    v.put(COL_CONTAINER, ItemTypes.CONTAINER_DESKTOP);
                     int rows = db.update(LauncherSettings.Favorites.TABLE_NAME, v, "_id=?",
                             new String[]{String.valueOf(e.getKey())});
                     if (rows > 0)
@@ -258,10 +275,10 @@ public final class PostImportLayoutFix {
                 for (Map.Entry<Long, int[]> e : originalPositions.entrySet()) {
                     int[] pos = e.getValue();
                     ContentValues v = new ContentValues();
-                    v.put("screen", pos[0]);
-                    v.put("cellX", pos[1]);
-                    v.put("cellY", pos[2]);
-                    v.put("container", ItemTypes.CONTAINER_DESKTOP);
+                    v.put(COL_SCREEN, pos[0]);
+                    v.put(COL_CELL_X, pos[1]);
+                    v.put(COL_CELL_Y, pos[2]);
+                    v.put(COL_CONTAINER, ItemTypes.CONTAINER_DESKTOP);
                     int rows = db.update(LauncherSettings.Favorites.TABLE_NAME, v, "_id=?",
                             new String[]{String.valueOf(e.getKey())});
                     if (rows > 0)

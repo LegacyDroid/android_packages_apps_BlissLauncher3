@@ -117,25 +117,33 @@ public class VerifyIdleAppTask implements Runnable {
         if (mApps != null && mApps.size() > 0) {
             // All apps loading, we ignore loaded.
             mIgnoreLoaded = true;
-            for (AppInfo app : mApps) {
-                if (mBlacklistedApps.stream().noneMatch(
-                        pkg -> pkg.equals(Objects.requireNonNull(app.getTargetPackage()).trim().toLowerCase()))) {
-                    map.put(new ComponentKey(app.componentName, app.user), app);
-                }
-            }
+            collectFromAllApps(map);
         } else if (mPackageNames != null && mUser != null) {
             // App add or update, should not ignore loaded.
             mIgnoreLoaded = false;
-            final LauncherApps launcherApps = mContext.getSystemService(LauncherApps.class);
-            if (mIsAddPackage || launcherApps.isPackageEnabled(mPackageNames, mUser)) {
-                final List<LauncherActivityInfo> infos = launcherApps.getActivityList(mPackageNames, mUser);
-                for (LauncherActivityInfo info : infos) {
-                    map.put(new ComponentKey(info.getComponentName(), info.getUser()), info);
-                }
-            }
+            collectFromPackage(map);
         }
 
         verifyAllApps(mContext, map, mIsAddPackage);
+    }
+
+    private void collectFromAllApps(Map<ComponentKey, Object> map) {
+        for (AppInfo app : mApps) {
+            if (mBlacklistedApps.stream().noneMatch(
+                    pkg -> pkg.equals(Objects.requireNonNull(app.getTargetPackage()).trim().toLowerCase()))) {
+                map.put(new ComponentKey(app.componentName, app.user), app);
+            }
+        }
+    }
+
+    private void collectFromPackage(Map<ComponentKey, Object> map) {
+        final LauncherApps launcherApps = mContext.getSystemService(LauncherApps.class);
+        if (mIsAddPackage || launcherApps.isPackageEnabled(mPackageNames, mUser)) {
+            final List<LauncherActivityInfo> infos = launcherApps.getActivityList(mPackageNames, mUser);
+            for (LauncherActivityInfo info : infos) {
+                map.put(new ComponentKey(info.getComponentName(), info.getUser()), info);
+            }
+        }
     }
 
     List<Pair<ItemInfo, Object>> verifyAllApps(Context context, Map<ComponentKey, Object> map, boolean animated) {

@@ -150,6 +150,8 @@ public class AssistContentRequester {
         }
 
         @Override
-        public void onHandleAssistScreenshot(Bitmap screenshot) {}
+        public void onHandleAssistScreenshot(Bitmap screenshot) {
+            /* no-op: this requester only consumes assist content; screenshots are unused */
+        }
     }
 }

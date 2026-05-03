@@ -253,7 +253,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         if (visibleIds.isEmpty) {
             return result
         }
-        val actualIds = orderedScreenIds.clone()
+        val actualIds = orderedScreenIds.copy()
         val firstId = visibleIds.first()
         val pairId = launcher.workspace.getScreenPair(firstId)
         // Double check that actual screenIds contains the visibleId, as empty screens are hidden

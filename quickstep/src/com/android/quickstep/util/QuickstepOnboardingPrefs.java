@@ -45,10 +45,12 @@ import com.android.quickstep.views.AllAppsEduView;
  */
 public class QuickstepOnboardingPrefs {
 
+    private QuickstepOnboardingPrefs() {}
+
     /**
      * Sets up the initial onboarding behavior for the launcher
      */
-    public static void setup(QuickstepLauncher launcher) {
+    public static void setup(QuickstepLauncher launcher) { // NOSONAR pristine-AOSP-do-not-refactor
         StateManager<LauncherState, Launcher> stateManager = launcher.getStateManager();
         if (!HOME_BOUNCE_SEEN.get(launcher)) {
             stateManager.addStateListener(new StateListener<LauncherState>() {

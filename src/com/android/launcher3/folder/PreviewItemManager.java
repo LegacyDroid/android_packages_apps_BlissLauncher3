@@ -193,7 +193,7 @@ public class PreviewItemManager {
             if (!p.hidden) {
                 // Exiting param should always be clipped.
                 boolean isExiting = p.index == EXIT_INDEX;
-                drawPreviewItem(canvas, p, offset, isExiting | shouldClipPath, clipPath);
+                drawPreviewItem(canvas, p, offset, isExiting || shouldClipPath, clipPath);
             }
         }
     }

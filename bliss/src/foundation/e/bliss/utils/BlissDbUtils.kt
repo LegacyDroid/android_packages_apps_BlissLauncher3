@@ -60,94 +60,95 @@ object BlissDbUtils {
         val oldFile = context.getDatabasePath(oldDbName)
         if (!oldFile.exists()) return false
 
-        // Current database details
-        val rowCount = InvariantDeviceProfile.INSTANCE[context].numRows
-        val columnCount = InvariantDeviceProfile.INSTANCE[context].numColumns
-        val numFolderRows = InvariantDeviceProfile.INSTANCE[context].numFolderRows
-        val numFolderColumns = InvariantDeviceProfile.INSTANCE[context].numFolderColumns
-
-        // Init database helper classes
+        val profile = InvariantDeviceProfile.INSTANCE[context]
         val oldDbHelper = BlissDbHelper(context, oldDbName)
 
-        // Retrieve data from the old table
+        val favoritesList = readFavoritesFromOldDb(oldDbHelper) ?: return false
+        oldDbHelper.close()
+        if (favoritesList.isEmpty()) return false
+
+        val folderList = mutableMapOf<Favorite, Long>()
+        val appsPwaList = mutableListOf<Favorite>()
+        partitionFavorites(favoritesList, folderList, appsPwaList)
+
+        cleanupOrphanPwa(context, appsPwaList)
+
+        // Insert folder first, so we can store it's id and use it for apps/pwa.
+        insertFolders(dbHelper, folderList, profile.numRows, profile.numColumns)
+
+        // Insert apps and pwa together and add checks for extra pwa inserts
+        insertAppsAndPwa(context, dbHelper, appsPwaList, folderList, profile)
+
+        // Rename the database to old
+        val newFile = context.getDatabasePath(oldDbName + "_old")
+        oldFile.renameTo(newFile)
+        return true
+    }
+
+    private fun readFavoritesFromOldDb(oldDbHelper: BlissDbHelper): MutableList<Favorite>? {
         val favoritesList = mutableListOf<Favorite>()
         oldDbHelper.readableDatabase.use { database ->
             database.rawQuery("SELECT * FROM $oldTable", null).use { cursor ->
                 while (cursor.moveToNext()) {
                     try {
-                        val cell = cursor.getInt(cursor.getColumnIndexOrThrow("cell"))
-                        val container = cursor.getLong(cursor.getColumnIndexOrThrow("container"))
-                        val intentUri = cursor.getString(cursor.getColumnIndexOrThrow("intent_uri"))
-                        val itemId = cursor.getString(cursor.getColumnIndexOrThrow("item_id"))
-                        val itemType = cursor.getInt(cursor.getColumnIndexOrThrow("item_type"))
-                        val packageName = cursor.getString(cursor.getColumnIndexOrThrow("package"))
-                        val screen = cursor.getInt(cursor.getColumnIndexOrThrow("screen_id")) + 1
-                        val title = cursor.getString(cursor.getColumnIndexOrThrow("title"))
-                        var isFolder = false
-                        var isInFolder = false
-                        var isPwa = false
-                        var isInWorkProfile = false
-
-                        // Set isFolder true if its a folder
-                        // If its not folder its either app or pwa,
-                        // if its inside a folder and set isInFolder true
-                        if (itemId.toLongOrNull() != null && itemType == folderType) {
-                            isFolder = true
-                        } else if (
-                            (itemType == appType || itemType == pwaType) &&
-                                container != homeScreen &&
-                                container != hotSeat
-                        ) {
-                            isInFolder = true
-                        }
-
-                        // Set isPwa true if its pwa
-                        if (
-                            itemType == pwaType &&
-                                itemId.toLongOrNull() == null &&
-                                !itemId.contains(packageName)
-                        ) {
-                            isPwa = true
-                        }
-
-                        // Set isInWorkProfile if the app in work profile
-                        if (hasIntAfterLastSlash(itemId)) {
-                            isInWorkProfile = true
-                        }
-
-                        favoritesList.add(
-                            Favorite(
-                                cursor.count,
-                                cell,
-                                container,
-                                intentUri,
-                                itemId,
-                                itemType,
-                                packageName,
-                                screen,
-                                title,
-                                isFolder,
-                                isInFolder,
-                                isPwa,
-                                isInWorkProfile,
-                            )
-                        )
+                        favoritesList.add(buildFavoriteFromCursor(cursor))
                     } catch (e: URISyntaxException) {
                         Logger.e(TAG, "migrateDataFromDb: ", e)
-                        return false
+                        return null
                     }
                 }
             }
         }
+        return favoritesList
+    }
 
-        // Close oldDbHelper
-        oldDbHelper.close()
+    private fun buildFavoriteFromCursor(cursor: android.database.Cursor): Favorite {
+        val cell = cursor.getInt(cursor.getColumnIndexOrThrow("cell"))
+        val container = cursor.getLong(cursor.getColumnIndexOrThrow("container"))
+        val intentUri = cursor.getString(cursor.getColumnIndexOrThrow("intent_uri"))
+        val itemId = cursor.getString(cursor.getColumnIndexOrThrow("item_id"))
+        val itemType = cursor.getInt(cursor.getColumnIndexOrThrow("item_type"))
+        val packageName = cursor.getString(cursor.getColumnIndexOrThrow("package"))
+        val screen = cursor.getInt(cursor.getColumnIndexOrThrow("screen_id")) + 1
+        val title = cursor.getString(cursor.getColumnIndexOrThrow("title"))
 
-        if (favoritesList.isEmpty()) return false
+        val isFolder = itemId.toLongOrNull() != null && itemType == folderType
+        val isInFolder = !isFolder && isItemInFolder(itemType, container)
+        val isPwa = isPwaItem(itemType, itemId, packageName)
+        val isInWorkProfile = hasIntAfterLastSlash(itemId)
 
-        // Store each type separately
-        val folderList = mutableMapOf<Favorite, Long>()
-        val appsPwaList = mutableListOf<Favorite>()
+        return Favorite(
+            cursor.count,
+            cell,
+            container,
+            intentUri,
+            itemId,
+            itemType,
+            packageName,
+            screen,
+            title,
+            isFolder,
+            isInFolder,
+            isPwa,
+            isInWorkProfile,
+        )
+    }
+
+    private fun isItemInFolder(itemType: Int, container: Long): Boolean {
+        return (itemType == appType || itemType == pwaType) &&
+            container != homeScreen &&
+            container != hotSeat
+    }
+
+    private fun isPwaItem(itemType: Int, itemId: String, packageName: String): Boolean {
+        return itemType == pwaType && itemId.toLongOrNull() == null && !itemId.contains(packageName)
+    }
+
+    private fun partitionFavorites(
+        favoritesList: List<Favorite>,
+        folderList: MutableMap<Favorite, Long>,
+        appsPwaList: MutableList<Favorite>,
+    ) {
         favoritesList.forEach { fav ->
             if (fav.isFolder) {
                 // Value added here is temp, it will be replaced
@@ -157,90 +158,147 @@ object BlissDbUtils {
                 appsPwaList.add(fav)
             }
         }
+    }
 
+    private fun cleanupOrphanPwa(context: Context, appsPwaList: List<Favorite>) {
         val installedPwaList = getInstalledPwa(context)
-        if (installedPwaList.isNotEmpty() && appsPwaList.isNotEmpty()) {
-            installedPwaList.forEach { installedPwa ->
-                if (!appsPwaList.any { it.itemId == installedPwa.shortcutId }) {
-                    deleteInstalledPwa(context, installedPwa.shortcutId)
-                }
+        if (installedPwaList.isEmpty() || appsPwaList.isEmpty()) return
+        installedPwaList.forEach { installedPwa ->
+            if (!appsPwaList.any { it.itemId == installedPwa.shortcutId }) {
+                deleteInstalledPwa(context, installedPwa.shortcutId)
             }
         }
+    }
 
-        // Insert folder first, so we can store it's id and use it for apps/pwa.
+    private fun insertFolders(
+        dbHelper: DatabaseHelper,
+        folderList: MutableMap<Favorite, Long>,
+        rowCount: Int,
+        columnCount: Int,
+    ) {
         for (item in folderList) {
             val fav = item.key
             val values = getBaseContentValues(fav)
-            if (fav.container == hotSeat) {
-                // Hot-seat is 4x1 grid size
-                val (y, x) = getGridPosition(fav.cell, 1, columnCount)
-                values.put("cellX", x)
-                values.put("cellY", y)
-                values.put("screen", x)
-            } else {
-                // Home screen is 4x5 grid size
-                val (y, x) = getGridPosition(fav.cell, rowCount, columnCount)
-                values.put("cellX", x)
-                values.put("cellY", y)
-            }
+            applyFolderPosition(values, fav, rowCount, columnCount)
             values.put("itemType", ITEM_TYPE_FOLDER)
             folderList[fav] = dbHelper.writableDatabase.insert(E_TABLE_NAME_ALL, null, values)
         }
+    }
 
-        // Insert apps and pwa together and add checks for extra pwa inserts
-        for (item in appsPwaList) {
-            if (item.packageName != null) {
-                val values = getBaseContentValues(item)
-                if (item.isPwa) {
-                    values.put("intent", pwaIntentUri(context, item.packageName, item.itemId))
-                } else {
-                    values.put("intent", intentUri(item.packageName, item.itemId))
-                }
-                if (item.isInFolder) {
-                    // folder is 3x3 for 4x5, 4x4 for 5x5 and so on depending on columnSize grid
-                    // size
-                    val (y, x) = getGridPosition(item.cell, numFolderRows[0], numFolderColumns[0])
-                    values.put("cellX", x)
-                    values.put("cellY", y)
-                    if (item.isPwa) {
-                        // Pwa inside folder has rank of 1 as per launcher3
-                        values.put("rank", 1)
-                    }
-                    values.put(
-                        "container",
-                        folderList.entries
-                            .find { it.key.itemId.toLongOrNull() == item.container }
-                            ?.value,
-                    )
-                } else if (item.container == hotSeat) {
-                    // Hot-seat is 4x1 grid size
-                    val (y, x) = getGridPosition(item.cell, 1, columnCount)
-                    values.put("screen", x)
-                    values.put("cellX", x)
-                    values.put("cellY", y)
-                } else {
-                    // Home screen is 4x5 grid size
-                    val (y, x) = getGridPosition(item.cell, rowCount, columnCount)
-                    values.put("cellX", x)
-                    values.put("cellY", y)
-                }
-                if (item.isPwa) {
-                    // Override itemType for pwa
-                    values.put("itemType", ITEM_TYPE_DEEP_SHORTCUT)
-                }
-                if (item.isInWorkProfile) {
-                    val profileId = item.itemId.substringAfterLast("/").toInt()
-                    values.put("profileId", profileId)
-                }
-                dbHelper.writableDatabase.insert(E_TABLE_NAME_ALL, null, values)
-            }
+    private fun applyFolderPosition(
+        values: ContentValues,
+        fav: Favorite,
+        rowCount: Int,
+        columnCount: Int,
+    ) {
+        if (fav.container == hotSeat) {
+            // Hot-seat is 4x1 grid size
+            val (y, x) = getGridPosition(fav.cell, 1, columnCount)
+            values.put("cellX", x)
+            values.put("cellY", y)
+            values.put("screen", x)
+        } else {
+            // Home screen is 4x5 grid size
+            val (y, x) = getGridPosition(fav.cell, rowCount, columnCount)
+            values.put("cellX", x)
+            values.put("cellY", y)
         }
+    }
 
-        // Rename the database to old
-        val newFile = context.getDatabasePath(oldDbName + "_old")
-        oldFile.renameTo(newFile)
+    private fun insertAppsAndPwa(
+        context: Context,
+        dbHelper: DatabaseHelper,
+        appsPwaList: List<Favorite>,
+        folderList: Map<Favorite, Long>,
+        profile: InvariantDeviceProfile,
+    ) {
+        for (item in appsPwaList) {
+            if (item.packageName == null) continue
+            val values = buildAppOrPwaValues(context, item, folderList, profile)
+            dbHelper.writableDatabase.insert(E_TABLE_NAME_ALL, null, values)
+        }
+    }
 
-        return true
+    private fun buildAppOrPwaValues(
+        context: Context,
+        item: Favorite,
+        folderList: Map<Favorite, Long>,
+        profile: InvariantDeviceProfile,
+    ): ContentValues {
+        val values = getBaseContentValues(item)
+        values.put("intent", buildIntentForItem(context, item))
+        applyAppPwaPosition(values, item, folderList, profile)
+        if (item.isPwa) {
+            // Override itemType for pwa
+            values.put("itemType", ITEM_TYPE_DEEP_SHORTCUT)
+        }
+        if (item.isInWorkProfile) {
+            val profileId = item.itemId.substringAfterLast("/").toInt()
+            values.put("profileId", profileId)
+        }
+        return values
+    }
+
+    private fun buildIntentForItem(context: Context, item: Favorite): String? {
+        return if (item.isPwa) {
+            pwaIntentUri(context, item.packageName!!, item.itemId)
+        } else {
+            intentUri(item.packageName!!, item.itemId)
+        }
+    }
+
+    private fun applyAppPwaPosition(
+        values: ContentValues,
+        item: Favorite,
+        folderList: Map<Favorite, Long>,
+        profile: InvariantDeviceProfile,
+    ) {
+        when {
+            item.isInFolder -> applyInFolderPosition(values, item, folderList, profile)
+            item.container == hotSeat -> applyHotseatPosition(values, item, profile.numColumns)
+            else -> applyHomeScreenPosition(values, item, profile.numRows, profile.numColumns)
+        }
+    }
+
+    private fun applyInFolderPosition(
+        values: ContentValues,
+        item: Favorite,
+        folderList: Map<Favorite, Long>,
+        profile: InvariantDeviceProfile,
+    ) {
+        // folder is 3x3 for 4x5, 4x4 for 5x5 and so on depending on columnSize grid size
+        val (y, x) =
+            getGridPosition(item.cell, profile.numFolderRows[0], profile.numFolderColumns[0])
+        values.put("cellX", x)
+        values.put("cellY", y)
+        if (item.isPwa) {
+            // Pwa inside folder has rank of 1 as per launcher3
+            values.put("rank", 1)
+        }
+        values.put(
+            "container",
+            folderList.entries.find { it.key.itemId.toLongOrNull() == item.container }?.value,
+        )
+    }
+
+    private fun applyHotseatPosition(values: ContentValues, item: Favorite, columnCount: Int) {
+        // Hot-seat is 4x1 grid size
+        val (y, x) = getGridPosition(item.cell, 1, columnCount)
+        values.put("screen", x)
+        values.put("cellX", x)
+        values.put("cellY", y)
+    }
+
+    private fun applyHomeScreenPosition(
+        values: ContentValues,
+        item: Favorite,
+        rowCount: Int,
+        columnCount: Int,
+    ) {
+        // Home screen is 4x5 grid size
+        val (y, x) = getGridPosition(item.cell, rowCount, columnCount)
+        values.put("cellX", x)
+        values.put("cellY", y)
     }
 
     private fun deleteInstalledPwa(context: Context, shortcutId: String) {

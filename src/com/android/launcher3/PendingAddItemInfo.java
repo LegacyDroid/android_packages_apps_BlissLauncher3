@@ -60,11 +60,6 @@ public class PendingAddItemInfo extends ItemInfoWithIcon {
         return itemInfo;
     }
 
-    @Override
-    public PendingAddItemInfo clone() {
-        return makeShallowCopy();
-    }
-
     @Nullable
     @Override
     public ComponentName getTargetComponent() {

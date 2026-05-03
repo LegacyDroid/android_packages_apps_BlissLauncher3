@@ -47,14 +47,14 @@ public class RemoteAnimationTargets {
             RemoteAnimationTarget[] wallpapers, RemoteAnimationTarget[] nonApps,
             int targetMode, Bundle extras) {
         ArrayList<RemoteAnimationTarget> filteredApps = new ArrayList<>();
-        boolean hasRecents = false;
+        boolean foundRecents = false;
         if (apps != null) {
             for (RemoteAnimationTarget target : apps) {
                 if (target.mode == targetMode) {
                     filteredApps.add(target);
                 }
 
-                hasRecents |= target.windowConfiguration.getActivityType() == ACTIVITY_TYPE_RECENTS;
+                foundRecents |= target.windowConfiguration.getActivityType() == ACTIVITY_TYPE_RECENTS;
             }
         }
 
@@ -62,7 +62,7 @@ public class RemoteAnimationTargets {
         this.apps = filteredApps.toArray(new RemoteAnimationTarget[filteredApps.size()]);
         this.wallpapers = wallpapers;
         this.targetMode = targetMode;
-        this.hasRecents = hasRecents;
+        this.hasRecents = foundRecents;
         this.nonApps = nonApps;
         this.extras = extras;
     }

@@ -33,6 +33,10 @@ import com.android.launcher3.util.Themes;
 
 public class TaskCornerRadius {
 
+    private TaskCornerRadius() {
+        // Utility class.
+    }
+
     public static float get(Context context) {
         Resources resources = context.getResources();
         if (!supportsRoundedCornersOnWindows(resources)) {

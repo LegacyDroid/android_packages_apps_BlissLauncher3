@@ -218,8 +218,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
                 }
                 return cursor;
             }
-            case GET_ICON_THEMED:
-            case ICON_THEMED: {
+            case GET_ICON_THEMED, ICON_THEMED: {
                 MatrixCursor cursor = new MatrixCursor(new String[]{BOOLEAN_VALUE});
                 cursor.newRow().add(BOOLEAN_VALUE, mThemeManager.isMonoThemeEnabled() ? 1 : 0);
                 return cursor;
@@ -276,8 +275,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
                             requireNonNullElse(values.getAsString(KEY_SHAPE_KEY), ""));
                 }
                 return 1;
-            case ICON_THEMED:
-            case SET_ICON_THEMED: {
+            case ICON_THEMED, SET_ICON_THEMED: {
                 mThemeManager.setMonoThemeEnabled(values.getAsBoolean(BOOLEAN_VALUE));
                 mContext.getContentResolver().notifyChange(uri, null);
                 return 1;

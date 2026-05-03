@@ -204,40 +204,28 @@ public final class PrefMapperRegistry {
     }
     private static int applyMoreBooleanPrefs(Map<String, Object> src, LauncherPrefs prefs) {
         int c = 0;
-        if (BasicMappers.mapBoolean(src, prefs, "show_icon_labels_in_drawer", LauncherPrefs.SHOW_DRAWER_LABELS))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "pref_allAppsIconLabels", LauncherPrefs.SHOW_DRAWER_LABELS))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "show_icon_labels_on_home_screen_folder",
-                LauncherPrefs.SHOW_FOLDER_LABELS))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "pref_show_hotseat", LauncherPrefs.SHOW_DOCK))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "enable_label_dock", LauncherPrefs.DOCK_LABELS))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "pref_wallpaperScrolling", LauncherPrefs.WALLPAPER_SCROLLING))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "pref_infiniteScrolling", LauncherPrefs.INFINITE_SCROLLING))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "show_status_bar", LauncherPrefs.SHOW_STATUS_BAR))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "pref_showStatusBar", LauncherPrefs.SHOW_STATUS_BAR))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "force_widget_resize", LauncherPrefs.FORCE_WIDGET_RESIZE))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "rounded_widgets", LauncherPrefs.WIDGET_ROUNDED_CORNERS))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "widget_unlimited_size", LauncherPrefs.WIDGET_UNLIMITED_SIZE))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "hide_app_drawer_search_bar", LauncherPrefs.HIDE_DRAWER_SEARCH))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "pref_hideAppSearchBar", LauncherPrefs.HIDE_DRAWER_SEARCH))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "enable_fuzzy_search", LauncherPrefs.FUZZY_SEARCH))
-            c++;
-        if (BasicMappers.mapBoolean(src, prefs, "pref_useFuzzySearch", LauncherPrefs.FUZZY_SEARCH))
-            c++;
+        c += hit(BasicMappers.mapBoolean(src, prefs, "show_icon_labels_in_drawer", LauncherPrefs.SHOW_DRAWER_LABELS));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "pref_allAppsIconLabels", LauncherPrefs.SHOW_DRAWER_LABELS));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "show_icon_labels_on_home_screen_folder",
+                LauncherPrefs.SHOW_FOLDER_LABELS));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "pref_show_hotseat", LauncherPrefs.SHOW_DOCK));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "enable_label_dock", LauncherPrefs.DOCK_LABELS));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "pref_wallpaperScrolling", LauncherPrefs.WALLPAPER_SCROLLING));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "pref_infiniteScrolling", LauncherPrefs.INFINITE_SCROLLING));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "show_status_bar", LauncherPrefs.SHOW_STATUS_BAR));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "pref_showStatusBar", LauncherPrefs.SHOW_STATUS_BAR));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "force_widget_resize", LauncherPrefs.FORCE_WIDGET_RESIZE));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "rounded_widgets", LauncherPrefs.WIDGET_ROUNDED_CORNERS));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "widget_unlimited_size", LauncherPrefs.WIDGET_UNLIMITED_SIZE));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "hide_app_drawer_search_bar", LauncherPrefs.HIDE_DRAWER_SEARCH));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "pref_hideAppSearchBar", LauncherPrefs.HIDE_DRAWER_SEARCH));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "enable_fuzzy_search", LauncherPrefs.FUZZY_SEARCH));
+        c += hit(BasicMappers.mapBoolean(src, prefs, "pref_useFuzzySearch", LauncherPrefs.FUZZY_SEARCH));
         return c;
+    }
+
+    private static int hit(boolean mapped) {
+        return mapped ? 1 : 0;
     }
     private static int applyIntPrefs(Map<String, Object> src, LauncherPrefs prefs) {
         int c = 0;
@@ -284,8 +272,8 @@ public final class PrefMapperRegistry {
         if (BasicMappers.mapInt(src, prefs, "pref_hotseatBGTransparency", LauncherPrefs.DOCK_BG_OPACITY))
             c++;
         Object v = src.get("pref_hotseatBG");
-        if (v instanceof Boolean) {
-            prefs.put(LauncherPrefs.DOCK_BG_OPACITY, ((Boolean) v) ? 100 : 0);
+        if (v instanceof Boolean b) {
+            prefs.put(LauncherPrefs.DOCK_BG_OPACITY, b ? 100 : 0);
             c++;
         }
         if (BasicMappers.mapInt(src, prefs, "pref_wallpaperBlur", LauncherPrefs.BLUR_INTENSITY))
@@ -348,7 +336,7 @@ public final class PrefMapperRegistry {
         Object lockSrc = src.get("lock_home_screen");
         if (lockSrc == null)
             lockSrc = src.get("pref_lockHomeScreen");
-        if (!(lockSrc instanceof Boolean) || !((Boolean) lockSrc)) {
+        if (!(lockSrc instanceof Boolean lockBool) || !lockBool) {
             prefs.put(LauncherPrefs.WORKSPACE_LOCK, false);
         }
         prefs.put(LauncherPrefs.FIRST_RUN_LAYOUT_CHOICE_DONE, true);
@@ -382,8 +370,8 @@ public final class PrefMapperRegistry {
         if (BasicMappers.mapBoolean(src, prefs, "enable_smartspace_now_playing", LauncherPrefs.SMARTSPACE_NOW_PLAYING))
             c++;
         Object v = src.get("smartspace_time_format");
-        if (v instanceof String) {
-            String s = ((String) v).toLowerCase(Locale.ROOT);
+        if (v instanceof String str) {
+            String s = str.toLowerCase(Locale.ROOT);
             String norm;
             if (s.contains("24"))
                 norm = "24";

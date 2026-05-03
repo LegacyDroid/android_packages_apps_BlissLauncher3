@@ -185,14 +185,7 @@ constructor(
         moveToState(AnimatingBubble.State.ANIMATING_IN)
         // prepare the bubble bar for the animation if we're starting fresh
         if (initialVelocity == null) {
-            bubbleBarView.visibility = VISIBLE
-            bubbleBarView.alpha = 0f
-            bubbleBarView.translationY = 0f
-            bubbleBarView.scaleX = 1f
-            bubbleBarView.scaleY = BUBBLE_ANIMATION_INITIAL_SCALE_Y
-            bubbleBarView.setBackgroundScaleX(1f)
-            bubbleBarView.setBackgroundScaleY(1f)
-            bubbleBarView.relativePivotY = 0.5f
+            resetBubbleBarForHandleToBarAnimation()
         }
 
         // this is the offset between the center of the bubble bar and the center of the stash
@@ -216,47 +209,13 @@ constructor(
         animator.addUpdateListener { handle, values ->
             val ty = values[DynamicAnimation.TRANSLATION_Y]?.value ?: return@addUpdateListener
             if (animatingBubble == null) return@addUpdateListener
-            when {
-                ty >= stashedHandleTranslationYForAnimation -> {
-                    // we're in the first leg of the animation. only animate the handle. the bubble
-                    // bar remains hidden during this part of the animation
-
-                    // map the path [0, stashedHandleTranslationY] to [0,1]
-                    val fraction = ty / stashedHandleTranslationYForAnimation
-                    handle.alpha = 1 - fraction
-                }
-                ty >= totalTranslationY -> {
-                    // this is the second leg of the animation. the handle should be completely
-                    // hidden and the bubble bar should start animating in.
-                    // it's possible that we're re-entering this leg because this is a spring
-                    // animation, so only set the alpha and scale for the bubble bar if we didn't
-                    // already fully animate in.
-                    handle.alpha = 0f
-                    bubbleBarView.translationY = ty - offset
-                    if (bubbleBarView.alpha != 1f) {
-                        // map the path [stashedHandleTranslationY, totalTranslationY] to [0, 1]
-                        val fraction =
-                            (ty - stashedHandleTranslationYForAnimation) /
-                                (totalTranslationY - stashedHandleTranslationYForAnimation)
-                        bubbleBarView.alpha = fraction
-                        bubbleBarView.scaleY =
-                            BUBBLE_ANIMATION_INITIAL_SCALE_Y +
-                                (1 - BUBBLE_ANIMATION_INITIAL_SCALE_Y) * fraction
-                        if (bubbleBarView.alpha > MIN_ALPHA_FOR_TOUCHABLE) {
-                            bubbleStashController.updateTaskbarTouchRegion()
-                        }
-                    }
-                }
-                else -> {
-                    // we're past the target animated value, set the alpha and scale for the bubble
-                    // bar so that it's fully visible and no longer changing, but keep moving it
-                    // along the animation path
-                    bubbleBarView.alpha = 1f
-                    bubbleBarView.scaleY = 1f
-                    bubbleBarView.translationY = ty - offset
-                    bubbleStashController.updateTaskbarTouchRegion()
-                }
-            }
+            updateHandleToBarFrame(
+                handle,
+                ty,
+                offset,
+                stashedHandleTranslationYForAnimation,
+                totalTranslationY,
+            )
             translationTracker.updateTyAndExpandIfNeeded(ty)
         }
         animator.addEndListener { _, _, _, canceled, _, _, _ ->
@@ -272,6 +231,79 @@ constructor(
             bubbleStashController.updateTaskbarTouchRegion()
         }
         animator.start()
+    }
+
+    private fun resetBubbleBarForHandleToBarAnimation() {
+        bubbleBarView.visibility = VISIBLE
+        bubbleBarView.alpha = 0f
+        bubbleBarView.translationY = 0f
+        bubbleBarView.scaleX = 1f
+        bubbleBarView.scaleY = BUBBLE_ANIMATION_INITIAL_SCALE_Y
+        bubbleBarView.setBackgroundScaleX(1f)
+        bubbleBarView.setBackgroundScaleY(1f)
+        bubbleBarView.relativePivotY = 0.5f
+    }
+
+    private fun updateHandleToBarFrame(
+        handle: View,
+        ty: Float,
+        offset: Float,
+        stashedHandleTranslationYForAnimation: Float,
+        totalTranslationY: Float,
+    ) {
+        when {
+            ty >= stashedHandleTranslationYForAnimation -> {
+                // we're in the first leg of the animation. only animate the handle. the bubble
+                // bar remains hidden during this part of the animation
+
+                // map the path [0, stashedHandleTranslationY] to [0,1]
+                val fraction = ty / stashedHandleTranslationYForAnimation
+                handle.alpha = 1 - fraction
+            }
+            ty >= totalTranslationY -> {
+                // this is the second leg of the animation. the handle should be completely
+                // hidden and the bubble bar should start animating in.
+                // it's possible that we're re-entering this leg because this is a spring
+                // animation, so only set the alpha and scale for the bubble bar if we didn't
+                // already fully animate in.
+                handle.alpha = 0f
+                bubbleBarView.translationY = ty - offset
+                if (bubbleBarView.alpha != 1f) {
+                    fadeInBubbleBarFromHandle(
+                        ty,
+                        stashedHandleTranslationYForAnimation,
+                        totalTranslationY,
+                    )
+                }
+            }
+            else -> {
+                // we're past the target animated value, set the alpha and scale for the bubble
+                // bar so that it's fully visible and no longer changing, but keep moving it
+                // along the animation path
+                bubbleBarView.alpha = 1f
+                bubbleBarView.scaleY = 1f
+                bubbleBarView.translationY = ty - offset
+                bubbleStashController.updateTaskbarTouchRegion()
+            }
+        }
+    }
+
+    private fun fadeInBubbleBarFromHandle(
+        ty: Float,
+        stashedHandleTranslationYForAnimation: Float,
+        totalTranslationY: Float,
+    ) {
+        // map the path [stashedHandleTranslationY, totalTranslationY] to [0, 1]
+        val fraction =
+            (ty - stashedHandleTranslationYForAnimation) /
+                (totalTranslationY - stashedHandleTranslationYForAnimation)
+        bubbleBarView.alpha = fraction
+        bubbleBarView.scaleY =
+            BUBBLE_ANIMATION_INITIAL_SCALE_Y +
+                (1 - BUBBLE_ANIMATION_INITIAL_SCALE_Y) * fraction
+        if (bubbleBarView.alpha > MIN_ALPHA_FOR_TOUCHABLE) {
+            bubbleStashController.updateTaskbarTouchRegion()
+        }
     }
 
     /**
@@ -302,55 +334,10 @@ constructor(
         animator.spring(DynamicAnimation.TRANSLATION_Y, 0f)
         animator.addUpdateListener { handle, values ->
             val ty = values[DynamicAnimation.TRANSLATION_Y]?.value ?: return@addUpdateListener
-            when {
-                ty <= stashedHandleTranslationY -> {
-                    // this is the first leg of the animation. only animate the bubble bar. the
-                    // handle is hidden during this part
-                    bubbleBarView.translationY = ty - offset
-                    // map the path [totalTranslationY, stashedHandleTranslationY] to [0, 1]
-                    val fraction =
-                        (totalTranslationY - ty) / (totalTranslationY - stashedHandleTranslationY)
-                    bubbleBarView.alpha = 1 - fraction
-                    bubbleBarView.scaleY = 1 - (1 - BUBBLE_ANIMATION_INITIAL_SCALE_Y) * fraction
-                    if (bubbleBarView.alpha > MIN_ALPHA_FOR_TOUCHABLE) {
-                        bubbleStashController.updateTaskbarTouchRegion()
-                    }
-                }
-                ty <= 0 -> {
-                    // this is the second part of the animation. make the bubble bar invisible and
-                    // start fading in the handle, but don't update the alpha if it's already fully
-                    // visible
-                    bubbleBarView.alpha = 0f
-                    if (handle.alpha != 1f) {
-                        // map the path [stashedHandleTranslationY, 0] to [0, 1]
-                        val fraction = (stashedHandleTranslationY - ty) / stashedHandleTranslationY
-                        handle.alpha = fraction
-                    }
-                }
-                else -> {
-                    // we reached the target value. set the alpha of the handle to 1
-                    handle.alpha = 1f
-                }
-            }
+            updateBarToHandleFrame(handle, ty, offset, stashedHandleTranslationY, totalTranslationY)
         }
         animator.addEndListener { _, _, _, canceled, _, finalVelocity, _ ->
-            // PhysicsAnimator calls the end listeners when the animation is replaced with a new one
-            // if we're not in ANIMATING_OUT state, then this animation never started and we should
-            // return
-            if (animatingBubble?.state != AnimatingBubble.State.ANIMATING_OUT) return@addEndListener
-            if (interceptedHandleAnimator) {
-                interceptedHandleAnimator = false
-                // post this to give a PhysicsAnimator a chance to clean up its internal listeners.
-                // otherwise this end listener will be called as soon as we create a new spring
-                // animation
-                scheduler.post(buildHandleToBubbleBarAnimation(initialVelocity = finalVelocity))
-                return@addEndListener
-            }
-            clearAnimatingBubble()
-            if (!canceled) bubbleStashController.stashBubbleBarImmediate()
-            bubbleBarView.relativePivotY = 1f
-            bubbleBarView.scaleY = 1f
-            bubbleStashController.updateTaskbarTouchRegion()
+            handleBarToHandleEnd(canceled, finalVelocity)
         }
 
         val bubble = animatingBubble?.bubbleView?.bubble as? BubbleBarBubble
@@ -363,6 +350,65 @@ constructor(
         } else {
             animator.start()
         }
+    }
+
+    private fun updateBarToHandleFrame(
+        handle: View,
+        ty: Float,
+        offset: Float,
+        stashedHandleTranslationY: Float,
+        totalTranslationY: Float,
+    ) {
+        when {
+            ty <= stashedHandleTranslationY -> {
+                // this is the first leg of the animation. only animate the bubble bar. the
+                // handle is hidden during this part
+                bubbleBarView.translationY = ty - offset
+                // map the path [totalTranslationY, stashedHandleTranslationY] to [0, 1]
+                val fraction =
+                    (totalTranslationY - ty) / (totalTranslationY - stashedHandleTranslationY)
+                bubbleBarView.alpha = 1 - fraction
+                bubbleBarView.scaleY = 1 - (1 - BUBBLE_ANIMATION_INITIAL_SCALE_Y) * fraction
+                if (bubbleBarView.alpha > MIN_ALPHA_FOR_TOUCHABLE) {
+                    bubbleStashController.updateTaskbarTouchRegion()
+                }
+            }
+            ty <= 0 -> {
+                // this is the second part of the animation. make the bubble bar invisible and
+                // start fading in the handle, but don't update the alpha if it's already fully
+                // visible
+                bubbleBarView.alpha = 0f
+                if (handle.alpha != 1f) {
+                    // map the path [stashedHandleTranslationY, 0] to [0, 1]
+                    val fraction = (stashedHandleTranslationY - ty) / stashedHandleTranslationY
+                    handle.alpha = fraction
+                }
+            }
+            else -> {
+                // we reached the target value. set the alpha of the handle to 1
+                handle.alpha = 1f
+            }
+        }
+    }
+
+    private fun handleBarToHandleEnd(canceled: Boolean, finalVelocity: Float) {
+        // PhysicsAnimator calls the end listeners when the animation is replaced with a new one
+        // if we're not in ANIMATING_OUT state, then this animation never started and we should
+        // return
+        if (animatingBubble?.state != AnimatingBubble.State.ANIMATING_OUT) return
+        if (interceptedHandleAnimator) {
+            interceptedHandleAnimator = false
+            // post this to give a PhysicsAnimator a chance to clean up its internal listeners.
+            // otherwise this end listener will be called as soon as we create a new spring
+            // animation
+            scheduler.post(buildHandleToBubbleBarAnimation(initialVelocity = finalVelocity))
+            return
+        }
+        clearAnimatingBubble()
+        if (!canceled) bubbleStashController.stashBubbleBarImmediate()
+        bubbleBarView.relativePivotY = 1f
+        bubbleBarView.scaleY = 1f
+        bubbleStashController.updateTaskbarTouchRegion()
     }
 
     /** Animates to the initial state of the bubble bar, when there are no previous bubbles. */

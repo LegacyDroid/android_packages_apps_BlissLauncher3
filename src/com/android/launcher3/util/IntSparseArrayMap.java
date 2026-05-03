@@ -35,9 +35,17 @@ public class IntSparseArrayMap<E> extends SparseArray<E> implements Iterable<E> 
         return size() <= 0;
     }
 
-    @Override
-    public IntSparseArrayMap<E> clone() {
-        return (IntSparseArrayMap<E>) super.clone();
+    /**
+     * Returns a new {@link IntSparseArrayMap} containing the same key/value pairs as this one.
+     * Values are not deep-copied; the new map references the same value objects.
+     */
+    public IntSparseArrayMap<E> copy() {
+        IntSparseArrayMap<E> result = new IntSparseArrayMap<>();
+        final int n = size();
+        for (int i = 0; i < n; i++) {
+            result.put(keyAt(i), valueAt(i));
+        }
+        return result;
     }
 
     @Override

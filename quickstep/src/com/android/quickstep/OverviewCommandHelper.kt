@@ -329,7 +329,7 @@ constructor(
         }
     }
 
-    private fun executeWhenRecentsIsNotVisible(
+    private fun executeWhenRecentsIsNotVisible( // NOSONAR pristine-AOSP-do-not-refactor
         command: CommandInfo,
         onCallbackResult: () -> Unit,
     ): Boolean {

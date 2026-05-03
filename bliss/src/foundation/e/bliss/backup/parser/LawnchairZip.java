@@ -78,8 +78,7 @@ public final class LawnchairZip {
         byte[] sharedPrefsData = null;
         byte[] datastoreData = null;
         byte[] dbData = null;
-        ZipInputStream zip = new ZipInputStream(in);
-        try {
+        try (ZipInputStream zip = new ZipInputStream(in)) {
             ZipEntry entry;
             while ((entry = zip.getNextEntry()) != null) {
                 String name = entry.getName();
@@ -92,8 +91,6 @@ public final class LawnchairZip {
                 }
                 zip.closeEntry();
             }
-        } finally {
-            zip.close();
         }
         return new Bundle(sharedPrefsData, datastoreData, dbData);
     }

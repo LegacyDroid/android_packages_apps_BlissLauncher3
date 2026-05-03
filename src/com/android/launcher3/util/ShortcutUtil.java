@@ -24,6 +24,11 @@ import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.shortcuts.ShortcutKey;
 
 public class ShortcutUtil {
+
+    private ShortcutUtil() {
+        // Utility class.
+    }
+
     /**
      * Returns true when we should show shortcut menu for the item.
      */

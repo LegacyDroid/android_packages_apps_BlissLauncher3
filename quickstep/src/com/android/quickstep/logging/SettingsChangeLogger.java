@@ -123,9 +123,7 @@ public class SettingsChangeLogger implements
 
         settingsCache.register(NOTIFICATION_BADGING_URI, mListener);
         onNotificationDotsChanged(settingsCache.getValue(NOTIFICATION_BADGING_URI));
-        tracker.addCloseable(() -> {
-            settingsCache.unregister(NOTIFICATION_BADGING_URI, mListener);
-        });
+        tracker.addCloseable(() -> settingsCache.unregister(NOTIFICATION_BADGING_URI, mListener));
     }
 
     private static ArrayMap<String, LoggablePref> loadPrefKeys(Context context) {

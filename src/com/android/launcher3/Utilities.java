@@ -249,7 +249,7 @@ public final class Utilities {
      * @param ignoreTransform If true, view transform is ignored
      * @param outRect The out rect where we return the bounds of {@param view} in drag layer coords.
      */
-    public static void getBoundsForViewInDragLayer(BaseDragLayer dragLayer, View view,
+    public static void getBoundsForViewInDragLayer(BaseDragLayer<?> dragLayer, View view,
             Rect viewBounds, boolean ignoreTransform, float[] recycle, RectF outRect) {
         float[] points = recycle == null ? new float[4] : recycle;
         points[0] = viewBounds.left;

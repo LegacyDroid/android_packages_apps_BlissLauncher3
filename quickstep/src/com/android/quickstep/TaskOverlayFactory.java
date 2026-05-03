@@ -94,6 +94,7 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
      * {@link #removeListeners()}
      */
     public void initListeners() {
+        /* no-op: base hook for subclasses to attach system listeners */
     }
 
     /**
@@ -101,13 +102,14 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
      * {@link #initListeners()}
      */
     public void removeListeners() {
+        /* no-op: base hook for subclasses to detach system listeners */
     }
 
     /**
      * Clears any active state outside of the TaskOverlay lifecycle which might have built
      * up over time
      */
-    public void clearAllActiveState() { }
+    public void clearAllActiveState() { /* no-op: base hook for subclasses to clear active state */ }
 
     /** Note that these will be shown in order from top to bottom, if available for the task. */
     private static final TaskShortcutFactory[] MENU_OPTIONS = new TaskShortcutFactory[]{
@@ -260,12 +262,14 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
          * Called when the overlay is no longer used.
          */
         public void reset() {
+            /* no-op: base hook for subclass extensions to release resources */
         }
 
         /**
          * Called when the system wants to reset the modal visuals.
          */
         public void resetModalVisuals() {
+            /* no-op: base hook for subclass extensions to reset modal visuals */
         }
 
         /**
@@ -280,6 +284,7 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
          * Sets full screen progress to the task overlay.
          */
         public void setFullscreenProgress(float progress) {
+            /* no-op: base hook for subclass extensions to react to fullscreen progress */
         }
 
         /**
@@ -354,6 +359,7 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
          * Called when the device rotated.
          */
         public void updateOrientationState(RecentsOrientedState state) {
+            /* no-op: base hook for subclass extensions to react to rotation */
         }
 
         protected void showBlockedByPolicyMessage() {
@@ -369,13 +375,19 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
         }
 
         /** Called when the snapshot has updated its full screen drawing parameters. */
-        public void setFullscreenParams(FullscreenDrawParams fullscreenParams) {}
+        public void setFullscreenParams(FullscreenDrawParams fullscreenParams) {
+            /* no-op: base hook for subclass extensions to apply fullscreen draw params */
+        }
 
         /** Sets visibility for the overlay associated elements. */
-        public void setVisibility(int visibility) {}
+        public void setVisibility(int visibility) {
+            /* no-op: base hook for subclass extensions to propagate visibility */
+        }
 
         /** See {@link View#addChildrenForAccessibility(ArrayList)} */
-        public void addChildForAccessibility(ArrayList<View> outChildren) {}
+        public void addChildForAccessibility(ArrayList<View> outChildren) {
+            /* no-op: base hook for subclass extensions to expose accessibility children */
+        }
 
         private class ScreenshotSystemShortcut extends SystemShortcut {
 

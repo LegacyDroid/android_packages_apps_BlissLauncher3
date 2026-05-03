@@ -94,8 +94,7 @@ public final class GestureMappers {
                 return "quick_settings";
             case "openAppDrawer" :
                 return "app_drawer";
-            case "openAppSearch" :
-            case "openSearch" :
+            case "openAppSearch", "openSearch" :
                 return "app_search";
             case "openAssistant" :
                 return "assistant";
