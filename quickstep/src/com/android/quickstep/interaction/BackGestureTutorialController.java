@@ -138,16 +138,12 @@ final class BackGestureTutorialController extends TutorialController {
         if (isGestureCompleted()) {
             return;
         }
-        switch (mTutorialType) {
-            case BACK_NAVIGATION:
-                handleBackAttempt(result);
-                break;
-            case BACK_NAVIGATION_COMPLETE:
-                if (result == BackGestureResult.BACK_COMPLETED_FROM_LEFT
-                        || result == BackGestureResult.BACK_COMPLETED_FROM_RIGHT) {
-                    mTutorialFragment.close();
-                }
-                break;
+        if (mTutorialType == BACK_NAVIGATION) {
+            handleBackAttempt(result);
+        } else if (mTutorialType == BACK_NAVIGATION_COMPLETE
+                && (result == BackGestureResult.BACK_COMPLETED_FROM_LEFT
+                        || result == BackGestureResult.BACK_COMPLETED_FROM_RIGHT)) {
+            mTutorialFragment.close();
         }
     }
 

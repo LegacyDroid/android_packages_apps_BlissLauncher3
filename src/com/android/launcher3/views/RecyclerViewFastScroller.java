@@ -292,7 +292,6 @@ public class RecyclerViewFastScroller extends View {
                 boolean isScrollingDown = y > mLastY;
                 mLastY = y;
                 int absDeltaY = Math.abs(y - mDownY);
-                int absDeltaX = Math.abs(x - mDownX);
 
                 // Check if we should start scrolling, but ignore this fastscroll gesture if we have
                 // exceeded some fixed movement
@@ -342,7 +341,7 @@ public class RecyclerViewFastScroller extends View {
     private void updateFastScrollSectionNameAndThumbOffset(int y) {
         // Update the fastscroller section name at this touch position
         int bottom = mRv.getScrollbarTrackHeight() - mThumbHeight;
-        float boundedY = (float) Math.clamp(y - mTouchOffsetY, 0, bottom);
+        float boundedY = (float) Math.clamp((long) y - mTouchOffsetY, 0, bottom);
         CharSequence sectionName = mRv.scrollToPositionAtProgress(boundedY / bottom);
         if (!sectionName.equals(mPopupSectionName)) {
             mPopupSectionName = sectionName;

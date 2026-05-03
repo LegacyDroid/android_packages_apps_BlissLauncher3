@@ -102,10 +102,8 @@ CONTAINER : RecentsViewContainer {
         if ((ev.action == MotionEvent.ACTION_UP || ev.action == MotionEvent.ACTION_CANCEL)) {
             clearState()
         }
-        if (ev.action == MotionEvent.ACTION_DOWN) {
-            if (!onActionDown(ev)) {
-                return false
-            }
+        if (ev.action == MotionEvent.ACTION_DOWN && !onActionDown(ev)) {
+            return false
         }
 
         onControllerTouchEvent(ev)

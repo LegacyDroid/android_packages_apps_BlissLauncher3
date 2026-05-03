@@ -194,13 +194,10 @@ public class NoButtonQuickSwitchTouchController implements TouchController,
             mIsTrackpadSwipe = isTrackpadFourFingerSwipe(ev);
             return mIsTrackpadSwipe;
         }
-        if (DesktopModeStatusCompat.canEnterDesktopMode(mLauncher)
+        return !DesktopModeStatusCompat.canEnterDesktopMode(mLauncher)
                 //TODO(b/345296916): replace with dev option once in teamfood
-                && DesktopFlagsCompat.enableQuickswitchDesktopSplitBugfix()
-                && mRecentsView.getNonDesktopTaskViewCount() < 1) {
-            return false;
-        }
-        return true;
+                || !DesktopFlagsCompat.enableQuickswitchDesktopSplitBugfix()
+                || mRecentsView.getNonDesktopTaskViewCount() >= 1;
     }
 
     @Override

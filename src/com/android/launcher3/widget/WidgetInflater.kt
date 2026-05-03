@@ -166,13 +166,12 @@ constructor(
                 item.restoreStatus = LauncherAppWidgetInfo.RESTORE_COMPLETED
                 update = true
             } else if (
-                (item.hasRestoreFlag(LauncherAppWidgetInfo.FLAG_UI_NOT_READY) &&
-                    appWidgetInfo.configure != null)
+                item.hasRestoreFlag(LauncherAppWidgetInfo.FLAG_UI_NOT_READY) &&
+                    appWidgetInfo.configure != null &&
+                    widgetHelper.isAppWidgetRestored(item.appWidgetId)
             ) {
-                if (widgetHelper.isAppWidgetRestored(item.appWidgetId)) {
-                    item.restoreStatus = LauncherAppWidgetInfo.RESTORE_COMPLETED
-                    update = true
-                }
+                item.restoreStatus = LauncherAppWidgetInfo.RESTORE_COMPLETED
+                update = true
             }
         }
 

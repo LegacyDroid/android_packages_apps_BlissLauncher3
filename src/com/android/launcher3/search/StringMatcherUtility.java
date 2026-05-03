@@ -163,6 +163,9 @@ public class StringMatcherUtility {
                 case Character.UNASSIGNED, Character.SPACE_SEPARATOR,
                         Character.LINE_SEPARATOR, Character.PARAGRAPH_SEPARATOR:
                     return true;
+                default:
+                    // Fall through to the next switch on thisType.
+                    break;
             }
             switch (thisType) {
                 case Character.UPPERCASE_LETTER:
@@ -223,10 +226,9 @@ public class StringMatcherUtility {
         for (int i = 0; i < s.length(); ) {
             int codepoint = s.codePointAt(i);
             i += Character.charCount(codepoint);
-            switch (Character.UnicodeScript.of(codepoint)) {
-                case HAN:
-                    //Character.UnicodeScript.HAN: use String.contains to match
-                    return true;
+            if (Character.UnicodeScript.of(codepoint) == Character.UnicodeScript.HAN) {
+                //Character.UnicodeScript.HAN: use String.contains to match
+                return true;
             }
         }
         return false;

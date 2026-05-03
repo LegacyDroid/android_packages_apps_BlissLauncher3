@@ -317,7 +317,7 @@ public class WidgetsListAdapter extends Adapter<ViewHolder> implements OnHeaderC
      */
     void selectFirstHeaderEntry() {
         mVisibleEntries.stream()
-                .filter(entry -> entry instanceof WidgetsListHeaderEntry)
+                .filter(WidgetsListHeaderEntry.class::isInstance)
                 .findFirst()
                 .ifPresent(entry ->
                         onHeaderClicked(true, PackageUserKey.fromPackageItemInfo(entry.mPkgItem)));
@@ -461,8 +461,8 @@ public class WidgetsListAdapter extends Adapter<ViewHolder> implements OnHeaderC
      * Returns the widget content {@link WidgetsListContentEntry} for a selected header.
      */
     public WidgetsListContentEntry getContentEntry(PackageUserKey selectedHeader) {
-        return getAllEntries().stream().filter(entry -> entry instanceof WidgetsListContentEntry)
-                .map(entry -> (WidgetsListContentEntry) entry)
+        return getAllEntries().stream().filter(WidgetsListContentEntry.class::isInstance)
+                .map(WidgetsListContentEntry.class::cast)
                 .filter(entry -> PackageUserKey.fromPackageItemInfo(entry.mPkgItem).equals(
                         selectedHeader)).findFirst().orElse(null);
     }

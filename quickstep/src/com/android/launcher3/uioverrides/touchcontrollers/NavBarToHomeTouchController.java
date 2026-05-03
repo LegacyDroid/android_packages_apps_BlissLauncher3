@@ -122,10 +122,7 @@ public class NavBarToHomeTouchController implements TouchController,
             return true;
         }
         int typeToClose = TYPE_ALL & ~TYPE_ALL_APPS_EDU;
-        if (AbstractFloatingView.getTopOpenViewWithType(mLauncher, typeToClose) != null) {
-            return true;
-        }
-        return false;
+        return AbstractFloatingView.getTopOpenViewWithType(mLauncher, typeToClose) != null;
     }
 
     @Override

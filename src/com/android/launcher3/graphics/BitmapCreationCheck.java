@@ -112,7 +112,7 @@ public class BitmapCreationCheck {
         }
 
         private void onBitmapCreated() {
-            if (mCurrentThreadDrawing.get()) {
+            if (Boolean.TRUE.equals(mCurrentThreadDrawing.get())) {
                 Log.e(TAG, "Bitmap created during draw pass", new Exception());
             }
         }

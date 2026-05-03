@@ -527,10 +527,14 @@ public class FloatingIconView extends FrameLayout implements
     }
 
     @Override
-    public void onAnimationCancel(Animator animator) {}
+    public void onAnimationCancel(Animator animator) {
+        // No-op: cancellation is handled in onAnimationEnd.
+    }
 
     @Override
-    public void onAnimationRepeat(Animator animator) {}
+    public void onAnimationRepeat(Animator animator) {
+        // No-op: this animation does not repeat.
+    }
 
     @Override
     public void setPositionOffsetY(float y) {

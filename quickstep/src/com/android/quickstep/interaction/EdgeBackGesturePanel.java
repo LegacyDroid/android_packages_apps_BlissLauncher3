@@ -278,8 +278,6 @@ public class EdgeBackGesturePanel extends View {
                 new SpringForce()
                         .setStiffness(SpringForce.STIFFNESS_MEDIUM)
                         .setDampingRatio(SpringForce.DAMPING_RATIO_LOW_BOUNCY));
-        int currentNightMode =
-                context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
         mPaint.setColor(context.getColor(R.color.gesture_tutorial_back_arrow_color));
         loadDimens();
         updateArrowDirection();

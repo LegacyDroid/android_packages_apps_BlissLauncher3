@@ -144,8 +144,6 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
                     && isStashedTaskbarHovered((int) ev.getX(), (int) ev.getY());
             // Only show the transient task bar if the touch events are on the screen.
             if (!isTrackpadMotionEvent(ev)) {
-                final float x = ev.getRawX();
-                final float y = ev.getRawY();
                 switch (ev.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         mActivePointerId = ev.getPointerId(0);
@@ -178,7 +176,6 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
                         }
                         mLastPos.set(ev.getX(pointerIndex), ev.getY(pointerIndex));
 
-                        float dX = mLastPos.x - mDownPos.x;
                         float dY = mLastPos.y - mDownPos.y;
 
                         if (mIsTransientTaskbar) {

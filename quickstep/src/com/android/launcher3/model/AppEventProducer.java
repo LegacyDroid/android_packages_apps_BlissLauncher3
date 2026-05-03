@@ -101,11 +101,9 @@ public class AppEventProducer implements StatsLogConsumer {
 
     @WorkerThread
     private boolean handleMessage(Message msg) {
-        switch (msg.what) {
-            case MSG_LAUNCH: {
-                mCallback.accept((AppTargetEvent) msg.obj, msg.arg1);
-                return true;
-            }
+        if (msg.what == MSG_LAUNCH) {
+            mCallback.accept((AppTargetEvent) msg.obj, msg.arg1);
+            return true;
         }
         return false;
     }
@@ -293,11 +291,11 @@ public class AppEventProducer implements StatsLogConsumer {
             }
             case FOLDER: {
                 FolderContainer fc = ci.getFolder();
-                switch (fc.getParentContainerCase()) {
-                    case WORKSPACE:
-                        return "folder/" + getWorkspaceContainerString(fc.getWorkspace(), 1, 1);
-                    case HOTSEAT:
-                        return "folder/" + getHotseatContainerString(fc.getHotseat());
+                FolderContainer.ParentContainerCase parentCase = fc.getParentContainerCase();
+                if (parentCase == FolderContainer.ParentContainerCase.WORKSPACE) {
+                    return "folder/" + getWorkspaceContainerString(fc.getWorkspace(), 1, 1);
+                } else if (parentCase == FolderContainer.ParentContainerCase.HOTSEAT) {
+                    return "folder/" + getHotseatContainerString(fc.getHotseat());
                 }
                 return "folder";
             }

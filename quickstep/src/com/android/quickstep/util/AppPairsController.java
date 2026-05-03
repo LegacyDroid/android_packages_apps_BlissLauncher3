@@ -155,12 +155,9 @@ public class AppPairsController {
             return false;
         }
 
-        if (PackageManagerHelper.isSameAppForMultiInstance(leftTopAppInfo, rightBottomAppInfo)
-                && (!leftTopAppInfo.supportsMultiInstance()
-                        || !rightBottomAppInfo.supportsMultiInstance())) {
-            return false;
-        }
-        return true;
+        return !PackageManagerHelper.isSameAppForMultiInstance(leftTopAppInfo, rightBottomAppInfo)
+                || (leftTopAppInfo.supportsMultiInstance()
+                        && rightBottomAppInfo.supportsMultiInstance());
     }
 
     /**

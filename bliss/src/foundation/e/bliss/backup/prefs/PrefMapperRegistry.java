@@ -273,7 +273,7 @@ public final class PrefMapperRegistry {
             c++;
         Object v = src.get("pref_hotseatBG");
         if (v instanceof Boolean b) {
-            prefs.put(LauncherPrefs.DOCK_BG_OPACITY, b ? 100 : 0);
+            prefs.put(LauncherPrefs.DOCK_BG_OPACITY, b.booleanValue() ? 100 : 0);
             c++;
         }
         if (BasicMappers.mapInt(src, prefs, "pref_wallpaperBlur", LauncherPrefs.BLUR_INTENSITY))
@@ -336,7 +336,7 @@ public final class PrefMapperRegistry {
         Object lockSrc = src.get("lock_home_screen");
         if (lockSrc == null)
             lockSrc = src.get("pref_lockHomeScreen");
-        if (!(lockSrc instanceof Boolean lockBool) || !lockBool) {
+        if (!(lockSrc instanceof Boolean lockBool) || !lockBool.booleanValue()) {
             prefs.put(LauncherPrefs.WORKSPACE_LOCK, false);
         }
         prefs.put(LauncherPrefs.FIRST_RUN_LAYOUT_CHOICE_DONE, true);

@@ -1762,17 +1762,13 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     }
 
     // Compares item position based on rank and position giving priority to the rank.
-    public static final Comparator<ItemInfo> ITEM_POS_COMPARATOR = new Comparator<ItemInfo>() {
-
-        @Override
-        public int compare(ItemInfo lhs, ItemInfo rhs) {
-            if (lhs.rank != rhs.rank) {
-                return lhs.rank - rhs.rank;
-            } else if (lhs.cellY != rhs.cellY) {
-                return lhs.cellY - rhs.cellY;
-            } else {
-                return lhs.cellX - rhs.cellX;
-            }
+    public static final Comparator<ItemInfo> ITEM_POS_COMPARATOR = (lhs, rhs) -> {
+        if (lhs.rank != rhs.rank) {
+            return lhs.rank - rhs.rank;
+        } else if (lhs.cellY != rhs.cellY) {
+            return lhs.cellY - rhs.cellY;
+        } else {
+            return lhs.cellX - rhs.cellX;
         }
     };
 
@@ -2067,11 +2063,17 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         void onFolderStateChanged(@FolderState int newState);
     }
 
-    protected void onFolderOpenStart() { }
+    protected void onFolderOpenStart() {
+        // intentionally empty — subclasses may override to react to folder open start.
+    }
 
-    protected void onFolderCloseComplete() { }
+    protected void onFolderCloseComplete() {
+        // intentionally empty — subclasses may override to react to folder close completion.
+    }
 
-    public void updateFolderOnAnimate(boolean isOpening) { }
+    public void updateFolderOnAnimate(boolean isOpening) {
+        // intentionally empty — subclasses may override to update the folder during animation.
+    }
 
     public int getUnusedOffsetYOnAnimate(boolean isOpening) {
         return 0;

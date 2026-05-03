@@ -60,10 +60,7 @@ public class WidgetItem extends ComponentKey {
         if (widgetInfo != null && otherItem.widgetInfo != null) {
             return true;
         }
-        if (activityInfo != null && otherItem.activityInfo != null) {
-            return true;
-        }
-        return false;
+        return activityInfo != null && otherItem.activityInfo != null;
     }
 
     /** Returns whether this {@link WidgetItem} is for a shortcut rather than an app widget. */

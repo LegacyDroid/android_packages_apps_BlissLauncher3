@@ -211,10 +211,14 @@ public class FolderAdaptiveIcon extends AdaptiveIconDrawable {
         }
 
         @Override
-        public void setAlpha(int i) { }
+        public void setAlpha(int i) {
+            // No-op: alpha is not supported for this drawable.
+        }
 
         @Override
-        public void setColorFilter(ColorFilter colorFilter) {  }
+        public void setColorFilter(ColorFilter colorFilter) {
+            // No-op: color filtering is not supported for this drawable.
+        }
 
         @Override
         public int getOpacity() {

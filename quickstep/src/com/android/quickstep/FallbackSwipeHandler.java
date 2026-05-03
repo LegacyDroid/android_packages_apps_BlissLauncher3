@@ -77,6 +77,7 @@ import com.android.systemui.shared.system.InputConsumerController;
 import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 /**
@@ -92,7 +93,8 @@ public class FallbackSwipeHandler extends
      * avoid leaking too make binders in case the receiving launcher does not handle the contract
      * properly.
      */
-    private static volatile StaticMessageReceiver sMessageReceiver = null;
+    private static final AtomicReference<StaticMessageReceiver> sMessageReceiver =
+            new AtomicReference<>();
 
     private FallbackHomeAnimationFactory mActiveAnimationFactory;
     private final boolean mRunningOverHome;
@@ -409,14 +411,12 @@ public class FallbackSwipeHandler extends
 
             TaskKey key = new TaskKey(runningTaskInfo);
             if (key.getComponent() != null) {
-                StaticMessageReceiver receiver = sMessageReceiver;
+                StaticMessageReceiver receiver = sMessageReceiver.get();
                 if (receiver == null) {
-                    synchronized (FallbackSwipeHandler.class) {
-                        receiver = sMessageReceiver;
-                        if (receiver == null) {
-                            receiver = new StaticMessageReceiver();
-                            sMessageReceiver = receiver;
-                        }
+                    StaticMessageReceiver candidate = new StaticMessageReceiver();
+                    receiver = sMessageReceiver.compareAndExchange(null, candidate);
+                    if (receiver == null) {
+                        receiver = candidate;
                     }
                 }
 

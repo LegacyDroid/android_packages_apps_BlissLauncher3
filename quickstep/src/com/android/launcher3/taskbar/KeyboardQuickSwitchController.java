@@ -277,8 +277,8 @@ public final class KeyboardQuickSwitchController implements
     private void processLoadedTasksOnDesktop(List<GroupTask> tasks, Set<Integer> taskIdsToExclude) {
         // Find all desktop tasks.
         List<DesktopTask> desktopTasks = tasks.stream()
-                .filter(t -> t instanceof DesktopTask)
-                .map(t -> (DesktopTask) t)
+                .filter(DesktopTask.class::isInstance)
+                .map(DesktopTask.class::cast)
                 .toList();
 
         // Apps on the connected displays seem to be in different Desktop tasks even with the

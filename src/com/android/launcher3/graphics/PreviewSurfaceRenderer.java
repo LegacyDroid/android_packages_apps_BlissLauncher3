@@ -292,7 +292,7 @@ public class PreviewSurfaceRenderer {
         if (mDarkMode != null) {
             Configuration configuration = new Configuration(
                     context.getResources().getConfiguration());
-            if (mDarkMode) {
+            if (Boolean.TRUE.equals(mDarkMode)) {
                 configuration.uiMode &= ~UI_MODE_NIGHT_NO;
                 configuration.uiMode |= UI_MODE_NIGHT_YES;
             } else {

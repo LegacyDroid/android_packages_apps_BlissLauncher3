@@ -774,6 +774,7 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
 
     @Override
     public void setTranslationY(float translationY) {
+        // No-op: translationY is intentionally ignored; use setForcedTranslationY instead.
     }
 
     public void  setForcedTranslationY(float translationY) {
@@ -810,5 +811,6 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
      */
     @Override
     public void setInsets(Rect insets) {
+        // No-op: prevent InsettableFrameLayout from applying margins to the pagination.
     }
 }

@@ -1595,14 +1595,11 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     }
 
     protected void setWallpaperDimension() {
-        Executors.THREAD_POOL_EXECUTOR.execute(new Runnable() {
-            @Override
-            public void run() {
-                final Point size = LauncherAppState.getIDP(getContext()).defaultWallpaperSize;
-                if (size.x != mWallpaperManager.getDesiredMinimumWidth()
-                        || size.y != mWallpaperManager.getDesiredMinimumHeight()) {
-                    mWallpaperManager.suggestDesiredDimensions(size.x, size.y);
-                }
+        Executors.THREAD_POOL_EXECUTOR.execute(() -> {
+            final Point size = LauncherAppState.getIDP(getContext()).defaultWallpaperSize;
+            if (size.x != mWallpaperManager.getDesiredMinimumWidth()
+                    || size.y != mWallpaperManager.getDesiredMinimumHeight()) {
+                mWallpaperManager.suggestDesiredDimensions(size.x, size.y);
             }
         });
     }
@@ -1670,6 +1667,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     case "fade":
                         float fadeAlpha = 1f - Math.abs(scrollProgress) * 0.7f;
                         child.setAlpha(Math.max(0f, fadeAlpha));
+                        break;
+                    default:
+                        // No transformation for unknown transition types.
                         break;
                 }
             }
@@ -2288,7 +2288,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     }
 
     @Override
-    public void prepareAccessibilityDrop() {}
+    public void prepareAccessibilityDrop() {
+        // intentionally empty — Workspace has no special preparation for accessibility drops.
+    }
 
     @Override
     public void onDrop(final DragObject d, DragOptions options) {
@@ -2825,9 +2827,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     child, mTargetCell, span, CellLayout.MODE_SHOW_REORDER_HINT);
             mDragTargetLayout.visualizeDropLocation(mTargetCell[0], mTargetCell[1], span[0],
                     span[1], d);
-            nearestDropOccupied = mDragTargetLayout.isNearestDropLocationOccupied((int)
-                            mDragViewVisualCenter[0], (int) mDragViewVisualCenter[1], item.spanX,
-                    item.spanY, child, mTargetCell);
         } else if ((mDragMode == DRAG_MODE_NONE || mDragMode == DRAG_MODE_REORDER)
                 && (mLastReorderX != reorderX || mLastReorderY != reorderY)
                 && targetCellDistance < mDragTargetLayout.getReorderRadius(mTargetCell, item.spanX,
@@ -3174,22 +3173,19 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 item.spanY = resultSpan[1];
             }
 
-            Runnable onAnimationCompleteRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    // Normally removeExtraEmptyScreen is called in Workspace#onDrop, but when
-                    // adding an item that may not be dropped right away (due to a config activity)
-                    // we defer the removal until the activity returns.
-                    deferRemoveExtraEmptyScreen();
+            Runnable onAnimationCompleteRunnable = () -> {
+                // Normally removeExtraEmptyScreen is called in Workspace#onDrop, but when
+                // adding an item that may not be dropped right away (due to a config activity)
+                // we defer the removal until the activity returns.
+                deferRemoveExtraEmptyScreen();
 
-                    // When dragging and dropping from customization tray, we deal with creating
-                    // widgets/shortcuts/folders in a slightly different way
-                    mLauncher.addPendingItem(pendingInfo, container, screenId, mTargetCell,
-                            item.spanX, item.spanY);
-                    mStatsLogManager.logger().withItemInfo(d.dragInfo)
-                            .withInstanceId(d.logInstanceId)
-                            .log(LauncherEvent.LAUNCHER_ITEM_DROP_COMPLETED);
-                }
+                // When dragging and dropping from customization tray, we deal with creating
+                // widgets/shortcuts/folders in a slightly different way
+                mLauncher.addPendingItem(pendingInfo, container, screenId, mTargetCell,
+                        item.spanX, item.spanY);
+                mStatsLogManager.logger().withItemInfo(d.dragInfo)
+                        .withInstanceId(d.logInstanceId)
+                        .log(LauncherEvent.LAUNCHER_ITEM_DROP_COMPLETED);
             };
             boolean isWidgetItem = pendingInfo.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET
                     || pendingInfo.itemType == LauncherSettings.Favorites.ITEM_TYPE_CUSTOM_APPWIDGET;
@@ -3371,15 +3367,12 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 endStyle = DragLayer.ANIMATION_END_DISAPPEAR;
             }
 
-            Runnable onComplete = new Runnable() {
-                @Override
-                public void run() {
-                    if (finalView != null) {
-                        finalView.setVisibility(VISIBLE);
-                    }
-                    if (onCompleteRunnable != null) {
-                        onCompleteRunnable.run();
-                    }
+            Runnable onComplete = () -> {
+                if (finalView != null) {
+                    finalView.setVisibility(VISIBLE);
+                }
+                if (onCompleteRunnable != null) {
+                    onCompleteRunnable.run();
                 }
             };
             dragLayer.animateViewIntoPosition(dragView, finalPos[0],

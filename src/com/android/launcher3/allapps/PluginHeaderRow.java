@@ -38,7 +38,9 @@ public class PluginHeaderRow implements FloatingHeaderRow {
 
     @Override
     public void setup(FloatingHeaderView parent, FloatingHeaderRow[] allRows,
-            boolean tabsHidden) { }
+            boolean tabsHidden) {
+        // intentionally empty — plugin row is set up in the constructor via mPlugin.setup
+    }
 
     @Override
     public int getExpectedHeight() {

@@ -116,7 +116,7 @@ public class LauncherSettings {
          * The gesture is an application created shortcut
          * @deprecated This is no longer supported. Use {@link #ITEM_TYPE_DEEP_SHORTCUT} instead
          */
-        @Deprecated
+        @Deprecated(since = "a16")
         public static final int ITEM_TYPE_SHORTCUT = 1;
 
         /**

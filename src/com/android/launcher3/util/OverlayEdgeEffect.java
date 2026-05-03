@@ -76,7 +76,9 @@ public class OverlayEdgeEffect extends EdgeEffectCompat {
     }
 
     @Override
-    public void onAbsorb(int velocity) { }
+    public void onAbsorb(int velocity) {
+        // intentionally empty — overlay edge effect ignores absorbed velocity
+    }
 
     @Override
     public boolean isFinished() {

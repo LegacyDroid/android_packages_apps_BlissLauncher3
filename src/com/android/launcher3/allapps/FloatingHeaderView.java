@@ -57,7 +57,9 @@ public class FloatingHeaderView extends LinearLayout implements
     private final RecyclerView.OnScrollListener mOnScrollListener =
             new RecyclerView.OnScrollListener() {
                 @Override
-                public void onScrollStateChanged(@NonNull RecyclerView rv, int newState) {}
+                public void onScrollStateChanged(@NonNull RecyclerView rv, int newState) {
+                    // No-op: only onScrolled is observed.
+                }
 
                 @Override
                 public void onScrolled(@NonNull RecyclerView rv, int dx, int dy) {

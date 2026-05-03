@@ -358,7 +358,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
                 mAdapterItems.add(new AdapterItem(VIEW_TYPE_BOTTOM_VIEW_TO_SCROLL_TO));
                 mFastScrollerSections.add(new FastScrollSectionInfo(
                         mFastScrollerSections.get(mFastScrollerSections.size() - 1).sectionName,
-                        position++));
+                        position));
                 Log.d(TAG, "Adding FastScrollSection duplicate to scroll to the bottom.");
             }
         }
@@ -413,6 +413,9 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
                 case PrivateProfileManager.STATE_ENABLED:
                     // Add PS Apps only in Enabled State.
                     position = addPrivateSpaceApps(position);
+                    break;
+                default:
+                    // No-op for any other states.
                     break;
             }
         }

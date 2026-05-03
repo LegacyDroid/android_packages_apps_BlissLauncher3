@@ -348,12 +348,9 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 new TaskRestartedDuringLaunchListener();
         restartedListener.register(onEndCallback::executeAllAndDestroy);
         mRegisteredTaskStackChangeListener.add(restartedListener);
-        onEndCallback.add(new Runnable() {
-            @Override
-            public void run() {
-                restartedListener.unregister();
-                mRegisteredTaskStackChangeListener.remove(restartedListener);
-            }
+        onEndCallback.add(() -> {
+            restartedListener.unregister();
+            mRegisteredTaskStackChangeListener.remove(restartedListener);
         });
 
         RemoteAnimationRunnerCompat runner = createAppLaunchRunner(v, onEndCallback);
@@ -517,12 +514,10 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
      */
     private Rect getWindowTargetBounds(@NonNull RemoteAnimationTarget[] appTargets,
             int rotationChange) {
-        RemoteAnimationTarget target = null;
-        for (RemoteAnimationTarget t : appTargets) {
-            if (t.mode != MODE_OPENING) continue;
-            target = t;
-            break;
-        }
+        RemoteAnimationTarget target = Arrays.stream(appTargets)
+                .filter(t -> t.mode == MODE_OPENING)
+                .findFirst()
+                .orElse(null);
         if (target == null) return new Rect(0, 0, mDeviceProfile.widthPx, mDeviceProfile.heightPx);
         final Rect bounds = new Rect(target.screenSpaceBounds);
         if (target.localBounds != null) {
@@ -886,7 +881,6 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                     // Animate to above the taskbar.
                     int bottomLevel = Math.min(bottomInsetPos[0], bounds.bottom);
                     windowTargetBounds.bottom = bottomLevel;
-                    final int endHeight = bottomLevel - bounds.top;
 
                     AnimOpenProperties prop = new AnimOpenProperties(mLauncher.getResources(),
                             mDeviceProfile, windowTargetBounds, launcherIconBounds, v,

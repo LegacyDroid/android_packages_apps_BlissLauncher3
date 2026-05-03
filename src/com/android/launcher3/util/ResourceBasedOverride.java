@@ -52,8 +52,9 @@ public interface ResourceBasedOverride {
 
             // Load the base class with no parameter
             try {
-                return clazz.newInstance();
-            } catch (InstantiationException|IllegalAccessException e) {
+                return clazz.getDeclaredConstructor().newInstance();
+            } catch (InstantiationException | IllegalAccessException
+                    | NoSuchMethodException | InvocationTargetException e) {
                 throw new IllegalStateException(e);
             }
         }

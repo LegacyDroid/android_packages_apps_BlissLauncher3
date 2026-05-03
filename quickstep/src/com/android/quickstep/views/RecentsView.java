@@ -1198,18 +1198,15 @@ public abstract class RecentsView<
                 Integer id = entry.getKey();
                 ThumbnailData thumbnail = entry.getValue();
                 TaskView taskView = getTaskViewByTaskId(id);
-                if (taskView == null) {
-                    continue;
-                }
                 // taskView could be a GroupedTaskView, so select the relevant task by ID
-                TaskContainer taskContainer = taskView.getTaskContainerById(id);
-                if (taskContainer == null) {
-                    continue;
+                TaskContainer taskContainer = taskView == null
+                        ? null : taskView.getTaskContainerById(id);
+                if (taskContainer != null) {
+                    Task task = taskContainer.getTask();
+                    TaskThumbnailViewDeprecated taskThumbnailViewDeprecated =
+                            taskContainer.getThumbnailViewDeprecated();
+                    taskThumbnailViewDeprecated.setThumbnail(task, thumbnail, /*refreshNow=*/false);
                 }
-                Task task = taskContainer.getTask();
-                TaskThumbnailViewDeprecated taskThumbnailViewDeprecated =
-                        taskContainer.getThumbnailViewDeprecated();
-                taskThumbnailViewDeprecated.setThumbnail(task, thumbnail, /*refreshNow=*/false);
             }
         }
     }
@@ -4835,6 +4832,8 @@ public abstract class RecentsView<
                     break;
                 case FOCUS_BACKWARD, FOCUS_RIGHT, FOCUS_LEFT:
                     setCurrentPage(getChildCount() - 1);
+                    break;
+                default:
                     break;
             }
         }

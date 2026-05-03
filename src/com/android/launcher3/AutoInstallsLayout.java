@@ -220,9 +220,10 @@ public class AutoInstallsLayout {
         UserCache cache = UserCache.getInstance(context);
         for (UserHandle user : cache.getUserProfiles()) {
             UserIconInfo uii = cache.getUserInfo(user);
-            switch (uii.type) {
-                case TYPE_WORK -> mUserTypeToSerial.put(USER_TYPE_WORK, uii.userSerial);
-                case TYPE_CLONED -> mUserTypeToSerial.put(USER_TYPE_CLONED, uii.userSerial);
+            if (uii.type == TYPE_WORK) {
+                mUserTypeToSerial.put(USER_TYPE_WORK, uii.userSerial);
+            } else if (uii.type == TYPE_CLONED) {
+                mUserTypeToSerial.put(USER_TYPE_CLONED, uii.userSerial);
             }
         }
     }

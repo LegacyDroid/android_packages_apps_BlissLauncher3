@@ -324,15 +324,12 @@ public abstract class DragController<T extends ActivityContext>
 
     public void animateDragViewToOriginalPosition(final Runnable onComplete,
             final View originalIcon, int duration) {
-        Runnable onCompleteRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (originalIcon != null) {
-                    originalIcon.setVisibility(View.VISIBLE);
-                }
-                if (onComplete != null) {
-                    onComplete.run();
-                }
+        Runnable onCompleteRunnable = () -> {
+            if (originalIcon != null) {
+                originalIcon.setVisibility(View.VISIBLE);
+            }
+            if (onComplete != null) {
+                onComplete.run();
             }
         };
         mDragObject.dragView.animateTo(mMotionDown.x, mMotionDown.y, onCompleteRunnable, duration);

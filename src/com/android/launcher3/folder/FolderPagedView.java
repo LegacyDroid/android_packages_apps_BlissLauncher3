@@ -694,15 +694,11 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
                     final int newRank = moveStart;
                     final float oldTranslateX = v.getTranslationX();
 
-                    Runnable endAction = new Runnable() {
-
-                        @Override
-                        public void run() {
-                            mPendingAnimations.remove(v);
-                            v.setTranslationX(oldTranslateX);
-                            ((CellLayout) v.getParent().getParent()).removeView(v);
-                            addViewForRank(v, (WorkspaceItemInfo) v.getTag(), newRank);
-                        }
+                    Runnable endAction = () -> {
+                        mPendingAnimations.remove(v);
+                        v.setTranslationX(oldTranslateX);
+                        ((CellLayout) v.getParent().getParent()).removeView(v);
+                        addViewForRank(v, (WorkspaceItemInfo) v.getTag(), newRank);
                     };
                     v.animate()
                         .translationXBy((direction > 0 ^ mIsRtl) ? -v.getWidth() : v.getWidth())

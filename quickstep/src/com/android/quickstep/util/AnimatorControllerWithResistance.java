@@ -134,13 +134,13 @@ public class AnimatorControllerWithResistance {
      * @param translationTarget The target for the translationProperty.
      * @param translationProperty Animate the value to change the translation of the recents view.
      */
-    public static <SCALE, TRANSLATION> AnimatorControllerWithResistance createForRecents(
+    public static <S, T> AnimatorControllerWithResistance createForRecents(
             AnimatorPlaybackController normalController, Context context,
-            RecentsOrientedState recentsOrientedState, DeviceProfile dp, SCALE scaleTarget,
-            FloatProperty<SCALE> scaleProperty, TRANSLATION translationTarget,
-            FloatProperty<TRANSLATION> translationProperty) {
+            RecentsOrientedState recentsOrientedState, DeviceProfile dp, S scaleTarget,
+            FloatProperty<S> scaleProperty, T translationTarget,
+            FloatProperty<T> translationProperty) {
 
-        RecentsParams<SCALE, TRANSLATION> params = new RecentsParams<>(context,
+        RecentsParams<S, T> params = new RecentsParams<>(context,
                 recentsOrientedState, dp, scaleTarget, scaleProperty, translationTarget,
                 translationProperty);
         PendingAnimation resistAnim = createRecentsResistanceAnim(params);
@@ -152,8 +152,8 @@ public class AnimatorControllerWithResistance {
      * Creates the resistance animation for {@link #createForRecents}, or can be used separately
      * when starting from recents, i.e. {@link #createRecentsResistanceFromOverviewAnim}.
      */
-    public static <SCALE, TRANSLATION> PendingAnimation createRecentsResistanceAnim(
-            RecentsParams<SCALE, TRANSLATION> params) {
+    public static <S, T> PendingAnimation createRecentsResistanceAnim(
+            RecentsParams<S, T> params) {
         Rect startRect = new Rect();
         RecentsPagedOrientationHandler orientationHandler = params.recentsOrientedState
                 .getOrientationHandler();
@@ -229,15 +229,15 @@ public class AnimatorControllerWithResistance {
     /**
      * Params to compute resistance when scaling/translating recents.
      */
-    private static class RecentsParams<SCALE, TRANSLATION> {
+    private static class RecentsParams<S, T> {
         // These are all required and can't have default values, hence are final.
         public final Context context;
         public final RecentsOrientedState recentsOrientedState;
         public final DeviceProfile dp;
-        public final SCALE scaleTarget;
-        public final FloatProperty<SCALE> scaleProperty;
-        public final TRANSLATION translationTarget;
-        public final FloatProperty<TRANSLATION> translationProperty;
+        public final S scaleTarget;
+        public final FloatProperty<S> scaleProperty;
+        public final T translationTarget;
+        public final FloatProperty<T> translationProperty;
 
         // These are not required, or can have a default value that is generally correct.
         @Nullable public PendingAnimation resistAnim = null;
@@ -246,8 +246,8 @@ public class AnimatorControllerWithResistance {
         public float startTranslation = 0f;
 
         private RecentsParams(Context context, RecentsOrientedState recentsOrientedState,
-                DeviceProfile dp, SCALE scaleTarget, FloatProperty<SCALE> scaleProperty,
-                TRANSLATION translationTarget, FloatProperty<TRANSLATION> translationProperty) {
+                DeviceProfile dp, S scaleTarget, FloatProperty<S> scaleProperty,
+                T translationTarget, FloatProperty<T> translationProperty) {
             this.context = context;
             this.recentsOrientedState = recentsOrientedState;
             this.dp = dp;
@@ -262,23 +262,23 @@ public class AnimatorControllerWithResistance {
             }
         }
 
-        private RecentsParams<SCALE, TRANSLATION> setResistAnim(PendingAnimation resistAnim) {
+        private RecentsParams<S, T> setResistAnim(PendingAnimation resistAnim) {
             this.resistAnim = resistAnim;
             return this;
         }
 
-        private RecentsParams<SCALE, TRANSLATION> setResistanceParams(
+        private RecentsParams<S, T> setResistanceParams(
                 RecentsResistanceParams resistanceParams) {
             this.resistanceParams = resistanceParams;
             return this;
         }
 
-        private RecentsParams<SCALE, TRANSLATION> setStartScale(float startScale) {
+        private RecentsParams<S, T> setStartScale(float startScale) {
             this.startScale = startScale;
             return this;
         }
 
-        private RecentsParams<SCALE, TRANSLATION> setStartTranslation(float startTranslation) {
+        private RecentsParams<S, T> setStartTranslation(float startTranslation) {
             this.startTranslation = startTranslation;
             return this;
         }

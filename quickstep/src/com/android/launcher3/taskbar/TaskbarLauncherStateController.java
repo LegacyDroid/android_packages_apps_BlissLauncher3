@@ -931,12 +931,8 @@ public class TaskbarLauncherStateController {
                 mLauncher.getDeviceProfile());
         TaskbarStashController stashController = mControllers.taskbarStashController;
         stashController.updateStateForFlag(FLAG_STASHED_FOR_BUBBLES, stash);
-        Runnable swapHotseatWithTaskbar = new Runnable() {
-            @Override
-            public void run() {
+        Runnable swapHotseatWithTaskbar = () ->
                 updateIconAlphaForHome(stash ? 1 : 0, ALPHA_CHANNEL_TASKBAR_STASH);
-            }
-        };
         if (stash) {
             stashController.applyState();
             // if we stashing the hotseat we need to immediately swap it with the animating taskbar

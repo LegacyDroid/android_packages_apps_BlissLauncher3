@@ -190,10 +190,14 @@ public class ExtendedEditText extends EditText {
     /**
      * Save the input, suggestion, hint states when it's on focus, and set to unfocused states.
      */
-    public void saveFocusedStateAndUpdateToUnfocusedState() {}
+    public void saveFocusedStateAndUpdateToUnfocusedState() {
+        // No-op by default; subclasses override to capture state.
+    }
 
     /**
      * Restore to the previous saved focused state.
      */
-    public void restoreToFocusedState() {}
+    public void restoreToFocusedState() {
+        // No-op by default; subclasses override to restore state.
+    }
 }

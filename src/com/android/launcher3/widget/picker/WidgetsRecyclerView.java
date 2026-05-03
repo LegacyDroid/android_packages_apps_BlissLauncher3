@@ -154,6 +154,7 @@ public class WidgetsRecyclerView extends FastScrollRecyclerView implements OnIte
 
     @Override
     public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+        // intentionally empty — never disallow intercept so the fast scroller keeps receiving events
     }
 
     public void setHeaderViewDimensionsProvider(

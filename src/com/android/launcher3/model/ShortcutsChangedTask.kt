@@ -57,15 +57,14 @@ class ShortcutsChangedTask(
 
         if (matchingWorkspaceItems.isNotEmpty()) {
             val infoWrapper = ApplicationInfoWrapper(context, packageName, user)
-            if (shortcuts.isEmpty()) {
-                // Verify that the app is indeed installed.
-                if (
-                    (!infoWrapper.isInstalled() && !infoWrapper.isArchived()) ||
-                        (Flags.restoreArchivedShortcuts() && infoWrapper.isArchived())
-                ) {
-                    // App is not installed or is archived, ignoring package events
-                    return
-                }
+            // Verify that the app is indeed installed.
+            if (
+                shortcuts.isEmpty() &&
+                    ((!infoWrapper.isInstalled() && !infoWrapper.isArchived()) ||
+                        (Flags.restoreArchivedShortcuts() && infoWrapper.isArchived()))
+            ) {
+                // App is not installed or is archived, ignoring package events
+                return
             }
             // Update the workspace to reflect the changes to updated shortcuts residing on it.
             val allLauncherKnownIds =

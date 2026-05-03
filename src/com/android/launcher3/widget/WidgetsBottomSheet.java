@@ -251,5 +251,7 @@ public class WidgetsBottomSheet extends BaseWidgetSheet {
     }
 
     @Override
-    public void onRecommendedWidgetsBound() {} // no op
+    public void onRecommendedWidgetsBound() {
+        // No-op: this sheet does not surface recommended widgets.
+    }
 }

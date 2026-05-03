@@ -102,6 +102,7 @@ public class PersonalWorkSlidingTabStrip extends LinearLayout implements PageInd
 
     @Override
     public void setScroll(int currentScroll, int totalScroll) {
+        // No-op: this tab strip does not react to scroll events.
     }
 
     @Override
@@ -122,6 +123,7 @@ public class PersonalWorkSlidingTabStrip extends LinearLayout implements PageInd
 
     @Override
     public void setMarkersCount(int numMarkers) {
+        // No-op: marker count is implied by the static personal/work tab structure.
     }
 
     @Override

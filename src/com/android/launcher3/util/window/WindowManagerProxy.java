@@ -183,9 +183,11 @@ public class WindowManagerProxy {
             // In 3-button landscape/seascape, Launcher should always have nav insets regardless if
             // it's initiated from fullscreen apps.
             int navBarWidth = getDimenByName(systemRes, NAVBAR_LANDSCAPE_LEFT_RIGHT_SIZE);
-            switch (getRotation(context)) {
-                case Surface.ROTATION_90 -> rightNav = navBarWidth;
-                case Surface.ROTATION_270 -> leftNav = navBarWidth;
+            int rotation = getRotation(context);
+            if (rotation == Surface.ROTATION_90) {
+                rightNav = navBarWidth;
+            } else if (rotation == Surface.ROTATION_270) {
+                leftNav = navBarWidth;
             }
         }
         Insets newNavInsets = Insets.of(leftNav, navInsets.top, rightNav, bottomNav);
@@ -504,10 +506,14 @@ public class WindowManagerProxy {
     }
 
     /** Registers a listener for Taskbar changes in Desktop Mode.  */
-    public void registerDesktopVisibilityListener(DesktopVisibilityListener listener) { }
+    public void registerDesktopVisibilityListener(DesktopVisibilityListener listener) {
+        // No-op default; overridden by subclasses that support desktop mode.
+    }
 
     /** Removes a previously registered listener for Taskbar changes in Desktop Mode.  */
-    public void unregisterDesktopVisibilityListener(DesktopVisibilityListener listener) { }
+    public void unregisterDesktopVisibilityListener(DesktopVisibilityListener listener) {
+        // No-op default; overridden by subclasses that support desktop mode.
+    }
 
     /** A listener for when the user enters/exits Desktop Mode.  */
     public interface DesktopVisibilityListener {

@@ -264,7 +264,6 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
 
         mViewCallbacks = viewCallbacks;
         Resources resources = context.getResources();
-        Resources.Theme theme = context.getTheme();
 
         LayoutInflater layoutInflater = LayoutInflater.from(context);
         int tasksToDisplay = groupTasks.size();

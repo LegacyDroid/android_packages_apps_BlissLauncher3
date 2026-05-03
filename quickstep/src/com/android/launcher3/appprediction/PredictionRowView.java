@@ -193,8 +193,8 @@ public class PredictionRowView<T extends Context & ActivityContext>
     private void applyPredictedApps(List<ItemInfo> items) {
         mPredictedApps.clear();
         mPredictedApps.addAll(items.stream()
-                .filter(itemInfo -> itemInfo instanceof WorkspaceItemInfo)
-                .map(itemInfo -> (WorkspaceItemInfo) itemInfo).collect(Collectors.toList()));
+                .filter(WorkspaceItemInfo.class::isInstance)
+                .map(WorkspaceItemInfo.class::cast).collect(Collectors.toList()));
         applyPredictionApps();
     }
 

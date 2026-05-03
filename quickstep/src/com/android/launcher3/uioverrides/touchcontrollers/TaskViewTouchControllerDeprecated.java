@@ -53,9 +53,9 @@ import com.android.quickstep.views.TaskView;
  *
  * @deprecated This class will be replaced by the new {@link TaskViewTouchController}.
  */
-@Deprecated
+@Deprecated(since = "1.0", forRemoval = false)
 public class TaskViewTouchControllerDeprecated<
-        CONTAINER extends Context & RecentsViewContainer> extends AnimatorListenerAdapter
+        T extends Context & RecentsViewContainer> extends AnimatorListenerAdapter
         implements TouchController, SingleAxisSwipeDetector.Listener {
     private static final String TAG = "TaskViewTouchControllerDeprecated";
 
@@ -69,7 +69,7 @@ public class TaskViewTouchControllerDeprecated<
     public static final VibrationEffect TASK_DISMISS_VIBRATION_FALLBACK =
             VibrationConstants.EFFECT_TEXTURE_TICK;
 
-    protected final CONTAINER mContainer;
+    protected final T mContainer;
     private final TaskViewRecentsTouchContext mTaskViewRecentsTouchContext;
     private final SingleAxisSwipeDetector mDetector;
     private final RecentsView<?, ?> mRecentsView;
@@ -94,7 +94,7 @@ public class TaskViewTouchControllerDeprecated<
 
     private boolean mIsDismissHapticRunning = false;
 
-    public TaskViewTouchControllerDeprecated(CONTAINER container,
+    public TaskViewTouchControllerDeprecated(T container,
             TaskViewRecentsTouchContext taskViewRecentsTouchContext) {
         mContainer = container;
         mTaskViewRecentsTouchContext = taskViewRecentsTouchContext;
@@ -163,29 +163,29 @@ public class TaskViewTouchControllerDeprecated<
                 for (TaskView taskView : mRecentsView.getTaskViews()) {
                     if (mRecentsView.isTaskViewVisible(taskView) && mContainer.getDragLayer()
                             .isEventOverView(taskView, ev)) {
-                        // Disable swiping up and down if the task overlay is modal.
-                        if (mTaskViewRecentsTouchContext.isRecentsModal()) {
-                            mTaskBeingDragged = null;
-                            break;
+                        // Disable swiping up and down if the task overlay is modal; otherwise
+                        // configure the drag state for this task.
+                        if (!mTaskViewRecentsTouchContext.isRecentsModal()) {
+                            mTaskBeingDragged = taskView;
+                            int upDirection = mRecentsView.getPagedOrientationHandler()
+                                    .getUpDirection(mIsRtl);
+
+                            // The task can be dragged up to dismiss it
+                            mAllowGoingUp = true;
+
+                            // The task can be dragged down to open it if:
+                            // - It's the current page
+                            // - We support gestures to enter overview
+                            // - It's the focused task if in grid view
+                            // - The task is snapped
+                            mAllowGoingDown = taskView == mRecentsView.getCurrentPageTaskView()
+                                    && DisplayController.getNavigationMode(mContainer).hasGestures
+                                    && (!mRecentsView.showAsGrid() || mTaskBeingDragged.isLargeTile())
+                                    && mRecentsView.isTaskInExpectedScrollPosition(taskView);
+
+                            directionsToDetectScroll = mAllowGoingDown
+                                    ? DIRECTION_BOTH : upDirection;
                         }
-                        mTaskBeingDragged = taskView;
-                        int upDirection = mRecentsView.getPagedOrientationHandler()
-                                .getUpDirection(mIsRtl);
-
-                        // The task can be dragged up to dismiss it
-                        mAllowGoingUp = true;
-
-                        // The task can be dragged down to open it if:
-                        // - It's the current page
-                        // - We support gestures to enter overview
-                        // - It's the focused task if in grid view
-                        // - The task is snapped
-                        mAllowGoingDown = taskView == mRecentsView.getCurrentPageTaskView()
-                                && DisplayController.getNavigationMode(mContainer).hasGestures
-                                && (!mRecentsView.showAsGrid() || mTaskBeingDragged.isLargeTile())
-                                && mRecentsView.isTaskInExpectedScrollPosition(taskView);
-
-                        directionsToDetectScroll = mAllowGoingDown ? DIRECTION_BOTH : upDirection;
                         break;
                     }
                 }

@@ -1668,31 +1668,29 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
         if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0) {
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_SCROLL: {
-                    // Handle mouse (or ext. device) by shifting the page depending on the scroll
-                    final float vscroll;
-                    final float hscroll;
-                    if ((event.getMetaState() & KeyEvent.META_SHIFT_ON) != 0) {
-                        vscroll = 0;
-                        hscroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL);
+            if (event.getAction() == MotionEvent.ACTION_SCROLL) {
+                // Handle mouse (or ext. device) by shifting the page depending on the scroll
+                final float vscroll;
+                final float hscroll;
+                if ((event.getMetaState() & KeyEvent.META_SHIFT_ON) != 0) {
+                    vscroll = 0;
+                    hscroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL);
+                } else {
+                    vscroll = -event.getAxisValue(MotionEvent.AXIS_VSCROLL);
+                    hscroll = event.getAxisValue(MotionEvent.AXIS_HSCROLL);
+                }
+                if (!canScroll(Math.abs(vscroll), Math.abs(hscroll))) {
+                    return false;
+                }
+                if (hscroll != 0 || vscroll != 0) {
+                    boolean isForwardScroll = mIsRtl ? (hscroll < 0 || vscroll < 0)
+                                                     : (hscroll > 0 || vscroll > 0);
+                    if (isForwardScroll) {
+                        scrollRight();
                     } else {
-                        vscroll = -event.getAxisValue(MotionEvent.AXIS_VSCROLL);
-                        hscroll = event.getAxisValue(MotionEvent.AXIS_HSCROLL);
+                        scrollLeft();
                     }
-                    if (!canScroll(Math.abs(vscroll), Math.abs(hscroll))) {
-                        return false;
-                    }
-                    if (hscroll != 0 || vscroll != 0) {
-                        boolean isForwardScroll = mIsRtl ? (hscroll < 0 || vscroll < 0)
-                                                         : (hscroll > 0 || vscroll > 0);
-                        if (isForwardScroll) {
-                            scrollRight();
-                        } else {
-                            scrollLeft();
-                        }
-                        return true;
-                    }
+                    return true;
                 }
             }
         }
@@ -2049,6 +2047,9 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
                     return scrollRight();
                 }
             }
+            default:
+                // Unhandled accessibility action — fall through to super-class behavior.
+                break;
         }
         return false;
     }

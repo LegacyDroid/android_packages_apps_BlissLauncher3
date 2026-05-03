@@ -146,7 +146,9 @@ public class InstallSessionTracker extends PackageInstaller.SessionCallback impl
     }
 
     @Override
-    public void onActiveChanged(final int sessionId, final boolean active) { }
+    public void onActiveChanged(final int sessionId, final boolean active) {
+        // intentionally empty — active-state transitions are not tracked by the launcher
+    }
 
     @Override
     public void onBadgingChanged(final int sessionId) {

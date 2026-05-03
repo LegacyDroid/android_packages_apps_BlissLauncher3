@@ -76,7 +76,7 @@ public class CacheDataUpdatedTask implements ModelUpdateTask {
             dataModel.itemsIdMap.stream()
                     .filter(WIDGET_FILTER)
                     .filter(item -> mUser.equals(item.user))
-                    .map(item -> (LauncherAppWidgetInfo) item)
+                    .map(LauncherAppWidgetInfo.class::cast)
                     .filter(widget -> mPackages.contains(widget.providerName.getPackageName())
                             && widget.pendingItemInfo != null)
                     .forEach(widget -> {

@@ -229,11 +229,7 @@ public class StatusBarTouchController implements TouchController {
             }
         }
 
-        if (MultiModeController.isSingleLayerMode()
-                && mLauncher.getWorkspace().getCurrentPage() == Workspace.WIDGET_PAGE) {
-            return false;
-        }
-
-        return true;
+        return !MultiModeController.isSingleLayerMode()
+                || mLauncher.getWorkspace().getCurrentPage() != Workspace.WIDGET_PAGE;
     }
 }

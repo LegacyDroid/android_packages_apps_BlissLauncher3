@@ -27,6 +27,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.BuildConfig;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherModel;
 import com.android.launcher3.LauncherModel.CallbackTask;
@@ -34,7 +35,6 @@ import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.celllayout.CellPosMapper;
 import com.android.launcher3.celllayout.CellPosMapper.CellPos;
-import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.BgDataModel.Callbacks;
 import com.android.launcher3.model.data.CollectionInfo;
@@ -130,7 +130,7 @@ public class ModelWriter {
         ItemInfo modelItem = mBgDataModel.itemsIdMap.get(itemId);
         if (modelItem != null && item != modelItem) {
             // check all the data is consistent
-            if (!Utilities.IS_DEBUG_DEVICE && !FeatureFlags.IS_STUDIO_BUILD
+            if (!Utilities.IS_DEBUG_DEVICE && !BuildConfig.IS_STUDIO_BUILD
                     && modelItem instanceof WorkspaceItemInfo
                     && item instanceof WorkspaceItemInfo
                     && modelItem.title.toString().equals(item.title.toString()) &&
@@ -353,7 +353,7 @@ public class ModelWriter {
      */
     public void prepareToUndoDelete() {
         if (!mPreparingToUndo) {
-            if (!mDeleteRunnables.isEmpty() && FeatureFlags.IS_STUDIO_BUILD) {
+            if (!mDeleteRunnables.isEmpty() && BuildConfig.IS_STUDIO_BUILD) {
                 throw new IllegalStateException("There are still uncommitted delete operations!");
             }
             mDeleteRunnables.clear();

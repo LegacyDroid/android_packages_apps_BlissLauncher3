@@ -76,10 +76,7 @@ public class QuickSwitchTouchController extends AbstractStateChangeTouchControll
         if (!mLauncher.isInState(LauncherState.NORMAL)) {
             return false;
         }
-        if ((ev.getEdgeFlags() & Utilities.EDGE_NAV_BAR) == 0) {
-            return false;
-        }
-        return true;
+        return (ev.getEdgeFlags() & Utilities.EDGE_NAV_BAR) != 0;
     }
 
     @Override

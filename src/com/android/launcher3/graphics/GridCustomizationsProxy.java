@@ -396,8 +396,8 @@ public class GridCustomizationsProxy implements ProxyProvider {
                     break;
                 case MESSAGE_ID_UPDATE_ICON_THEMED:
                     if (Flags.newCustomizationPickerUi()) {
-                        Boolean iconThemed = message.getData().getBoolean(BOOLEAN_VALUE);
-                        // TODO Update icon themed in the preview
+                        // TODO Update icon themed in the preview using
+                        // message.getData().getBoolean(BOOLEAN_VALUE)
                     }
                     break;
                 default:

@@ -140,6 +140,7 @@ public class WidgetsFullSheet extends BaseWidgetSheet
 
                 @Override
                 public void onViewDetachedFromWindow(View view) {
+                    // No-op: nothing to clean up on detach.
                 }
             };
 
@@ -992,7 +993,7 @@ public class WidgetsFullSheet extends BaseWidgetSheet
                                 0, adapterHolder.mWidgetsListAdapter.getItemCount())
                         .mapToObj(adapterHolder.mWidgetsRecyclerView::
                                 findViewHolderForAdapterPosition)
-                        .filter(viewHolder -> viewHolder instanceof WidgetsRowViewHolder)
+                        .filter(WidgetsRowViewHolder.class::isInstance)
                         .findFirst()
                         .orElse(null);
         if (viewHolderForTip != null) {
@@ -1050,7 +1051,7 @@ public class WidgetsFullSheet extends BaseWidgetSheet
                 // Scrollable container for main widget list.
                 recyclerView.smoothScrollBy(0, scrollByY);
                 return;
-            } else if (parent instanceof StickyHeaderLayout header) {
+            } else if (parent instanceof StickyHeaderLayout) {
                 // Scrollable container for recommendations. We still scroll on the recycler (even
                 // though the recommendations are not in the recycler view) because the
                 // StickyHeaderLayout scroll is connected to the currently visible recycler view.

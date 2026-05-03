@@ -135,7 +135,7 @@ public class RecentsFilterState {
      * unless the multiple desks feature is enabled, which allows empty desks.
      */
     public static Predicate<GroupTask> getDesktopTaskFilter() {
-        return (groupTask -> shouldKeepGroupTask(groupTask));
+        return RecentsFilterState::shouldKeepGroupTask;
     }
 
     /**

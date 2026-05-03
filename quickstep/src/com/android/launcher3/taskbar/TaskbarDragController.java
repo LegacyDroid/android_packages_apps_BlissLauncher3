@@ -508,23 +508,23 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
     private void onSystemDragStarted(BubbleTextView btv) {
         mIsSystemDragInProgress = true;
         mActivity.getDragLayer().setOnDragListener((view, dragEvent) -> {
-            switch (dragEvent.getAction()) {
-                case DragEvent.ACTION_DRAG_STARTED:
-                    // Return true to tell system we are interested in events, so we get DRAG_ENDED.
-                    return true;
-                case DragEvent.ACTION_DRAG_ENDED:
-                    mIsSystemDragInProgress = false;
-                    if (dragEvent.getResult()) {
-                        maybeOnDragEnd();
-                    } else {
-                        // This will take care of calling maybeOnDragEnd() after the animation
-                        animateGlobalDragViewToOriginalPosition(btv, dragEvent);
-                        //TODO(b/399678274): hide drop target in shell
-                        notifyBubbleBarItemDragCanceled();
-                    }
-                    mActivity.getDragLayer().setOnDragListener(null);
+            int action = dragEvent.getAction();
+            if (action == DragEvent.ACTION_DRAG_STARTED) {
+                // Return true to tell system we are interested in events, so we get DRAG_ENDED.
+                return true;
+            } else if (action == DragEvent.ACTION_DRAG_ENDED) {
+                mIsSystemDragInProgress = false;
+                if (dragEvent.getResult()) {
+                    maybeOnDragEnd();
+                } else {
+                    // This will take care of calling maybeOnDragEnd() after the animation
+                    animateGlobalDragViewToOriginalPosition(btv, dragEvent);
+                    //TODO(b/399678274): hide drop target in shell
+                    notifyBubbleBarItemDragCanceled();
+                }
+                mActivity.getDragLayer().setOnDragListener(null);
 
-                    return true;
+                return true;
             }
             return false;
         });

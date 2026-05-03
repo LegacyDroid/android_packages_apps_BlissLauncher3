@@ -554,7 +554,7 @@ public class LoaderTask implements Runnable {
      */
     private void processAppPairItems() {
         mBgDataModel.itemsIdMap.stream()
-                .filter(item -> item instanceof AppPairInfo)
+                .filter(AppPairInfo.class::isInstance)
                 .forEach(item -> {
                     AppPairInfo appPair = (AppPairInfo) item;
                     appPair.getContents().sort(Folder.ITEM_POS_COMPARATOR);

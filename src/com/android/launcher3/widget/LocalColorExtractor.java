@@ -39,7 +39,9 @@ public class LocalColorExtractor implements ResourceBasedOverride {
     /**
      * Updates the base context to contain the colors override
      */
-    public void applyColorsOverride(Context base, WallpaperColors colors) { }
+    public void applyColorsOverride(Context base, WallpaperColors colors) {
+        // No-op default; subclasses may apply colors derived from wallpaper.
+    }
 
     /**
      * Generates color resource overrides from {@link WallpaperColors}.
@@ -52,5 +54,7 @@ public class LocalColorExtractor implements ResourceBasedOverride {
     /**
      * Updates the base context to contain the colors override
      */
-    public void applyColorsOverride(Context base, SparseIntArray override) { }
+    public void applyColorsOverride(Context base, SparseIntArray override) {
+        // No-op default; subclasses may apply the supplied color overrides.
+    }
 }
