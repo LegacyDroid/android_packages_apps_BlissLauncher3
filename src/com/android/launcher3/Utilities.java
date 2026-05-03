@@ -142,7 +142,7 @@ public final class Utilities {
      * add extra logging and not for changing the app behavior.
      * @deprecated Use {@link BuildConfig#IS_DEBUG_DEVICE} directly
      */
-    @Deprecated
+    @Deprecated(since = "1.0", forRemoval = false)
     public static final boolean IS_DEBUG_DEVICE = BuildConfig.IS_DEBUG_DEVICE;
 
     public static final int TRANSLATE_UP = 0;
@@ -819,6 +819,9 @@ public final class Utilities {
                 inOutBounds.right = parentHeight - inOutBounds.top;
                 inOutBounds.top = origLeft;
                 return;
+            default:
+                // rdelta is in [0, 3] by construction; nothing to do.
+                break;
         }
     }
 

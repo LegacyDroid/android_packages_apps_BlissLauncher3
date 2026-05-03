@@ -276,11 +276,9 @@ constructor(
     fun removeCallbacks(callbacks: BgDataModel.Callbacks) {
         synchronized(mCallbacksList) {
             Preconditions.assertUIThread()
-            if (mCallbacksList.remove(callbacks)) {
-                if (stopLoader()) {
-                    // Rebind existing callbacks
-                    startLoader()
-                }
+            if (mCallbacksList.remove(callbacks) && stopLoader()) {
+                // Rebind existing callbacks
+                startLoader()
             }
         }
     }

@@ -63,18 +63,6 @@ import java.util.function.Predicate;
  */
 public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationListener {
 
-    final Predicate<RemoteAnimationTarget> mLastStartedTaskIdPredicate = new Predicate<>() {
-        @Override
-        public boolean test(RemoteAnimationTarget targetCompat) {
-            for (int taskId : mLastStartedTaskId) {
-                if (targetCompat.taskId == taskId) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    };
-
     /**
      * Defines the end targets of a gesture and the associated state.
      */
@@ -182,6 +170,14 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
     private RemoteAnimationTarget[] mLastAppearedTaskTargets;
     private Set<Integer> mPreviouslyAppearedTaskIds = new HashSet<>();
     private int[] mLastStartedTaskId = new int[]{INVALID_TASK_ID, INVALID_TASK_ID};
+    final Predicate<RemoteAnimationTarget> mLastStartedTaskIdPredicate = targetCompat -> {
+        for (int taskId : mLastStartedTaskId) {
+            if (targetCompat.taskId == taskId) {
+                return true;
+            }
+        }
+        return false;
+    };
     private HashMap<Integer, ThumbnailData> mRecentsAnimationCanceledSnapshots;
 
     /** The time when the swipe up gesture is triggered. */

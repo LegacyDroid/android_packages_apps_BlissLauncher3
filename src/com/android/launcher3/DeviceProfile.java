@@ -637,11 +637,6 @@ public class DeviceProfile {
         hotseatQsbShadowHeight = res.getDimensionPixelSize(R.dimen.qsb_shadow_height);
         hotseatQsbVisualHeight = hotseatQsbHeight - 2 * hotseatQsbShadowHeight;
 
-        // Whether QSB might be inline in appropriate orientation (e.g. landscape).
-        boolean canQsbInline = (isTwoPanels ? inv.inlineQsb[INDEX_TWO_PANEL_PORTRAIT]
-                || inv.inlineQsb[INDEX_TWO_PANEL_LANDSCAPE]
-                : inv.inlineQsb[INDEX_DEFAULT] || inv.inlineQsb[INDEX_LANDSCAPE])
-                && hotseatQsbHeight > 0;
         isQsbInline = isQsbInline(inv);
 
         areNavButtonsInline = isTaskbarPresent && !isGestureMode;
@@ -1680,7 +1675,6 @@ public class DeviceProfile {
             folderChildTextSizePx = mResponsiveWorkspaceCellSpec.getIconTextSize();
             folderLabelTextSizePx = Math.max(minLabelTextSize,
                     (int) (folderChildTextSizePx * folderLabelTextScale));
-            int textHeight = Utilities.calculateTextHeight(folderChildTextSizePx);
 
             folderCellWidthPx = mResponsiveFolderWidthSpec.getCellSizePx();
             folderCellHeightPx = mResponsiveFolderHeightSpec.getCellSizePx();

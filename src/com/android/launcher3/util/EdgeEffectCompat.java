@@ -32,7 +32,9 @@ public class EdgeEffectCompat extends EdgeEffect {
         return onPullDistance(deltaDistance, displacement);
     }
 
-    public void onFlingVelocity(int velocity) { }
+    public void onFlingVelocity(int velocity) {
+        // intentionally empty — base no-op; subclasses may override to handle fling velocity
+    }
 
     public void onRelease(MotionEvent ev) {
         onRelease();

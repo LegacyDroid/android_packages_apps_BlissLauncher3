@@ -404,7 +404,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 .filter(Objects::nonNull)
                 .toArray(ItemInfo[]::new);
         // TODO(b/343289567 and b/316004172): support app pairs and desktop mode.
-        recentTasks = recentTasks.stream().filter(it -> it instanceof SingleTask).toList();
+        recentTasks = recentTasks.stream().filter(SingleTask.class::isInstance).toList();
 
         if (DesktopFlagsCompat.enableTaskbarRecentsLayoutTransition()) {
             updateItemsWithLayoutTransition(hotseatItemInfos, recentTasks);

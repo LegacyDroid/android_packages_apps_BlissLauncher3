@@ -70,7 +70,9 @@ public class ViewOnDrawExecutor implements OnDrawListener, Runnable,
     }
 
     @Override
-    public void onViewDetachedFromWindow(View v) {}
+    public void onViewDetachedFromWindow(View v) {
+        // intentionally empty — observer is detached separately when execution completes
+    }
 
     @Override
     public void onDraw() {

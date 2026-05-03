@@ -146,7 +146,9 @@ public class SecondaryDragController extends DragController<SecondaryDisplayLaun
     }
 
     @Override
-    protected void exitDrag() { }
+    protected void exitDrag() {
+        // intentionally empty — secondary display drags do not require explicit exit handling.
+    }
 
     @Override
     protected DropTarget getDefaultDropTarget(int[] dropCoordinates) {
@@ -173,10 +175,14 @@ public class SecondaryDragController extends DragController<SecondaryDisplayLaun
             }
 
             @Override
-            public void onDragOver(DragObject dragObject) { }
+            public void onDragOver(DragObject dragObject) {
+                // intentionally empty — drop target has no per-move behavior.
+            }
 
             @Override
-            public void onDragExit(DragObject dragObject) { }
+            public void onDragExit(DragObject dragObject) {
+                // intentionally empty — drop target has no exit behavior.
+            }
 
             @Override
             public boolean acceptDrop(DragObject dragObject) {
@@ -184,10 +190,14 @@ public class SecondaryDragController extends DragController<SecondaryDisplayLaun
             }
 
             @Override
-            public void prepareAccessibilityDrop() { }
+            public void prepareAccessibilityDrop() {
+                // intentionally empty — no accessibility drop preparation needed.
+            }
 
             @Override
-            public void getHitRectRelativeToDragLayer(Rect outRect) { }
+            public void getHitRectRelativeToDragLayer(Rect outRect) {
+                // intentionally empty — full-screen target, no hit rect required.
+            }
         };
         return target;
     }

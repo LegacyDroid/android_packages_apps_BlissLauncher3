@@ -358,7 +358,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                 dataModel.itemsIdMap.stream()
                         .filter(WIDGET_FILTER)
                         .filter(item -> mUser.equals(item.user))
-                        .map(item -> (LauncherAppWidgetInfo) item)
+                        .map(LauncherAppWidgetInfo.class::cast)
                         .filter(widget -> widget.hasRestoreFlag(FLAG_PROVIDER_NOT_READY)
                                 && packageSet.contains(widget.providerName.getPackageName()))
                         .forEach(widgetInfo -> {

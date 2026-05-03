@@ -31,7 +31,9 @@ public class FragmentWithPreview extends Fragment {
         onInit(savedInstanceState);
     }
 
-    public void onInit(Bundle savedInstanceState) { }
+    public void onInit(Bundle savedInstanceState) {
+        // intentionally empty — default init hook; subclasses override as needed
+    }
 
 
     public Context getContext() {

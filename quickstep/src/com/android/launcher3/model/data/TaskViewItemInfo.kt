@@ -41,12 +41,11 @@ class TaskViewItemInfo(taskView: TaskView, taskContainer: TaskContainer?) : Work
             user = componentKey.user
             intent = Intent().setComponent(componentKey.componentName)
             title = taskContainer.task.title
-            if (privateSpaceRestrictAccessibilityDrag()) {
-                if (
+            if (
+                privateSpaceRestrictAccessibilityDrag() &&
                     UserCache.getInstance(taskView.context).getUserInfo(componentKey.user).isPrivate
-                ) {
-                    runtimeStatusFlags = runtimeStatusFlags or ItemInfoWithIcon.FLAG_NOT_PINNABLE
-                }
+            ) {
+                runtimeStatusFlags = runtimeStatusFlags or ItemInfoWithIcon.FLAG_NOT_PINNABLE
             }
             componentName = componentKey.componentName.flattenToShortString()
         } else {

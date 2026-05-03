@@ -22,7 +22,7 @@ import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.dagger.LauncherComponentProvider
 import foundation.e.bliss.utils.Logger
 import java.net.HttpURLConnection
-import java.net.URL
+import java.net.URI
 import java.net.URLEncoder
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -60,7 +60,7 @@ class CustomUrlProvider(private val context: Context) : SuggestionProvider {
         val maxCount = prefs.get(LauncherPrefs.WEB_SUGGESTION_MAX_COUNT).coerceAtLeast(1)
         val target =
             try {
-                URL(urlTemplate.replace("%s", URLEncoder.encode(query, "UTF-8")))
+                URI.create(urlTemplate.replace("%s", URLEncoder.encode(query, "UTF-8"))).toURL()
             } catch (e: Exception) {
                 Logger.e(TAG, "Bad custom URL template: $urlTemplate", e)
                 return results

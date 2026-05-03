@@ -50,7 +50,7 @@ public class BinderTracker {
     }
 
     private static final String TAG = "BinderTracker";
-    private static final Boolean DEBUG_STACKTRACE = false;
+    private static final boolean DEBUG_STACKTRACE = false;
 
     private static final String[] sActionablePackageKeywords = {"launcher3", "systemui"};
 
@@ -191,10 +191,10 @@ public class BinderTracker {
         public void onTransactEnded(Object session) {
             // Do nothing
         }
-    }
 
-    private static boolean isMainThread() {
-        return Thread.currentThread() == Looper.getMainLooper().getThread();
+        private static boolean isMainThread() {
+            return Thread.currentThread() == Looper.getMainLooper().getThread();
+        }
     }
 
     /**

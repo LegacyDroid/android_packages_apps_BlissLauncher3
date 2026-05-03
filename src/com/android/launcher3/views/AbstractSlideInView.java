@@ -349,10 +349,14 @@ public abstract class AbstractSlideInView<T extends Context & ActivityContext>
                 }
 
                 @Override
-                public void onAnimationRepeat(Animator animator) {}
+                public void onAnimationRepeat(Animator animator) {
+                    // No-op: this swipe-to-dismiss animation does not repeat.
+                }
 
                 @Override
-                public void onAnimationStart(Animator animator) {}
+                public void onAnimationStart(Animator animator) {
+                    // No-op: handled implicitly by ObjectAnimator.start().
+                }
             });
         }
 

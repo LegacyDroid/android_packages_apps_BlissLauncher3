@@ -91,10 +91,14 @@ public class WorkEduCard extends FrameLayout implements
     }
 
     @Override
-    public void onAnimationRepeat(Animation animation) { }
+    public void onAnimationRepeat(Animation animation) {
+        // No-op: only onAnimationEnd is needed for this card.
+    }
 
     @Override
-    public void onAnimationStart(Animation animation) { }
+    public void onAnimationStart(Animation animation) {
+        // No-op: only onAnimationEnd is needed for this card.
+    }
 
     private void removeCard() {
         if (mPosition == -1) {

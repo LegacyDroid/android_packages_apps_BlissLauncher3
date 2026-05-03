@@ -66,7 +66,7 @@ public final class SimpleWidgetsSearchAlgorithm implements SearchAlgorithm<Widge
             WidgetsSearchDataProvider dataProvider, String input) {
         ArrayList<WidgetsListBaseEntry> results = new ArrayList<>();
         dataProvider.getWidgets().stream()
-                .filter(entry -> entry instanceof WidgetsListHeaderEntry)
+                .filter(WidgetsListHeaderEntry.class::isInstance)
                 .forEach(headerEntry -> {
                     List<WidgetItem> matchedWidgetItems = filterWidgetItems(
                             input, headerEntry.mPkgItem.title.toString(), headerEntry.mWidgets);

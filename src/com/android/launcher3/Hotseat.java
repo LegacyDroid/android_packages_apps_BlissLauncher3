@@ -321,10 +321,9 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
     public boolean onTouchEvent(MotionEvent event) {
         // See comment in #onInterceptTouchEvent
         if (mSendTouchToWorkspace) {
-            final int action = event.getAction();
-            switch (action & MotionEvent.ACTION_MASK) {
-                case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL:
-                    mSendTouchToWorkspace = false;
+            final int action = event.getAction() & MotionEvent.ACTION_MASK;
+            if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                mSendTouchToWorkspace = false;
             }
             return mWorkspace.onTouchEvent(event);
         }

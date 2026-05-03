@@ -84,12 +84,13 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
     }
 
     override fun onControllerInterceptTouchEvent(ev: MotionEvent): Boolean {
-        if (ev.action == MotionEvent.ACTION_DOWN) {
-            if (!recentsViewContainer.dragLayer.isEventOverView(this, ev)) {
-                // TODO: log this once we have a new container type for it?
-                animateOpenOrClosed(true)
-                return true
-            }
+        if (
+            ev.action == MotionEvent.ACTION_DOWN &&
+                !recentsViewContainer.dragLayer.isEventOverView(this, ev)
+        ) {
+            // TODO: log this once we have a new container type for it?
+            animateOpenOrClosed(true)
+            return true
         }
         return false
     }

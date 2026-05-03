@@ -1296,12 +1296,9 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             mTouchHandler.handleTouchEvent(ev, mFastScrollerOffset);
             return true;
         }
-        if (isSearching()
-                && mActivityContext.getDragLayer().isEventOverView(getVisibleContainerView(), ev)) {
-            // if in search state, consume touch event.
-            return true;
-        }
-        return false;
+        // if in search state, consume touch event.
+        return isSearching()
+                && mActivityContext.getDragLayer().isEventOverView(getVisibleContainerView(), ev);
     }
 
     /** The current active recycler view (A-Z list from one of the profiles, or search results). */
@@ -1358,7 +1355,9 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     }
 
     @Override
-    public void onDropCompleted(View target, DragObject d, boolean success) {}
+    public void onDropCompleted(View target, DragObject d, boolean success) {
+        // intentionally empty — all-apps view does not act on drop completion.
+    }
 
     @Override
     public void setInsets(Rect insets) {

@@ -789,13 +789,11 @@ constructor(
         private var reachedPeak = false
 
         fun updateTyAndExpandIfNeeded(ty: Float) {
-            if (!reachedPeak) {
-                // the bubble bar is positioned at the bottom of the screen and moves up using
-                // negative ty values. the peak is reached the first time we see a value that is
-                // greater than the previous.
-                if (ty > previousTy) {
-                    reachedPeak = true
-                }
+            // the bubble bar is positioned at the bottom of the screen and moves up using
+            // negative ty values. the peak is reached the first time we see a value that is
+            // greater than the previous.
+            if (!reachedPeak && ty > previousTy) {
+                reachedPeak = true
             }
             val expand = animatingBubble?.expand ?: false
             if (reachedPeak && expand && !startedExpanding) {

@@ -153,7 +153,9 @@ public class FloatingSurfaceView extends AbstractFloatingView implements
     }
 
     @Override
-    public void setInsets(Rect insets) { }
+    public void setInsets(Rect insets) {
+        // No-op: this floating surface ignores window insets.
+    }
 
     private void updateIconLocation() {
         if (mContract == null) {
@@ -216,7 +218,9 @@ public class FloatingSurfaceView extends AbstractFloatingView implements
     }
 
     @Override
-    public void surfaceDestroyed(@NonNull SurfaceHolder surfaceHolder) {}
+    public void surfaceDestroyed(@NonNull SurfaceHolder surfaceHolder) {
+        // No-op: surface lifecycle handled via onDetachedFromWindow.
+    }
 
     @Override
     public void surfaceRedrawNeeded(@NonNull SurfaceHolder surfaceHolder) {

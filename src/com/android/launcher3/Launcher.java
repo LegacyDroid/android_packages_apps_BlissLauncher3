@@ -980,6 +980,8 @@ public class Launcher extends StatefulActivity<LauncherState>
                 }
                 break;
             }
+            default:
+                break;
         }
         return screenId;
     }
@@ -1081,12 +1083,9 @@ public class Launcher extends StatefulActivity<LauncherState>
                         mWorkspace.getScreenWithId(presenterPos.screenId);
 
                 dropLayout.setDropPending(true);
-                final Runnable onComplete = new Runnable() {
-                    @Override
-                    public void run() {
-                        completeTwoStageWidgetDrop(resultCode, appWidgetId, requestArgs);
-                        dropLayout.setDropPending(false);
-                    }
+                final Runnable onComplete = () -> {
+                    completeTwoStageWidgetDrop(resultCode, appWidgetId, requestArgs);
+                    dropLayout.setDropPending(false);
                 };
                 mWorkspace.removeExtraEmptyScreenDelayed(
                         ON_ACTIVITY_RESULT_ANIMATION_DELAY, false, onComplete);
@@ -2343,6 +2342,8 @@ public class Launcher extends StatefulActivity<LauncherState>
                     case "none":
                         overridePendingTransition(0, 0);
                         break;
+                    default:
+                        break;
                 }
             }
         } catch (Exception e) { /* use default transition */ }
@@ -2685,7 +2686,9 @@ public class Launcher extends StatefulActivity<LauncherState>
      * Informs us that the page transition has ended, so that we can react to the newly selected
      * page if we want to.
      */
-    public void onPageEndTransition() {}
+    public void onPageEndTransition() {
+        // no-op: subclasses may override to react to page transition end
+    }
 
     /**
      * See {@code LauncherBindingDelegate}
@@ -2988,6 +2991,7 @@ public class Launcher extends StatefulActivity<LauncherState>
                 case "orange": overlayStyle = R.style.AccentOverlay_Orange; break;
                 case "pink": overlayStyle = R.style.AccentOverlay_Pink; break;
                 case "teal": overlayStyle = R.style.AccentOverlay_Teal; break;
+                default: break;
             }
             if (overlayStyle != 0) {
                 getTheme().applyStyle(overlayStyle, true);

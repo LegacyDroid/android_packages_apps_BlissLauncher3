@@ -269,7 +269,9 @@ public class AddItemActivity extends BaseActivity
         view.startDragAndDrop(data, new DragShadowBuilder(view) {
 
             @Override
-            public void onDrawShadow(Canvas canvas) { }
+            public void onDrawShadow(Canvas canvas) {
+                // intentionally empty — preview is drawn by launcher, system shadow stays transparent
+            }
 
             @Override
             public void onProvideShadowMetrics(Point outShadowSize, Point outShadowTouchPoint) {

@@ -255,10 +255,9 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         public boolean onTouch(View view, MotionEvent ev) {
             // Touched a shortcut, update where it was touched so we can drag from there on
             // long click.
-            switch (ev.getAction()) {
-                case MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE:
-                    mIconLastTouchPos.set((int) ev.getX(), (int) ev.getY());
-                    break;
+            int action = ev.getAction();
+            if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
+                mIconLastTouchPos.set((int) ev.getX(), (int) ev.getY());
             }
             return false;
         }

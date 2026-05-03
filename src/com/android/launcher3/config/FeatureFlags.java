@@ -43,7 +43,7 @@ public final class FeatureFlags {
      * True when the build has come from Android Studio and is being used for local debugging.
      * @deprecated Use {@link BuildConfig#IS_STUDIO_BUILD} directly
      */
-    @Deprecated
+    @Deprecated(since = "1.0", forRemoval = false)
     public static final boolean IS_STUDIO_BUILD = BuildConfig.IS_STUDIO_BUILD;
 
     /**
@@ -51,7 +51,7 @@ public final class FeatureFlags {
      * and should be modified at a project level.
      * @deprecated Use {@link BuildConfig#QSB_ON_FIRST_SCREEN} directly
      */
-    @Deprecated
+    @Deprecated(since = "1.0", forRemoval = false)
     public static class QSB_ON_FIRST_SCREEN {
 
         private QSB_ON_FIRST_SCREEN() {

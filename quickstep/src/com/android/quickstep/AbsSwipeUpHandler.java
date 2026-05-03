@@ -549,11 +549,12 @@ public abstract class AbsSwipeUpHandler<
             initStateCallbacks();
             mStateCallback.setState(oldState);
         }
-        mWasLauncherAlreadyVisible = isHomeStarted;
+        boolean isHomeStartedPrimitive = Boolean.TRUE.equals(isHomeStarted);
+        mWasLauncherAlreadyVisible = isHomeStartedPrimitive;
         mContainer = container;
         // Override the visibility of the activity until the gesture actually starts and we swipe
         // up, or until we transition home and the home animation is composed
-        if (isHomeStarted) {
+        if (isHomeStartedPrimitive) {
             mContainer.clearForceInvisibleFlag(STATE_HANDLER_INVISIBILITY_FLAGS);
         } else {
             mContainer.addForceInvisibleFlag(STATE_HANDLER_INVISIBILITY_FLAGS);
@@ -563,7 +564,7 @@ public abstract class AbsSwipeUpHandler<
         mRecentsView.setOnPageTransitionEndCallback(null);
 
         mStateCallback.setState(STATE_LAUNCHER_PRESENT);
-        if (isHomeStarted) {
+        if (isHomeStartedPrimitive) {
             onLauncherStart();
         } else {
             container.addEventCallback(EVENT_STARTED, mLauncherOnStartCallback);
@@ -1198,13 +1199,11 @@ public abstract class AbsSwipeUpHandler<
     protected void onCalculateEndTarget() {
         final GestureEndTarget endTarget = mGestureState.getEndTarget();
 
-        switch (endTarget) {
-            case HOME:
-                // Early detach the nav bar if endTarget is determined as HOME
-                if (mRecentsAnimationController != null) {
-                    mRecentsAnimationController.detachNavigationBarFromApp(true);
-                }
-                break;
+        if (endTarget == HOME) {
+            // Early detach the nav bar if endTarget is determined as HOME
+            if (mRecentsAnimationController != null) {
+                mRecentsAnimationController.detachNavigationBarFromApp(true);
+            }
         }
     }
 
@@ -2098,7 +2097,7 @@ public abstract class AbsSwipeUpHandler<
         TaskView taskToLaunch = mRecentsView == null ? null : mRecentsView.getNextPageTaskView();
         doLogGesture(NEW_TASK, taskToLaunch);
         startNewTask(success -> {
-            if (!success) {
+            if (!Boolean.TRUE.equals(success)) {
                 reset();
                 // We couldn't launch the task, so take user to overview so they can
                 // decide what to do instead of staying in this broken state.

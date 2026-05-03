@@ -1338,13 +1338,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         if (mDisplay == DISPLAY_WORKSPACE && !mShowHomeLabels) {
             return false;
         }
-        if ((mDisplay == DISPLAY_ALL_APPS || mDisplay == DISPLAY_PREDICTION_ROW
+        return !((mDisplay == DISPLAY_ALL_APPS || mDisplay == DISPLAY_PREDICTION_ROW
                 || mDisplay == DISPLAY_SEARCH_RESULT_APP_ROW)
-                && !mShowDrawerLabels) {
-            return false;
-        }
-
-        return true;
+                && !mShowDrawerLabels);
     }
 
     /**
@@ -1863,10 +1859,12 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
             @Override
             public void onPreDragStart(DropTarget.DragObject dragObject) {
+                // intentionally empty — no pre-drag start behavior needed.
             }
 
             @Override
             public void onPreDragEnd(DropTarget.DragObject dragObject, boolean dragStarted) {
+                // intentionally empty — no pre-drag end behavior needed.
             }
         };
     }
@@ -1890,6 +1888,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
                     case "serif": baseTf = Typeface.SERIF; break;
                     case "monospace": baseTf = Typeface.MONOSPACE; break;
                     case "cursive": baseTf = Typeface.create("cursive", Typeface.NORMAL); break;
+                    default: break; // Keep current typeface for unknown font families.
                 }
             }
             // Apply font weight

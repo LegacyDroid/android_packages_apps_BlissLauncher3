@@ -87,7 +87,7 @@ public class RecentsAnimationCallbacks implements
 
     // Called only in Q platform
     @BinderThread
-    @Deprecated
+    @Deprecated(since = "a16")
     public final void onAnimationStart(RecentsAnimationControllerCompat controller,
             RemoteAnimationTarget[] appTargets, Rect homeContentInsets,
             Rect minimizedHomeBounds, Bundle extras) {

@@ -420,8 +420,12 @@ public class SecondaryDisplayLauncher extends BaseActivity
     }
 
     @Override
-    public void onDragStart(DropTarget.DragObject dragObject, DragOptions options) { }
+    public void onDragStart(DropTarget.DragObject dragObject, DragOptions options) {
+        // No-op: secondary display launcher does not need to react to drag start.
+    }
 
     @Override
-    public void onDragEnd() { }
+    public void onDragEnd() {
+        // No-op: secondary display launcher does not need to react to drag end.
+    }
 }

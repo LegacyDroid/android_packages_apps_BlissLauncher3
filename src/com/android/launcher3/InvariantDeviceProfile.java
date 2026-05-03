@@ -522,7 +522,7 @@ public class InvariantDeviceProfile {
      * @deprecated This is a temporary solution because on the backup and restore case we modify the
      * IDP, this resets it. b/332974074
      */
-    @Deprecated
+    @Deprecated(since = "1.0", forRemoval = false)
     public void reset(Context context) {
         initGrid(context, mPrefs.get(GRID_NAME));
     }

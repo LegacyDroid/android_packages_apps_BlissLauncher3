@@ -285,7 +285,6 @@ public abstract class GestureHandler {
         public void onTrigger() {
             try {
                 // Use GLOBAL_ACTION_RECENTS via accessibility
-                android.accessibilityservice.AccessibilityService service = null;
                 // Fallback: try StatusBarManager to toggle recents
                 Object sbm = mLauncher.getSystemService(SERVICE_STATUSBAR);
                 if (sbm != null) {

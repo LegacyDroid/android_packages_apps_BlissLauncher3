@@ -215,13 +215,12 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
             // 3-finger scroll, we do the following (1) always dispatch ACTION_DOWN and ACTION_UP
             // trackpad multi-finger motion events. (2) only dispatch 4-finger ACTION_MOVE motion
             // events.
-            switch (ev.getActionMasked()) {
-                case ACTION_MOVE -> {
-                    if (mGestureState.isFourFingerTrackpadGesture()) {
-                        mRecentsViewDispatcher.dispatchEvent(ev);
-                    }
+            if (ev.getActionMasked() == ACTION_MOVE) {
+                if (mGestureState.isFourFingerTrackpadGesture()) {
+                    mRecentsViewDispatcher.dispatchEvent(ev);
                 }
-                default -> mRecentsViewDispatcher.dispatchEvent(ev);
+            } else {
+                mRecentsViewDispatcher.dispatchEvent(ev);
             }
         } else {
             mRecentsViewDispatcher.dispatchEvent(ev);

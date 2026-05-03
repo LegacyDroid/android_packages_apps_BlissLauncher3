@@ -90,7 +90,7 @@ public class PackageInstallStateChangedTask implements ModelUpdateTask {
             dataModel.itemsIdMap.stream()
                     .filter(WIDGET_FILTER)
                     .filter(item -> mInstallInfo.user.equals(item.user))
-                    .map(item -> (LauncherAppWidgetInfo) item)
+                    .map(LauncherAppWidgetInfo.class::cast)
                     .filter(widget -> widget.providerName.getPackageName()
                             .equals(mInstallInfo.packageName))
                     .forEach(widget -> {

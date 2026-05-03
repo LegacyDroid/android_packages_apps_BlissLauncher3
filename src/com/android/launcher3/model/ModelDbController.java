@@ -328,10 +328,7 @@ public class ModelDbController {
         if (!isGridMigrationNecessary()) {
             return false;
         }
-        if (isCurrentDbSameAsTarget()) {
-            return true;
-        }
-        return false;
+        return isCurrentDbSameAsTarget();
     }
 
     private boolean isThereExistingDb() {

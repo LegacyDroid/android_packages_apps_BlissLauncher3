@@ -108,12 +108,9 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
         }
     };
 
-    private final Runnable mExitOverviewRunnable = new Runnable() {
-        @Override
-        public void run() {
-            mInOverview = false;
-            enableMultipleRegions(false);
-        }
+    private final Runnable mExitOverviewRunnable = () -> {
+        mInOverview = false;
+        enableMultipleRegions(false);
     };
 
     /**

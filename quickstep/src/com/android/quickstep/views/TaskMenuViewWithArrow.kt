@@ -115,11 +115,9 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
     }
 
     override fun onControllerInterceptTouchEvent(ev: MotionEvent?): Boolean {
-        if (ev?.action == MotionEvent.ACTION_DOWN) {
-            if (!popupContainer.isEventOverView(this, ev)) {
-                close(true)
-                return true
-            }
+        if (ev?.action == MotionEvent.ACTION_DOWN && !popupContainer.isEventOverView(this, ev)) {
+            close(true)
+            return true
         }
         return false
     }

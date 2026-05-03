@@ -41,7 +41,9 @@ public class SecondaryLauncherAllAppsContainerView extends
     }
 
     @Override
-    protected void updateBackgroundVisibility(DeviceProfile deviceProfile) {}
+    protected void updateBackgroundVisibility(DeviceProfile deviceProfile) {
+        // intentionally empty — secondary launcher draws no all-apps background
+    }
 
     @Override
     public boolean isInAllApps() {

@@ -188,7 +188,7 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
      *
      * @deprecated Left here since some dependent projects are using this method
      */
-    @Deprecated
+    @Deprecated(since = "1.0", forRemoval = false)
     public static boolean canShow(View icon, ItemInfo item) {
         return icon instanceof BubbleTextView && ShortcutUtil.supportsShortcuts(item);
     }
@@ -557,7 +557,9 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
     }
 
     @Override
-    public void onDropCompleted(View target, DragObject d, boolean success) {  }
+    public void onDropCompleted(View target, DragObject d, boolean success) {
+        // intentionally empty — popup does not act on completed drops.
+    }
 
     @Override
     public void onDragStart(DropTarget.DragObject dragObject, DragOptions options) {
@@ -643,10 +645,9 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
         public boolean onTouch(View v, MotionEvent ev) {
             // Touched a shortcut, update where it was touched so we can drag from there on
             // long click.
-            switch (ev.getAction()) {
-                case MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE:
-                    mIconLastTouchPos.set((int) ev.getX(), (int) ev.getY());
-                    break;
+            int action = ev.getAction();
+            if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
+                mIconLastTouchPos.set((int) ev.getX(), (int) ev.getY());
             }
             return false;
         }

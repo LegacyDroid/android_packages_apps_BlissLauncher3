@@ -85,7 +85,9 @@ public class DeleteDropTarget extends ButtonDropTarget {
     }
 
     @Override
-    protected void setupItemInfo(ItemInfo info) {}
+    protected void setupItemInfo(ItemInfo info) {
+        // intentionally empty — delete target does not retain item info
+    }
 
     @Override
     protected boolean supportsDrop(ItemInfo info) {

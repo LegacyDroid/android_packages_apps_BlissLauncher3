@@ -106,7 +106,9 @@ public class StateAnimationConfig {
 
     protected final Interpolator[] mInterpolators = new Interpolator[ANIM_TYPES_COUNT];
 
-    public StateAnimationConfig() { }
+    public StateAnimationConfig() {
+        // intentionally empty — no-arg constructor, fields use their default initialisers
+    }
 
     /**
      * Copies the config to target

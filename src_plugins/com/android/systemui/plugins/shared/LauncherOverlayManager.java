@@ -54,7 +54,7 @@ public interface LauncherOverlayManager {
     /**
      * @deprecated use LauncherOverlayTouchProxy directly
      */
-    @Deprecated
+    @Deprecated(since = "1.0", forRemoval = false)
     interface LauncherOverlay extends LauncherOverlayTouchProxy {
 
         /**

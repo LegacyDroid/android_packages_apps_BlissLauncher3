@@ -1117,7 +1117,6 @@ public class CellLayout extends ViewGroup {
 
         if (clc.indexOfChild(child) != -1 && (child instanceof Reorderable)) {
             final CellLayoutLayoutParams lp = (CellLayoutLayoutParams) child.getLayoutParams();
-            final ItemInfo info = (ItemInfo) child.getTag();
             final Reorderable item = (Reorderable) child;
 
             // We cancel any existing animations

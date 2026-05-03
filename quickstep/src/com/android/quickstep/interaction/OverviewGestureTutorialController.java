@@ -163,25 +163,22 @@ final class OverviewGestureTutorialController extends SwipeUpGestureTutorialCont
         if (isGestureCompleted()) {
             return;
         }
-        switch (mTutorialType) {
-            case OVERVIEW_NAVIGATION:
-                switch (result) {
-                    case BACK_COMPLETED_FROM_LEFT,
-                            BACK_COMPLETED_FROM_RIGHT,
-                            BACK_CANCELLED_FROM_LEFT,
-                            BACK_CANCELLED_FROM_RIGHT,
-                            BACK_NOT_STARTED_TOO_FAR_FROM_EDGE:
-                        resetTaskViews();
-                        showFeedback(R.string.overview_gesture_feedback_swipe_too_far_from_edge);
-                        break;
-                }
-                break;
-            case OVERVIEW_NAVIGATION_COMPLETE:
-                if (result == BackGestureResult.BACK_COMPLETED_FROM_LEFT
-                        || result == BackGestureResult.BACK_COMPLETED_FROM_RIGHT) {
-                    mTutorialFragment.close();
-                }
-                break;
+        if (mTutorialType == TutorialType.OVERVIEW_NAVIGATION) {
+            switch (result) {
+                case BACK_COMPLETED_FROM_LEFT,
+                        BACK_COMPLETED_FROM_RIGHT,
+                        BACK_CANCELLED_FROM_LEFT,
+                        BACK_CANCELLED_FROM_RIGHT,
+                        BACK_NOT_STARTED_TOO_FAR_FROM_EDGE:
+                    resetTaskViews();
+                    showFeedback(R.string.overview_gesture_feedback_swipe_too_far_from_edge);
+                    break;
+            }
+        } else if (mTutorialType == TutorialType.OVERVIEW_NAVIGATION_COMPLETE) {
+            if (result == BackGestureResult.BACK_COMPLETED_FROM_LEFT
+                    || result == BackGestureResult.BACK_COMPLETED_FROM_RIGHT) {
+                mTutorialFragment.close();
+            }
         }
     }
 
@@ -190,37 +187,34 @@ final class OverviewGestureTutorialController extends SwipeUpGestureTutorialCont
         if (isGestureCompleted()) {
             return;
         }
-        switch (mTutorialType) {
-            case OVERVIEW_NAVIGATION:
-                switch (result) {
-                    case HOME_GESTURE_COMPLETED: {
-                        animateFakeTaskViewHome(finalVelocity, () -> {
-                            showFeedback(R.string.overview_gesture_feedback_home_detected);
-                            resetFakeTaskView(true);
-                        });
-                        break;
-                    }
-                    case HOME_NOT_STARTED_TOO_FAR_FROM_EDGE, OVERVIEW_NOT_STARTED_TOO_FAR_FROM_EDGE:
-                        resetTaskViews();
-                        showFeedback(R.string.overview_gesture_feedback_swipe_too_far_from_edge);
-                        break;
-                    case OVERVIEW_GESTURE_COMPLETED:
-                        setGestureCompleted();
-                        mTutorialFragment.releaseFeedbackAnimation();
-                        animateTaskViewToOverview(true);
-                        onMotionPaused(true /*arbitrary value*/);
-                        break;
-                    case HOME_OR_OVERVIEW_NOT_STARTED_WRONG_SWIPE_DIRECTION, HOME_OR_OVERVIEW_CANCELLED:
-                        fadeOutFakeTaskView(false, null);
-                        showFeedback(R.string.overview_gesture_feedback_wrong_swipe_direction);
-                        break;
+        if (mTutorialType == TutorialType.OVERVIEW_NAVIGATION) {
+            switch (result) {
+                case HOME_GESTURE_COMPLETED: {
+                    animateFakeTaskViewHome(finalVelocity, () -> {
+                        showFeedback(R.string.overview_gesture_feedback_home_detected);
+                        resetFakeTaskView(true);
+                    });
+                    break;
                 }
-                break;
-            case OVERVIEW_NAVIGATION_COMPLETE:
-                if (result == NavBarGestureResult.HOME_GESTURE_COMPLETED) {
-                    mTutorialFragment.close();
-                }
-                break;
+                case HOME_NOT_STARTED_TOO_FAR_FROM_EDGE, OVERVIEW_NOT_STARTED_TOO_FAR_FROM_EDGE:
+                    resetTaskViews();
+                    showFeedback(R.string.overview_gesture_feedback_swipe_too_far_from_edge);
+                    break;
+                case OVERVIEW_GESTURE_COMPLETED:
+                    setGestureCompleted();
+                    mTutorialFragment.releaseFeedbackAnimation();
+                    animateTaskViewToOverview(true);
+                    onMotionPaused(true /*arbitrary value*/);
+                    break;
+                case HOME_OR_OVERVIEW_NOT_STARTED_WRONG_SWIPE_DIRECTION, HOME_OR_OVERVIEW_CANCELLED:
+                    fadeOutFakeTaskView(false, null);
+                    showFeedback(R.string.overview_gesture_feedback_wrong_swipe_direction);
+                    break;
+            }
+        } else if (mTutorialType == TutorialType.OVERVIEW_NAVIGATION_COMPLETE) {
+            if (result == NavBarGestureResult.HOME_GESTURE_COMPLETED) {
+                mTutorialFragment.close();
+            }
         }
     }
 

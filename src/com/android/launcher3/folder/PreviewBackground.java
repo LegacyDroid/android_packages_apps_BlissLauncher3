@@ -245,6 +245,7 @@ public class PreviewBackground extends DelegatedCellDrawing {
                     case "black": mBgColor = Color.BLACK; break;
                     case "white": mBgColor = Color.WHITE; break;
                     case "dark_gray": mBgColor = 0xFF303030; break;
+                    default: break;
                 }
             }
 

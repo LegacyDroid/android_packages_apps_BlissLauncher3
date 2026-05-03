@@ -706,6 +706,9 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
                 onTouchUp();
                 mXDown = mYDown = 0;
                 break;
+            default:
+                // No-op for other action types.
+                break;
         }
         return true;
     }

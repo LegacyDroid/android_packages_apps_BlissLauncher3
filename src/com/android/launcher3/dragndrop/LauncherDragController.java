@@ -98,7 +98,9 @@ public class LauncherDragController extends DragController<Launcher> {
                 }
 
                 @Override
-                public void onPreDragEnd(DragObject dragObject, boolean dragStarted) { }
+                public void onPreDragEnd(DragObject dragObject, boolean dragStarted) {
+                    // No-op: only onPreDragStart needs custom behavior here.
+                }
             };
         }
 

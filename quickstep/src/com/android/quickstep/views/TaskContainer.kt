@@ -134,12 +134,13 @@ class TaskContainer(
     }
 
     fun setOverlayEnabled(enabled: Boolean, thumbnailPosition: ThumbnailPosition?) {
-        if (enableRefactorTaskThumbnail()) {
-            if (overlayEnabledStatus != enabled || this.thumbnailPosition != thumbnailPosition) {
-                overlayEnabledStatus = enabled
+        if (
+            enableRefactorTaskThumbnail() &&
+                (overlayEnabledStatus != enabled || this.thumbnailPosition != thumbnailPosition)
+        ) {
+            overlayEnabledStatus = enabled
 
-                refreshOverlay(thumbnailPosition)
-            }
+            refreshOverlay(thumbnailPosition)
         }
     }
 
