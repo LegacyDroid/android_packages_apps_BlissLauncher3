@@ -52,7 +52,7 @@ class FocusState {
         }
     }
 
-    interface FocusChangeListener {
+    fun interface FocusChangeListener {
         fun onFocusedDisplayChanged(displayId: Int)
     }
 

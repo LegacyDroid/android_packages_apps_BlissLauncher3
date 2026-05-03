@@ -421,8 +421,9 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
 
         // Set the gravity as LEFT or RIGHT instead of START, as START depends on the actual text.
         if(!MultiModeController.isSingleLayerMode()) {
+            int multiPageGravity = mIsRtl ? Gravity.RIGHT : Gravity.LEFT;
             int horizontalGravity = getPageCount() > 1
-                    ? (mIsRtl ? Gravity.RIGHT : Gravity.LEFT) : Gravity.CENTER_HORIZONTAL;
+                    ? multiPageGravity : Gravity.CENTER_HORIZONTAL;
             mFolder.getFolderName().setGravity(horizontalGravity | Gravity.CENTER_VERTICAL);
         }
 

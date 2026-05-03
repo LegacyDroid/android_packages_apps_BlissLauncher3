@@ -389,7 +389,7 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
             /* no-op: base hook for subclass extensions to expose accessibility children */
         }
 
-        private class ScreenshotSystemShortcut extends SystemShortcut {
+        private class ScreenshotSystemShortcut extends SystemShortcut<RecentsViewContainer> {
 
             ScreenshotSystemShortcut(RecentsViewContainer container, ItemInfo itemInfo,
                     View originalView) {

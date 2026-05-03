@@ -890,7 +890,7 @@ public abstract class RecentsView<
         return mUtils.getFirstTaskView();
     }
 
-    public RecentsView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    protected RecentsView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setEnableFreeScroll(true);
 
@@ -1836,11 +1836,12 @@ public abstract class RecentsView<
         // the end, settle to the end. Otherwise snap to the nearest page.
         // If flinging past one of the ends, don't change the velocity as it
         // will get stopped at the end anyway.
+        int otherwiseSnapped = finalPos > (lastPageScroll + mMaxScroll) / 2
+                ? mMaxScroll
+                : getScrollForPage(mNextPage);
         int pageSnapped = finalPos < (firstPageScroll + mMinScroll) / 2
                 ? mMinScroll
-                : finalPos > (lastPageScroll + mMaxScroll) / 2
-                        ? mMaxScroll
-                        : getScrollForPage(mNextPage);
+                : otherwiseSnapped;
 
         if (showAsGrid() && !shouldSnapInGridFreeScroll()) {
             return;
@@ -4190,9 +4191,10 @@ public abstract class RecentsView<
                     float finalTranslation = mIsRtl ? primaryTranslation : -primaryTranslation;
                     float startTranslation = 0;
                     if (!(taskView instanceof DesktopTaskView) && slidingTranslation != 0) {
+                        float taskRightEdge = mIsRtl ? -mLastComputedTaskSize.right
+                                : mLastComputedTaskSize.right;
                         startTranslation = isTaskViewVisible(taskView) ? 0
-                                : finalTranslation + (mIsRtl ? -mLastComputedTaskSize.right
-                                        : mLastComputedTaskSize.right);
+                                : finalTranslation + taskRightEdge;
                     }
                     // Expressive dismiss will animate the translations of taskViews itself.
                     if (!isExpressiveDismiss) {
@@ -5065,8 +5067,9 @@ public abstract class RecentsView<
 
         TaskView runningTask = mRunningTaskViewId == INVALID_PAGE || !mRunningTaskTileHidden
                 ? null : getRunningTaskView();
+        int runningTaskMidpoint = runningTask == null ? INVALID_PAGE : indexOfChild(runningTask);
         int midpoint = mOffsetMidpointIndexOverride == INVALID_PAGE
-                ? (runningTask == null ? INVALID_PAGE : indexOfChild(runningTask))
+                ? runningTaskMidpoint
                 : mOffsetMidpointIndexOverride;
         int modalMidpoint = getCurrentPage();
         TaskView carouselHiddenMidpointTask = runningTask != null ? runningTask
@@ -5114,11 +5117,10 @@ public abstract class RecentsView<
         float maxOverscroll = primarySize * OverScroll.OVERSCROLL_DAMP_FACTOR;
         for (int i = 0; i < count; i++) {
             View child = getChildAt(i);
+            float beforeOrAfterMidpoint = i < midpoint ? leftOffsetSize : rightOffsetSize;
             float translation = i == midpoint
                     ? midpointOffsetSize
-                    : i < midpoint
-                            ? leftOffsetSize
-                            : rightOffsetSize;
+                    : beforeOrAfterMidpoint;
             if (shouldCalculateOffsetForAllTasks) {
                 gridOffsetSize = getHorizontalOffsetSize(i, modalMidpoint, modalOffset);
                 gridOffsetSize = Math.abs(gridOffsetSize) * (i <= modalMidpoint ? 1 : -1);
@@ -5138,11 +5140,13 @@ public abstract class RecentsView<
                     carouselHiddenOffsetSize = 0;
                 }
             }
+            float beforeOrAfterModal =
+                    i < modalMidpoint ? modalLeftOffsetSize : modalRightOffsetSize;
+            float nonModalMidpointTranslation =
+                    showAsGrid ? gridOffsetSize : beforeOrAfterModal;
             float modalTranslation = i == modalMidpoint
                     ? modalMidpointOffsetSize
-                    : showAsGrid
-                            ? gridOffsetSize
-                            : i < modalMidpoint ? modalLeftOffsetSize : modalRightOffsetSize;
+                    : nonModalMidpointTranslation;
             boolean skipTranslationOffset = enableDesktopTaskAlphaAnimation()
                     && i == getRunningTaskIndex()
                     && child instanceof DesktopTaskView;

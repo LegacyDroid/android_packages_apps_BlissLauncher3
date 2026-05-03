@@ -103,14 +103,14 @@ public class MainThreadInitializedObject<T> {
 
         private static final String TAG = "SandboxContext";
 
-        protected final Set<MainThreadInitializedObject> mAllowedObjects;
-        protected final Map<MainThreadInitializedObject, Object> mObjectMap = new HashMap<>();
+        protected final Set<MainThreadInitializedObject<?>> mAllowedObjects;
+        protected final Map<MainThreadInitializedObject<?>, Object> mObjectMap = new HashMap<>();
         protected final ArrayList<Object> mOrderedObjects = new ArrayList<>();
 
         private final Object mDestroyLock = new Object();
         private boolean mDestroyed = false;
 
-        public SandboxContext(Context base, MainThreadInitializedObject... allowedObjects) {
+        public SandboxContext(Context base, MainThreadInitializedObject<?>... allowedObjects) {
             super(base);
             mAllowedObjects = new HashSet<>(Arrays.asList(allowedObjects));
         }

@@ -119,7 +119,7 @@ public abstract class BaseDragLayer<T extends Context & ActivityContext>
 
     private TouchCompleteListener mTouchCompleteListener;
 
-    public BaseDragLayer(Context context, AttributeSet attrs, int alphaChannelCount) {
+    protected BaseDragLayer(Context context, AttributeSet attrs, int alphaChannelCount) {
         super(context, attrs);
         mContainer = ActivityContext.lookupContext(context);
         mMultiValueAlpha = new MultiValueAlpha(this, alphaChannelCount);

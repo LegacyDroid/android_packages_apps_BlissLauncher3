@@ -125,6 +125,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
 
     private static final String TAG = "ActivityAllAppsContainerView";
+    private static final String DEFAULT_PREF_VALUE = "default";
+    private static final String DEFAULT_ACCENT_COLOR_HEX = "#1A73E8";
     public static final float PULL_MULTIPLIER = .02f;
     public static final float FLING_VELOCITY_MULTIPLIER = 1200f;
     protected static final String BUNDLE_KEY_CURRENT_PAGE = "launcher.allapps.current_page";
@@ -316,7 +318,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             // Custom search bar color and corner radius
             String barColor = prefs.get(com.android.launcher3.LauncherPrefs.SEARCH_BAR_COLOR);
             int barRadius = prefs.get(com.android.launcher3.LauncherPrefs.SEARCH_BAR_RADIUS);
-            if (!"default".equals(barColor) || barRadius != 100) {
+            if (!DEFAULT_PREF_VALUE.equals(barColor) || barRadius != 100) {
                 // Find the search bar's background view
                 View bgView = mSearchContainer.findViewById(com.android.launcher3.R.id.search_input);
                 if (bgView != null) {
@@ -326,7 +328,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                         android.graphics.drawable.GradientDrawable gd =
                                 (android.graphics.drawable.GradientDrawable)
                                 parentBg.getBackground().mutate();
-                        if (!"default".equals(barColor)) {
+                        if (!DEFAULT_PREF_VALUE.equals(barColor)) {
                             int color;
                             switch (barColor) {
                                 case "black": color = 0xFF000000; break;
@@ -1156,12 +1158,12 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     private int resolveAccentColor(com.android.launcher3.LauncherPrefs prefs) {
         try {
             String accent = prefs.get(com.android.launcher3.LauncherPrefs.ACCENT_COLOR);
-            if (accent == null) return android.graphics.Color.parseColor("#1A73E8");
+            if (accent == null) return android.graphics.Color.parseColor(DEFAULT_ACCENT_COLOR_HEX);
             if (accent.startsWith("#")) {
                 return android.graphics.Color.parseColor(accent);
             }
             switch (accent) {
-                case "blue":   return android.graphics.Color.parseColor("#1A73E8");
+                case "blue":   return android.graphics.Color.parseColor(DEFAULT_ACCENT_COLOR_HEX);
                 case "green":  return android.graphics.Color.parseColor("#01D066");
                 case "red":    return android.graphics.Color.parseColor("#E53935");
                 case "purple": return android.graphics.Color.parseColor("#7C4DFF");
@@ -1170,10 +1172,10 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                 case "teal":   return android.graphics.Color.parseColor("#00BFA5");
                 case "system":
                 default:
-                    return android.graphics.Color.parseColor("#1A73E8");
+                    return android.graphics.Color.parseColor(DEFAULT_ACCENT_COLOR_HEX);
             }
         } catch (Exception ignored) {
-            return android.graphics.Color.parseColor("#1A73E8");
+            return android.graphics.Color.parseColor(DEFAULT_ACCENT_COLOR_HEX);
         }
     }
 
@@ -1185,7 +1187,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             int opacity = prefs.get(com.android.launcher3.LauncherPrefs.DRAWER_OPACITY);
             float alphaFactor = opacity / 100f;
 
-            if (!"default".equals(bgColor)) {
+            if (!DEFAULT_PREF_VALUE.equals(bgColor)) {
                 int baseColor;
                 switch (bgColor) {
                     case "black":
@@ -1540,9 +1542,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
     /** The current page visible in all apps. */
     public int getCurrentPage() {
-        return isSearching()
-                ? SEARCH
-                : mViewPager == null ? AdapterHolder.MAIN : mViewPager.getNextPage();
+        int nonSearchPage = mViewPager == null ? AdapterHolder.MAIN : mViewPager.getNextPage();
+        return isSearching() ? SEARCH : nonSearchPage;
     }
 
     public PrivateProfileManager getPrivateProfileManager() {

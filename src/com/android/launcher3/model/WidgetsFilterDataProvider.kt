@@ -46,7 +46,7 @@ open class WidgetsFilterDataProvider @Inject constructor() {
     }
 
     /** Interface for the model callback to be invoked when filters are loaded. */
-    interface WidgetsFilterLoadedCallback {
+    fun interface WidgetsFilterLoadedCallback {
         /** Method called back when widget filters are loaded */
         fun onWidgetsFilterLoaded()
     }

@@ -129,7 +129,7 @@ public class WorkspaceItemSpaceFinder {
             // If we still can't find an empty space, then God help us all!!!
             if (!findNextAvailableIconSpaceInScreen(
                     screenItems.get(screenId), coordinates, spanX, spanY)) {
-                throw new RuntimeException("Can't find space to add the item");
+                throw new IllegalStateException("Can't find space to add the item");
             }
         }
         return new int[]{screenId, coordinates[0], coordinates[1]};

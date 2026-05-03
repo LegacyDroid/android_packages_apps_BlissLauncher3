@@ -499,7 +499,14 @@ public class PreviewBackground extends DelegatedCellDrawing {
         }
 
         final float startScale = mScale;
-        final float endScale = isAccepting ? ACCEPT_SCALE_FACTOR : (isHovered ? HOVER_SCALE : 1f);
+        final float endScale;
+        if (isAccepting) {
+            endScale = ACCEPT_SCALE_FACTOR;
+        } else if (isHovered) {
+            endScale = HOVER_SCALE;
+        } else {
+            endScale = 1f;
+        }
         Interpolator interpolator =
                 isAccepting != mIsAccepting ? ACCELERATE_DECELERATE : EMPHASIZED_DECELERATE;
         int duration = isAccepting != mIsAccepting ? CONSUMPTION_ANIMATION_DURATION

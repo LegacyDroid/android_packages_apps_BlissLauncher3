@@ -167,13 +167,16 @@ public class WindowManagerProxy {
         boolean isGesture = isGestureNav(context);
         boolean isPortrait = config.screenHeightDp > config.screenWidthDp;
 
-        int bottomNav = isLargeScreen
-                ? 0
-                : (isPortrait
-                        ? getDimenByName(systemRes, NAVBAR_HEIGHT)
-                        : (isGesture
-                                ? getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE)
-                                : 0));
+        int bottomNav;
+        if (isLargeScreen) {
+            bottomNav = 0;
+        } else if (isPortrait) {
+            bottomNav = getDimenByName(systemRes, NAVBAR_HEIGHT);
+        } else if (isGesture) {
+            bottomNav = getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE);
+        } else {
+            bottomNav = 0;
+        }
         int leftNav = navInsets.left;
         int rightNav = navInsets.right;
         if (!isLargeScreen && !isGesture && !isPortrait) {
@@ -327,16 +330,18 @@ public class WindowManagerProxy {
         int navBarHeightLandscape;
         int navbarWidthLandscape;
 
-        navBarHeightPortrait = isTablet
-                ? (mTaskbarDrawnInProcess
-                        ? 0 : context.getResources().getDimensionPixelSize(com.android.internal.R.dimen.taskbar_frame_height))
-                : getDimenByName(systemRes, NAVBAR_HEIGHT);
-
-        navBarHeightLandscape = isTablet
-                ? (mTaskbarDrawnInProcess
-                        ? 0 : context.getResources().getDimensionPixelSize(com.android.internal.R.dimen.taskbar_frame_height))
-                : (isTabletOrGesture
-                        ? getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE) : 0);
+        if (isTablet) {
+            int taskbarHeight = mTaskbarDrawnInProcess
+                    ? 0
+                    : context.getResources().getDimensionPixelSize(
+                            com.android.internal.R.dimen.taskbar_frame_height);
+            navBarHeightPortrait = taskbarHeight;
+            navBarHeightLandscape = taskbarHeight;
+        } else {
+            navBarHeightPortrait = getDimenByName(systemRes, NAVBAR_HEIGHT);
+            navBarHeightLandscape = isTabletOrGesture
+                    ? getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE) : 0;
+        }
         navbarWidthLandscape = isTabletOrGesture
                 ? 0
                 : getDimenByName(systemRes, NAVBAR_LANDSCAPE_LEFT_RIGHT_SIZE);

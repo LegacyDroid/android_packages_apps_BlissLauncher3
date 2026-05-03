@@ -701,8 +701,9 @@ public class LauncherBackAnimationController {
         final boolean isBackgroundDark =
                 (mLauncher.getWindow().getDecorView().getSystemUiVisibility()
                         & View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) == 0;
+        final int appearance = !isBackgroundDark ? APPEARANCE_LIGHT_STATUS_BARS : 0;
         final AppearanceRegion region = mOverridingStatusBarFlags
-                ? new AppearanceRegion(!isBackgroundDark ? APPEARANCE_LIGHT_STATUS_BARS : 0,
+                ? new AppearanceRegion(appearance,
                         mBackTarget.windowConfiguration.getBounds())
                 : null;
         SystemUiProxy.INSTANCE.get(mLauncher).customizeStatusBarAppearance(region);

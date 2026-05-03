@@ -524,7 +524,7 @@ public final class Utilities {
 
     public static String getSystemProperty(String property, String defaultValue) {
         try {
-            Class clazz = Class.forName("android.os.SystemProperties");
+            Class<?> clazz = Class.forName("android.os.SystemProperties");
             Method getter = clazz.getDeclaredMethod("get", String.class);
             String value = (String) getter.invoke(null, property);
             if (!TextUtils.isEmpty(value)) {
@@ -542,21 +542,21 @@ public final class Utilities {
      * return upperBound; else return value unchanged.
      */
     public static int boundToRange(int value, int lowerBound, int upperBound) {
-        return Math.max(lowerBound, Math.min(value, upperBound));
+        return Math.clamp(value, lowerBound, upperBound);
     }
 
     /**
      * @see #boundToRange(int, int, int).
      */
     public static float boundToRange(float value, float lowerBound, float upperBound) {
-        return Math.max(lowerBound, Math.min(value, upperBound));
+        return Math.clamp(value, lowerBound, upperBound);
     }
 
     /**
      * @see #boundToRange(int, int, int).
      */
     public static long boundToRange(long value, long lowerBound, long upperBound) {
-        return Math.max(lowerBound, Math.min(value, upperBound));
+        return Math.clamp(value, lowerBound, upperBound);
     }
 
     /**

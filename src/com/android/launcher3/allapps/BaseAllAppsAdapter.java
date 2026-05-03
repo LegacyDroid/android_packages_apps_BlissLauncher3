@@ -204,7 +204,7 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
     protected final OnLongClickListener mOnIconLongClickListener;
     protected OnFocusChangeListener mIconFocusListener;
 
-    public BaseAllAppsAdapter(T activityContext, LayoutInflater inflater,
+    protected BaseAllAppsAdapter(T activityContext, LayoutInflater inflater,
             AlphabeticalAppsList<T> apps, SearchAdapterProvider<?> adapterProvider) {
         mActivityContext = activityContext;
         mApps = apps;
@@ -295,7 +295,7 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
                 if (mAdapterProvider.isViewSupported(viewType)) {
                     return mAdapterProvider.onCreateViewHolder(mLayoutInflater, parent, viewType);
                 }
-                throw new RuntimeException("Unexpected view type" + viewType);
+                throw new IllegalStateException("Unexpected view type" + viewType);
         }
     }
 

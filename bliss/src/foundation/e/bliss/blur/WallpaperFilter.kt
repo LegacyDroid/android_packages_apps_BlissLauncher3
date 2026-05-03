@@ -19,7 +19,7 @@ package foundation.e.bliss.blur
 
 import android.graphics.Bitmap
 
-interface WallpaperFilter<T> {
+fun interface WallpaperFilter<T> {
 
     fun apply(wallpaper: Bitmap): ApplyTask<T>
 

@@ -19,6 +19,6 @@ package com.android.quickstep.task.thumbnail.data
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.ThumbnailData
 
-interface TaskThumbnailDataSource {
+fun interface TaskThumbnailDataSource {
     suspend fun getThumbnail(task: Task): ThumbnailData?
 }

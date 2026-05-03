@@ -59,7 +59,7 @@ import javax.inject.Inject;
 @LauncherAppSingleton
 public class UserCache {
 
-    public static DaggerSingletonObject<UserCache> INSTANCE =
+    public static final DaggerSingletonObject<UserCache> INSTANCE =
             new DaggerSingletonObject<>(LauncherBaseAppComponent::getUserCache);
 
     public static final String ACTION_PROFILE_ADDED = ATLEAST_U

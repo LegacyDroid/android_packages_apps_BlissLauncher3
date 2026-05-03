@@ -267,10 +267,11 @@ abstract class TutorialController implements BackGestureAttemptCallback,
 
     @LayoutRes
     protected int getMockHotseatResId() {
+        int largeScreenHotseatResId = mTutorialFragment.isFoldable()
+                ? R.layout.redesigned_gesture_tutorial_foldable_mock_hotseat
+                : R.layout.redesigned_gesture_tutorial_tablet_mock_hotseat;
         return mTutorialFragment.isLargeScreen()
-                ? mTutorialFragment.isFoldable()
-                    ? R.layout.redesigned_gesture_tutorial_foldable_mock_hotseat
-                    : R.layout.redesigned_gesture_tutorial_tablet_mock_hotseat
+                ? largeScreenHotseatResId
                 : R.layout.redesigned_gesture_tutorial_mock_hotseat;
     }
 
@@ -687,10 +688,11 @@ abstract class TutorialController implements BackGestureAttemptCallback,
         if (!mTutorialFragment.isLargeScreen()) {
             DeviceProfile dp = mTutorialFragment.getDeviceProfile();
 
+            int landscapeRule = dp.isSeascape()
+                    ? RelativeLayout.ALIGN_PARENT_START
+                    : RelativeLayout.ALIGN_PARENT_END;
             hotseatLayoutParams.addRule(dp.isLandscape
-                    ? (dp.isSeascape()
-                            ? RelativeLayout.ALIGN_PARENT_START
-                            : RelativeLayout.ALIGN_PARENT_END)
+                    ? landscapeRule
                     : RelativeLayout.ALIGN_PARENT_BOTTOM);
         } else {
             hotseatLayoutParams.width = RelativeLayout.LayoutParams.MATCH_PARENT;

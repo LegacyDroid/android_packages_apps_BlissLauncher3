@@ -144,11 +144,11 @@ public abstract class AbstractFloatingView extends LinearLayout implements Touch
 
     protected boolean mIsOpen;
 
-    public AbstractFloatingView(Context context, AttributeSet attrs) {
+    protected AbstractFloatingView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public AbstractFloatingView(Context context, AttributeSet attrs, int defStyleAttr) {
+    protected AbstractFloatingView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 

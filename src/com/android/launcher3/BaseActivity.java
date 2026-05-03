@@ -188,7 +188,7 @@ public abstract class BaseActivity extends Activity implements ActivityContext,
 
     private ActionMode mCurrentActionMode;
 
-    public BaseActivity() {
+    protected BaseActivity() {
         mSavedStateRegistryController.performAttach();
         registerActivityLifecycleCallbacks(
                 new LifecycleHelper(this, mSavedStateRegistryController, mLifecycleRegistry));

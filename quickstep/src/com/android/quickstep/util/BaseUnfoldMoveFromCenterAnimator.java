@@ -50,7 +50,7 @@ public abstract class BaseUnfoldMoveFromCenterAnimator implements TransitionProg
     // the animation (by calling onPrepareViewsForAnimation)
     private Float mLastTransitionProgress = null;
 
-    public BaseUnfoldMoveFromCenterAnimator(WindowManager windowManager,
+    protected BaseUnfoldMoveFromCenterAnimator(WindowManager windowManager,
             @UnfoldMain RotationChangeProvider rotationChangeProvider) {
         mMoveFromCenterAnimation = new UnfoldMoveFromCenterAnimator(windowManager,
                 new LauncherViewsMoveFromCenterTranslationApplier());

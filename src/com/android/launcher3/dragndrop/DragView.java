@@ -121,7 +121,7 @@ public abstract class DragView<T extends Context & ActivityContext> extends Fram
     private Path mScaledMaskPath;
     private Drawable mBadge;
 
-    public DragView(T launcher, Drawable drawable, int registrationX,
+    protected DragView(T launcher, Drawable drawable, int registrationX,
             int registrationY, final float initialScale, final float scaleOnDrop,
             final float finalScaleDps) {
         this(launcher, getViewFromDrawable(launcher, drawable),
@@ -144,7 +144,7 @@ public abstract class DragView<T extends Context & ActivityContext> extends Fram
      * @param scaleOnDrop the scale used in the drop animation.
      * @param finalScaleDps the scale used in the zoom out animation when the drag view is shown.
      */
-    public DragView(T activity, View content, int width, int height, int registrationX,
+    protected DragView(T activity, View content, int width, int height, int registrationX,
             int registrationY, final float initialScale, final float scaleOnDrop,
             final float finalScaleDps) {
         super(activity);

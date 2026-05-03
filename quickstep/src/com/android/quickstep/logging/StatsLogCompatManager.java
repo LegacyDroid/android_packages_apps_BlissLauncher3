@@ -78,6 +78,7 @@ import com.android.launcher3.views.ActivityContext;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 import com.android.systemui.shared.system.SysUiStatsLog;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -116,7 +117,7 @@ public class StatsLogCompatManager extends StatsLogManager {
     private static final int SEARCH_ATTRIBUTES_ENTRY_STATE_OVERVIEW = 1 << 4;
     private static final int SEARCH_ATTRIBUTES_ENTRY_STATE_TASKBAR = 1 << 5;
 
-    public static final CopyOnWriteArrayList<StatsLogConsumer> LOGS_CONSUMER =
+    public static final List<StatsLogConsumer> LOGS_CONSUMER =
             new CopyOnWriteArrayList<>();
 
     public StatsLogCompatManager(Context context) {
@@ -355,7 +356,7 @@ public class StatsLogCompatManager extends StatsLogManager {
         @Override
         public void log(EventEnum event) {
             if (DEBUG) {
-                String name = (event instanceof Enum eventEnum) ? eventEnum.name() :
+                String name = (event instanceof Enum<?> eventEnum) ? eventEnum.name() :
                         event.getId() + "";
                 Log.d(TAG, name);
             }
@@ -470,7 +471,7 @@ public class StatsLogCompatManager extends StatsLogManager {
             int inputType = mInputType;
             String packageName = mPackageName.orElseGet(() -> getPackageName(atomInfo));
             if (IS_VERBOSE) {
-                String name = (event instanceof Enum eventEnum) ? eventEnum.name() :
+                String name = (event instanceof Enum<?> eventEnum) ? eventEnum.name() :
                         event.getId() + "";
                 StringBuilder logStringBuilder = new StringBuilder("\n");
                 if (instanceId != DEFAULT_INSTANCE_ID) {
@@ -614,7 +615,7 @@ public class StatsLogCompatManager extends StatsLogManager {
         @Override
         public void log(EventEnum event) {
             if (IS_VERBOSE) {
-                String name = (event instanceof Enum eventEnum) ? eventEnum.name() :
+                String name = (event instanceof Enum<?> eventEnum) ? eventEnum.name() :
                         event.getId() + "";
                 StringBuilder logStringBuilder = new StringBuilder("\n");
                 logStringBuilder.append(String.format(LOG_INSTANCE_ID_PREFIX, mInstanceId));
@@ -695,7 +696,7 @@ public class StatsLogCompatManager extends StatsLogManager {
         @Override
         public void log(EventEnum event) {
             if (IS_VERBOSE) {
-                String name = (event instanceof Enum eventEnum) ? eventEnum.name() :
+                String name = (event instanceof Enum<?> eventEnum) ? eventEnum.name() :
                         event.getId() + "";
                 StringBuilder logStringBuilder = new StringBuilder("\n");
                 logStringBuilder.append(String.format(LOG_INSTANCE_ID_PREFIX, mInstanceId));

@@ -117,7 +117,7 @@ public final class WidgetSections {
             sWidgetSections = widgetSections;
             sWidgetsToCategories = widgetsToCategories;
         } catch (IOException | XmlPullParserException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 

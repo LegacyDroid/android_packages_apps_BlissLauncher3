@@ -100,7 +100,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     /**
      * Def. value for @param shouldBubblesFollow in
      * {@link #updateAndAnimateTransientTaskbar(boolean)} */
-    public static boolean SHOULD_BUBBLES_FOLLOW_DEFAULT_VALUE = true;
+    public static final boolean SHOULD_BUBBLES_FOLLOW_DEFAULT_VALUE = true;
 
     public static final int FLAG_IN_APP = 1 << 0;
     public static final int FLAG_STASHED_IN_APP_SYSUI = 1 << 1; // shade open, ...

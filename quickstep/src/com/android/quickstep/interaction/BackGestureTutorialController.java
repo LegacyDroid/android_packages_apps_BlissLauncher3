@@ -105,10 +105,11 @@ final class BackGestureTutorialController extends TutorialController {
 
     @Override
     protected int getGestureLottieAnimationId() {
+        int largeScreenAnimationId = mTutorialFragment.isFoldable()
+                ? R.raw.back_gesture_tutorial_open_foldable_animation
+                : R.raw.back_gesture_tutorial_tablet_animation;
         return mTutorialFragment.isLargeScreen()
-                ? mTutorialFragment.isFoldable()
-                    ? R.raw.back_gesture_tutorial_open_foldable_animation
-                    : R.raw.back_gesture_tutorial_tablet_animation
+                ? largeScreenAnimationId
                 : R.raw.back_gesture_tutorial_animation;
     }
 

@@ -981,11 +981,12 @@ public class WidgetsFullSheet extends BaseWidgetSheet
             return mWidgetRecommendationsView.getViewForEducationTip();
         }
 
+        int nonSearchAdapterIndex = mViewPager == null
+                ? AdapterHolder.PRIMARY
+                : mViewPager.getCurrentPage();
         AdapterHolder adapterHolder = mAdapters.get(mIsInSearchMode
                 ? AdapterHolder.SEARCH
-                : mViewPager == null
-                        ? AdapterHolder.PRIMARY
-                        : mViewPager.getCurrentPage());
+                : nonSearchAdapterIndex);
         WidgetsRowViewHolder viewHolderForTip =
                 (WidgetsRowViewHolder) IntStream.range(
                                 0, adapterHolder.mWidgetsListAdapter.getItemCount())

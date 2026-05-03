@@ -1050,7 +1050,7 @@ public class CellLayout extends ViewGroup {
             newWidth = mFixedWidth;
             newHeight = mFixedHeight;
         } else if (widthSpecMode == MeasureSpec.UNSPECIFIED || heightSpecMode == MeasureSpec.UNSPECIFIED) {
-            throw new RuntimeException("CellLayout cannot have UNSPECIFIED dimensions");
+            throw new IllegalStateException("CellLayout cannot have UNSPECIFIED dimensions");
         }
 
         mShortcutsAndWidgets.measure(
@@ -1963,7 +1963,7 @@ public class CellLayout extends ViewGroup {
             return mOccupied.cells[x][y];
         }
         if (BuildConfig.IS_STUDIO_BUILD) {
-            throw new RuntimeException("Position exceeds the bound of this CellLayout");
+            throw new IllegalArgumentException("Position exceeds the bound of this CellLayout");
         }
         return true;
     }

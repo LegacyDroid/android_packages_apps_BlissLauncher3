@@ -16,6 +16,6 @@
 
 package com.android.quickstep.recents.data
 
-interface RecentsDeviceProfileRepository {
+fun interface RecentsDeviceProfileRepository {
     fun getRecentsDeviceProfile(): RecentsDeviceProfile
 }

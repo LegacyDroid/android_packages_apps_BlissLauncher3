@@ -92,6 +92,6 @@ constructor(@ApplicationContext private val context: Context, tracker: DaggerSin
     }
 }
 
-interface OnColorHintListener {
+fun interface OnColorHintListener {
     fun onColorHintsChanged(colorHints: Int)
 }

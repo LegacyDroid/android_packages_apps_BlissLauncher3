@@ -767,7 +767,7 @@ public class InvariantDeviceProfile {
                 }
             }
         } catch (IOException | XmlPullParserException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
         ArrayList<DisplayOption> filteredProfiles = new ArrayList<>();
         if (!TextUtils.isEmpty(gridName)) {
@@ -790,7 +790,7 @@ public class InvariantDeviceProfile {
             filteredProfiles.addAll(profiles);
         }
         if (filteredProfiles.isEmpty()) {
-            throw new RuntimeException("No display option with canBeDefault=true");
+            throw new IllegalStateException("No display option with canBeDefault=true");
         }
         return filteredProfiles;
     }
@@ -816,7 +816,7 @@ public class InvariantDeviceProfile {
                 }
             }
         } catch (IOException | XmlPullParserException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
 
         // Finds the min width and height in dp for all displays.
@@ -989,7 +989,7 @@ public class InvariantDeviceProfile {
     private void applyDockIconCountOverride() {
         int count = mPrefs.get(LauncherPrefs.DOCK_ICON_COUNT);
         if (count > 0) {
-            count = Math.max(2, Math.min(count, 6));
+            count = Math.clamp(count, 2, 6);
             numShownHotseatIcons = count;
             numDatabaseHotseatIcons = Math.max(numDatabaseHotseatIcons, count);
         }
@@ -998,7 +998,7 @@ public class InvariantDeviceProfile {
     private void applyDrawerColumnsOverride() {
         int count = mPrefs.get(LauncherPrefs.DRAWER_COLUMNS);
         if (count > 0) {
-            count = Math.max(2, Math.min(count, 8));
+            count = Math.clamp(count, 2, 8);
             numAllAppsColumns = count;
         }
     }
@@ -1006,7 +1006,7 @@ public class InvariantDeviceProfile {
     private void applyFolderColumnsOverride() {
         int count = mPrefs.get(LauncherPrefs.FOLDER_COLUMNS);
         if (count > 0) {
-            count = Math.max(2, Math.min(count, 5));
+            count = Math.clamp(count, 2, 5);
             for (int i = 0; i < numFolderColumns.length; i++) {
                 numFolderColumns[i] = count;
                 numFolderRows[i] = count;

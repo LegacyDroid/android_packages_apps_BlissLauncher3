@@ -87,7 +87,7 @@ import javax.inject.Inject;
 @LauncherAppSingleton
 public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskStackChangeListener {
     private static final String TAG = "TopTaskTracker";
-    public static DaggerSingletonObject<TopTaskTracker> INSTANCE =
+    public static final DaggerSingletonObject<TopTaskTracker> INSTANCE =
             new DaggerSingletonObject<>(QuickstepBaseAppComponent::getTopTaskTracker);
 
     private static final int HISTORY_SIZE = 5;

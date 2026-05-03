@@ -697,10 +697,14 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                 super.onAnimationStart(animation);
                 focusedTask.requestAccessibilityFocus();
                 if (fromIndex == -1) {
-                    int firstVisibleTaskIndex = toIndex == 0
-                            ? toIndex
-                            : getTaskAt(toIndex - 1) == null
-                                    ? toIndex : toIndex - 1;
+                    int firstVisibleTaskIndex;
+                    if (toIndex == 0) {
+                        firstVisibleTaskIndex = toIndex;
+                    } else if (getTaskAt(toIndex - 1) == null) {
+                        firstVisibleTaskIndex = toIndex;
+                    } else {
+                        firstVisibleTaskIndex = toIndex - 1;
+                    }
                     // Scroll so that the previous task view is truncated as a visual hint that
                     // there are more tasks
                     initializeScroll(

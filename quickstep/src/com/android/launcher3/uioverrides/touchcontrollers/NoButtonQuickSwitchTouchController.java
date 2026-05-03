@@ -477,15 +477,19 @@ public class NoButtonQuickSwitchTouchController implements TouchController,
     }
 
     private void onAnimationToStateCompleted(LauncherState targetState) {
+        com.android.launcher3.logging.StatsLogManager.LauncherEvent eventId;
+        if (targetState == QUICK_SWITCH_FROM_HOME) {
+            eventId = LAUNCHER_QUICKSWITCH_RIGHT;
+        } else if (targetState.ordinal > mStartState.ordinal) {
+            eventId = LAUNCHER_UNKNOWN_SWIPEUP;
+        } else {
+            eventId = LAUNCHER_UNKNOWN_SWIPEDOWN;
+        }
         mLauncher.getStatsLogManager().logger()
                 .withSrcState(LAUNCHER_STATE_HOME)
                 .withDstState(targetState.statsLogOrdinal)
                 .log(getLauncherAtomEvent(mStartState.statsLogOrdinal, targetState.statsLogOrdinal,
-                        targetState == QUICK_SWITCH_FROM_HOME
-                                ? LAUNCHER_QUICKSWITCH_RIGHT
-                                : targetState.ordinal > mStartState.ordinal
-                                        ? LAUNCHER_UNKNOWN_SWIPEUP
-                                        : LAUNCHER_UNKNOWN_SWIPEDOWN));
+                        eventId));
 
         if (targetState == QUICK_SWITCH_FROM_HOME) {
             InteractionJankMonitorWrapper.end(Cuj.CUJ_LAUNCHER_QUICK_SWITCH);

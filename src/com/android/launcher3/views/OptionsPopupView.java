@@ -286,7 +286,7 @@ public class OptionsPopupView<T extends Context & ActivityContext> extends Arrow
      * user via {@link LauncherPrefs#HOME_POPUP_ORDER}, or in the default order
      * if no preference is set.
      */
-    public static ArrayList<OptionItem> getOptions(Launcher launcher) {
+    public static List<OptionItem> getOptions(Launcher launcher) {
         ArrayList<OptionItem> options = new ArrayList<>();
         LauncherPrefs prefs = LauncherComponentProvider.get(launcher).getLauncherPrefs();
         String orderPref = prefs.get(LauncherPrefs.HOME_POPUP_ORDER);

@@ -278,7 +278,7 @@ public class DatabaseWidgetPreviewLoader {
 
         int size = iconSize + 2 * padding;
         if (maxHeight < size || maxWidth < size) {
-            throw new RuntimeException("Max size is too small for preview");
+            throw new IllegalArgumentException("Max size is too small for preview");
         }
         return BitmapRenderer.createHardwareBitmap(size, size, c -> {
             LauncherIcons li = LauncherIcons.obtain(mContext);
@@ -298,9 +298,9 @@ public class DatabaseWidgetPreviewLoader {
             return MAIN_EXECUTOR.submit(drawable::mutate).get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         } catch (ExecutionException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 

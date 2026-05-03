@@ -149,11 +149,14 @@ public class MotionPauseDetector {
      * @param pointerIndex Index for the pointer being tracked in the motion event
      */
     public void addPosition(MotionEvent ev, int pointerIndex) {
-        long timeoutMs = Utilities.isRunningInTestHarness()
-                ? TEST_HARNESS_TRIGGER_TIMEOUT
-                : mMakePauseHarderToTrigger
-                        ? HARDER_TRIGGER_TIMEOUT
-                        : FORCE_PAUSE_TIMEOUT;
+        long timeoutMs;
+        if (Utilities.isRunningInTestHarness()) {
+            timeoutMs = TEST_HARNESS_TRIGGER_TIMEOUT;
+        } else if (mMakePauseHarderToTrigger) {
+            timeoutMs = HARDER_TRIGGER_TIMEOUT;
+        } else {
+            timeoutMs = FORCE_PAUSE_TIMEOUT;
+        }
         mForcePauseTimeout.setAlarm(timeoutMs);
         float newVelocity = mVelocityProvider.addMotionEvent(ev, ev.getPointerId(pointerIndex));
         if (mPreviousVelocity != null) {

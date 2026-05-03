@@ -89,7 +89,7 @@ public abstract class BaseWidgetSheet extends AbstractSlideInView<BaseActivity>
     @Nullable private WidgetCell mWidgetCellWithAddButton = null;
     @Nullable private WidgetItem mLastSelectedWidgetItem = null;
 
-    public BaseWidgetSheet(Context context, AttributeSet attrs, int defStyleAttr) {
+    protected BaseWidgetSheet(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mContentHorizontalMargin = getWidgetListHorizontalMargin();
         mWidgetCellHorizontalPadding = getResources().getDimensionPixelSize(

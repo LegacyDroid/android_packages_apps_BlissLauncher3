@@ -32,7 +32,7 @@ public abstract class SearchAdapterProvider<T extends ActivityContext> {
 
     protected final T mLauncher;
 
-    public SearchAdapterProvider(T launcher) {
+    protected SearchAdapterProvider(T launcher) {
         mLauncher = launcher;
     }
 

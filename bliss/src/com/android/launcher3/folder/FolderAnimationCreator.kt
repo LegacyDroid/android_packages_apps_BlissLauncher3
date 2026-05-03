@@ -18,6 +18,6 @@ package com.android.launcher3.folder
 
 import android.animation.AnimatorSet
 
-interface FolderAnimationCreator {
+fun interface FolderAnimationCreator {
     fun createAnimatorSet(isOpening: Boolean): AnimatorSet
 }

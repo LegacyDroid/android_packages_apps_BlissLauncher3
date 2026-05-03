@@ -42,7 +42,6 @@ import java.util.ArrayList;
 public class AnimatedTaskbarView extends ConstraintLayout {
 
     private View mBackground;
-    private View mIconContainer;
     private View mAllAppsButton;
     private View mIcon1;
     private View mIcon2;
@@ -77,7 +76,6 @@ public class AnimatedTaskbarView extends ConstraintLayout {
         super.onFinishInflate();
 
         mBackground = findViewById(R.id.taskbar_background);
-        mIconContainer = findViewById(R.id.icon_container);
         mAllAppsButton = findViewById(R.id.taskbar_all_apps);
         mIcon1 = findViewById(R.id.taskbar_icon_1);
         mIcon2 = findViewById(R.id.taskbar_icon_2);

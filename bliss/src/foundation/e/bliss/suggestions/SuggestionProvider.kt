@@ -17,7 +17,7 @@
  */
 package foundation.e.bliss.suggestions
 
-interface SuggestionProvider {
+fun interface SuggestionProvider {
     suspend fun query(query: String): SuggestionsResult
 }
 

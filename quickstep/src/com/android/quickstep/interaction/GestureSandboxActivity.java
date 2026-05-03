@@ -157,11 +157,13 @@ public class GestureSandboxActivity extends FragmentActivity {
                     && getResources().getConfiguration().orientation
                     == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
 
-            GestureSandboxFragment fragment = showRotationPrompt
-                    ? new RotationPromptFragment()
-                    : mCurrentFragment.canRecreateFragment() || mPendingFragment == null
+            GestureSandboxFragment recreatedFragment =
+                    mCurrentFragment.canRecreateFragment() || mPendingFragment == null
                             ? mCurrentFragment.recreateFragment()
                             : mPendingFragment.recreateFragment();
+            GestureSandboxFragment fragment = showRotationPrompt
+                    ? new RotationPromptFragment()
+                    : recreatedFragment;
             showFragment(fragment == null ? mCurrentFragment : fragment);
 
         } else {

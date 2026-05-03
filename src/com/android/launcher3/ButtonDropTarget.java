@@ -87,14 +87,14 @@ public abstract class ButtonDropTarget extends TextView
     private PopupWindow mToolTip;
     private int mToolTipLocation;
 
-    public ButtonDropTarget(Context context) {
+    protected ButtonDropTarget(Context context) {
         this(context, null, 0);
     }
-    public ButtonDropTarget(Context context, AttributeSet attrs) {
+    protected ButtonDropTarget(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public ButtonDropTarget(Context context, AttributeSet attrs, int defStyle) {
+    protected ButtonDropTarget(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mActivityContext = ActivityContext.lookupContext(context);
         mDropTargetHandler = mActivityContext.getDropTargetHandler();

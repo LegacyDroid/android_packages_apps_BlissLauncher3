@@ -517,11 +517,14 @@ public class TaskbarLauncherStateController {
             boolean onOverview = isInLauncher && mLauncherState == LauncherState.OVERVIEW;
             boolean hotseatIconsVisible = isInLauncher && mLauncherState.areElementsVisible(
                     mLauncher, HOTSEAT_ICONS);
-            BubbleLauncherState state = onOverview
-                    ? BubbleLauncherState.OVERVIEW
-                    : hotseatIconsVisible
-                            ? BubbleLauncherState.HOME
-                            : BubbleLauncherState.IN_APP;
+            BubbleLauncherState state;
+            if (onOverview) {
+                state = BubbleLauncherState.OVERVIEW;
+            } else if (hotseatIconsVisible) {
+                state = BubbleLauncherState.HOME;
+            } else {
+                state = BubbleLauncherState.IN_APP;
+            }
             controllers.bubbleStashController.setLauncherState(state);
         });
 

@@ -145,6 +145,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         View.OnFocusChangeListener, DragListener, ExtendedEditText.OnBackKeyListener,
         LauncherBindableItemsContainer {
     private static final String TAG = "Launcher.Folder";
+    private static final String DEBUG_TAG_BUG_383526431 = "b/383526431";
     private static final boolean DEBUG = false;
 
     /**
@@ -749,13 +750,13 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             }
         }
 
-        Log.d("b/383526431", "animateOpen: content child count before: "
+        Log.d(DEBUG_TAG_BUG_383526431, "animateOpen: content child count before: "
                 + mContent.getTotalChildCount());
 
         mContent.completePendingPageChanges();
         mContent.setCurrentPage(pageNo);
 
-        Log.d("b/383526431", "animateOpen: content child count after pending page"
+        Log.d(DEBUG_TAG_BUG_383526431, "animateOpen: content child count after pending page"
                 + " changes: " + mContent.getTotalChildCount());
 
         // This is set to true in close(), but isn't reset to false until onDropCompleted(). This
@@ -764,7 +765,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         mDeleteFolderOnDropCompleted = false;
 
         cancelRunningAnimations();
-        Log.d("b/383526431", "animateOpen: content child count after cancelling"
+        Log.d(DEBUG_TAG_BUG_383526431, "animateOpen: content child count after cancelling"
                 + " animation: " + mContent.getTotalChildCount());
         // PLAN-DRIFT-M02 Phase 2.4: dispatch via FOLDER_SPRING_ANIM pref. Silent fallback to
         // the AOSP FolderAnimationManager on any throw, per plan hard rules.
@@ -1563,7 +1564,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     /** Add an app or shortcut for a specified rank */
     public void addFolderContent(ItemInfo item, int rank, boolean animate) {
         if (!willAcceptItemType(item.itemType)) {
-            throw new RuntimeException("tried to add an illegal type into a folder");
+            throw new IllegalArgumentException("tried to add an illegal type into a folder");
         }
 
         rank = Utilities.boundToRange(rank, 0, mInfo.getContents().size());

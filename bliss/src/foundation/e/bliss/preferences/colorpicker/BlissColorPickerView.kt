@@ -78,7 +78,7 @@ constructor(context: Context, attrs: AttributeSet? = null) : LinearLayout(contex
     private val debounceHandler = Handler(Looper.getMainLooper())
     private var debounceRunnable: Runnable? = null
 
-    interface OnColorChangeListener {
+    fun interface OnColorChangeListener {
         fun onColorChange(@ColorInt color: Int)
     }
 

@@ -30,7 +30,7 @@ interface OffsetParent {
 
     fun removeOnOffsetChangeListener(listener: OnOffsetChangeListener)
 
-    interface OnOffsetChangeListener {
+    fun interface OnOffsetChangeListener {
         fun onOffsetChange()
     }
 

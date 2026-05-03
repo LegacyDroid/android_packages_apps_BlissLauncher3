@@ -98,7 +98,8 @@ public interface WorkspaceLayoutManager {
         }
         if (EXTRA_EMPTY_SCREEN_IDS.contains(screenId)) {
             // This should never happen
-            throw new RuntimeException("Screen id should not be extra empty screen: " + screenId);
+            throw new IllegalStateException(
+                    "Screen id should not be extra empty screen: " + screenId);
         }
 
         final CellLayout layout;

@@ -595,7 +595,7 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
         if (mActivityContext.getDragController() != null) {
             mActivityContext.getDragController().removeDragListener(this);
         }
-        PopupContainerWithArrow openPopup = getOpen(mActivityContext);
+        PopupContainerWithArrow<?> openPopup = getOpen(mActivityContext);
         if (openPopup == null || openPopup.mOriginalIcon != mOriginalIcon) {
             mOriginalIcon.setTextVisibility(mOriginalIcon.shouldTextBeVisible());
             mOriginalIcon.setForceHideDot(false);
@@ -605,7 +605,7 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
     /**
      * Returns a PopupContainerWithArrow which is already open or null
      */
-    public static <T extends Context & ActivityContext> PopupContainerWithArrow getOpen(T context) {
+    public static <T extends Context & ActivityContext> PopupContainerWithArrow<?> getOpen(T context) {
         return getOpenView(context, TYPE_ACTION_POPUP);
     }
 
@@ -613,7 +613,7 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
      * Dismisses the popup if it is no longer valid
      */
     public static <T extends Context & ActivityContext> void dismissInvalidPopup(T activity) {
-        PopupContainerWithArrow popup = getOpen(activity);
+        PopupContainerWithArrow<?> popup = getOpen(activity);
         if (popup != null && (!popup.mOriginalIcon.isAttachedToWindow()
                 || !ShortcutUtil.supportsShortcuts((ItemInfo) popup.mOriginalIcon.getTag()))) {
             popup.animateClose();
@@ -632,9 +632,9 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
 
         protected final Point mIconLastTouchPos = new Point();
         private final Launcher mLauncher;
-        private final PopupContainerWithArrow mContainer;
+        private final PopupContainerWithArrow<?> mContainer;
 
-        LauncherPopupItemDragHandler(Launcher launcher, PopupContainerWithArrow container) {
+        LauncherPopupItemDragHandler(Launcher launcher, PopupContainerWithArrow<?> container) {
             mLauncher = launcher;
             mContainer = container;
         }

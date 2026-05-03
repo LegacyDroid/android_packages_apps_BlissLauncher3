@@ -17,7 +17,7 @@ public abstract class RevealOutlineAnimation extends ViewOutlineProvider {
     protected Rect mOutline;
     protected float mOutlineRadius;
 
-    public RevealOutlineAnimation() {
+    protected RevealOutlineAnimation() {
         mOutline = new Rect();
     }
 

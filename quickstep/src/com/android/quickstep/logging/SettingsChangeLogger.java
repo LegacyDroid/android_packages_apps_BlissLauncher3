@@ -75,7 +75,7 @@ public class SettingsChangeLogger implements
     /**
      * Singleton instance
      */
-    public static DaggerSingletonObject<SettingsChangeLogger> INSTANCE =
+    public static final DaggerSingletonObject<SettingsChangeLogger> INSTANCE =
             new DaggerSingletonObject<>(QuickstepBaseAppComponent::getSettingsChangeLogger);
 
     private static final String TAG = "SettingsChangeLogger";

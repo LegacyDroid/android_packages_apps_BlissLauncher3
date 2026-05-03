@@ -17,6 +17,6 @@
  */
 package foundation.e.bliss.utils
 
-interface OnDataChangedListener {
+fun interface OnDataChangedListener {
     fun onDataChanged()
 }

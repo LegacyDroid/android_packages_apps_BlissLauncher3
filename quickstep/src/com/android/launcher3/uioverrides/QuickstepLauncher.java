@@ -490,7 +490,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     @Override
     public Stream<SystemShortcut.Factory> getSupportedShortcuts() {
         // Order matters as it affects order of appearance in popup container
-        List<SystemShortcut.Factory> shortcuts = new ArrayList(Arrays.asList(
+        List<SystemShortcut.Factory> shortcuts = new ArrayList<>(Arrays.asList(
                 APP_INFO, SystemShortcut.RENAME, FOLDER_COLOR,
                 WellbeingModel.SHORTCUT_FACTORY, mHotseatPredictionController));
 

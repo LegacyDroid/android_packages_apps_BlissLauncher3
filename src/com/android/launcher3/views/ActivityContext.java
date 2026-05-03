@@ -431,9 +431,10 @@ public interface ActivityContext extends SavedStateRegistryOwner {
         if (isShortcut && !WIDGETS_ENABLED) {
             return null;
         }
+        int defaultSplashStyle = item != null && item.animationType == DEFAULT_NO_ICON
+                ? SPLASH_SCREEN_STYLE_SOLID_COLOR : -1 /* SPLASH_SCREEN_STYLE_UNDEFINED */;
         ActivityOptionsWrapper options = v != null ? getActivityLaunchOptions(v, item)
-                : makeDefaultActivityOptions(item != null && item.animationType == DEFAULT_NO_ICON
-                        ? SPLASH_SCREEN_STYLE_SOLID_COLOR : -1 /* SPLASH_SCREEN_STYLE_UNDEFINED */);
+                : makeDefaultActivityOptions(defaultSplashStyle);
         UserHandle user = item == null ? null : item.user;
         Bundle optsBundle = options.toBundle();
         // Prepare intent

@@ -123,7 +123,7 @@ public abstract class DragController<T extends ActivityContext>
     /**
      * Used to create a new DragLayer from XML.
      */
-    public DragController(T activity) {
+    protected DragController(T activity) {
         mActivity = activity;
     }
 
@@ -366,8 +366,8 @@ public abstract class DragController<T extends ActivityContext>
      */
     protected Point getClampedDragLayerPos(float x, float y) {
         mActivity.getDragLayer().getLocalVisibleRect(mRectTemp);
-        mTmpPoint.x = (int) Math.max(mRectTemp.left, Math.min(x, mRectTemp.right - 1));
-        mTmpPoint.y = (int) Math.max(mRectTemp.top, Math.min(y, mRectTemp.bottom - 1));
+        mTmpPoint.x = (int) Math.clamp(x, mRectTemp.left, mRectTemp.right - 1);
+        mTmpPoint.y = (int) Math.clamp(y, mRectTemp.top, mRectTemp.bottom - 1);
         return mTmpPoint;
     }
 

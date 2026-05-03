@@ -522,10 +522,11 @@ public class AutoInstallsLayout {
                     if (key != null && value != null) {
                         extras.putString(key, value);
                     } else {
-                        throw new RuntimeException("Widget extras must have a key and value");
+                        throw new IllegalArgumentException(
+                                "Widget extras must have a key and value");
                     }
                 } else {
-                    throw new RuntimeException("Widgets can contain only extras");
+                    throw new IllegalArgumentException("Widgets can contain only extras");
                 }
             }
             return verifyAndInsert(cn, extras);
@@ -625,7 +626,8 @@ public class AutoInstallsLayout {
                         rank++;
                     }
                 } else {
-                    throw new RuntimeException("Invalid folder item " + parser.getName());
+                    throw new IllegalArgumentException(
+                            "Invalid folder item " + parser.getName());
                 }
             }
 

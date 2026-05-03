@@ -43,15 +43,15 @@ public abstract class FastScrollRecyclerView extends RecyclerView  {
 
     protected RecyclerViewFastScroller mScrollbar;
 
-    public FastScrollRecyclerView(Context context) {
+    protected FastScrollRecyclerView(Context context) {
         this(context, null);
     }
 
-    public FastScrollRecyclerView(Context context, AttributeSet attrs) {
+    protected FastScrollRecyclerView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public FastScrollRecyclerView(Context context, AttributeSet attrs, int defStyleAttr) {
+    protected FastScrollRecyclerView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 

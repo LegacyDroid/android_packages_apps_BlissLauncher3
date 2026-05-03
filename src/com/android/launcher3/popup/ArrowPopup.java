@@ -128,7 +128,7 @@ public abstract class ArrowPopup<T extends Context & ActivityContext>
 
     protected final int[] mColors;
 
-    public ArrowPopup(Context context, AttributeSet attrs, int defStyleAttr) {
+    protected ArrowPopup(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mInflater = LayoutInflater.from(context);
         mOutlineRadius = Themes.getDialogCornerRadius(context);
@@ -174,11 +174,11 @@ public abstract class ArrowPopup<T extends Context & ActivityContext>
         }
     }
 
-    public ArrowPopup(Context context, AttributeSet attrs) {
+    protected ArrowPopup(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public ArrowPopup(Context context) {
+    protected ArrowPopup(Context context) {
         this(context, null, 0);
     }
 
