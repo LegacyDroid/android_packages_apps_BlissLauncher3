@@ -196,9 +196,10 @@ public class AppsDividerView extends View implements FloatingHeaderRow {
     }
 
     private void updateViewVisibility() {
+        int nonNoneVisibility = mIsScrolledOut ? INVISIBLE : VISIBLE;
         setVisibility(mDividerType == DividerType.NONE
                 ? GONE
-                : (mIsScrolledOut ? INVISIBLE : VISIBLE));
+                : nonNoneVisibility);
     }
 
     @Override

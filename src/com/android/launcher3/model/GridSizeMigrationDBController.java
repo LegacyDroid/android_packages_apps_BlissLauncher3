@@ -537,19 +537,19 @@ public class GridSizeMigrationDBController {
                         case LauncherSettings.Favorites.ITEM_TYPE_FOLDER: {
                             int total = getFolderItemsCount(entry);
                             if (total == 0) {
-                                throw new Exception("Folder is empty");
+                                throw new IllegalStateException("Folder is empty");
                             }
                             break;
                         }
                         case LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR: {
                             int total = getFolderItemsCount(entry);
                             if (total != 2) {
-                                throw new Exception("App pair contains fewer or more than 2 items");
+                                throw new IllegalStateException("App pair contains fewer or more than 2 items");
                             }
                             break;
                         }
                         default:
-                            throw new Exception("Invalid item type");
+                            throw new IllegalStateException("Invalid item type");
                     }
                 } catch (Exception e) {
                     if (DEBUG) {
@@ -639,19 +639,19 @@ public class GridSizeMigrationDBController {
                         case LauncherSettings.Favorites.ITEM_TYPE_FOLDER: {
                             int total = getFolderItemsCount(entry);
                             if (total == 0) {
-                                throw new Exception("Folder is empty");
+                                throw new IllegalStateException("Folder is empty");
                             }
                             break;
                         }
                         case LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR: {
                             int total = getFolderItemsCount(entry);
                             if (total != 2) {
-                                throw new Exception("App pair contains fewer or more than 2 items");
+                                throw new IllegalStateException("App pair contains fewer or more than 2 items");
                             }
                             break;
                         }
                         default:
-                            throw new Exception("Invalid item type");
+                            throw new IllegalStateException("Invalid item type");
                     }
                 } catch (Exception e) {
                     if (DEBUG) {

@@ -40,7 +40,7 @@ class HighResLoadingState : HighResLoadingStateNotifier {
 
     private val callbacks = ArrayList<HighResLoadingStateChangedCallback>()
 
-    interface HighResLoadingStateChangedCallback {
+    fun interface HighResLoadingStateChangedCallback {
         fun onHighResLoadingStateChanged(enabled: Boolean)
     }
 

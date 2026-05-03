@@ -62,6 +62,7 @@ import android.content.pm.LauncherApps.ShortcutQuery;
 public class DefaultAppSearchAlgorithm implements SearchAlgorithm<AdapterItem> {
 
     private static final int DEFAULT_MAX_RESULTS_COUNT = 5;
+    private static final String SQL_LIKE_PARAM = " LIKE ?";
 
     private final LauncherAppState mAppState;
     private final Handler mResultHandler;
@@ -252,11 +253,10 @@ public class DefaultAppSearchAlgorithm implements SearchAlgorithm<AdapterItem> {
                     result.add(AdapterItem.asApp(info));
                     resultCount++;
                 }
-            } else if (fuzzyEnabled && resultCount + fuzzyResults.size() < maxResults) {
-                // Subsequence match: all query chars appear in order in the title
-                if (isSubsequenceMatch(queryTextLower, info.title.toString().toLowerCase())) {
-                    fuzzyResults.add(AdapterItem.asApp(info));
-                }
+            } else if (fuzzyEnabled && resultCount + fuzzyResults.size() < maxResults
+                    // Subsequence match: all query chars appear in order in the title
+                    && isSubsequenceMatch(queryTextLower, info.title.toString().toLowerCase())) {
+                fuzzyResults.add(AdapterItem.asApp(info));
             }
         }
         // Append fuzzy results after exact matches, up to max
@@ -381,7 +381,7 @@ public class DefaultAppSearchAlgorithm implements SearchAlgorithm<AdapterItem> {
                 ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
                 ContactsContract.Contacts.LOOKUP_KEY
             };
-            String selection = ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " LIKE ?";
+            String selection = ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + SQL_LIKE_PARAM;
             String[] selectionArgs = { "%" + query + "%" };
             String sortOrder = ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " ASC";
 
@@ -509,7 +509,7 @@ public class DefaultAppSearchAlgorithm implements SearchAlgorithm<AdapterItem> {
             String selection;
             String[] selectionArgs;
             if (audioOnly) {
-                selection = nameCol + " LIKE ?";
+                selection = nameCol + SQL_LIKE_PARAM;
                 selectionArgs = new String[] { "%" + query + "%" };
             } else {
                 // Files backend: exclude image/% and video/% so the visual-media backend
@@ -564,7 +564,7 @@ public class DefaultAppSearchAlgorithm implements SearchAlgorithm<AdapterItem> {
                         MediaStore.Files.FileColumns.MIME_TYPE
                 };
                 String sel = MediaStore.Files.FileColumns.MIME_TYPE + " LIKE ? AND "
-                        + MediaStore.Files.FileColumns.DISPLAY_NAME + " LIKE ?";
+                        + MediaStore.Files.FileColumns.DISPLAY_NAME + SQL_LIKE_PARAM;
                 String[] args = { mime, "%" + query + "%" };
                 int remaining = max - results.size();
                 Cursor c = ctx.getContentResolver().query(uri, proj, sel, args,

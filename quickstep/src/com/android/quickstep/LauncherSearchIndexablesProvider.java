@@ -85,7 +85,7 @@ public class LauncherSearchIndexablesProvider extends SearchIndexablesProvider {
                     }
                 }
             } catch (IOException |XmlPullParserException e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException(e);
             }
         }
         return cursor;

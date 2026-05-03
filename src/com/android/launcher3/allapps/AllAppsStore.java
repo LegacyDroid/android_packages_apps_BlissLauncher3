@@ -55,6 +55,7 @@ import java.util.function.Predicate;
 public class AllAppsStore<T extends Context & ActivityContext> {
 
     private static final String TAG = "AllAppsStore";
+    private static final String DEFER_UPDATES_FLAGS_LOG_SUFFIX = " mDeferUpdatesFlags=";
     // Defer updates flag used to defer all apps updates to the next draw.
     public static final int DEFER_UPDATES_NEXT_DRAW = 1 << 0;
     // Defer updates flag used to defer all apps updates by a test's request.
@@ -162,12 +163,12 @@ public class AllAppsStore<T extends Context & ActivityContext> {
 
     public void enableDeferUpdates(int flag) {
         mDeferUpdatesFlags |= flag;
-        Log.d(TAG, "enableDeferUpdates: " + flag + " mDeferUpdatesFlags=" + mDeferUpdatesFlags);
+        Log.d(TAG, "enableDeferUpdates: " + flag + DEFER_UPDATES_FLAGS_LOG_SUFFIX + mDeferUpdatesFlags);
     }
 
     public void disableDeferUpdates(int flag) {
         mDeferUpdatesFlags &= ~flag;
-        Log.d(TAG, "disableDeferUpdates: " + flag + " mDeferUpdatesFlags=" + mDeferUpdatesFlags);
+        Log.d(TAG, "disableDeferUpdates: " + flag + DEFER_UPDATES_FLAGS_LOG_SUFFIX + mDeferUpdatesFlags);
         if (mDeferUpdatesFlags == 0 && mUpdatePending) {
             notifyUpdate();
             mUpdatePending = false;
@@ -177,7 +178,7 @@ public class AllAppsStore<T extends Context & ActivityContext> {
     public void disableDeferUpdatesSilently(int flag) {
         mDeferUpdatesFlags &= ~flag;
         Log.d(TAG, "disableDeferUpdatesSilently: " + flag
-                + " mDeferUpdatesFlags=" + mDeferUpdatesFlags);
+                + DEFER_UPDATES_FLAGS_LOG_SUFFIX + mDeferUpdatesFlags);
 
     }
 

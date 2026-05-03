@@ -78,6 +78,9 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
     private static final boolean LOGD = false;
 
     private static final String DOWNGRADE_SCHEMA_FILE = "downgrade_schema.json";
+    private static final String SQL_ALTER_TABLE = "ALTER TABLE ";
+    private static final String SQL_ITEM_TYPE_EQ = "itemType=";
+    private static final String WORKSPACE_SCREENS_TABLE = "workspaceScreens";
 
     private final Context mContext;
     private final ToLongFunction<UserHandle> mUserSerialProvider;
@@ -173,7 +176,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
             if (oldVersion <= 13) {
                 try (SQLiteTransaction t = new SQLiteTransaction(db)) {
                     // Insert new column for holding widget provider name
-                    db.execSQL("ALTER TABLE " + Favorites.TABLE_NAME + " ADD COLUMN appWidgetProvider TEXT;");
+                    db.execSQL(SQL_ALTER_TABLE + Favorites.TABLE_NAME + " ADD COLUMN appWidgetProvider TEXT;");
                     t.commit();
                 } catch (SQLException ex) {
                     Log.e(TAG, ex.getMessage(), ex);
@@ -213,7 +216,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
                 // Update the favorites table so that the screen ids are ordered based on
                 // workspace page rank.
                 IntArray finalScreens = LauncherDbUtils.queryIntArray(false, db,
-                        "workspaceScreens", BaseColumns._ID, null, null, "screenRank");
+                        WORKSPACE_SCREENS_TABLE, BaseColumns._ID, null, null, "screenRank");
                 int[] original = finalScreens.toArray();
                 Arrays.sort(original);
                 String updatemap = "";
@@ -230,7 +233,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
                             Favorites.CONTAINER, Favorites.CONTAINER_DESKTOP);
                     db.execSQL(query);
                 }
-                dropTable(db, "workspaceScreens");
+                dropTable(db, WORKSPACE_SCREENS_TABLE);
             }
             if (oldVersion <= 28) {
                 boolean columnAdded = addIntegerColumn(
@@ -287,7 +290,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
     public void createEmptyDB(SQLiteDatabase db) {
         try (SQLiteTransaction t = new SQLiteTransaction(db)) {
             dropTable(db, Favorites.TABLE_NAME);
-            dropTable(db, "workspaceScreens");
+            dropTable(db, WORKSPACE_SCREENS_TABLE);
             onCreate(db);
             t.commit();
         }
@@ -312,11 +315,11 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
             }
             final IntSet validWidgets = IntSet.wrap(LauncherDbUtils.queryIntArray(false, db,
                     Favorites.E_TABLE_NAME, Favorites.APPWIDGET_ID,
-                    "itemType=" + Favorites.ITEM_TYPE_APPWIDGET, null, null));
+                    SQL_ITEM_TYPE_EQ + Favorites.ITEM_TYPE_APPWIDGET, null, null));
 
             validWidgets.addAll(IntSet.wrap(LauncherDbUtils.queryIntArray(false, db,
                     Favorites.E_TABLE_NAME_ALL, Favorites.APPWIDGET_ID,
-                    "itemType=" + Favorites.ITEM_TYPE_APPWIDGET, null, null)));
+                    SQL_ITEM_TYPE_EQ + Favorites.ITEM_TYPE_APPWIDGET, null, null)));
 
             boolean isAnyWidgetRemoved = false;
             for (int widgetId : allWidgets) {
@@ -358,7 +361,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
              // Only consider the primary user as other users can't have a shortcut.
              Cursor c = db.query(Favorites.TABLE_NAME,
                      new String[]{Favorites._ID, Favorites.INTENT},
-                     "itemType=" + Favorites.ITEM_TYPE_SHORTCUT
+                     SQL_ITEM_TYPE_EQ + Favorites.ITEM_TYPE_SHORTCUT
                              + " AND profileId=" + getDefaultUserSerial(),
                      null, null, null, null);
              SQLiteStatement updateStmt = db.compileStatement("UPDATE " + Favorites.TABLE_NAME + " SET itemType="
@@ -396,7 +399,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
         try (SQLiteTransaction t = new SQLiteTransaction(db)) {
             if (addRankColumn) {
                 // Insert new column for holding rank
-                db.execSQL("ALTER TABLE " + Favorites.TABLE_NAME + " ADD COLUMN rank INTEGER NOT NULL DEFAULT 0;");
+                db.execSQL(SQL_ALTER_TABLE + Favorites.TABLE_NAME + " ADD COLUMN rank INTEGER NOT NULL DEFAULT 0;");
             }
 
             // Get a map for folder ID to folder width
@@ -423,7 +426,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
 
     private boolean addIntegerColumn(SQLiteDatabase db, String columnName, long defaultValue) {
         try (SQLiteTransaction t = new SQLiteTransaction(db)) {
-            db.execSQL("ALTER TABLE " + Favorites.TABLE_NAME + " ADD COLUMN "
+            db.execSQL(SQL_ALTER_TABLE + Favorites.TABLE_NAME + " ADD COLUMN "
                     + columnName + " INTEGER NOT NULL DEFAULT " + defaultValue + ";");
             t.commit();
         } catch (SQLException ex) {
@@ -441,7 +444,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
     @Override
     public int generateNewItemId() {
         if (mMaxItemId.get() < 0) {
-            throw new RuntimeException("Error: max item id was not initialized");
+            throw new IllegalStateException("Error: max item id was not initialized");
         }
         return mMaxItemId.incrementAndGet();
     }
@@ -461,10 +464,11 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
 
     public int dbInsertAndCheck(SQLiteDatabase db, String table, ContentValues values) {
         if (values == null) {
-            throw new RuntimeException("Error: attempting to insert null values");
+            throw new IllegalArgumentException("Error: attempting to insert null values");
         }
         if (!values.containsKey(LauncherSettings.Favorites._ID)) {
-            throw new RuntimeException("Error: attempting to add item without specifying an id");
+            throw new IllegalArgumentException(
+                    "Error: attempting to add item without specifying an id");
         }
         checkId(values);
         return (int) db.insert(table, null, values);
@@ -509,7 +513,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
                 String.format(Locale.ENGLISH, query, args))) {
             max = (int) DatabaseUtils.longForQuery(prog, null);
             if (max < 0) {
-                throw new RuntimeException("Error: could not query max id");
+                throw new IllegalStateException("Error: could not query max id");
             }
         } catch (IllegalArgumentException exception) {
             String message = exception.getMessage();

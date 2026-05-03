@@ -200,8 +200,10 @@ public class AllAppsState extends LauncherState {
 
     @Override
     public LauncherState getHistoryForState(LauncherState previousState) {
-        return previousState == BACKGROUND_APP ? QUICK_SWITCH_FROM_HOME
-                : previousState == OVERVIEW ? OVERVIEW : NORMAL;
+        if (previousState == BACKGROUND_APP) {
+            return QUICK_SWITCH_FROM_HOME;
+        }
+        return previousState == OVERVIEW ? OVERVIEW : NORMAL;
     }
 
     @Override

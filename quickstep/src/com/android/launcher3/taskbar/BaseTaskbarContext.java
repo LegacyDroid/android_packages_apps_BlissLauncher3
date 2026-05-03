@@ -34,7 +34,7 @@ public abstract class BaseTaskbarContext extends BaseContext
 
     protected final LayoutInflater mLayoutInflater;
 
-    public BaseTaskbarContext(Context windowContext, boolean isPrimaryDisplay) {
+    protected BaseTaskbarContext(Context windowContext, boolean isPrimaryDisplay) {
         super(windowContext, Themes.getActivityThemeRes(windowContext));
         mLayoutInflater = LayoutInflater.from(this).cloneInContext(this);
     }

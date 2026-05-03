@@ -82,7 +82,7 @@ public abstract class AbstractStateChangeTouchController
     private boolean mCanBlockFling;
     private boolean mAllAppsOvershootStarted;
 
-    public AbstractStateChangeTouchController(Launcher l, SingleAxisSwipeDetector.Direction dir) {
+    protected AbstractStateChangeTouchController(Launcher l, SingleAxisSwipeDetector.Direction dir) {
         mLauncher = l;
         mDetector = new SingleAxisSwipeDetector(l, this, dir);
         mSwipeDirection = dir;
@@ -166,8 +166,9 @@ public abstract class AbstractStateChangeTouchController
     protected abstract float initCurrentAnimation();
 
     private boolean reinitCurrentAnimation(boolean reachedToState, boolean isDragTowardPositive) {
+        LauncherState resumedFromState = reachedToState ? mToState : mFromState;
         LauncherState newFromState = mFromState == null ? mLauncher.getStateManager().getState()
-                : reachedToState ? mToState : mFromState;
+                : resumedFromState;
         LauncherState newToState = getTargetStateExt(newFromState, isDragTowardPositive);
 
         onReinitToState(newToState);

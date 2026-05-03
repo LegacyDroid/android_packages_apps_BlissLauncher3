@@ -167,7 +167,7 @@ class NavButtonLayoutFactory {
     }
 
     /** Lays out and provides access to the home, recents, and back buttons for various mischief */
-    interface NavButtonLayoutter {
+    fun interface NavButtonLayoutter {
         fun layoutButtons(context: TaskbarActivityContext, isA11yButtonPersistent: Boolean)
     }
 }

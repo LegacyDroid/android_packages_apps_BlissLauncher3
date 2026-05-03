@@ -80,9 +80,6 @@ public class RecyclerViewFastScroller extends View {
     private static final int FASTSCROLL_THRESHOLD_MILLIS = 40;
     private static final int SCROLL_DELTA_THRESHOLD_DP = 4;
 
-    // Track is very narrow to target and correctly. This is especially the case if a user is
-    // using a hardware case. Even if x is offset by following amount, we consider it to be valid.
-    private static final int SCROLLBAR_LEFT_OFFSET_TOUCH_DELEGATE_DP = 5;
     private static final Rect sTempRect = new Rect();
 
     private static final Property<RecyclerViewFastScroller, Integer> TRACK_WIDTH =
@@ -345,7 +342,7 @@ public class RecyclerViewFastScroller extends View {
     private void updateFastScrollSectionNameAndThumbOffset(int y) {
         // Update the fastscroller section name at this touch position
         int bottom = mRv.getScrollbarTrackHeight() - mThumbHeight;
-        float boundedY = (float) Math.max(0, Math.min(bottom, y - mTouchOffsetY));
+        float boundedY = (float) Math.clamp(y - mTouchOffsetY, 0, bottom);
         CharSequence sectionName = mRv.scrollToPositionAtProgress(boundedY / bottom);
         if (!sectionName.equals(mPopupSectionName)) {
             mPopupSectionName = sectionName;

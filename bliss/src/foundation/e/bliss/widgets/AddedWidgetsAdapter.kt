@@ -85,7 +85,7 @@ class AddedWidgetsAdapter(private val mContext: Context, private val mDensity: I
         }
     }
 
-    internal interface OnActionClickListener {
+    internal fun interface OnActionClickListener {
         fun removeWidget(id: Int)
     }
 }

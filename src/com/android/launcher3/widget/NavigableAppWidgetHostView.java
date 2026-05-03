@@ -54,7 +54,7 @@ public abstract class NavigableAppWidgetHostView extends AppWidgetHostView
 
     private boolean mDisableSetPadding = false;
 
-    public NavigableAppWidgetHostView(Context context) {
+    protected NavigableAppWidgetHostView(Context context) {
         super(context);
         mActivity = ActivityContext.lookupContext(context);
     }

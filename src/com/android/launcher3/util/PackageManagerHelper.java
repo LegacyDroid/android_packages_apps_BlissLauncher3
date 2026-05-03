@@ -65,7 +65,7 @@ public class PackageManagerHelper {
     private static final String TAG = "PackageManagerHelper";
 
     @NonNull
-    public static DaggerSingletonObject<PackageManagerHelper> INSTANCE =
+    public static final DaggerSingletonObject<PackageManagerHelper> INSTANCE =
             new DaggerSingletonObject<>(LauncherBaseAppComponent::getPackageManagerHelper);
 
     @NonNull

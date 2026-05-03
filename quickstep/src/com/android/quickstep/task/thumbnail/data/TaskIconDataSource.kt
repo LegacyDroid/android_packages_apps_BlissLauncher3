@@ -19,6 +19,6 @@ package com.android.quickstep.task.thumbnail.data
 import com.android.quickstep.TaskIconCache
 import com.android.systemui.shared.recents.model.Task
 
-interface TaskIconDataSource {
+fun interface TaskIconDataSource {
     suspend fun getIcon(task: Task): TaskIconCache.TaskCacheEntry
 }

@@ -410,7 +410,7 @@ public class AnimatorPlaybackController implements ValueAnimator.AnimatorUpdateL
                 addAnimationHoldersRecur(child, globalDuration, springProperty, out);
             }
         } else {
-            throw new RuntimeException("Unknown animation type " + anim);
+            throw new IllegalArgumentException("Unknown animation type " + anim);
         }
     }
 }

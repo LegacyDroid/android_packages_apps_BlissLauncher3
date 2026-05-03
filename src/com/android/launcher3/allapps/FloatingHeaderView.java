@@ -261,9 +261,13 @@ public class FloatingHeaderView extends LinearLayout implements
         if (mCurrentRV != null) {
             mCurrentRV.removeOnScrollListener(mOnScrollListener);
         }
-        mCurrentRV =
-                rvType == AdapterHolder.MAIN ? mMainRV
-                : rvType == AdapterHolder.WORK ? mWorkRV : mSearchRV;
+        if (rvType == AdapterHolder.MAIN) {
+            mCurrentRV = mMainRV;
+        } else if (rvType == AdapterHolder.WORK) {
+            mCurrentRV = mWorkRV;
+        } else {
+            mCurrentRV = mSearchRV;
+        }
         mCurrentRV.addOnScrollListener(mOnScrollListener);
         maybeSetTabVisibility(rvType == AdapterHolder.SEARCH ? GONE : VISIBLE);
 

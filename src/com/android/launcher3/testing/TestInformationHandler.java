@@ -553,7 +553,7 @@ public class TestInformationHandler implements ResourceBasedOverride {
             } while (!fence.await(100, TimeUnit.MILLISECONDS));
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(ex);
+            throw new IllegalStateException(ex);
         }
     }
 

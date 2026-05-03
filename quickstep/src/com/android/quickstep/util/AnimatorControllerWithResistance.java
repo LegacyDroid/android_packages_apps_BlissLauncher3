@@ -140,8 +140,9 @@ public class AnimatorControllerWithResistance {
             FloatProperty<SCALE> scaleProperty, TRANSLATION translationTarget,
             FloatProperty<TRANSLATION> translationProperty) {
 
-        RecentsParams params = new RecentsParams(context, recentsOrientedState, dp, scaleTarget,
-                scaleProperty, translationTarget, translationProperty);
+        RecentsParams<SCALE, TRANSLATION> params = new RecentsParams<>(context,
+                recentsOrientedState, dp, scaleTarget, scaleProperty, translationTarget,
+                translationProperty);
         PendingAnimation resistAnim = createRecentsResistanceAnim(params);
         AnimatorPlaybackController resistanceController = resistAnim.createPlaybackController();
         return new AnimatorControllerWithResistance(normalController, resistanceController);
@@ -215,10 +216,10 @@ public class AnimatorControllerWithResistance {
      */
     public static PendingAnimation createRecentsResistanceFromOverviewAnim(
             Launcher launcher, @Nullable PendingAnimation resistanceAnim) {
-        RecentsView recentsView = launcher.getOverviewPanel();
-        RecentsParams params = new RecentsParams(launcher, recentsView.getPagedViewOrientedState(),
-                launcher.getDeviceProfile(), recentsView, RECENTS_SCALE_PROPERTY, recentsView,
-                TASK_SECONDARY_TRANSLATION)
+        RecentsView<?, ?> recentsView = launcher.getOverviewPanel();
+        RecentsParams<?, ?> params = new RecentsParams<>(launcher,
+                recentsView.getPagedViewOrientedState(), launcher.getDeviceProfile(), recentsView,
+                RECENTS_SCALE_PROPERTY, recentsView, TASK_SECONDARY_TRANSLATION)
                 .setResistAnim(resistanceAnim)
                 .setResistanceParams(RecentsResistanceParams.FROM_OVERVIEW)
                 .setStartScale(recentsView.getScaleX());
@@ -261,22 +262,23 @@ public class AnimatorControllerWithResistance {
             }
         }
 
-        private RecentsParams setResistAnim(PendingAnimation resistAnim) {
+        private RecentsParams<SCALE, TRANSLATION> setResistAnim(PendingAnimation resistAnim) {
             this.resistAnim = resistAnim;
             return this;
         }
 
-        private RecentsParams setResistanceParams(RecentsResistanceParams resistanceParams) {
+        private RecentsParams<SCALE, TRANSLATION> setResistanceParams(
+                RecentsResistanceParams resistanceParams) {
             this.resistanceParams = resistanceParams;
             return this;
         }
 
-        private RecentsParams setStartScale(float startScale) {
+        private RecentsParams<SCALE, TRANSLATION> setStartScale(float startScale) {
             this.startScale = startScale;
             return this;
         }
 
-        private RecentsParams setStartTranslation(float startTranslation) {
+        private RecentsParams<SCALE, TRANSLATION> setStartTranslation(float startTranslation) {
             this.startTranslation = startTranslation;
             return this;
         }

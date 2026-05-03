@@ -648,8 +648,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         // honoring both LauncherPrefs.THEMED_ICONS (global) and LauncherPrefs.DRAWER_THEMED_ICONS
         // (drawer-only) so the drawer can render real ThemedIconDrawables while the workspace
         // stays normal.
+        int themedFlag = shouldUseThemedDrawable() ? FLAG_THEMED : 0;
         int flags = Objects.equals(info.getTargetPackage(), PRIVATE_SPACE_PACKAGE)
-                ? info.bitmap.creationFlags : shouldUseThemedDrawable() ? FLAG_THEMED : 0;
+                ? info.bitmap.creationFlags : themedFlag;
         // Remove badge on icons smaller than 48dp.
         if (mHideBadge || mDisplay == DISPLAY_SEARCH_RESULT_SMALL) {
             flags |= FLAG_NO_BADGE;
@@ -1835,7 +1836,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         MessageFormat icuCountFormat = new MessageFormat(
                 getResources().getString(R.string.dotted_app_label),
                 Locale.getDefault());
-        HashMap<String, Object> args = new HashMap();
+        HashMap<String, Object> args = new HashMap<>();
         args.put("app_name", appName);
         args.put("count", notificationCount);
         return icuCountFormat.format(args);

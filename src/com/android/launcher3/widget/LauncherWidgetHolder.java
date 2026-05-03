@@ -458,7 +458,7 @@ public class LauncherWidgetHolder {
                         mContext, appWidgetId, appWidget);
             } catch (Exception e) {
                 if (!Utilities.isBinderSizeError(e)) {
-                    throw new RuntimeException(e);
+                    throw new IllegalStateException(e);
                 }
 
                 // If the exception was thrown while fetching the remote views, let the view stay.

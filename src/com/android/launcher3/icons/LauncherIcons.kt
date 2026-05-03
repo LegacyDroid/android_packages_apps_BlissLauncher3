@@ -103,7 +103,7 @@ internal constructor(
     }
 
     @AssistedFactory
-    internal interface LauncherIconsFactory {
+    internal fun interface LauncherIconsFactory {
         fun create(pool: ConcurrentLinkedQueue<LauncherIcons>): LauncherIcons
     }
 

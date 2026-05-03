@@ -84,7 +84,7 @@ public abstract class SwipeUpAnimationLogic implements
 
     protected boolean mIsSwipeForSplit;
 
-    public SwipeUpAnimationLogic(Context context, GestureState gestureState) {
+    protected SwipeUpAnimationLogic(Context context, GestureState gestureState) {
         mContext = context;
         mGestureState = gestureState;
         updateIsGestureForSplit(TopTaskTracker.INSTANCE.get(context)

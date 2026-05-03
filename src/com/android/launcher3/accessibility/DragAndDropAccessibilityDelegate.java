@@ -51,7 +51,7 @@ public abstract class DragAndDropAccessibilityDelegate extends ExploreByTouchHel
     protected final LauncherAccessibilityDelegate mDelegate;
     protected final BaseDragLayer<?> mDragLayer;
 
-    public DragAndDropAccessibilityDelegate(CellLayout forView) {
+    protected DragAndDropAccessibilityDelegate(CellLayout forView) {
         super(forView);
         mView = forView;
         mContext = mView.getContext();

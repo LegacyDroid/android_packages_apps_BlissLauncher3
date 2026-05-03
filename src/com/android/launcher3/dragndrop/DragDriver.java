@@ -37,7 +37,7 @@ public abstract class DragDriver {
         void onDriverDragCancel();
     }
 
-    public DragDriver(EventListener eventListener, Consumer<MotionEvent> sec) {
+    protected DragDriver(EventListener eventListener, Consumer<MotionEvent> sec) {
         mEventListener = eventListener;
         mSecondaryEventConsumer = sec;
     }

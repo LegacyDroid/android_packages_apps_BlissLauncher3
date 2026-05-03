@@ -468,11 +468,14 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
                 mVelocityTracker.computeCurrentVelocity(PX_PER_MS);
                 float velocityXPxPerMs = mVelocityTracker.getXVelocity(mActivePointerId);
                 float velocityYPxPerMs = mVelocityTracker.getYVelocity(mActivePointerId);
-                float velocityPxPerMs = mNavBarPosition.isRightEdge()
-                        ? velocityXPxPerMs
-                        : mNavBarPosition.isLeftEdge()
-                                ? -velocityXPxPerMs
-                                : velocityYPxPerMs;
+                float velocityPxPerMs;
+                if (mNavBarPosition.isRightEdge()) {
+                    velocityPxPerMs = velocityXPxPerMs;
+                } else if (mNavBarPosition.isLeftEdge()) {
+                    velocityPxPerMs = -velocityXPxPerMs;
+                } else {
+                    velocityPxPerMs = velocityYPxPerMs;
+                }
                 mInteractionHandler.updateDisplacement(getDisplacement(ev) - mStartDisplacement);
                 mInteractionHandler.onGestureEnded(velocityPxPerMs,
                         new PointF(velocityXPxPerMs, velocityYPxPerMs),

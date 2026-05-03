@@ -41,7 +41,7 @@ public class PluralMessageFormat {
         MessageFormat icuCountFormat = new MessageFormat(
                 context.getResources().getString(stringId),
                 Locale.getDefault());
-        HashMap<String, Object> args = new HashMap();
+        HashMap<String, Object> args = new HashMap<>();
         args.put("count", count);
         return icuCountFormat.format(args);
     }

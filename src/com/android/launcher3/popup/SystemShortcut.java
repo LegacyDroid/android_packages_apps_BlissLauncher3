@@ -73,13 +73,13 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
 
     private final AbstractFloatingViewHelper mAbstractFloatingViewHelper;
 
-    public SystemShortcut(int iconResId, int labelResId, T target, ItemInfo itemInfo,
+    protected SystemShortcut(int iconResId, int labelResId, T target, ItemInfo itemInfo,
             View originalView) {
         this(iconResId, labelResId, target, itemInfo, originalView,
                 new AbstractFloatingViewHelper());
     }
 
-    public SystemShortcut(int iconResId, int labelResId, T target, ItemInfo itemInfo,
+    protected SystemShortcut(int iconResId, int labelResId, T target, ItemInfo itemInfo,
             View originalView, AbstractFloatingViewHelper abstractFloatingViewHelper) {
         mIconResId = iconResId;
         mLabelResId = labelResId;

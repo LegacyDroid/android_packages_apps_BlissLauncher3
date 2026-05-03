@@ -253,11 +253,10 @@ public class ItemInfo {
         ComponentName component = getTargetComponent();
         Intent intent = getIntent();
 
-        return component != null
-                ? component.getPackageName()
-                : intent != null
-                        ? intent.getPackage()
-                        : null;
+        if (component != null) {
+            return component.getPackageName();
+        }
+        return intent != null ? intent.getPackage() : null;
     }
 
     public void writeToValues(@NonNull final ContentWriter writer) {
@@ -290,7 +289,8 @@ public class ItemInfo {
     public void onAddToDatabase(@NonNull final ContentWriter writer) {
         if (Workspace.EXTRA_EMPTY_SCREEN_IDS.contains(screenId)) {
             // We should never persist an item on the extra empty screen.
-            throw new RuntimeException("Screen id should not be extra empty screen: " + screenId);
+            throw new IllegalStateException(
+                    "Screen id should not be extra empty screen: " + screenId);
         }
 
         writeToValues(writer);

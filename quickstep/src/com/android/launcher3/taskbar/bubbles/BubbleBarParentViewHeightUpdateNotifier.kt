@@ -17,7 +17,7 @@
 package com.android.launcher3.taskbar.bubbles
 
 /** Controls the parent view height. */
-interface BubbleBarParentViewHeightUpdateNotifier {
+fun interface BubbleBarParentViewHeightUpdateNotifier {
 
     /** Notify parent that top boundary should be updated. */
     fun updateTopBoundary()

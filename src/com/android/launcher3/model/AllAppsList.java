@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -69,11 +70,13 @@ public class AllAppsList {
 
     public static final int DEFAULT_APPLICATIONS_NUMBER = 42;
 
+    private static final String LOG_USER_SUFFIX = ", user=";
+
     /** Dedicated monitor for synchronizing access to this list's mutable state. */
     public final Object mLock = new Object();
 
     /** The list off all apps. */
-    public final ArrayList<AppInfo> data = new ArrayList<>(DEFAULT_APPLICATIONS_NUMBER);
+    public final List<AppInfo> data = new ArrayList<>(DEFAULT_APPLICATIONS_NUMBER);
 
     @NonNull
     private final IconCache mIconCache;
@@ -233,7 +236,7 @@ public class AllAppsList {
                         Log.w(TAG, "updatePromiseInstallInfo: removing app due to install"
                                 + " failure and appInfo not startable."
                                 + " package=" + appInfo.getTargetPackage()
-                                + ", user=" + user);
+                                + LOG_USER_SUFFIX + user);
                     }
                     removeApp(i);
                 }
@@ -299,7 +302,7 @@ public class AllAppsList {
         }
     }
 
-    public void updateIconsAndLabels(HashSet<String> packages, UserHandle user) {
+    public void updateIconsAndLabels(Set<String> packages, UserHandle user) {
         for (AppInfo info : data) {
             if (info.user.equals(user) && packages.contains(info.componentName.getPackageName())) {
                 mIconCache.updateTitleAndIcon(info);
@@ -330,7 +333,7 @@ public class AllAppsList {
                     if (DEBUG) {
                         Log.w(TAG, "Changing shortcut target due to app component name change."
                                 + " component=" + applicationInfo.componentName
-                                + ", user=" + user);
+                                + LOG_USER_SUFFIX + user);
                     }
                     removeApp(i);
                 }
@@ -358,7 +361,7 @@ public class AllAppsList {
             if (DEBUG) {
                 Log.w(TAG, "updatePackage: no Activities matched updated package,"
                         + " removing any AppInfo with package=" + packageName
-                        + ", user=" + user);
+                        + LOG_USER_SUFFIX + user);
             }
             for (int i = data.size() - 1; i >= 0; i--) {
                 final AppInfo applicationInfo = data.get(i);

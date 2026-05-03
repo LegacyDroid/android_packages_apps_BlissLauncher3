@@ -40,7 +40,7 @@ import java.util.function.Supplier;
 
 public class TransformParams {
 
-    public static FloatProperty<TransformParams> PROGRESS =
+    public static final FloatProperty<TransformParams> PROGRESS =
             new FloatProperty<TransformParams>("progress") {
         @Override
         public void setValue(TransformParams params, float v) {
@@ -53,7 +53,7 @@ public class TransformParams {
         }
     };
 
-    public static FloatProperty<TransformParams> TARGET_ALPHA =
+    public static final FloatProperty<TransformParams> TARGET_ALPHA =
             new FloatProperty<TransformParams>("targetAlpha") {
         @Override
         public void setValue(TransformParams params, float v) {
@@ -176,10 +176,11 @@ public class TransformParams {
         for (int i = 0; i < targets.unfilteredApps.length; i++) {
             RemoteAnimationTarget app = targets.unfilteredApps[i];
             SurfaceProperties builder = transaction.forSurface(app.leash);
+            BuilderProxy nonHomeProxy = app.mode == targets.targetMode ? proxy : mBaseBuilderProxy;
             BuilderProxy targetProxy =
                     app.windowConfiguration.getActivityType() == ACTIVITY_TYPE_HOME
                             ? mHomeBuilderProxy
-                            : (app.mode == targets.targetMode ? proxy : mBaseBuilderProxy);
+                            : nonHomeProxy;
 
             if (app.mode == targets.targetMode) {
                 builder.setAlpha(getTargetAlpha());

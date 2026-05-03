@@ -136,11 +136,10 @@ public class TriggerSwipeUpTouchTracker {
         mVelocityTracker.computeCurrentVelocity(PX_PER_MS);
         float velocityX = mVelocityTracker.getXVelocity();
         float velocityY = mVelocityTracker.getYVelocity();
+        float horizontalOrVerticalVelocity = mNavBarPosition.isLeftEdge() ? velocityX : -velocityY;
         float velocity = mNavBarPosition.isRightEdge()
                 ? -velocityX
-                : mNavBarPosition.isLeftEdge()
-                        ? velocityX
-                        : -velocityY;
+                : horizontalOrVerticalVelocity;
 
         final boolean wasFling = Math.abs(velocity) >= mMinFlingVelocity;
         final boolean isSwipeUp;

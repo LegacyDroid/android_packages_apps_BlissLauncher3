@@ -390,7 +390,7 @@ public abstract class AbsSwipeUpHandler<
 
     private final MSDLPlayerWrapper mMSDLPlayerWrapper;
 
-    public AbsSwipeUpHandler(Context context,
+    protected AbsSwipeUpHandler(Context context,
             TaskAnimationManager taskAnimationManager, GestureState gestureState,
             long touchTimeMs, boolean continuingLastGesture,
             InputConsumerController inputConsumer,
@@ -2837,6 +2837,6 @@ public abstract class AbsSwipeUpHandler<
     }
 
     public interface Factory {
-        AbsSwipeUpHandler newHandler(GestureState gestureState, long touchTimeMs);
+        AbsSwipeUpHandler<?, ?, ?> newHandler(GestureState gestureState, long touchTimeMs);
     }
 }

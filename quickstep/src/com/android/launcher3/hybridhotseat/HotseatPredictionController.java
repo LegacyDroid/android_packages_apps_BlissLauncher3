@@ -325,7 +325,7 @@ public class HotseatPredictionController implements DragController.DragListener,
      * Sets or updates the predicted items
      */
     public void setPredictedItems(FixedContainerItems items) {
-        mPredictedItems = new ArrayList(items.items);
+        mPredictedItems = new ArrayList<>(items.items);
         if (mPredictedItems.isEmpty()) {
             HotseatRestoreHelper.restoreBackup(mLauncher);
         }

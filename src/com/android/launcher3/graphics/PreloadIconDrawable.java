@@ -158,10 +158,12 @@ public class PreloadIconDrawable extends FastBitmapDrawable {
                 isDarkMode ? 30 : 90
         );
         // Plate color
+        final int darkModeTone = isThemed() ? 10 : 20;
+        final int plateTone = isDarkMode ? darkModeTone : 80;
         mPlateColor = ColorUtils.M3HCTToColor(
                 m3HCT[0],
                 isDarkMode ? 36 : 24,
-                isDarkMode ? (isThemed() ? 10 : 20) : 80
+                plateTone
         );
 
         mSystemAccentColor = preloadColors[PRELOAD_ACCENT_COLOR_INDEX];

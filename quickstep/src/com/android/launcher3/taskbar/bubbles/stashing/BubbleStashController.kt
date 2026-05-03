@@ -46,7 +46,7 @@ interface BubbleStashController {
     }
 
     /** Execute passed action only after controllers are initiated. */
-    interface ControllersAfterInitAction {
+    fun interface ControllersAfterInitAction {
         /** Execute action after controllers are initiated. */
         fun runAfterInit(action: Runnable)
     }

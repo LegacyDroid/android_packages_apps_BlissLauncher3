@@ -116,7 +116,6 @@ public class WidgetPickerActivity extends BaseActivity implements
     private static final String EXTRA_USER_ID_FILTER = "filtered_user_ids";
 
     private SimpleDragLayer<WidgetPickerActivity> mDragLayer;
-    private WidgetsModel mModel;
     private LauncherAppState mApp;
     private StringCache mStringCache;
     private WidgetPredictionsRequester mWidgetPredictionsRequester;
@@ -166,7 +165,6 @@ public class WidgetPickerActivity extends BaseActivity implements
         mApp = LauncherAppState.getInstance(this);
         InvariantDeviceProfile idp = mApp.getInvariantDeviceProfile();
         mDeviceProfile = idp.getDeviceProfile(this);
-        mModel = new WidgetsModel(mApp.getContext());
         mWidgetPickerDataProvider = new WidgetPickerDataProvider(this);
 
         setContentView(R.layout.widget_picker_activity);
@@ -309,20 +307,21 @@ public class WidgetPickerActivity extends BaseActivity implements
      */
     private void refreshAndBindWidgets() {
         MODEL_EXECUTOR.execute(() -> {
-            mModel.update(null);
+            WidgetsModel model = new WidgetsModel(mApp.getContext());
+            model.update(null);
 
             StringCache stringCache = new StringCache();
             stringCache.loadStrings(this);
 
             bindStringCache(stringCache);
-            bindWidgets(mModel.getWidgetsByPackageItemForPicker());
+            bindWidgets(model.getWidgetsByPackageItemForPicker());
             // Open sheet once widgets are available, so that it doesn't interrupt the open
             // animation.
             openWidgetsSheet();
             if (mUiSurface != null) {
                 mWidgetPredictionsRequester = new WidgetPredictionsRequester(
                         getApplicationContext(), mUiSurface,
-                        mModel.getWidgetsByComponentKeyForPicker());
+                        model.getWidgetsByComponentKeyForPicker());
                 mWidgetPredictionsRequester.request(mAddedWidgets, this);
             }
         });

@@ -16,9 +16,6 @@
 
 package com.android.launcher3.logging;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -40,7 +37,7 @@ public final class InstanceId implements Parcelable {
 
     private final int mId;
     public InstanceId(int id) {
-        mId = min(max(0, id), INSTANCE_ID_MAX);
+        mId = Math.clamp(id, 0, INSTANCE_ID_MAX);
     }
 
     private InstanceId(Parcel in) {

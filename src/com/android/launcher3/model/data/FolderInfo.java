@@ -98,7 +98,7 @@ public class FolderInfo extends CollectionInfo {
     @Override
     public void add(@NonNull ItemInfo item) {
         if (!willAcceptItemType(item.itemType)) {
-            throw new RuntimeException("tried to add an illegal type into a folder");
+            throw new IllegalArgumentException("tried to add an illegal type into a folder");
         }
         getContents().add(item);
     }
@@ -192,11 +192,16 @@ public class FolderInfo extends CollectionInfo {
         }
 
         this.title = title;
-        LabelState newLabelState =
-                title == null ? LabelState.UNLABELED
-                        : title.length() == 0 ? LabelState.EMPTY :
-                                getAcceptedSuggestionIndex().isPresent() ? LabelState.SUGGESTED
-                                        : LabelState.MANUAL;
+        final LabelState newLabelState;
+        if (title == null) {
+            newLabelState = LabelState.UNLABELED;
+        } else if (title.length() == 0) {
+            newLabelState = LabelState.EMPTY;
+        } else if (getAcceptedSuggestionIndex().isPresent()) {
+            newLabelState = LabelState.SUGGESTED;
+        } else {
+            newLabelState = LabelState.MANUAL;
+        }
 
         if (newLabelState.equals(LabelState.MANUAL)) {
             options |= FLAG_MANUAL_FOLDER_NAME;
@@ -212,10 +217,13 @@ public class FolderInfo extends CollectionInfo {
      * Returns current state of the current folder label.
      */
     public LabelState getLabelState() {
-        return title == null ? LabelState.UNLABELED
-                : title.length() == 0 ? LabelState.EMPTY :
-                        hasOption(FLAG_MANUAL_FOLDER_NAME) ? LabelState.MANUAL
-                                : LabelState.SUGGESTED;
+        if (title == null) {
+            return LabelState.UNLABELED;
+        }
+        if (title.length() == 0) {
+            return LabelState.EMPTY;
+        }
+        return hasOption(FLAG_MANUAL_FOLDER_NAME) ? LabelState.MANUAL : LabelState.SUGGESTED;
     }
 
     @NonNull

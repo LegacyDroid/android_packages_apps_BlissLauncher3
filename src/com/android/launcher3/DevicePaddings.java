@@ -95,7 +95,7 @@ public class DevicePaddings {
                                     || workspaceBottomPadding == null
                                     || hotseatBottomPadding == null)
                                     && Utilities.IS_DEBUG_DEVICE) {
-                                throw new RuntimeException("DevicePadding missing padding.");
+                                throw new IllegalStateException("DevicePadding missing padding.");
                             }
 
                             DevicePadding dp = new DevicePadding(maxWidthPx, workspaceTopPadding,
@@ -105,7 +105,7 @@ public class DevicePaddings {
                             } else {
                                 Log.e(TAG, "Invalid device padding found.");
                                 if (Utilities.IS_DEBUG_DEVICE) {
-                                    throw new RuntimeException("DevicePadding is invalid");
+                                    throw new IllegalStateException("DevicePadding is invalid");
                                 }
                             }
                         }
@@ -114,7 +114,7 @@ public class DevicePaddings {
             }
         } catch (IOException | XmlPullParserException e) {
             Log.e(TAG, "Failure parsing device padding layout.", e);
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
 
         // Sort ascending by maxEmptySpacePx

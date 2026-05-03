@@ -105,7 +105,7 @@ class GestureExclusionManager(private val windowManager: IWindowManager) {
         }
     }
 
-    interface ExclusionListener {
+    fun interface ExclusionListener {
         fun onGestureExclusionChanged(exclusionRegion: Region?, unrestrictedOrNull: Region?)
     }
 

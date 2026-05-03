@@ -476,10 +476,11 @@ public class LauncherPreviewRenderer extends BaseContext
         CellLayout screen = isOnDesktop
                 ? mWorkspaceScreens.get(info.screenId)
                 : mHotseat;
+        int appPairDisplay = isOnDesktop ? DISPLAY_WORKSPACE : DISPLAY_TASKBAR;
         FrameLayout collectionIcon = info.itemType == Favorites.ITEM_TYPE_FOLDER
                 ? FolderIcon.inflateIcon(R.layout.folder_icon, this, screen, (FolderInfo) info)
                 : AppPairIcon.inflateIcon(R.layout.app_pair_icon, this, screen, (AppPairInfo) info,
-                        isOnDesktop ? DISPLAY_WORKSPACE : DISPLAY_TASKBAR);
+                        appPairDisplay);
         addInScreenFromBind(collectionIcon, info);
     }
 

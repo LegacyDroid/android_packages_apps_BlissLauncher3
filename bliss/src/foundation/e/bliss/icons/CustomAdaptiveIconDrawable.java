@@ -226,7 +226,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
     private void updateLayerBoundsInternal(Rect bounds) {
         int cX = bounds.width() / 2;
         int cY = bounds.height() / 2;
-        for (int i = 0, count = mLayerState.N_CHILDREN; i < count; i++) {
+        for (int i = 0, count = LayerState.N_CHILDREN; i < count; i++) {
             final ChildDrawable r = mLayerState.mChildren[i];
             final Drawable d = r.mDrawable;
             if (d == null)
@@ -322,7 +322,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
         if (super.isProjected())
             return true;
         final ChildDrawable[] layers = mLayerState.mChildren;
-        for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+        for (int i = 0; i < LayerState.N_CHILDREN; i++) {
             if (layers[i].mDrawable != null && layers[i].mDrawable.isProjected()) {
                 return true;
             }
@@ -368,7 +368,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
 
     @Override
     public void setHotspot(float x, float y) {
-        for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+        for (int i = 0; i < LayerState.N_CHILDREN; i++) {
             final Drawable dr = mLayerState.mChildren[i].mDrawable;
             if (dr != null)
                 dr.setHotspot(x, y);
@@ -377,7 +377,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
 
     @Override
     public void setHotspotBounds(int left, int top, int right, int bottom) {
-        for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+        for (int i = 0; i < LayerState.N_CHILDREN; i++) {
             final Drawable dr = mLayerState.mChildren[i].mDrawable;
             if (dr != null)
                 dr.setHotspotBounds(left, top, right, bottom);
@@ -401,7 +401,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
     @Override
     public boolean setVisible(boolean visible, boolean restart) {
         final boolean changed = super.setVisible(visible, restart);
-        for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+        for (int i = 0; i < LayerState.N_CHILDREN; i++) {
             final Drawable dr = mLayerState.mChildren[i].mDrawable;
             if (dr != null)
                 dr.setVisible(visible, restart);
@@ -411,7 +411,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
 
     @Override
     public void setDither(boolean dither) {
-        for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+        for (int i = 0; i < LayerState.N_CHILDREN; i++) {
             final Drawable dr = mLayerState.mChildren[i].mDrawable;
             if (dr != null)
                 dr.setDither(dither);
@@ -430,7 +430,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
 
     @Override
     public void setColorFilter(ColorFilter colorFilter) {
-        for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+        for (int i = 0; i < LayerState.N_CHILDREN; i++) {
             final Drawable dr = mLayerState.mChildren[i].mDrawable;
             if (dr != null)
                 dr.setColorFilter(colorFilter);
@@ -439,7 +439,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
 
     @Override
     public void setTintList(ColorStateList tint) {
-        for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+        for (int i = 0; i < LayerState.N_CHILDREN; i++) {
             final Drawable dr = mLayerState.mChildren[i].mDrawable;
             if (dr != null)
                 dr.setTintList(tint);
@@ -449,7 +449,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
     @Override
     @RequiresApi(Build.VERSION_CODES.Q)
     public void setTintBlendMode(@NonNull BlendMode blendMode) {
-        for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+        for (int i = 0; i < LayerState.N_CHILDREN; i++) {
             final Drawable dr = mLayerState.mChildren[i].mDrawable;
             if (dr != null)
                 dr.setTintBlendMode(blendMode);
@@ -468,7 +468,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
     @Override
     public void setAutoMirrored(boolean mirrored) {
         mLayerState.mAutoMirrored = mirrored;
-        for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+        for (int i = 0; i < LayerState.N_CHILDREN; i++) {
             final Drawable dr = mLayerState.mChildren[i].mDrawable;
             if (dr != null)
                 dr.setAutoMirrored(mirrored);
@@ -482,7 +482,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
 
     @Override
     public void jumpToCurrentState() {
-        for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+        for (int i = 0; i < LayerState.N_CHILDREN; i++) {
             final Drawable dr = mLayerState.mChildren[i].mDrawable;
             if (dr != null)
                 dr.jumpToCurrentState();
@@ -503,7 +503,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
     @Override
     protected boolean onStateChange(int[] state) {
         boolean changed = false;
-        for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+        for (int i = 0; i < LayerState.N_CHILDREN; i++) {
             final Drawable dr = mLayerState.mChildren[i].mDrawable;
             if (dr != null && dr.isStateful() && dr.setState(state)) {
                 changed = true;
@@ -517,7 +517,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
     @Override
     protected boolean onLevelChange(int level) {
         boolean changed = false;
-        for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+        for (int i = 0; i < LayerState.N_CHILDREN; i++) {
             final Drawable dr = mLayerState.mChildren[i].mDrawable;
             if (dr != null && dr.setLevel(level)) {
                 changed = true;
@@ -535,7 +535,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
 
     private int getMaxIntrinsicWidth() {
         int width = -1;
-        for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+        for (int i = 0; i < LayerState.N_CHILDREN; i++) {
             final ChildDrawable r = mLayerState.mChildren[i];
             if (r.mDrawable == null)
                 continue;
@@ -553,7 +553,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
 
     private int getMaxIntrinsicHeight() {
         int height = -1;
-        for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+        for (int i = 0; i < LayerState.N_CHILDREN; i++) {
             final ChildDrawable r = mLayerState.mChildren[i];
             if (r.mDrawable == null)
                 continue;
@@ -578,7 +578,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
     public Drawable mutate() {
         if (!mMutated && super.mutate() == this) {
             mLayerState = createConstantState(mLayerState, null);
-            for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+            for (int i = 0; i < LayerState.N_CHILDREN; i++) {
                 final Drawable dr = mLayerState.mChildren[i].mDrawable;
                 if (dr != null)
                     dr.mutate();
@@ -590,7 +590,7 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
 
     public void clearMutated() {
         super.clearMutated();
-        for (int i = 0; i < mLayerState.N_CHILDREN; i++) {
+        for (int i = 0; i < LayerState.N_CHILDREN; i++) {
             final Drawable dr = mLayerState.mChildren[i].mDrawable;
             if (dr != null)
                 dr.clearMutated();

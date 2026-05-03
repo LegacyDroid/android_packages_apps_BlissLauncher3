@@ -153,7 +153,7 @@ public abstract class AbstractSlideInView<T extends Context & ActivityContext>
         }
     };
 
-    public AbstractSlideInView(Context context, AttributeSet attrs, int defStyleAttr) {
+    protected AbstractSlideInView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mActivityContext = ActivityContext.lookupContext(context);
 

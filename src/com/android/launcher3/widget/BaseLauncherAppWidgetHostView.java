@@ -62,7 +62,7 @@ public abstract class BaseLauncherAppWidgetHostView extends NavigableAppWidgetHo
 
     private boolean mIsCornerRadiusEnforced;
 
-    public BaseLauncherAppWidgetHostView(Context context) {
+    protected BaseLauncherAppWidgetHostView(Context context) {
         super(context);
 
         setExecutor(Executors.THREAD_POOL_EXECUTOR);

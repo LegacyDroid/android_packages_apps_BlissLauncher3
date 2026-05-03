@@ -122,7 +122,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
     private static final Runnable NO_OP = () -> { };
 
-    public static long TRANSLATION_X_FOR_BUBBLEBAR_ANIM_DURATION_MS = 250;
+    public static final long TRANSLATION_X_FOR_BUBBLEBAR_ANIM_DURATION_MS = 250;
 
     public static final int ALPHA_INDEX_HOME = 0;
     public static final int ALPHA_INDEX_KEYGUARD = 1;
@@ -1064,12 +1064,15 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                 }
 
                 if (mIsHotseatIconOnTopWhenAligned) {
-                    setter.addFloat(child, VIEW_ALPHA, 0f, 1f,
-                            isToHome
-                                    ? Interpolators.clampToProgress(LINEAR, 0f, 0.35f)
-                                    : mActivity.getDeviceProfile().isQsbInline
-                                            ? Interpolators.clampToProgress(LINEAR, 0f, 1f)
-                                            : Interpolators.clampToProgress(LINEAR, 0.84f, 1f));
+                    Interpolator alphaInterpolator;
+                    if (isToHome) {
+                        alphaInterpolator = Interpolators.clampToProgress(LINEAR, 0f, 0.35f);
+                    } else if (mActivity.getDeviceProfile().isQsbInline) {
+                        alphaInterpolator = Interpolators.clampToProgress(LINEAR, 0f, 1f);
+                    } else {
+                        alphaInterpolator = Interpolators.clampToProgress(LINEAR, 0.84f, 1f);
+                    }
+                    setter.addFloat(child, VIEW_ALPHA, 0f, 1f, alphaInterpolator);
                 }
                 setter.addOnFrameListener(animator -> AlphaUpdateListener.updateVisibility(child));
                 continue;

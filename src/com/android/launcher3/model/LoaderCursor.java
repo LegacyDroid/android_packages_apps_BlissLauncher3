@@ -84,6 +84,7 @@ import java.security.InvalidParameterException;
 public class LoaderCursor extends CursorWrapper {
 
     private static final String TAG = "LoaderCursor";
+    private static final String ERROR_LOADING_SHORTCUT_PREFIX = "Error loading shortcut ";
 
     private final LongSparseArray<UserHandle> allUsers;
 
@@ -592,7 +593,7 @@ public class LoaderCursor extends CursorWrapper {
                     mOccupied.get(Favorites.CONTAINER_HOTSEAT);
 
             if (item.screenId >= mIDP.numDatabaseHotseatIcons) {
-                Log.e(TAG, "Error loading shortcut " + item
+                Log.e(TAG, ERROR_LOADING_SHORTCUT_PREFIX + item
                         + " into hotseat position " + item.screenId
                         + ", position out of bounds: (0 to " + (mIDP.numDatabaseHotseatIcons - 1)
                         + ")");
@@ -624,7 +625,7 @@ public class LoaderCursor extends CursorWrapper {
         final int countY = mIDP.numRowsFixed;
         if (item.container == Favorites.CONTAINER_DESKTOP && item.cellX < 0 || item.cellY < 0
                 || item.cellX + item.spanX > countX || item.cellY + item.spanY > countY) {
-            Log.e(TAG, "Error loading shortcut " + item
+            Log.e(TAG, ERROR_LOADING_SHORTCUT_PREFIX + item
                     + " into cell (" + containerIndex + "-" + item.screenId + ":"
                     + item.cellX + "," + item.cellY
                     + ") out of screen bounds ( " + countX + "x" + countY + ")");
@@ -652,7 +653,7 @@ public class LoaderCursor extends CursorWrapper {
             occupancy.markCells(item, true);
             return true;
         } else {
-            Log.e(TAG, "Error loading shortcut " + item
+            Log.e(TAG, ERROR_LOADING_SHORTCUT_PREFIX + item
                     + " into cell (" + containerIndex + "-" + item.screenId + ":"
                     + item.cellX + "," + item.cellX + "," + item.spanX + "," + item.spanY
                     + ") already occupied");

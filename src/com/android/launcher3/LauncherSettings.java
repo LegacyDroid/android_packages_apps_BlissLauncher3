@@ -348,6 +348,9 @@ public class LauncherSettings {
                     + getJoinedColumnsToTypes(myProfileId) + ");");
         }
 
+        private static final String INTEGER_TYPE = "INTEGER";
+        private static final String INTEGER_NOT_NULL_DEFAULT_ZERO = "INTEGER NOT NULL DEFAULT 0";
+
         // LinkedHashMap maintains Order of Insertion
         @NonNull
         private static LinkedHashMap<String, String> getColumnsToTypes(long profileId) {
@@ -355,21 +358,21 @@ public class LauncherSettings {
             columnsToTypes.put(_ID, "INTEGER PRIMARY KEY");
             columnsToTypes.put(TITLE, "TEXT");
             columnsToTypes.put(INTENT, "TEXT");
-            columnsToTypes.put(CONTAINER, "INTEGER");
-            columnsToTypes.put(SCREEN, "INTEGER");
-            columnsToTypes.put(CELLX, "INTEGER");
-            columnsToTypes.put(CELLY, "INTEGER");
-            columnsToTypes.put(SPANX, "INTEGER");
-            columnsToTypes.put(SPANY, "INTEGER");
-            columnsToTypes.put(ITEM_TYPE, "INTEGER");
+            columnsToTypes.put(CONTAINER, INTEGER_TYPE);
+            columnsToTypes.put(SCREEN, INTEGER_TYPE);
+            columnsToTypes.put(CELLX, INTEGER_TYPE);
+            columnsToTypes.put(CELLY, INTEGER_TYPE);
+            columnsToTypes.put(SPANX, INTEGER_TYPE);
+            columnsToTypes.put(SPANY, INTEGER_TYPE);
+            columnsToTypes.put(ITEM_TYPE, INTEGER_TYPE);
             columnsToTypes.put(APPWIDGET_ID, "INTEGER NOT NULL DEFAULT -1");
             columnsToTypes.put(ICON, "BLOB");
             columnsToTypes.put(APPWIDGET_PROVIDER, "TEXT");
-            columnsToTypes.put(MODIFIED, "INTEGER NOT NULL DEFAULT 0");
-            columnsToTypes.put(RESTORED, "INTEGER NOT NULL DEFAULT 0");
+            columnsToTypes.put(MODIFIED, INTEGER_NOT_NULL_DEFAULT_ZERO);
+            columnsToTypes.put(RESTORED, INTEGER_NOT_NULL_DEFAULT_ZERO);
             columnsToTypes.put(PROFILE_ID, "INTEGER DEFAULT " + profileId);
-            columnsToTypes.put(RANK, "INTEGER NOT NULL DEFAULT 0");
-            columnsToTypes.put(OPTIONS, "INTEGER NOT NULL DEFAULT 0");
+            columnsToTypes.put(RANK, INTEGER_NOT_NULL_DEFAULT_ZERO);
+            columnsToTypes.put(OPTIONS, INTEGER_NOT_NULL_DEFAULT_ZERO);
             columnsToTypes.put(APPWIDGET_SOURCE, "INTEGER NOT NULL DEFAULT -1");
             return columnsToTypes;
         }

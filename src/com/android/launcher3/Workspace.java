@@ -810,7 +810,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
     public CellLayout insertNewWorkspaceScreen(int screenId, int insertIndex) {
         if (mWorkspaceScreens.containsKey(screenId)) {
-            throw new RuntimeException("Screen id " + screenId + " already exists!");
+            throw new IllegalStateException("Screen id " + screenId + " already exists!");
         }
 
         // Inflate the cell layout, but do not add it automatically so that we can get the newly
@@ -1573,25 +1573,23 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
     @Override
     public void setCurrentPage(int currentPage, int overridePrevPage) {
-        if (MultiModeController.isSingleLayerMode()) {
-            if (currentPage == FIRST_SCREEN_ID) {
-                Hotseat hotseat = getHotseat();
-                int height = hotseat.getHeight() + getPageIndicator().getHeight();
-                boolean isVerticalBar = mLauncher.getDeviceProfile().isVerticalBarLayout();
-                if (isVerticalBar) {
-                    boolean isSeascape = mLauncher.getDeviceProfile().isSeascape();
-                    hotseat.setForcedTranslationXY((isSeascape ? -1 : 1) * hotseat.getWidth(), 0);
-                } else {
-                    hotseat.setForcedTranslationXY(0, hotseat.getHeight());
-                }
-
-                PageIndicatorDots pageIndicatorDots = (PageIndicatorDots) getPageIndicator();
-                if (pageIndicatorDots.getTranslationY() >= 0) {
-                    pageIndicatorDots.setForcedTranslationY(height);
-                }
-
-                mLauncher.mBlurLayer.setAlpha(1);
+        if (MultiModeController.isSingleLayerMode() && currentPage == FIRST_SCREEN_ID) {
+            Hotseat hotseat = getHotseat();
+            int height = hotseat.getHeight() + getPageIndicator().getHeight();
+            boolean isVerticalBar = mLauncher.getDeviceProfile().isVerticalBarLayout();
+            if (isVerticalBar) {
+                boolean isSeascape = mLauncher.getDeviceProfile().isSeascape();
+                hotseat.setForcedTranslationXY((isSeascape ? -1 : 1) * hotseat.getWidth(), 0);
+            } else {
+                hotseat.setForcedTranslationXY(0, hotseat.getHeight());
             }
+
+            PageIndicatorDots pageIndicatorDots = (PageIndicatorDots) getPageIndicator();
+            if (pageIndicatorDots.getTranslationY() >= 0) {
+                pageIndicatorDots.setForcedTranslationY(height);
+            }
+
+            mLauncher.mBlurLayer.setAlpha(1);
         }
         super.setCurrentPage(currentPage, overridePrevPage);
     }
@@ -2762,7 +2760,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         }
 
         // Ensure that we have proper spans for the item that we are dropping
-        if (item.spanX < 0 || item.spanY < 0) throw new RuntimeException("Improper spans found");
+        if (item.spanX < 0 || item.spanY < 0) throw new IllegalStateException("Improper spans found");
         mDragViewVisualCenter = d.getVisualCenter(mDragViewVisualCenter);
 
         final View child = (mDragInfo == null) ? null : mDragInfo.cell;
@@ -3454,7 +3452,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             if (cellLayout != null) {
                 cellLayout.onDropChild(mDragInfo.cell);
             } else if (FeatureFlags.IS_STUDIO_BUILD) {
-                throw new RuntimeException("Invalid state: cellLayout == null in "
+                throw new IllegalStateException("Invalid state: cellLayout == null in "
                         + "Workspace#onDropCompleted. Please file a bug. ");
             }
         }

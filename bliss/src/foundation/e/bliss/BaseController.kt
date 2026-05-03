@@ -20,6 +20,6 @@ package foundation.e.bliss
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
-interface BaseController {
+fun interface BaseController {
     fun dumpState(prefix: String?, fd: FileDescriptor?, writer: PrintWriter?, dumpAll: Boolean)
 }

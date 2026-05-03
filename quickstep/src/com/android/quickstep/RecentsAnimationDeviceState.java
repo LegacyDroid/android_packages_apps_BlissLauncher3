@@ -115,7 +115,7 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
     private static final float QUICKSTEP_TOUCH_SLOP_RATIO_TWO_BUTTON = 3f;
     private static final float QUICKSTEP_TOUCH_SLOP_RATIO_GESTURAL = 1.414f;
 
-    public static DaggerSingletonObject<RecentsAnimationDeviceState> INSTANCE =
+    public static final DaggerSingletonObject<RecentsAnimationDeviceState> INSTANCE =
             new DaggerSingletonObject<>(LauncherAppComponent::getRecentsAnimationDeviceState);
 
     private final Context mContext;

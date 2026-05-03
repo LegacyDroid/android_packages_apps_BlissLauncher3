@@ -104,11 +104,14 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
             };
         }
 
-        TaskView sourceTaskView = mRecentsView == null && targetTaskView == null
-                ? null
-                : targetTaskView == null
-                        ? mRecentsView.getRunningTaskView()
-                        : targetTaskView;
+        TaskView sourceTaskView;
+        if (mRecentsView == null && targetTaskView == null) {
+            sourceTaskView = null;
+        } else if (targetTaskView == null) {
+            sourceTaskView = mRecentsView.getRunningTaskView();
+        } else {
+            sourceTaskView = targetTaskView;
+        }
         final View workspaceView = findWorkspaceView(
                 targetTaskView == null ? launchCookies : Collections.emptyList(),
                 sourceTaskView);

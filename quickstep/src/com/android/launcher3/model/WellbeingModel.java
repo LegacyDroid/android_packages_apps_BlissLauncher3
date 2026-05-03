@@ -170,7 +170,7 @@ public final class WellbeingModel implements SafeCloseable {
                     actionsUri, true /* notifyForDescendants */, mContentObserver);
         } catch (Exception e) {
             Log.e(TAG, "Failed to register content observer for " + actionsUri + ": " + e);
-            if (mIsInTest) throw new RuntimeException(e);
+            if (mIsInTest) throw new IllegalStateException(e);
         }
         updateAllPackages();
     }
@@ -249,7 +249,7 @@ public final class WellbeingModel implements SafeCloseable {
 
     private boolean handleRetrieveActionsFailure(Uri contentUri, Exception e) {
         Log.e(TAG, "Failed to retrieve data from " + contentUri + ": " + e);
-        if (mIsInTest) throw new RuntimeException(e);
+        if (mIsInTest) throw new IllegalStateException(e);
         return true;
     }
 

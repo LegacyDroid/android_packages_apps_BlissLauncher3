@@ -258,7 +258,8 @@ public class KeyboardQuickSwitchViewController {
         if (index == mKeyboardQuickSwitchView.getOverviewTaskIndex()) {
             // If there is a desktop task view, then we should account for it when focusing the
             // first hidden non-desktop task view in recents view
-            return mOnDesktop ? 1 : (mWasDesktopTaskFilteredOut ? index + 1 : index);
+            int filteredIndex = mWasDesktopTaskFilteredOut ? index + 1 : index;
+            return mOnDesktop ? 1 : filteredIndex;
         }
         Runnable onStartCallback = () -> InteractionJankMonitorWrapper.begin(
                 mKeyboardQuickSwitchView, Cuj.CUJ_LAUNCHER_KEYBOARD_QUICK_SWITCH_APP_LAUNCH);

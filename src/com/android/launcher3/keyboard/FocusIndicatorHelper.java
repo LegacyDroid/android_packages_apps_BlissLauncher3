@@ -30,7 +30,7 @@ import com.android.launcher3.util.Themes;
 public abstract class FocusIndicatorHelper extends ItemFocusIndicatorHelper<View>
         implements OnFocusChangeListener {
 
-    public FocusIndicatorHelper(View container) {
+    protected FocusIndicatorHelper(View container) {
         super(container,
                 Flags.enableFocusOutline() ? new int[]{Themes.getAttrColor(container.getContext(),
                         R.attr.focusOutlineColor), Themes.getAttrColor(container.getContext(),

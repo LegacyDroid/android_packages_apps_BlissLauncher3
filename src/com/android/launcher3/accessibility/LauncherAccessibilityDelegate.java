@@ -217,9 +217,10 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
             });
             return true;
         } else if (action == DEEP_SHORTCUTS) {
+            BubbleTextView holderBtv = host instanceof BubbleTextHolder
+                    ? ((BubbleTextHolder) host).getBubbleText() : null;
             BubbleTextView btv = host instanceof BubbleTextView ? (BubbleTextView) host
-                    : (host instanceof BubbleTextHolder
-                            ? ((BubbleTextHolder) host).getBubbleText() : null);
+                    : holderBtv;
             return btv != null && PopupContainerWithArrow.showForIcon(btv) != null;
         } else if (action == CLOSE) {
             if (host instanceof AppWidgetResizeFrame) {

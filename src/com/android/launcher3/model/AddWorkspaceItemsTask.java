@@ -161,7 +161,7 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
                 } else if (item instanceof WorkspaceItemFactory) {
                     itemInfo = ((WorkspaceItemFactory) item).makeWorkspaceItem(context);
                 } else {
-                    throw new RuntimeException("Unexpected info type");
+                    throw new IllegalArgumentException("Unexpected info type");
                 }
 
                 if (item instanceof WorkspaceItemInfo && ((WorkspaceItemInfo) item).isPromise()) {

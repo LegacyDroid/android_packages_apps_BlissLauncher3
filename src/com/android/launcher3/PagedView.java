@@ -161,15 +161,15 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
     protected EdgeEffectCompat mEdgeGlowRight;
     protected NavigationMode navMode;
 
-    public PagedView(Context context) {
+    protected PagedView(Context context) {
         this(context, null);
     }
 
-    public PagedView(Context context, AttributeSet attrs) {
+    protected PagedView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public PagedView(Context context, AttributeSet attrs, int defStyle) {
+    protected PagedView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
         TypedArray a = context.obtainStyledAttributes(attrs,

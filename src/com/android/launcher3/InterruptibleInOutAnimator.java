@@ -93,7 +93,7 @@ public class InterruptibleInOutAnimator {
 
         // Ensure we don't calculate a non-sensical duration
         long duration = mOriginalDuration - currentPlayTime;
-        mAnimator.setDuration(Math.max(0, Math.min(duration, mOriginalDuration)));
+        mAnimator.setDuration(Math.clamp(duration, 0L, mOriginalDuration));
 
         mAnimator.setFloatValues(startValue, toValue);
         mAnimator.start();
