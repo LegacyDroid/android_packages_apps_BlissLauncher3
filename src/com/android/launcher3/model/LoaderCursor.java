@@ -129,12 +129,12 @@ public class LoaderCursor extends CursorWrapper {
     private LauncherActivityInfo mActivityInfo;
 
     // Properties loaded per iteration
-    public long serialNumber;
+    long serialNumber;
     public UserHandle user;
     public int id;
-    public int container;
-    public int itemType;
-    public int restoreFlag;
+    int container;
+    int itemType;
+    int restoreFlag;
 
     @AssistedInject
     public LoaderCursor(

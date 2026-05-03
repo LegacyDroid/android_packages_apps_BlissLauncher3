@@ -122,11 +122,11 @@ public class SurfaceTransaction {
      */
     public class MockProperties extends SurfaceProperties {
 
-        public float alpha = -1;
+        float alpha = -1;
         public Matrix matrix = null;
         public Rect windowCrop = null;
         public float cornerRadius = 0;
-        public float shadowRadius = 0;
+        float shadowRadius = 0;
 
         protected MockProperties() {
             super(null);

@@ -293,7 +293,7 @@ public final class QuickstepWidgetHolder extends LauncherWidgetHolder {
 
     private static class PendingUpdate {
         public final IntSet changedViews = new IntSet();
-        public AppWidgetProviderInfo providerInfo;
-        public RemoteViews remoteViews;
+        private AppWidgetProviderInfo providerInfo;
+        private RemoteViews remoteViews;
     }
 }

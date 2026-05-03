@@ -93,7 +93,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
         // The item position
         public final int position;
         // The view id associated with this section
-        public int id = -1;
+        private int id = -1;
 
         public FastScrollSectionInfo(CharSequence sectionName, int position) {
             this.sectionName = sectionName;

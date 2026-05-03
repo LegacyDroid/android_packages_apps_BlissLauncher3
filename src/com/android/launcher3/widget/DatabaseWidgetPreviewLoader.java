@@ -309,9 +309,9 @@ public class DatabaseWidgetPreviewLoader {
      */
     public static class WidgetPreviewInfo {
 
-        public AppWidgetProviderInfo providerInfo;
-        public RemoteViews remoteViews;
+        AppWidgetProviderInfo providerInfo;
+        RemoteViews remoteViews;
 
-        public Bitmap previewBitmap;
+        Bitmap previewBitmap;
     }
 }

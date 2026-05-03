@@ -192,7 +192,7 @@ public class BubbleBarViewController {
     // Whether the bar is hidden when stashed
     private boolean mHiddenForStashed;
     private boolean mShouldShowEducation;
-    public boolean mOverflowAdded;
+    private boolean mOverflowAdded;
     private boolean mWasStashedBeforeEnteringBubbleDragZone = false;
 
     /** This field is used solely to track the bubble bar location prior to the start of the drag */

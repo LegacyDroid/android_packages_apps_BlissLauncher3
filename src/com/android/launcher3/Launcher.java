@@ -3147,7 +3147,9 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     /** Enables/disabled the hotseat prediction icon long press edu for testing. */
     @VisibleForTesting
-    public void enableHotseatEdu(boolean enable) {}
+    public void enableHotseatEdu(boolean enable) {
+        // intentionally empty — base Launcher has no prediction edu; QuickstepLauncher overrides.
+    }
 
 
     /**
@@ -3183,7 +3185,7 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     private static class NonConfigInstance {
-        public Configuration config;
+        private Configuration config;
     }
 
     /** Pauses view updates that should not be run during the app launch animation. */

@@ -1455,7 +1455,6 @@ public class CellLayout extends ViewGroup {
         int childCount = mShortcutsAndWidgets.getChildCount();
         for (int i = 0; i < childCount; i++) {
             View child = mShortcutsAndWidgets.getChildAt(i);
-            // if (child == dragView) continue;
             CellAndSpan c = solution.map.get(child);
             if (c != null) {
                 animateChildToPosition(child, c.cellX, c.cellY, REORDER_ANIMATION_DURATION, 0,

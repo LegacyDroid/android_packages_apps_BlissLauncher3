@@ -599,9 +599,9 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
     }
 
     static class ChildDrawable {
-        public Drawable mDrawable;
-        public int[] mThemeAttrs;
-        public int mDensity = DisplayMetrics.DENSITY_DEFAULT;
+        Drawable mDrawable;
+        int[] mThemeAttrs;
+        int mDensity = DisplayMetrics.DENSITY_DEFAULT;
 
         ChildDrawable(int density) {
             mDensity = density;

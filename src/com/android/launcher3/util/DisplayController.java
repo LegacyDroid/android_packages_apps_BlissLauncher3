@@ -180,6 +180,8 @@ public class DisplayController implements DesktopVisibilityListener {
 
                         @Override
                         public void onDisplayChanged(int displayId) {
+                            // intentionally empty — display change handled via PerDisplayInfo
+                            // ComponentCallbacks.onConfigurationChanged.
                         }
 
                         @Override
@@ -790,7 +792,9 @@ public class DisplayController implements DesktopVisibilityListener {
         }
 
         @Override
-        public void onLowMemory() {}
+        public void onLowMemory() {
+            // intentionally empty — ComponentCallbacks contract; no per-display reaction needed.
+        }
 
         void cleanup() {
             mWindowContext.unregisterComponentCallbacks(this);

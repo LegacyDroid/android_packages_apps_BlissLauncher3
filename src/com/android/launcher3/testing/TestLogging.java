@@ -32,7 +32,7 @@ public final class TestLogging {
     private static final String TAPL_EVENTS_TAG = "TaplEvents";
     private static final String LAUNCHER_EVENTS_TAG = "LauncherEvents";
     private static BiConsumer<String, String> sEventConsumer;
-    public static boolean sHadEventsNotFromTest;
+    static boolean sHadEventsNotFromTest;
 
     private static void recordEventSlow(String sequence, String event, boolean reportToTapl) {
         Log.d(reportToTapl ? TAPL_EVENTS_TAG : LAUNCHER_EVENTS_TAG,

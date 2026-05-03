@@ -354,7 +354,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
 
         public final RunnableList lifeCycleTracker;
         public final PreviewSurfaceRenderer renderer;
-        public boolean destroyed = false;
+        private boolean destroyed = false;
 
         PreviewLifecycleObserver(
                 RunnableList lifeCycleTracker,

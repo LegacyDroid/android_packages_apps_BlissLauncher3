@@ -435,11 +435,11 @@ public class FloatingTaskView extends FrameLayout {
 
         private final float mCornerRadius;
         private final float mWindowCornerRadius;
-        public boolean mIsStagedTask;
+        private boolean mIsStagedTask;
         public final RectF mBounds = new RectF();
-        public float mCurrentDrawnCornerRadius;
-        public float mScaleX = 1;
-        public float mScaleY = 1;
+        private float mCurrentDrawnCornerRadius;
+        private float mScaleX = 1;
+        private float mScaleY = 1;
 
         public FullscreenDrawParams(Context context) {
             mCornerRadius = TaskCornerRadius.get(context);

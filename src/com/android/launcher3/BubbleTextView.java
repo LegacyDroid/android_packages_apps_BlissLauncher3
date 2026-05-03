@@ -308,8 +308,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
     private boolean mHighResUpdateInProgress = false;
 
-    public int translationX = 0;
-    public int translationY = 0;
+    int translationX = 0;
+    int translationY = 0;
 
     public BubbleTextView(Context context) {
         this(context, null, 0);

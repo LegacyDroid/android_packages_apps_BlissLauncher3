@@ -498,8 +498,8 @@ public class QuickstepModelDelegate extends ModelDelegate {
 
         public final int containerId;
         public final PersistedItemArray<ItemInfo> storage;
-        public AppPredictor predictor;
-        public CacheLookupFlag lookupFlag;
+        AppPredictor predictor;
+        CacheLookupFlag lookupFlag;
 
         private List<AppTarget> mLastTargets;
 
