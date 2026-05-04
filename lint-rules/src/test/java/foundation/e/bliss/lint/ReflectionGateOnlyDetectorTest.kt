@@ -18,8 +18,8 @@
  *     3) Class.forName in a unit-test source — silent (test-source skip).
  *
  *   Uses Lint's TestLintTask harness. Detector is configured with the same
- *   Severity.WARNING as production, so `expect("…")` matches the rendered
- *   diagnostic verbatim.
+ *   Severity.ERROR as production (promoted from WARNING by Audit01 #08), so
+ *   `expect("…")` matches the rendered diagnostic verbatim.
  *
  * Plan reference: Plans/Migration05/03-custom-lint-rules.md §4
  */
@@ -67,8 +67,8 @@ class ReflectionGateOnlyDetectorTest : LintDetectorTest() {
                 ).indented(),
             )
             .run()
-            .expectWarningCount(1)
-            .expectErrorCount(0)
+            .expectWarningCount(0)
+            .expectErrorCount(1)
             .expectContains("Use ReflectionGate.lookupClass")
             .expectContains("SomethingElse.kt")
     }
@@ -95,8 +95,8 @@ class ReflectionGateOnlyDetectorTest : LintDetectorTest() {
                 ).indented(),
             )
             .run()
-            .expectWarningCount(1)
-            .expectErrorCount(0)
+            .expectWarningCount(0)
+            .expectErrorCount(1)
             .expectContains("Use ReflectionGate.lookupClass")
             .expectContains("LegacyReflector.java")
     }

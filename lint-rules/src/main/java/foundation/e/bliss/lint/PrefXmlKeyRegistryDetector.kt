@@ -79,7 +79,7 @@ class PrefXmlKeyRegistryDetector : ResourceXmlDetector(), XmlScanner {
             """.trimIndent(),
             category = Category.CORRECTNESS,
             priority = 6,
-            severity = Severity.WARNING,
+            severity = Severity.ERROR, // promoted from WARNING by Audit01 #08
             implementation = Implementation(
                 PrefXmlKeyRegistryDetector::class.java,
                 Scope.RESOURCE_FILE_SCOPE,
