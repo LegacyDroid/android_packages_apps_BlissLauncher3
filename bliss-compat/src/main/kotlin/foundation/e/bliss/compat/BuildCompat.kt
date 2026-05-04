@@ -33,6 +33,12 @@ import androidx.annotation.ChecksSdkIntAtLeast
  * comparisons so static analysers and Lint NewApi can recognise the gate.
  *
  * Naming convention: isAtLeast<Letter>(major Android version).
+ *
+ * Audit01 #10: project minSdk is 35. Gates < 35 are always true at runtime and
+ * should NOT appear in code (use the post-API call directly). New helpers must
+ * therefore only be added for API >= 36. Any raw `Build.VERSION.SDK_INT` read
+ * in production code is either dead-branch (minSdk-or-below) or a missing
+ * helper here (>= 36).
  */
 object BuildCompat {
 

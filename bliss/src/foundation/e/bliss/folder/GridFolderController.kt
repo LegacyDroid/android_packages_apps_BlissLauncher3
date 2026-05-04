@@ -45,6 +45,14 @@ class GridFolderController(context: Context, val monitor: LauncherAppMonitor) : 
         gridFolderIconLayoutRule = GridFolderIconLayoutRule(context)
     }
 
+    /**
+     * Audit01 #11: tear down the monitor callback so the next-launcher recreation does not leave
+     * two controllers firing.
+     */
+    fun release() {
+        monitor.unregisterCallback(mAppMonitorCallback)
+    }
+
     override fun dumpState(
         prefix: String?,
         fd: FileDescriptor?,

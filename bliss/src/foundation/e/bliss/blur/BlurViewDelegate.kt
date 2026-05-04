@@ -22,7 +22,6 @@ import android.graphics.Canvas
 import android.graphics.Outline
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewOutlineProvider
@@ -108,9 +107,8 @@ class BlurViewDelegate(
 
     private val overlayPaint =
         Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG).apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                blendMode = BlendMode.MULTIPLY
-            }
+            // Audit01 #10: minSdk 35 — Q (29) gate is always true; removed.
+            blendMode = BlendMode.MULTIPLY
         }
 
     init {

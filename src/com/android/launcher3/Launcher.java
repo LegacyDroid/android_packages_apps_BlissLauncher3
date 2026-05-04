@@ -696,6 +696,13 @@ public class Launcher extends StatefulActivity<LauncherState>
         // Activity before the workspace has had a chance to render its
         // first frame.
         getRootView().post(() -> {
+            // Audit01 #05: the posted runnable can outlive onDestroy() on a fast
+            // back-press / configuration change. startActivity() on a destroyed
+            // Activity throws or silently leaks a detached task. Re-check
+            // lifecycle inside the lambda.
+            if (isFinishing() || isDestroyed()) {
+                return;
+            }
             if (foundation.e.bliss.firstrun.FirstRunWizard.shouldShow(this)) {
                 foundation.e.bliss.firstrun.FirstRunWizard.launch(this);
             }

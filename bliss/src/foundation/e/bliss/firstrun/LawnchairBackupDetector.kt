@@ -77,13 +77,9 @@ object LawnchairBackupDetector {
         } catch (t: Throwable) {
             Log.w(TAG, "Couldn't resolve external public dirs", t)
         }
-        // Also the storage root itself; some launchers / file managers drop
-        // backups directly there.
-        try {
-            out += Environment.getExternalStorageDirectory()
-        } catch (t: Throwable) {
-            Log.w(TAG, "Couldn't resolve external storage root", t)
-        }
+        // Audit01 #13: storage-root scan removed (required MANAGE_EXTERNAL_STORAGE).
+        // Users who keep their backup outside Downloads/Documents must use the
+        // file-picker fallback (TODO: see follow-up Option C).
         return out.filter { it.isDirectory }
     }
 

@@ -29,9 +29,12 @@
  */
 package foundation.e.bliss.backup.fixtures
 
+import android.content.ContentValues
+import android.database.sqlite.SQLiteDatabase
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -224,5 +227,106 @@ object SyntheticBackupBuilder {
         val outFile = File(outDir, "synthetic.lawnchairbackup")
         outFile.writeBytes(buildBackupZip())
         println("Wrote ${outFile.length()} bytes to $outFile")
+    }
+
+    /**
+     * Entry point for the audit01/09 workspace-import golden test. Returns a fluent builder that
+     * accumulates synthetic Lawnchair `favorites` rows and finishes with
+     * [Builder.buildLauncherDbBytes], which materialises an actual SQLite blob suitable for handing
+     * to [foundation.e.bliss.backup.workspace.WorkspaceImporter.run].
+     *
+     * NOTE: this path requires Android SQLite (Robolectric or device); calling it from a plain JVM
+     * `main` will fail at runtime. Used only by JVM unit tests run via Robolectric.
+     */
+    @JvmStatic fun builder(): Builder = Builder()
+
+    /**
+     * Mutable accumulator for synthetic Lawnchair workspace items. Mirrors the column set produced
+     * by Lawnchair (see WorkspaceImporter / FavoritesCursor.PROJECTION) so the importer reads valid
+     * rows. Defaults match the simplest workspace-icon case (ITEM_TYPE_APPLICATION, span=1×1, no
+     * widget, no icon BLOB).
+     */
+    class Builder {
+        private val rows = mutableListOf<ContentValues>()
+        private var nextId = 1L
+
+        @JvmOverloads
+        fun withWorkspaceItem(
+            screen: Int,
+            cellX: Int,
+            cellY: Int,
+            packageName: String,
+            cls: String = "$packageName.MainActivity",
+            container: Int = -100,
+            spanX: Int = 1,
+            spanY: Int = 1,
+            itemType: Int = 0,
+            rank: Int = 0,
+            title: String = packageName.substringAfterLast('.'),
+        ): Builder {
+            val cv = ContentValues()
+            cv.put("_id", nextId++)
+            cv.put("title", title)
+            cv.put(
+                "intent",
+                "#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER" +
+                    ";launchFlags=0x10200000;component=$packageName/$cls;end",
+            )
+            cv.put("container", container)
+            cv.put("screen", screen)
+            cv.put("cellX", cellX)
+            cv.put("cellY", cellY)
+            cv.put("spanX", spanX)
+            cv.put("spanY", spanY)
+            cv.put("itemType", itemType)
+            cv.putNull("appWidgetProvider")
+            cv.put("rank", rank)
+            cv.putNull("icon")
+            rows.add(cv)
+            return this
+        }
+
+        /**
+         * Materialise the accumulated rows into a SQLite database file matching the Lawnchair
+         * `launcher.db` schema (only the columns FavoritesCursor.PROJECTION reads), and return its
+         * raw bytes.
+         */
+        fun buildLauncherDbBytes(): ByteArray {
+            val tmp = Files.createTempFile("synthetic_launcher_", ".db").toFile()
+            tmp.delete()
+            val db = SQLiteDatabase.openOrCreateDatabase(tmp, null)
+            try {
+                db.execSQL(
+                    "CREATE TABLE favorites (" +
+                        "_id INTEGER PRIMARY KEY, " +
+                        "title TEXT, " +
+                        "intent TEXT, " +
+                        "container INTEGER, " +
+                        "screen INTEGER, " +
+                        "cellX INTEGER, " +
+                        "cellY INTEGER, " +
+                        "spanX INTEGER, " +
+                        "spanY INTEGER, " +
+                        "itemType INTEGER, " +
+                        "appWidgetProvider TEXT, " +
+                        "rank INTEGER, " +
+                        "icon BLOB)"
+                )
+                db.beginTransaction()
+                try {
+                    for (cv in rows) {
+                        db.insertOrThrow("favorites", null, cv)
+                    }
+                    db.setTransactionSuccessful()
+                } finally {
+                    db.endTransaction()
+                }
+            } finally {
+                db.close()
+            }
+            val bytes = tmp.readBytes()
+            tmp.delete()
+            return bytes
+        }
     }
 }

@@ -163,33 +163,63 @@ class Logger @PublishedApi internal constructor(@PublishedApi internal val tag: 
         }
 
         @JvmStatic
+        @Deprecated("Use Logger.tag(name).i(msg). Audit01 #03; Migration04 phase 02.")
         fun i(tag: String, msg: String) {
-            if (isDebug) AndroidLog.i(tag, msg)
+            AndroidLog.i(tag, msg)
+            persistStatic(tag, msg, null)
         }
 
         @JvmStatic
+        @Deprecated("Use Logger.tag(name).i(msg, tr). Audit01 #03; Migration04 phase 02.")
         fun i(tag: String, msg: String, tr: Throwable) {
-            if (isDebug) AndroidLog.i(tag, msg, tr)
+            AndroidLog.i(tag, msg, tr)
+            persistStatic(tag, msg, tr)
         }
 
         @JvmStatic
+        @Deprecated("Use Logger.tag(name).w(msg). Audit01 #03; Migration04 phase 02.")
         fun w(tag: String, msg: String) {
-            if (isDebug) AndroidLog.w(tag, msg)
+            AndroidLog.w(tag, msg)
+            persistStatic(tag, msg, null)
         }
 
         @JvmStatic
+        @Deprecated("Use Logger.tag(name).w(msg, tr). Audit01 #03; Migration04 phase 02.")
         fun w(tag: String, msg: String, tr: Throwable) {
-            if (isDebug) AndroidLog.w(tag, msg, tr)
+            AndroidLog.w(tag, msg, tr)
+            persistStatic(tag, msg, tr)
         }
 
         @JvmStatic
+        @Deprecated("Use Logger.tag(name).e(msg). Audit01 #03; Migration04 phase 02.")
         fun e(tag: String, msg: String) {
-            if (isDebug) AndroidLog.e(tag, msg)
+            AndroidLog.e(tag, msg)
+            persistStatic(tag, msg, null)
         }
 
         @JvmStatic
+        @Deprecated("Use Logger.tag(name).e(msg, tr). Audit01 #03; Migration04 phase 02.")
         fun e(tag: String, msg: String, tr: Throwable) {
-            if (isDebug) AndroidLog.e(tag, msg, tr)
+            AndroidLog.e(tag, msg, tr)
+            persistStatic(tag, msg, tr)
+        }
+
+        /**
+         * Static counterpart to the instance [persist] helper. Kotlin doesn't allow companion
+         * methods to invoke an instance member, so the body is duplicated verbatim. See [persist]
+         * for the rationale on the try/catch and the `else -> FileLog.print(tag, msg)` branch.
+         */
+        private fun persistStatic(tag: String, msg: String, t: Throwable?) {
+            try {
+                when (t) {
+                    null -> FileLog.print(tag, msg)
+                    is Exception -> FileLog.print(tag, msg, t)
+                    else -> FileLog.print(tag, msg)
+                }
+            } catch (ignored: Throwable) {
+                // FileLog not available / no Looper / Handler bring-up failure on
+                // the JVM unit-test classpath — fall through; logcat already saw it.
+            }
         }
     }
 }

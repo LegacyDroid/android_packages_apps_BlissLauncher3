@@ -341,7 +341,6 @@ public final class PrefMapperRegistry {
         }
         prefs.put(LauncherPrefs.FIRST_RUN_LAYOUT_CHOICE_DONE, true);
         prefs.put(LauncherPrefs.IS_SINGLE_LAYER_ENABLED, false);
-        prefs.put(LauncherPrefs.IS_SINGLE_LAYER_ENABLED, false);
     }
     private static int applyWorkspaceGridFontPopup(Context context, Map<String, Object> src, LauncherPrefs prefs) {
         int c = 0;
