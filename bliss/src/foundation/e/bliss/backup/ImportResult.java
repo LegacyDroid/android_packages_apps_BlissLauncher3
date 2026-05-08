@@ -17,30 +17,27 @@
 /*
  * File:    bliss/src/foundation/e/bliss/backup/ImportResult.java
  * Module:  bliss source-set  (foundation.e.bliss.backup)
- * Role:    NEW
  *
  * Tree (foundation/e/bliss/backup/):
  *   ├── BackupRestoreHelper.java            — Bliss-format settings backup/restore
  *   ├── ImportResult.java                   — DTO returned by importFromLawnchair  ← THIS FILE
  *   ├── LawnchairImportHelper.java          — orchestrator for Lawnchair import
  *   ├── LawnchairImportTestReceiver.java    — debug-only adb-broadcast trigger
- *   ├── blissformat/                        — Bliss .bliss/.zip backup parsers
- *   ├── parser/                             — Lawnchair-format parsers (ZIP, XML, proto)
+ *   ├── blissformat/                        — Bliss JSON schema adapters
  *   ├── prefs/                              — pref-key mappers and registry
  *   └── workspace/                          — launcher.db → BlissLauncher favorites table
  *
  * Purpose:
- *   Lifted out of LawnchairImportHelper (Migration04 phase 02) so the
- *   importer's public surface lives in a small, named DTO instead of a
- *   nested static class. Callers (LawnchairImportTestReceiver, the SAF
- *   import flow in SettingsActivity) consume only this type — no other
- *   importer internals leak.
+ *   Public return DTO for Lawnchair import. Callers
+ *   (LawnchairImportTestReceiver, the SAF import flow in SettingsActivity)
+ *   consume only this type, so parser/workspace internals do not leak.
  *
  * Consumed by:
  *   - foundation.e.bliss.backup.LawnchairImportHelper   — return type of importFromLawnchair
  *   - foundation.e.bliss.backup.LawnchairImportTestReceiver — log + forceReload after success
- *
- * Plan reference: Plans/Migration04/02-importer-decomposition.md §3, §8 phase 1
+ * Boundary:
+ *   Pure DTO. It must not gain Android Context, database, or preference
+ *   dependencies.
  */
 package foundation.e.bliss.backup;
 

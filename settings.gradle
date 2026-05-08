@@ -37,6 +37,26 @@ project(':bliss-compat').projectDir = new File(rootDir, 'bliss-compat')
 include ':bliss-prefs'
 project(':bliss-prefs').projectDir = new File(rootDir, 'bliss-prefs')
 
+// Audit02 — small cross-module contracts used to keep extracted Bliss modules
+// independent from root app runtime classes.
+include ':bliss-core-contracts'
+project(':bliss-core-contracts').projectDir = new File(rootDir, 'bliss-core-contracts')
+
+// Audit02 — Room-backed persistence for drawer folders. Runtime adaptation
+// from stored rows to launcher model classes remains in the app source-set.
+include ':bliss-folders-data'
+project(':bliss-folders-data').projectDir = new File(rootDir, 'bliss-folders-data')
+
+// Audit02 — raw backup archive/XML/proto parsing. App source keeps restore
+// orchestration and launcher model writes.
+include ':bliss-backup-parser'
+project(':bliss-backup-parser').projectDir = new File(rootDir, 'bliss-backup-parser')
+
+// Audit02 — built-in web suggestion providers. App source keeps search UI,
+// provider preference selection, and custom URL preference reads.
+include ':bliss-search-providers'
+project(':bliss-search-providers').projectDir = new File(rootDir, 'bliss-search-providers')
+
 /*
  * Bliss touchpoint(s) (Migration05):
  *   - include ':lint-rules' — pure-JVM module hosting custom Android Lint

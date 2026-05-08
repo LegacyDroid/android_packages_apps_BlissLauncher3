@@ -5,7 +5,6 @@
 /*
  * File:    bliss/src/foundation/e/bliss/policy/reorder/DefaultReorderPolicy.kt
  * Module:  bliss main source-set  (foundation.e.bliss.policy.reorder)
- * Role:    NEW
  *
  * Tree (foundation/e/bliss/policy/reorder/):
  *   ├── DefaultReorderPolicy.kt        — Bliss default (this file)             ← THIS FILE
@@ -26,8 +25,6 @@
  *
  * Calls into:
  *   - foundation.e.bliss.multimode.MultiModeController         — isSingleLayerMode()
- *
- * Plan reference: Plans/Migration04/05-launcher-policy-strategies.md §4.1
  */
 package foundation.e.bliss.policy.reorder
 
@@ -35,7 +32,7 @@ import foundation.e.bliss.multimode.MultiModeController
 import foundation.e.bliss.policy.ReorderPolicy
 
 /**
- * Default Bliss policy. Reproduces the pre-Phase-05 direction-vector override (`mDirectionVector =
+ * Default Bliss policy. Reproduces the historical direction-vector override (`mDirectionVector =
  * (-1, 0)` in single-layer mode or for non- widget cell layouts) and then defers solution selection
  * to the AOSP algorithm by returning null.
  */

@@ -15,13 +15,14 @@
  */
 
 /*
- * Bliss touchpoint(s) (Migration04):
- *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
- *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ * Bliss touchpoint(s):
+ *   - Imports Bliss compat shims from extracted modules where available.
  *   - First-run dialog replaced by step-based wizard: the post-onCreate
  *     hook now calls FirstRunWizard.shouldShow / launch (a separate
  *     Activity), instead of the old LayoutModeChooser AlertDialog.
- *     — Plan ref: Plans/Migration04/07-first-run-wizard.md §6
+ *   - Consumes app-root blur/widget/first-run runtime that is intentionally
+ *     not extracted yet because it depends on Launcher lifecycle, resources,
+ *     widget binding, and wallpaper/runtime services.
  *
  * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
  * future origin/a16 rebase merges cleanly.

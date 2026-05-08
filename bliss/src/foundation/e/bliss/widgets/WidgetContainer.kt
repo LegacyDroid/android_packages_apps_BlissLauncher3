@@ -13,7 +13,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+/*
+ * File:    bliss/src/foundation/e/bliss/widgets/WidgetContainer.kt
+ * Module:  bliss root app source-set
  *
+ * Module boundary:
+ *   Widget runtime stays app-owned because this container coordinates
+ *   Launcher, LauncherPrefs, WidgetCells, WidgetsFullSheet, app-widget host
+ *   binding, and database-backed widget state. Data-only classes can move
+ *   later, but UI/host flows need instrumentation coverage first because
+ *   failures can orphan widget IDs or break restoration.
  */
 package foundation.e.bliss.widgets
 

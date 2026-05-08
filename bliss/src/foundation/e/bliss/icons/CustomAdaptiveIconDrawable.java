@@ -14,6 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/icons/CustomAdaptiveIconDrawable.java
+ * Module:  bliss root app source-set
+ *
+ * Module boundary:
+ *   Custom icon rendering stays app-owned while mask state, launcher icon
+ *   provider usage, and app resources remain shared with the root launcher
+ *   rendering pipeline. Move only after icon-pack and resource contracts are
+ *   explicit.
+ */
 package foundation.e.bliss.icons;
 
 import android.content.pm.ActivityInfo.Config;

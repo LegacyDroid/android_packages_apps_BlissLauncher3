@@ -1,30 +1,32 @@
-// Migration04 §09: :bliss-prefs — see Plans/Migration04/09-build-and-rollout.md §2.3
+// Audit02: :bliss-prefs
+//
+// Role:
+//   Leaf module owning the Bliss SharedPreferences key registry and schema
+//   helper.
+//
+// Public API:
+//   foundation.e.bliss.preferences.BlissPrefs
+//   foundation.e.bliss.preferences.BlissPrefSchema
+//
+// Dependency rules:
+//   - May depend on AndroidX Preference for schema self-test traversal.
+//   - Must not depend on root app runtime classes beyond public preference
+//     constants consumed by the app.
+//
+// Migration note:
+//   Created in Migration04 §09; converted to the Audit02 shared Android
+//   library convention.
 plugins {
-    alias libs.plugins.android.library
-    alias libs.plugins.kotlin
+    id 'foundation.e.bliss.android-library'
 }
 
 android {
     namespace 'foundation.e.bliss.preferences'
-    compileSdk 36
-
-    defaultConfig {
-        minSdk 35
-    }
 
     sourceSets {
         named("main") {
             java.srcDirs("src/main/kotlin")
         }
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
-    }
-
-    kotlinOptions {
-        jvmTarget = "21"
     }
 }
 

@@ -32,10 +32,9 @@
  * Purpose:
  *   The single sink for bliss-side logging. Provides both the legacy
  *   "Logger.d(TAG, msg)" object API used by ~30 existing call sites, and
- *   the Migration04 §1.2 instance API ("Logger.tag(name).d(msg)" /
- *   "Logger.of<MyClass>().d(msg)"). The legacy API will be retired by
- *   Migration04 phase 02 (importer decomposition), at which point the
- *   tag-based companion methods can be removed.
+ *   the Migration04 instance API ("Logger.tag(name).d(msg)" /
+ *   "Logger.of<MyClass>().d(msg)"). The legacy API remains for older
+ *   call sites until they are migrated to tag-scoped Logger instances.
  *
  *   Migration05 follow-up F1 — i/w/e calls also write to AOSP's
  *   com.android.launcher3.logging.FileLog so the persistent on-device log
@@ -55,6 +54,8 @@ package foundation.e.bliss.utils
 import android.util.Log as AndroidLog
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.logging.FileLog
+import foundation.e.bliss.core.logging.BlissLogger
+import foundation.e.bliss.core.logging.BlissLoggerFactory
 import timber.log.Timber
 
 /**
@@ -63,42 +64,58 @@ import timber.log.Timber
  * Two flavours:
  * - Legacy static-style API (kept for existing call sites): Logger.d(TAG, "msg") Logger.e(TAG,
  *   "msg", throwable)
- * - Migration04 instance API: private val log = Logger.of<MyClass>() private static final Logger
- *   LOG = Logger.tag("MyClassAbbrev"); log.d("msg"); log.e("msg", throwable)
+ * - Instance API: private val log = Logger.of<MyClass>() private static final Logger LOG =
+ *   Logger.tag("MyClassAbbrev"); log.d("msg"); log.e("msg", throwable)
  *
  * Verbose / debug logs are no-ops in non-debug builds (cost: one BuildConfig.IS_DEBUG_DEVICE check;
  * JIT inlines). Warnings/errors always log + always include the Throwable when given. Tag length
  * must stay ≤ 23 chars (Android logcat limit) — caller's responsibility.
  */
-class Logger @PublishedApi internal constructor(@PublishedApi internal val tag: String) {
+class Logger @PublishedApi internal constructor(@PublishedApi internal val tag: String) :
+    BlissLogger {
 
-    @JvmOverloads
-    fun v(msg: String, t: Throwable? = null) {
+    override fun v(message: String, throwable: Throwable?) {
+        val msg = message
+        val t = throwable
         if (isDebug) AndroidLog.v(tag, msg, t)
     }
 
-    @JvmOverloads
-    fun d(msg: String, t: Throwable? = null) {
+    fun v(message: String) = v(message, null)
+
+    override fun d(message: String, throwable: Throwable?) {
+        val msg = message
+        val t = throwable
         if (isDebug) AndroidLog.d(tag, msg, t)
     }
 
-    @JvmOverloads
-    fun i(msg: String, t: Throwable? = null) {
+    fun d(message: String) = d(message, null)
+
+    override fun i(message: String, throwable: Throwable?) {
+        val msg = message
+        val t = throwable
         AndroidLog.i(tag, msg, t)
         persist(msg, t)
     }
 
-    @JvmOverloads
-    fun w(msg: String, t: Throwable? = null) {
+    fun i(message: String) = i(message, null)
+
+    override fun w(message: String, throwable: Throwable?) {
+        val msg = message
+        val t = throwable
         AndroidLog.w(tag, msg, t)
         persist(msg, t)
     }
 
-    @JvmOverloads
-    fun e(msg: String, t: Throwable? = null) {
+    fun w(message: String) = w(message, null)
+
+    override fun e(message: String, throwable: Throwable?) {
+        val msg = message
+        val t = throwable
         AndroidLog.e(tag, msg, t)
         persist(msg, t)
     }
+
+    fun e(message: String) = e(message, null)
 
     /**
      * Mirrors the i/w/e log line into AOSP's FileLog ring (Migration05 F1).
@@ -125,12 +142,12 @@ class Logger @PublishedApi internal constructor(@PublishedApi internal val tag: 
         }
     }
 
-    companion object {
+    companion object : BlissLoggerFactory {
         // Visible for testing — overridable in JVM unit tests where BuildConfig
         // isn't loaded with the production value.
         @JvmStatic internal var isDebug: Boolean = BuildConfig.IS_DEBUG_DEVICE
 
-        @JvmStatic fun tag(name: String): Logger = Logger(name)
+        @JvmStatic override fun tag(name: String): Logger = Logger(name)
 
         inline fun <reified T> of(): Logger = Logger(T::class.java.simpleName)
 
@@ -139,7 +156,7 @@ class Logger @PublishedApi internal constructor(@PublishedApi internal val tag: 
         // ------------------------------------------------------------------
         // Legacy static-style API. All bliss-side call sites currently use
         // these forms: Logger.d(TAG, msg) etc. They will be migrated to the
-        // instance API in Migration04 phase 02; until then both APIs coexist.
+        // instance API; until then both APIs coexist.
         // ------------------------------------------------------------------
 
         @JvmStatic

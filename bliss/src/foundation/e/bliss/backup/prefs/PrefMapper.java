@@ -17,7 +17,6 @@
 /*
  * File:    bliss/src/foundation/e/bliss/backup/prefs/PrefMapper.java
  * Module:  bliss source-set  (foundation.e.bliss.backup.prefs)
- * Role:    NEW
  *
  * Tree (foundation/e/bliss/backup/prefs/):
  *   ├── BasicMappers.java          — typed primitives (boolean/int/string/float→percent)
@@ -27,13 +26,9 @@
  *   └── PrefMapperRegistry.java    — orchestrator; mirrors the legacy applyMappedPreferences
  *
  * Purpose:
- *   Functional-interface seam for a single pref-mapping unit. Reserved for
- *   Migration05 when individual mappers will be unit-testable in isolation.
- *   Phase 02 itself does NOT migrate every branch into a discrete mapper —
- *   the registry's body is the single point of orchestration with verbatim
- *   ordering preserved. This interface exists so the seam is in place.
- *
- * Plan reference: Plans/Migration04/02-importer-decomposition.md §4.3
+ *   Functional-interface boundary for a single pref-mapping unit. The
+ *   registry remains the single orchestration point and preserves import
+ *   ordering; individual mappers can be tested behind this interface.
  */
 package foundation.e.bliss.backup.prefs;
 

@@ -1,15 +1,31 @@
-// Migration04 §09: :bliss-compat — see Plans/Migration04/09-build-and-rollout.md §2.3
+// Audit02: :bliss-compat
+//
+// Role:
+//   Leaf module owning platform/runtime compatibility shims and the single
+//   ReflectionGate entry point for speculative framework API access.
+//
+// Public API:
+//   foundation.e.bliss.compat.BuildCompat
+//   foundation.e.bliss.compat.ReflectionGate
+//   foundation.e.bliss.compat.platform.*
+//   foundation.e.bliss.compat.desktop.*
+//
+// Dependency rules:
+//   - May use compileOnly framework/aconfig prebuilts from libs/.
+//   - May depend on AndroidX Annotation.
+//   - Must not depend on root app UI/runtime classes.
+//
+// Migration note:
+//   Created in Migration04 §09; converted to the Audit02 shared Android
+//   library convention.
 plugins {
-    alias libs.plugins.android.library
-    alias libs.plugins.kotlin
+    id 'foundation.e.bliss.android-library'
 }
 
 android {
     namespace 'foundation.e.bliss.compat'
-    compileSdk 36
 
     defaultConfig {
-        minSdk 35
         consumerProguardFiles 'consumer-rules.pro'
     }
 
@@ -17,15 +33,6 @@ android {
         named("main") {
             java.srcDirs("src/main/kotlin")
         }
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
-    }
-
-    kotlinOptions {
-        jvmTarget = "21"
     }
 }
 

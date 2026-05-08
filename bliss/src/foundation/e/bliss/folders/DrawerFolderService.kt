@@ -7,6 +7,13 @@
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  */
+/*
+ * Bliss touchpoint(s) (Audit02):
+ *   - Consumes :bliss-folders-data for Room entities, DAO, and database.
+ *   - Remains in the app source-set because it adapts persisted component-key
+ *     strings to live AllAppsStore, AppInfo, WorkspaceItemInfo, and FolderInfo
+ *     launcher model classes.
+ */
 package foundation.e.bliss.folders
 
 import android.content.Context

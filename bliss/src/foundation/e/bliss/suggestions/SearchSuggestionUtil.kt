@@ -13,7 +13,21 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+/*
+ * File:    bliss/src/foundation/e/bliss/suggestions/SearchSuggestionUtil.kt
+ * Module:  bliss root app source-set
  *
+ * Structure:
+ *   - App source owns provider preference selection, Browser default-engine
+ *     lookup, and custom URL preference gating.
+ *   - :bliss-search-providers owns built-in Qwant/DuckDuckGo transport and
+ *     JSON parsing.
+ *
+ * Usage:
+ *   BlissInput calls getSuggestionProvider(context) for autocomplete queries
+ *   and getUriForQuery(context, query) when launching the selected search
+ *   engine in a browser.
  */
 package foundation.e.bliss.suggestions
 
@@ -22,17 +36,15 @@ import android.net.Uri
 import androidx.core.net.toUri
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.dagger.LauncherComponentProvider
+import foundation.e.bliss.adapters.LauncherDebugFlags
 import foundation.e.bliss.suggestions.duckduckgo.DuckDuckGoProvider
 import foundation.e.bliss.suggestions.qwant.QwantProvider
+import foundation.e.bliss.utils.Logger
 
 object SearchSuggestionUtil {
     fun getSuggestionProvider(context: Context): SuggestionProvider {
-        // Phase 6.3: a user-configured custom URL takes precedence over the
-        // built-in providers. Empty / non-`%s` URLs fall through.
-        // PLAN-DRIFT-M02: see 13-drift-log.md entry for Phase 6.3 — the plan
-        // proposed a "custom" branch on `SEARCH_PROVIDER` ListPreference; we
-        // gate on the URL pref instead so getUriForQuery's engine map stays
-        // single-purpose.
+        // A user-configured custom URL takes precedence over the built-in
+        // providers. Empty / non-`%s` URLs fall through.
         try {
             val prefs = LauncherComponentProvider.get(context).launcherPrefs
             val customUrl = prefs.get(LauncherPrefs.WEB_SUGGESTION_URL)
@@ -46,16 +58,16 @@ object SearchSuggestionUtil {
         val userPref = getUserSearchProvider(context)
         if (userPref != "default") {
             return when (userPref) {
-                "qwant" -> QwantProvider()
-                "duckduckgo" -> DuckDuckGoProvider()
-                else -> DuckDuckGoProvider()
+                "qwant" -> QwantProvider(Logger, providerHttpClient)
+                "duckduckgo" -> DuckDuckGoProvider(Logger, providerHttpClient)
+                else -> DuckDuckGoProvider(Logger, providerHttpClient)
             }
         }
         return with(defaultSearchEngine(context)) {
             when {
                 contains(Providers.QWANT.key, true) || contains(Providers.MURENASEARCH.key, true) ->
-                    QwantProvider()
-                else -> DuckDuckGoProvider()
+                    QwantProvider(Logger, providerHttpClient)
+                else -> DuckDuckGoProvider(Logger, providerHttpClient)
             }
         }
     }
@@ -116,5 +128,9 @@ object SearchSuggestionUtil {
                 ""
             }
         }
+    }
+
+    private val providerHttpClient by lazy {
+        BaseSuggestionProvider.defaultHttpClient(LauncherDebugFlags.isDebugDevice)
     }
 }

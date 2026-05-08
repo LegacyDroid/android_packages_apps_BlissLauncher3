@@ -5,7 +5,6 @@
 /*
  * File:    bliss/src/foundation/e/bliss/policy/IdleAppPolicy.kt
  * Module:  bliss main source-set  (foundation.e.bliss.policy)
- * Role:    NEW
  *
  * Tree (foundation/e/bliss/policy/):
  *   ├── LauncherPolicy.kt          — singleton accessor
@@ -25,14 +24,12 @@
  *   AFTER the last occupied cell" so gaps survive a model reload.
  *   VerifyIdleAppTask deliberately does NOT consult this policy: gating it
  *   would block newly installed apps from reaching the home screen entirely
- *   (regression caught during Phase 05 audit — see VerifyIdleAppTask's
+ *   (regression caught during audit — see VerifyIdleAppTask's
  *   touchpoint block).
  *
  * Consumed by:
  *   - foundation.e.bliss.policy.LauncherPolicy                 — idleApp()
  *   - com.android.launcher3.model.WorkspaceItemSpaceFinder     — placement gate
- *
- * Plan reference: Plans/Migration04/05-launcher-policy-strategies.md §4.3
  */
 package foundation.e.bliss.policy
 

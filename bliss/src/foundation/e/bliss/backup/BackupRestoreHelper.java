@@ -17,28 +17,25 @@
 /*
  * File:    bliss/src/foundation/e/bliss/backup/BackupRestoreHelper.java
  * Module:  bliss source-set  (foundation.e.bliss.backup)
- * Role:    REFACTORED
  *
  * Tree (foundation/e/bliss/backup/):
  *   ├── BackupRestoreHelper.java            — Bliss-format backup façade  ← THIS FILE
  *   ├── ImportResult.java                   — DTO returned by Lawnchair importFromLawnchair
  *   ├── LawnchairImportHelper.java          — orchestrator for Lawnchair import
  *   ├── LawnchairImportTestReceiver.java    — debug-only adb-broadcast trigger
- *   ├── blissformat/                        — Bliss .bliss/.zip backup parsers (this file's helpers)
- *   ├── parser/                             — Lawnchair-format parsers (ZIP, XML, proto)
+ *   ├── blissformat/                        — Bliss JSON schema adapters
  *   ├── prefs/                              — Lawnchair pref-key mappers and registry
  *   └── workspace/                          — launcher.db → BlissLauncher favorites table
  *
+ * External parser module:
+ *   - :bliss-backup-parser owns BlissBackupZip and Lawnchair parser classes.
+ *
  * Purpose:
- *   Public façade for Bliss's own settings-and-layout backup format. Pre-
- *   Migration05 this file was 381 lines mixing JSON serialisation, ZIP I/O,
- *   gesture validation and layout-XML hand-off. Migration05 follow-up F2
- *   lifted those concerns into the blissformat/ sub-package; what remains
- *   here is a thin orchestrator that sequences pref-serialise → zip-write
- *   on backup, and zip-read → pref-deserialise → layout-import on restore.
- *   Public method names (createBackup, restoreFromBackup, BackupCallback)
- *   are unchanged so existing call sites in BackupFragment continue to work
- *   without modification.
+ *   Public façade for Bliss's own settings-and-layout backup format. This
+ *   class stays app-side because it needs LauncherPrefs, Dagger access, and
+ *   LayoutImportExportHelper. ZIP envelope I/O lives in
+ *   :bliss-backup-parser; JSON schema conversion remains beside this helper
+ *   because it depends on LauncherPrefs.
  *
  * Calls into:
  *   - foundation.e.bliss.backup.blissformat.BlissBackupZip
@@ -49,8 +46,6 @@
  *   - com.android.launcher3.settings.ui.BackupFragment
  *   - com.android.launcher3.settings.controllers.backup.BackupCreateController
  *   - com.android.launcher3.settings.controllers.backup.BackupRestoreController
- *
- * Plan reference: Plans/Migration05/02-backup-restore-decomp.md (speculative)
  */
 package foundation.e.bliss.backup;
 

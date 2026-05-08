@@ -11,21 +11,21 @@
  *     -n foundation.e.blisslauncher.test/foundation.e.bliss.backup.LawnchairImportTestReceiver
  */
 /*
- * Bliss touchpoint(s) (Migration04):
+ * Bliss touchpoint(s):
  *   - Tighten onReceive() to fail-fast on non-debug builds via BuildConfig.DEBUG
  *     (in addition to the pre-existing BuildConfig.IS_DEBUG_DEVICE check), so
  *     that a release-flavoured APK shipped to a user with a stale install on
  *     the device that exposes this receiver via the leftover manifest entry
  *     can't be coerced into running the import via adb.
- *     — Plan ref: Plans/Migration04/08-observability-and-testing.md §2
- *   - Phase 02 (importer decomposition):
+ *   - Importer decomposition:
  *       * The result type is now top-level foundation.e.bliss.backup.ImportResult
  *         (lifted out of LawnchairImportHelper).
  *       * Logging routes through foundation.e.bliss.utils.Logger.tag(…); the
  *         android.util.Log import is gone.
- *     — Plan ref: Plans/Migration04/02-importer-decomposition.md §6, §8 phase 9
  *
- * The body of this file otherwise tracks pre-Migration04 state.
+ * Runtime guard:
+ *   This receiver must remain debug-only and must not become an exported
+ *   production import path.
  */
 package foundation.e.bliss.backup;
 

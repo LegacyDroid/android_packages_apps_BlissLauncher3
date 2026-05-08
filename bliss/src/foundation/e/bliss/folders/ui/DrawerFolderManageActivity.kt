@@ -7,6 +7,13 @@
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  */
+/*
+ * Bliss touchpoint(s) (Audit02):
+ *   - Reads DrawerFolderWithItems from :bliss-folders-data through
+ *     DrawerFolderService.
+ *   - Remains in the app source-set because the settings UI uses launcher
+ *     resources and ComponentKey app-selection behavior.
+ */
 package foundation.e.bliss.folders.ui
 
 import android.app.Activity
@@ -43,13 +50,13 @@ import kotlinx.coroutines.withContext
  * View-based settings UI for managing drawer folders. Mirrors Lawnchair's Compose
  * `AppDrawerFoldersPreference` (XC-1: we explicitly stay on Views).
  *
- * Phase 1 scope:
+ * Current scope:
  * - List existing folders (live via [DrawerFolderService.observeFolders])
  * - Create / edit (rename + change member apps) via a dialog
  * - Delete with cascade
  *
- * Reorder via drag-handle is left as a Phase-1 follow-up (`updateFolderInfo` already supports
- * `rank`); for now folders sort by insertion order.
+ * Reorder via drag-handle is left as a follow-up (`updateFolderInfo` already supports `rank`); for
+ * now folders sort by insertion order.
  */
 class DrawerFolderManageActivity : Activity() {
 

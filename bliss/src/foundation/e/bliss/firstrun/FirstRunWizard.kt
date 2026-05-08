@@ -5,7 +5,6 @@
 /*
  * File:    bliss/src/foundation/e/bliss/firstrun/FirstRunWizard.kt
  * Module:  bliss source-set  (foundation.e.bliss.firstrun)
- * Role:    NEW
  *
  * Tree (foundation/e/bliss/firstrun/):
  *   ├── FirstRunStep.kt              — interface every wizard step implements
@@ -32,7 +31,10 @@
  *   - foundation.e.bliss.firstrun.steps.LayoutModeStep
  *   - foundation.e.bliss.firstrun.steps.ImportLawnchairStep
  *
- * Plan reference: Plans/Migration04/07-first-run-wizard.md §3.2
+ * Module boundary:
+ *   The wizard orchestrator may move after first-run state and step contracts
+ *   stop reading LauncherPrefs directly. UI fragments stay app-owned while
+ *   they depend on app resources and backup import flows.
  */
 package foundation.e.bliss.firstrun
 

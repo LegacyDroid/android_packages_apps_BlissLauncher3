@@ -17,7 +17,6 @@
 /*
  * File:    bliss/src/foundation/e/bliss/backup/prefs/RecognizedKeys.java
  * Module:  bliss source-set  (foundation.e.bliss.backup.prefs)
- * Role:    NEW
  *
  * Tree (foundation/e/bliss/backup/prefs/):
  *   ├── BasicMappers.java          — typed primitives
@@ -29,13 +28,11 @@
  *
  * Purpose:
  *   Holds the Lawnchair-source-key allow-lists that PrefMapperRegistry
- *   exposes via recognisedKeys() / internalKeys(). Lifted out of the
- *   registry to keep that file under 300 lines post-Migration04 phase 02.
+ *   exposes via recognisedKeys() / internalKeys(). Kept separate so the
+ *   registry stays focused on mapping behavior.
  *
  * Consumed by:
  *   - foundation.e.bliss.backup.prefs.PrefMapperRegistry
- *
- * Plan reference: Plans/Migration04/02-importer-decomposition.md §4.4
  */
 package foundation.e.bliss.backup.prefs;
 

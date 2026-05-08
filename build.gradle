@@ -368,6 +368,10 @@ dependencies {
     // implementation deps is sufficient.
     implementation project(':bliss-compat')
     implementation project(':bliss-prefs')
+    implementation project(':bliss-core-contracts')
+    implementation project(':bliss-folders-data')
+    implementation project(':bliss-backup-parser')
+    implementation project(':bliss-search-providers')
 
     // Migration05 §F3 — Custom Android Lint detectors. The :lint-rules
     // module ships ReflectionGateOnlyDetector and PrefXmlKeyRegistryDetector;

@@ -17,24 +17,25 @@
 /*
  * File:    bliss/src/foundation/e/bliss/backup/LawnchairImportHelper.java
  * Module:  bliss source-set  (foundation.e.bliss.backup)
- * Role:    REFACTORED
  *
  * Tree (foundation/e/bliss/backup/):
  *   ├── BackupRestoreHelper.java            — Bliss-format settings backup/restore
  *   ├── ImportResult.java                   — DTO returned by importFromLawnchair
  *   ├── LawnchairImportHelper.java          — orchestrator (this file)  ← THIS FILE
  *   ├── LawnchairImportTestReceiver.java    — debug-only adb-broadcast trigger
- *   ├── blissformat/                        — Bliss .bliss/.zip backup parsers
- *   ├── parser/                             — Lawnchair-format parsers (ZIP, XML, proto)
+ *   ├── blissformat/                        — Bliss JSON schema adapters
  *   ├── prefs/                              — pref-key mappers and registry
  *   └── workspace/                          — launcher.db → BlissLauncher favorites table
  *
+ * External parser module:
+ *   - :bliss-backup-parser owns Lawnchair ZIP/XML/proto readers.
+ *
  * Purpose:
- *   Orchestrates Lawnchair-backup import. Pre-Migration04 this file was
- *   1976 lines doing seven jobs at once; Migration04 phase 02 lifted each
- *   concern into the parser/, prefs/, and workspace/ packages. What
- *   remains here is a thin façade that sequences four delegate calls:
- *   ZIP read → XML+proto parse → pref-mapping → workspace import.
+ *   Orchestrates Lawnchair-backup import. This file remains in app source
+ *   because it needs Android Context, launcher logging, preference writes,
+ *   and workspace import side effects. Raw archive and preference parsing
+ *   lives in :bliss-backup-parser so format handling can be tested without
+ *   launcher runtime classes.
  *
  * Calls into:
  *   - foundation.e.bliss.backup.parser.LawnchairZip
@@ -46,8 +47,6 @@
  * Consumed by:
  *   - foundation.e.bliss.backup.LawnchairImportTestReceiver
  *   - com.android.launcher3.settings.SettingsActivity (Lawnchair-import flow)
- *
- * Plan reference: Plans/Migration04/02-importer-decomposition.md §3, §8 phase 8
  */
 package foundation.e.bliss.backup;
 

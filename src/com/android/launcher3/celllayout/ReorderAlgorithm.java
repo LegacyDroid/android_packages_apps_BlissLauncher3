@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * Bliss touchpoint(s) (Migration04):
+ * Bliss touchpoint(s):
  *   - Delegates the preserve-gaps direction-vector override and in-place
  *     solution preference to the Bliss-side ReorderPolicy strategy via
  *     LauncherPolicy.reorder(ctx). The previous ~10-line inline pref gate
@@ -22,7 +22,8 @@
  *     (top-left compaction) lives in
  *     foundation.e.bliss.policy.reorder.DefaultReorderPolicy and the
  *     preserve-gaps behaviour lives in PreserveGapsReorderPolicy.
- *     — Plan ref: Plans/Migration04/05-launcher-policy-strategies.md §5.1
+ *   - Reorder policy remains app-owned until a stable data contract replaces
+ *     CellLayout, ItemConfiguration, and ReorderParameters imports.
  *
  * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
  * future origin/a16 rebase merges cleanly.

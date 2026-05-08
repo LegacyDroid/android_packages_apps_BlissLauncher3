@@ -13,7 +13,16 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+/*
+ * File:    bliss/src/foundation/e/bliss/suggestions/BlissInput.kt
+ * Module:  bliss root app source-set
  *
+ * Audit02 touchpoint:
+ *   Consumes :bliss-search-providers through SuggestionProvider and
+ *   SuggestionsResult. This view remains app-owned because it depends on
+ *   Launcher UI classes, app resources, AllAppsStore updates, and local app
+ *   search rendering.
  */
 package foundation.e.bliss.suggestions
 

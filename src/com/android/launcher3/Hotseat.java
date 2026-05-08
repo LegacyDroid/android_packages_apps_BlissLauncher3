@@ -13,6 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s):
+ *   - Consumes app-root blur runtime via BlurViewDelegate,
+ *     BlurWallpaperProvider, and OffsetParent.
+ *   - Blur UI/provider code remains app-owned because it depends on
+ *     Launcher lifecycle, wallpaper state, display state, and preferences.
+ */
 
 package com.android.launcher3;
 

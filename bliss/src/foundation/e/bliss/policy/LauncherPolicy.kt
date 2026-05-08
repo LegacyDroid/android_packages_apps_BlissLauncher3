@@ -5,7 +5,6 @@
 /*
  * File:    bliss/src/foundation/e/bliss/policy/LauncherPolicy.kt
  * Module:  bliss main source-set  (foundation.e.bliss.policy)
- * Role:    NEW
  *
  * Tree (foundation/e/bliss/policy/):
  *   ├── LauncherPolicy.kt          — singleton accessor (this file)            ← THIS FILE
@@ -32,7 +31,11 @@
  * Calls into:
  *   - com.android.launcher3.LauncherPrefs                      — pref reads
  *
- * Plan reference: Plans/Migration04/05-launcher-policy-strategies.md §3
+ * Module boundary:
+ *   Folder preview and idle policy implementations are candidates for a
+ *   policy-core module. LauncherPolicy stays app-owned as long as it reads
+ *   LauncherPrefs directly, and reorder policy stays app-owned until a stable
+ *   cell-layout data contract replaces CellLayout/ItemConfiguration imports.
  */
 package foundation.e.bliss.policy
 

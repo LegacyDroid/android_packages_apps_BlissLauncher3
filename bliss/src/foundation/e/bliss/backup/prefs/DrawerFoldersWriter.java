@@ -17,7 +17,6 @@
 /*
  * File:    bliss/src/foundation/e/bliss/backup/prefs/DrawerFoldersWriter.java
  * Module:  bliss source-set  (foundation.e.bliss.backup.prefs)
- * Role:    NEW
  *
  * Tree (foundation/e/bliss/backup/prefs/):
  *   ├── BasicMappers.java          — typed primitives
@@ -27,19 +26,16 @@
  *   └── PrefMapperRegistry.java    — orchestrator
  *
  * Purpose:
- *   Lifted from LawnchairImportHelper.writeDrawerFoldersToRoom. Migration02
- *   Phase 1.11 introduced this side-effect so users see drawer folders
- *   immediately after a Lawnchair import without waiting for the next
- *   runOneShotMigrations cycle. The writes are idempotent: DrawerFolderService
- *   .upsertBlocking clears each folder's items before re-inserting (XC-7).
+ *   Writes imported drawer-folder data immediately after a Lawnchair import
+ *   without waiting for the next runOneShotMigrations cycle. The writes are
+ *   idempotent: DrawerFolderService.upsertBlocking clears each folder's
+ *   items before re-inserting (XC-7).
  *
  * Consumed by:
  *   - foundation.e.bliss.backup.prefs.PrefMapperRegistry  — after pref_drawerFolders mapping
  *
  * Calls into:
  *   - foundation.e.bliss.folders.DrawerFolderService
- *
- * Plan reference: Plans/Migration04/02-importer-decomposition.md §4 (lifted from lines 1088–1138)
  */
 package foundation.e.bliss.backup.prefs;
 

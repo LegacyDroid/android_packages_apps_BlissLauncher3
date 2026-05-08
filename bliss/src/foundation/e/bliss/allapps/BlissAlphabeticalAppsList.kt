@@ -7,6 +7,13 @@
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  */
+/*
+ * Bliss touchpoint(s) (Audit02):
+ *   - Reads DrawerFolderWithItems from :bliss-folders-data through
+ *     DrawerFolderService.
+ *   - Remains in the app source-set because it joins persisted folder rows
+ *     with live AllAppsStore/AppInfo/FolderInfo launcher model classes.
+ */
 package foundation.e.bliss.allapps
 
 import android.content.Context
@@ -32,7 +39,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Bliss subclass of [AlphabeticalAppsList] that injects drawer-folder cards before the flat app
- * grid. See `Plans/Migration02/02-phase-1-drawer-folders.md`.
+ * grid. See the Migration02 drawer-folders plan.
  *
  * Key behaviours (XC-2, XC-4, XC-5, XC-7):
  * - Folder cards appear only on the main drawer tab. The work-profile and search lists
@@ -51,7 +58,7 @@ class BlissAlphabeticalAppsList<T>(
     where T : Context, T : ActivityContext {
 
     private val service: DrawerFolderService = DrawerFolderService.get(context.applicationContext)
-    // PLAN-DRIFT-M02: see 13-drift-log.md entry for Phase 1.6 — Bliss launcher is not a
+    // PLAN-DRIFT-M02: Bliss launcher is not a
     // LifecycleOwner so we manage the scope ourselves and tear down via a store-update listener.
     private val supervisor = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.Main + supervisor)
@@ -95,9 +102,9 @@ class BlissAlphabeticalAppsList<T>(
     }
 
     override fun addAppsWithSections(appList: MutableList<AppInfo>?, startPosition: Int): Int {
-        // Migration02 / Phase 7.3 — inject the always-visible suggestions header BEFORE any
-        // folder cards / app sections. We compute it independently of the drawer-folder pref so
-        // it works even when drawer folders are disabled.
+        // Inject the always-visible suggestions header before any folder cards / app sections.
+        // We compute it independently of the drawer-folder pref so it works even when drawer
+        // folders are disabled.
         var position = startPosition
         position = injectSuggestionsHeader(appList, position)
 

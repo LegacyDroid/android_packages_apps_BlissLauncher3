@@ -14,6 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/iconpack/IconPackManager.java
+ * Module:  bliss root app source-set
+ *
+ * Module boundary:
+ *   Icon-pack parsing currently uses Android package resources directly and
+ *   feeds launcher icon rendering. Keep it app-owned until icon provider,
+ *   resource lookup, and mask selection dependencies are mapped as explicit
+ *   contracts.
+ */
 package foundation.e.bliss.iconpack;
 
 import android.content.ComponentName;

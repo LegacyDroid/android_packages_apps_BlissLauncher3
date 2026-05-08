@@ -13,7 +13,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+/*
+ * File:    bliss/src/foundation/e/bliss/blur/BlurWallpaperProvider.kt
+ * Module:  bliss root app source-set
  *
+ * Module boundary:
+ *   This provider remains app-owned because it reads LauncherPrefs, uses
+ *   DisplayController/Executors/SafeCloseable, and publishes through
+ *   MainThreadInitializedObject. Only stateless graphics primitives such as
+ *   WallpaperFilter, BlurWallpaperFilter, and BlurDrawable are candidates for
+ *   a future blur-core module after preferences and executor contracts exist.
  */
 package foundation.e.bliss.blur
 

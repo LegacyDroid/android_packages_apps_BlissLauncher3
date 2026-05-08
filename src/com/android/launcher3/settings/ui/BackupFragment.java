@@ -5,7 +5,6 @@
 /*
  * File:    src/com/android/launcher3/settings/ui/BackupFragment.java
  * Module:  main source-set  (com.android.launcher3.settings.ui)
- * Role:    NEW
  *
  * Tree (settings/ui/):
  *   See AreaFragmentBase.java for the directory's full sibling listing.
@@ -18,7 +17,10 @@
  *   actual "what happens after the user picks a file" callbacks live here
  *   because they need the fragment Context (Toasts, model.forceReload()).
  *
- * Plan reference: Plans/Migration04/04-settings-ui-modularization.md §7.2
+ * Audit02 touchpoint:
+ *   Consumes app-root backup orchestrators that use :bliss-backup-parser.
+ *   This fragment stays root-owned because it manages ActivityResultLauncher
+ *   lifecycle, toasts, content resolver streams, and launcher model reloads.
  */
 package com.android.launcher3.settings.ui;
 

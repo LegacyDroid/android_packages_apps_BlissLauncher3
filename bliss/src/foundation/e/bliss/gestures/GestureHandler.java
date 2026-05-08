@@ -14,6 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/gestures/GestureHandler.java
+ * Module:  bliss root app source-set
+ *
+ * Module boundary:
+ *   Gesture handling stays app-owned because handlers hold Launcher and call
+ *   SystemUiProxy/status-bar APIs. Before extraction, direct reflection and
+ *   status-bar access should move behind :bliss-compat shims with safe no-op
+ *   behavior when platform methods are unavailable.
+ */
 package foundation.e.bliss.gestures;
 
 import android.content.ComponentName;

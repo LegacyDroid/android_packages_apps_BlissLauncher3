@@ -13,7 +13,16 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+/*
+ * File:    bliss/src/foundation/e/bliss/suggestions/CustomUrlProvider.kt
+ * Module:  bliss root app source-set
  *
+ * Structure:
+ *   Custom URL suggestions stay app-side because the provider reads
+ *   LauncherPrefs at query time for URL, timeout, and result count. Built-in
+ *   providers live in :bliss-search-providers and receive app dependencies
+ *   through SearchSuggestionUtil.
  */
 package foundation.e.bliss.suggestions
 
@@ -28,12 +37,6 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
-
-// PLAN-DRIFT-M02: see 13-drift-log.md entry for Phase 6.2 — the existing
-// BaseSuggestionProvider is an abstract class (not an interface) keyed on
-// `tag` / `url` / `parseResponse`. This provider needs runtime-configurable
-// URL + timeout + count, so it overrides `query()` directly instead of
-// reusing the static `url`/`parseResponse` template path.
 
 /**
  * User-configurable web-suggestion backend. Reads URL/name/timeout/count from
@@ -67,7 +70,7 @@ class CustomUrlProvider(private val context: Context) : SuggestionProvider {
             }
 
         try {
-            // IO dispatcher — never on the main thread (per Phase 6 hard rule).
+            // IO dispatcher — never on the main thread.
             val items =
                 withContext(Dispatchers.IO) {
                     val conn =
