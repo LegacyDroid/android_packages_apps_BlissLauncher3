@@ -316,6 +316,14 @@ class LauncherPrefs(private val encryptedContext: Context) {
             )
 
         @JvmField
+        val NEEDS_WORKSPACE_REORDER_AFTER_RESTORE =
+            nonRestorableItem(
+                "needs_workspace_reorder_after_restore",
+                false,
+                isBootAware = false
+            )
+
+        @JvmField
         val IS_STARTUP_DATA_MIGRATED =
             ConstantItem(
                 "is_startup_data_boot_aware",
