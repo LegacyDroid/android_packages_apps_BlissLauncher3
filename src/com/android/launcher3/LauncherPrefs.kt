@@ -137,6 +137,13 @@ abstract class LauncherPrefs : SafeCloseable {
         @JvmField
         val NEEDS_WIDGET_REBIND_AFTER_RESTORE =
             nonRestorableItem("needs_widget_rebind_after_restore", false, EncryptionType.ENCRYPTED)
+        @JvmField
+        val NEEDS_WORKSPACE_REORDER_AFTER_RESTORE =
+            nonRestorableItem(
+                "needs_workspace_reorder_after_restore",
+                false,
+                EncryptionType.ENCRYPTED,
+            )
         @JvmField val APP_WIDGET_IDS = backedUpItem(RestoreDbTask.APPWIDGET_IDS, "")
         @JvmField val OLD_APP_WIDGET_IDS = backedUpItem(RestoreDbTask.APPWIDGET_OLD_IDS, "")
 
