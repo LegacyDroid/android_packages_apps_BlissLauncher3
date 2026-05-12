@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<full-backup-content xmlns:android="http://schemas.android.com/apk/res/android">
+<full-backup-content>
 
     <!-- 1.9.0 Database -->
     <include domain="database" path="launcher_db" />
 
     <!-- QSB Widgets Database -->
-    <include domain="database" path="qsb_widgets.db" />
+    <include domain="database" path="qsb_widgets" />
 
+    <include domain="database" path="app_icons.db" />
     <include domain="database" path="launcher.db" />
     <include domain="database" path="launcher_5_by_8.db" />
     <include domain="database" path="launcher_6_by_5.db" />
@@ -18,7 +19,9 @@
     <include domain="database" path="launcher_2_by_2.db" />
     <include domain="database" path="launcher_7_by_3.db" />
     <include domain="database" path="launcher_8_by_3.db" />
+    <include domain="sharedpref" path="com.android.launcher3.device.prefs.xml" />
     <include domain="sharedpref" path="com.android.launcher3.prefs.xml" />
+    <include domain="sharedpref" path="plugin_prefs.xml" />
     <include domain="file" path="downgrade_schema.json" />
 
 </full-backup-content>
