@@ -16,7 +16,7 @@
   --><resources>
     <string name="edit">Bewerken</string>
     <string name="search">Zoeken</string>
-    <string name="suggestions">Suggesties</string>
+    <string name="suggestions">SUGGESTIES</string>
     <string name="cancel">Annuleren</string>
     <string name="untitled_folder">Geen titel</string>
     <string name="ok">OK</string>
