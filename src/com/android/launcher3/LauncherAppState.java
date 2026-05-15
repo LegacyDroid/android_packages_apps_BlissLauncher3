@@ -35,7 +35,9 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.LauncherApps;
 import android.content.pm.LauncherApps.ArchiveCompatibilityParams;
+import android.net.Uri;
 import android.os.UserHandle;
+import android.provider.Settings;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -46,6 +48,7 @@ import com.android.launcher3.icons.IconProvider;
 import com.android.launcher3.icons.LauncherIconProvider;
 import com.android.launcher3.icons.LauncherIcons;
 import com.android.launcher3.lineage.trust.HiddenAppsFilter;
+import com.android.launcher3.model.CompactWorkspaceAfterRestoreTask;
 import com.android.launcher3.model.ModelLauncherCallbacks;
 import com.android.launcher3.notification.NotificationListener;
 import com.android.launcher3.pm.InstallSessionHelper;
@@ -180,6 +183,7 @@ public class LauncherAppState implements SafeCloseable {
         mAppMonitor.onAppCreated(mContext);
         // Register an observer to notify Launcher about Private Space settings toggle.
         registerPrivateSpaceHideWhenLockListener(settingsCache);
+        registerSetupCompleteListener(settingsCache);
     }
 
     public LauncherAppState(Context context, @Nullable String iconCacheFileName) {
@@ -201,6 +205,27 @@ public class LauncherAppState implements SafeCloseable {
             NotificationListener.requestRebind(new ComponentName(
                     mContext, NotificationListener.class));
         }
+    }
+
+    private void registerSetupCompleteListener(SettingsCache settingsCache) {
+        // After restore, compact the workspace only once SUW is complete.
+        Uri setupCompleteUri =
+                Settings.Secure.getUriFor(Settings.Secure.USER_SETUP_COMPLETE);
+        SettingsCache.OnChangeListener setupCompleteListener =
+                isSetupComplete -> {
+                    if (!isSetupComplete || !LauncherPrefs.get(mContext).get(
+                            LauncherPrefs.NEEDS_WORKSPACE_REORDER_AFTER_RESTORE)) {
+                        return;
+                    }
+                    mModel.enqueueModelUpdateTask(new CompactWorkspaceAfterRestoreTask());
+                };
+
+        settingsCache.register(setupCompleteUri, setupCompleteListener);
+        setupCompleteListener.onSettingsChanged(
+                settingsCache.getValue(setupCompleteUri, 0));
+
+        mOnTerminateCallback.add(() -> settingsCache.unregister(setupCompleteUri,
+                setupCompleteListener));
     }
 
     private void registerPrivateSpaceHideWhenLockListener(SettingsCache settingsCache) {
