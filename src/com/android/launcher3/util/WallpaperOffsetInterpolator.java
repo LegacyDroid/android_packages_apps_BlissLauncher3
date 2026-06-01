@@ -166,6 +166,11 @@ public class WallpaperOffsetInterpolator {
     public void syncWithScroll() {
         int numScreens = getNumScrollableScreensExcludingEmpty();
         wallpaperOffsetForScroll(mWorkspace.getScrollX(), numScreens, sTempInt);
+        // Push the offset to the blur provider on the main thread so the hotseat blur stays in
+        // sync with the wallpaper during a workspace swipe, instead of trailing the async hop
+        // through UI_HELPER_EXECUTOR.
+        BlurWallpaperProvider.Companion.getInstance(mWorkspace.getContext())
+                .setWallpaperOffset((float) sTempInt[0] / sTempInt[1]);
         Message msg = Message.obtain(mHandler, MSG_UPDATE_OFFSET, sTempInt[0], sTempInt[1],
                 mWindowToken);
         if (numScreens != mNumScreens) {
