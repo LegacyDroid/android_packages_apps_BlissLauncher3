@@ -13,6 +13,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 
 internal class WidgetsDbHelper(context: Context) :
     SQLiteOpenHelper(context, WIDGETS_DB, null, DATABASE_VERSION) {
@@ -80,7 +81,7 @@ internal class WidgetsDbHelper(context: Context) :
         if (oldId == newId) {
             return
         }
-        Logger.d(TAG, "Updating widgetId $oldId -> $newId")
+        Log.d("WidgetsDbHelper", "Updating widgetId $oldId -> $newId")
         writableDatabase.use { db ->
             db.beginTransaction()
             try {
