@@ -33,6 +33,11 @@
  *
  * The body of this file otherwise tracks Bliss baseline behaviour.
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/multimode/VerifyIdleAppTask.java
+ * Module:  bliss root app source-set
+ * Role:    Background task verifying newly installed apps against blacklist for workspace placement.
+ */
 package foundation.e.bliss.multimode;
 
 import android.content.ComponentName;

@@ -7,6 +7,11 @@
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/folders/views/DrawerFolderItemView.kt
+ * Module:  bliss root app source-set
+ * Role:    View card hosting a real FolderIcon for rendering drawer folders in the apps list.
+ */
 package foundation.e.bliss.folders.views
 
 import android.content.Context

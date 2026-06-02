@@ -57,6 +57,18 @@ project(':bliss-backup-parser').projectDir = new File(rootDir, 'bliss-backup-par
 include ':bliss-search-providers'
 project(':bliss-search-providers').projectDir = new File(rootDir, 'bliss-search-providers')
 
+// Audit03 — pure folder-preview and idle-app policy contracts.
+include ':bliss-policy-core'
+project(':bliss-policy-core').projectDir = new File(rootDir, 'bliss-policy-core')
+
+// Audit03 — tested animation guard/fallback helpers used by root animation code.
+include ':bliss-animation-safety'
+project(':bliss-animation-safety').projectDir = new File(rootDir, 'bliss-animation-safety')
+
+// Audit03 — widget persistence and default widget catalog.
+include ':bliss-widgets-data'
+project(':bliss-widgets-data').projectDir = new File(rootDir, 'bliss-widgets-data')
+
 /*
  * Bliss touchpoint(s) (Migration05):
  *   - include ':lint-rules' — pure-JVM module hosting custom Android Lint

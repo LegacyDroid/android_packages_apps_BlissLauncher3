@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/LauncherActivityCachingLogic.kt
+ * Module:  bliss root app source-set
+ * Role:    Icon caching logic for launcher activities with custom app label overrides.
+ */
 package foundation.e.bliss
 
 import android.content.ComponentName

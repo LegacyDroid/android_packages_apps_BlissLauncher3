@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/LauncherAppMonitor.java
+ * Module:  bliss root app source-set
+ * Role:    Singleton monitoring launcher lifecycle and system events with callback registry.
+ */
 package foundation.e.bliss;
 
 import static android.content.pm.ActivityInfo.CONFIG_LOCALE;

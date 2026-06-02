@@ -14,6 +14,11 @@
  *     strings to live AllAppsStore, AppInfo, WorkspaceItemInfo, and FolderInfo
  *     launcher model classes.
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/folders/DrawerFolderService.kt
+ * Module:  bliss root app source-set
+ * Role:    Service bridging Room-backed drawer folder persistence to launcher runtime types.
+ */
 package foundation.e.bliss.folders
 
 import android.content.Context

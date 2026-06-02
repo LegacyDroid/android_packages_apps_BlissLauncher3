@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/multimode/MultiModeController.kt
+ * Module:  bliss root app source-set
+ * Role:    Controller managing single-layer mode and idle app verification lifecycle.
+ */
 package foundation.e.bliss.multimode
 
 import android.content.Context

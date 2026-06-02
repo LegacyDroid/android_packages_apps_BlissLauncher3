@@ -22,6 +22,10 @@
  *     every animator port shares one policy.
  *     — Plan ref: Plans/Migration04/06-animation-safety.md §5.2
  *
+ * Bliss touchpoint(s) (Audit03):
+ *   - AnimatorFallback and FloatGuard move to :bliss-animation-safety.
+ *     Import paths unchanged; FloatGuard switches from BuildConfig to DebugFlags.
+ *
  * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
  * future origin/a16 rebase merges cleanly.
  */

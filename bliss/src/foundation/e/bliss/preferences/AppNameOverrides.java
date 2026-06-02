@@ -6,6 +6,11 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/preferences/AppNameOverrides.java
+ * Module:  bliss root app source-set
+ * Role:    Manager for user-supplied per-app label overrides stored as JSON with lazy caching.
+ */
 package foundation.e.bliss.preferences;
 
 import android.content.ComponentName;

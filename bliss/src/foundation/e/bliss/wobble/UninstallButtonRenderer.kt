@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/wobble/UninstallButtonRenderer.kt
+ * Module:  bliss root app source-set
+ * Role:    Renderer for uninstall delete button overlay on app icons during edit mode.
+ */
 package foundation.e.bliss.wobble
 
 import android.content.Context

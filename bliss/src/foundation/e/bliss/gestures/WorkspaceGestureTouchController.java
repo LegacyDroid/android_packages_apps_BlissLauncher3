@@ -14,6 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/gestures/WorkspaceGestureTouchController.java
+ * Module:  bliss root app source-set
+ * Role:    TouchController detecting double-tap and swipe-down gestures on home screen.
+ */
 package foundation.e.bliss.gestures;
 
 import android.graphics.PointF;

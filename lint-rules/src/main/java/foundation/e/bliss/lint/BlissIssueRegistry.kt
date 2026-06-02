@@ -47,6 +47,7 @@ class BlissIssueRegistry : IssueRegistry() {
     override val issues = listOf(
         ReflectionGateOnlyDetector.ISSUE,
         PrefXmlKeyRegistryDetector.ISSUE,
+        BlissModuleBoundaryDetector.ISSUE,
     )
 
     override val api: Int = CURRENT_API

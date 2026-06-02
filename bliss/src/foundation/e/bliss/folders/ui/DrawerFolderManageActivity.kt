@@ -14,6 +14,11 @@
  *   - Remains in the app source-set because the settings UI uses launcher
  *     resources and ComponentKey app-selection behavior.
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/folders/ui/DrawerFolderManageActivity.kt
+ * Module:  bliss root app source-set
+ * Role:    Activity UI for managing drawer folders with list, create, edit, and delete operations.
+ */
 package foundation.e.bliss.folders.ui
 
 import android.app.Activity

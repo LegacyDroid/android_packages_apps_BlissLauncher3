@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/folder/GridFolder.java
+ * Module:  bliss root app source-set
+ * Role:    Folder view extended for grid layout with folder tabs and wobble animations.
+ */
 package foundation.e.bliss.folder;
 
 import static com.android.launcher3.LauncherState.NORMAL;

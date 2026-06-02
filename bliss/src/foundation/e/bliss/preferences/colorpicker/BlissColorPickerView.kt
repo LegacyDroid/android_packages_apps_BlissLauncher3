@@ -14,6 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/preferences/colorpicker/BlissColorPickerView.kt
+ * Module:  bliss root app source-set
+ * Role:    HSV color picker view with saturation/value gradient, sliders, and recent colors.
+ */
 // PLAN-DRIFT-M02: Phase 5 — View-based HSV color picker (no Compose). Implements §5.1–§5.7.
 package foundation.e.bliss.preferences.colorpicker
 

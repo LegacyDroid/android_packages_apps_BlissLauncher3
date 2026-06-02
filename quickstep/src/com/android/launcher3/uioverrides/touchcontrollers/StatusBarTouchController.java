@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Audit03):
+ *   - Direct reflection on StatusBarManager.expandNotificationsPanel() will be
+ *     replaced by StatusBarManagerCompat from :bliss-compat in Phase 04.
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.uioverrides.touchcontrollers;
 
 import static android.view.MotionEvent.ACTION_CANCEL;
@@ -43,6 +51,7 @@ import com.android.quickstep.SystemUiProxy;
 
 import java.io.PrintWriter;
 
+import foundation.e.bliss.compat.platform.StatusBarManagerCompat;
 import foundation.e.bliss.multimode.MultiModeController;
 
 /**
@@ -95,13 +104,8 @@ public class StatusBarTouchController implements TouchController {
     }
 
     private void expandNotificationsFallback() {
-        try {
-            Object sbm = mLauncher.getSystemService("statusbar");
-            if (sbm != null) {
-                sbm.getClass().getMethod("expandNotificationsPanel").invoke(sbm);
-            }
-        } catch (Exception e) {
-            Log.w(TAG, "Notification panel fallback failed", e);
+        if (!StatusBarManagerCompat.expandNotificationsPanel(mLauncher)) {
+            Log.w(TAG, "Notification panel fallback failed");
         }
     }
 

@@ -35,6 +35,8 @@ import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.quickstep.SystemUiProxy;
 
+import foundation.e.bliss.compat.platform.StatusBarManagerCompat;
+
 /**
  * Base class for gesture action handlers. Each handler implements a single
  * action that can be triggered by a gesture (double-tap, swipe-down, etc.).
@@ -46,7 +48,6 @@ import com.android.quickstep.SystemUiProxy;
 public abstract class GestureHandler {
 
     private static final String TAG = "GestureHandler";
-    private static final String SERVICE_STATUSBAR = "statusbar";
 
     public static final String HANDLER_NONE = "none";
     public static final String HANDLER_SLEEP = "sleep";
@@ -163,14 +164,8 @@ public abstract class GestureHandler {
         }
 
         private void expandViaStatusBarManager() {
-            try {
-                Object sbm = mLauncher.getSystemService(SERVICE_STATUSBAR);
-                if (sbm != null) {
-                    java.lang.reflect.Method expand = sbm.getClass().getMethod("expandNotificationsPanel");
-                    expand.invoke(sbm);
-                }
-            } catch (Exception e) {
-                Log.w(TAG, "StatusBarManager fallback also failed", e);
+            if (!StatusBarManagerCompat.expandNotificationsPanel(mLauncher)) {
+                Log.w(TAG, "StatusBarManager notification fallback failed");
             }
         }
 
@@ -192,15 +187,8 @@ public abstract class GestureHandler {
                 SystemUiProxy.INSTANCE.get(mLauncher).toggleQuickSettingsPanel();
             } catch (Exception e) {
                 Log.w(TAG, "Failed to toggle quick settings", e);
-                // Fallback: try StatusBarManager reflection
-                try {
-                    Object sbm = mLauncher.getSystemService(SERVICE_STATUSBAR);
-                    if (sbm != null) {
-                        java.lang.reflect.Method expand = sbm.getClass().getMethod("expandSettingsPanel");
-                        expand.invoke(sbm);
-                    }
-                } catch (Exception ex) {
-                    Log.w(TAG, "Quick settings fallback also failed", ex);
+                if (!StatusBarManagerCompat.expandSettingsPanel(mLauncher)) {
+                    Log.w(TAG, "Quick settings fallback also failed");
                 }
             }
         }
@@ -293,18 +281,10 @@ public abstract class GestureHandler {
 
         @Override
         public void onTrigger() {
-            try {
-                // Use GLOBAL_ACTION_RECENTS via accessibility
-                // Fallback: try StatusBarManager to toggle recents
-                Object sbm = mLauncher.getSystemService(SERVICE_STATUSBAR);
-                if (sbm != null) {
-                    java.lang.reflect.Method toggle = sbm.getClass().getMethod("toggleRecentApps");
-                    toggle.invoke(sbm);
-                    return;
-                }
-            } catch (Exception e) {
-                Log.w(TAG, "toggleRecentApps failed, trying intent", e);
+            if (StatusBarManagerCompat.toggleRecentApps(mLauncher)) {
+                return;
             }
+            Log.w(TAG, "toggleRecentApps failed, trying intent");
             try {
                 // Final fallback: send recents intent
                 Intent intent = new Intent("com.android.systemui.recents.TOGGLE_RECENTS");

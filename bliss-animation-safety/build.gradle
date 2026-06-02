@@ -1,0 +1,30 @@
+// Audit03: :bliss-animation-safety
+//
+// Role:
+//   Animator construction fallback and finite-float guards for launcher
+//   animation code.
+//
+// Public API:
+//   foundation.e.bliss.animations.safety.AnimatorFallback
+//   foundation.e.bliss.animations.safety.FloatGuard
+//
+// Dependency rules:
+//   - May use android.util.Log.
+//   - May depend on :bliss-core-contracts for DebugFlags.
+//   - Must not import com.android.launcher3.*.
+plugins {
+    id 'foundation.e.bliss.android-library'
+}
+
+android {
+    namespace 'foundation.e.bliss.animation.safety'
+    sourceSets {
+        named("main") { java.srcDirs("src/main/kotlin") }
+        named("test") { java.srcDirs("src/test/kotlin") }
+    }
+}
+
+dependencies {
+    implementation project(':bliss-core-contracts')
+    testImplementation 'junit:junit:4.13.2'
+}

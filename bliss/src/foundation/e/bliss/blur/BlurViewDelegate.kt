@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/blur/BlurViewDelegate.kt
+ * Module:  bliss root app source-set
+ * Role:    Delegate handling blur rendering, wallpaper scrolling, and offset management for views.
+ */
 package foundation.e.bliss.blur
 
 import android.graphics.BlendMode

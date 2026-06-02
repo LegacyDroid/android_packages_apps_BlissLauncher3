@@ -9,6 +9,10 @@
  *     intact while the pref-driven path lives in Bliss code.
  *     — Plan ref: Plans/Migration04/05-launcher-policy-strategies.md §5.2
  *
+ * Bliss touchpoint(s) (Audit03):
+ *   - FolderPreviewPolicy and folder/ implementations move to :bliss-policy-core.
+ *     Import path unchanged; module boundary enforced by Gradle.
+ *
  * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
  * future origin/a16 rebase merges cleanly.
  */

@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/BaseController.kt
+ * Module:  bliss root app source-set
+ * Role:    Functional interface defining contract for controllers to dump state.
+ */
 package foundation.e.bliss
 
 import java.io.FileDescriptor

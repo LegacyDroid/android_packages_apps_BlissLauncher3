@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/utils/BlissConstants.kt
+ * Module:  bliss root app source-set
+ * Role:    Object containing launcher constants such as foundation.e.apps package name.
+ */
 package foundation.e.bliss.utils
 
 object BlissConstants {

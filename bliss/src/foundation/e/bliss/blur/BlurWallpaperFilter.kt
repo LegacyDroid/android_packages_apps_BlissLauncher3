@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/blur/BlurWallpaperFilter.kt
+ * Module:  bliss root app source-set
+ * Role:    Filter applying blur effects at different scales to wallpaper for various UI contexts.
+ */
 package foundation.e.bliss.blur
 
 import android.content.Context

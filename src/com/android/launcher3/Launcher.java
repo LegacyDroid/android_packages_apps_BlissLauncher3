@@ -24,6 +24,10 @@
  *     not extracted yet because it depends on Launcher lifecycle, resources,
  *     widget binding, and wallpaper/runtime services.
  *
+ * Bliss touchpoint(s) (Audit03):
+ *   - Widget DB access will migrate from direct WidgetsDbHelper calls to
+ *     WidgetRepository from :bliss-widgets-data (Phase 05).
+ *
  * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
  * future origin/a16 rebase merges cleanly.
  */
@@ -330,7 +334,7 @@ import foundation.e.bliss.multimode.MultiModeController;
 import foundation.e.bliss.utils.Logger;
 import foundation.e.bliss.widgets.RoundedWidgetView;
 import foundation.e.bliss.widgets.WidgetContainer;
-import foundation.e.bliss.widgets.WidgetsDbHelper;
+import foundation.e.bliss.widgets.data.WidgetRepository;
 import foundation.e.lib.telemetry.Telemetry;
 
 
@@ -3649,7 +3653,7 @@ public class Launcher extends StatefulActivity<LauncherState>
                     container.updateWidgets();
                 }
                 Logger.d("Launcher.WidgetResize", "newHeight: " + newHeight);
-                WidgetsDbHelper.getInstance(getApplicationContext())
+                WidgetRepository.get(getApplicationContext())
                         .updateHeight(activeRoundedWidgetView.getAppWidgetId(), newHeight);
             }
         });

@@ -7,6 +7,11 @@
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/allapps/SuggestionsHeaderView.kt
+ * Module:  bliss root app source-set
+ * Role:    Horizontal row of app icons displayed as persistent header at drawer top.
+ */
 // Migration02 / Phase 7.3 — Always-visible suggestions header (top-of-drawer most-used apps).
 package foundation.e.bliss.allapps
 

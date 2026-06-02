@@ -14,6 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/gestures/GestureController.java
+ * Module:  bliss root app source-set
+ * Role:    Manager for gesture-to-handler mapping with double-tap and swipe-down workspace gestures.
+ */
 package foundation.e.bliss.gestures;
 
 import com.android.launcher3.Launcher;

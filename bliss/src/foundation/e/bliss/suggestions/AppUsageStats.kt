@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/suggestions/AppUsageStats.kt
+ * Module:  bliss root app source-set
+ * Role:    Utility querying system usage stats and returning sorted list of frequently used apps.
+ */
 package foundation.e.bliss.suggestions
 
 import android.app.AppOpsManager

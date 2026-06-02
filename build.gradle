@@ -372,6 +372,9 @@ dependencies {
     implementation project(':bliss-folders-data')
     implementation project(':bliss-backup-parser')
     implementation project(':bliss-search-providers')
+    implementation project(':bliss-policy-core')
+    implementation project(':bliss-animation-safety')
+    implementation project(':bliss-widgets-data')
 
     // Migration05 §F3 — Custom Android Lint detectors. The :lint-rules
     // module ships ReflectionGateOnlyDetector and PrefXmlKeyRegistryDetector;

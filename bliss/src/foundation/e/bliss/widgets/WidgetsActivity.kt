@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/widgets/WidgetsActivity.kt
+ * Module:  bliss root app source-set
+ * Role:    Activity for managing added widgets with list, add, and remove functionality.
+ */
 package foundation.e.bliss.widgets
 
 import android.app.Activity
@@ -26,6 +31,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.android.launcher3.R
 import foundation.e.bliss.widgets.AddedWidgetsAdapter.OnActionClickListener
+import foundation.e.bliss.widgets.data.WidgetRepository
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +41,7 @@ class WidgetsActivity : Activity(), OnActionClickListener {
     private lateinit var mAddedWidgetsAdapter: AddedWidgetsAdapter
     private lateinit var mAppWidgetManager: AppWidgetManager
     private lateinit var mAppWidgetHost: BlissAppWidgetHost
-    private lateinit var widgetsDbHelper: WidgetsDbHelper
+    private lateinit var widgetRepo: WidgetRepository
 
     private val mCompositeDisposable = CompositeDisposable()
 
@@ -61,7 +67,7 @@ class WidgetsActivity : Activity(), OnActionClickListener {
 
         mAppWidgetManager = AppWidgetManager.getInstance(this)
         mAppWidgetHost = BlissAppWidgetHost(this)
-        widgetsDbHelper = WidgetsDbHelper.getInstance(this)
+        widgetRepo = WidgetRepository.get(this)
 
         val addedWidgets = findViewById<RecyclerView>(R.id.added_widgets_recycler_view)
         addedWidgets.apply {
@@ -88,7 +94,7 @@ class WidgetsActivity : Activity(), OnActionClickListener {
 
     override fun removeWidget(id: Int) {
         mAppWidgetHost.onAppWidgetRemoved(id)
-        widgetsDbHelper.delete(id)
+        widgetRepo.delete(id)
         CoroutineScope(Dispatchers.Main).launch {
             WidgetContainer.WidgetFragment.eventFlow.emit(Unit)
         }

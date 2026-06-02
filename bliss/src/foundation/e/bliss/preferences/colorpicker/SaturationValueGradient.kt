@@ -14,6 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/preferences/colorpicker/SaturationValueGradient.kt
+ * Module:  bliss root app source-set
+ * Role:    Custom 2D saturation/value gradient view with touch tracking for color selection.
+ */
 // PLAN-DRIFT-M02: Phase 5 — extracted top-level so the layout XML can reference it without
 // the inner-class `$` syntax that aapt2 / XML parsing rejects.
 package foundation.e.bliss.preferences.colorpicker

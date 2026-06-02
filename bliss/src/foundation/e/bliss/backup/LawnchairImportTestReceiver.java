@@ -27,6 +27,11 @@
  *   This receiver must remain debug-only and must not become an exported
  *   production import path.
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/backup/LawnchairImportTestReceiver.java
+ * Module:  bliss root app source-set
+ * Role:    Debug broadcast receiver for automated testing of Lawnchair import flow.
+ */
 package foundation.e.bliss.backup;
 
 import android.content.BroadcastReceiver;

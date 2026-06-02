@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/utils/BlissDbHelper.kt
+ * Module:  bliss root app source-set
+ * Role:    SQLite database helper for opening and managing existing Bliss launcher databases.
+ */
 package foundation.e.bliss.utils
 
 import android.content.Context

@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/widgets/RoundedWidgetView.java
+ * Module:  bliss root app source-set
+ * Role:    LauncherAppWidgetHostView with rounded corners, blur background, and clipped rendering.
+ */
 package foundation.e.bliss.widgets;
 
 import android.annotation.SuppressLint;

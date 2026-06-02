@@ -1,0 +1,32 @@
+// Audit03: :bliss-widgets-data
+//
+// Role:
+//   SQLite-backed persistence and default catalog for Bliss widget shelf data.
+//
+// Public API:
+//   foundation.e.bliss.widgets.data.WidgetInfo
+//   foundation.e.bliss.widgets.data.DefaultWidgets
+//   foundation.e.bliss.widgets.data.WidgetRepository
+//
+// Dependency rules:
+//   - May use Android framework database/appwidget primitives.
+//   - Must not import com.android.launcher3.*.
+//   - Must not import foundation.e.bliss.widgets UI classes.
+plugins {
+    id 'foundation.e.bliss.android-library'
+}
+
+android {
+    namespace 'foundation.e.bliss.widgets.data'
+    sourceSets {
+        named("main") { java.srcDirs("src/main/kotlin") }
+        named("test") { java.srcDirs("src/test/kotlin") }
+    }
+}
+
+dependencies {
+    implementation 'androidx.annotation:annotation:1.9.1'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.14.1'
+    testImplementation 'androidx.test.ext:junit:1.2.1'
+}

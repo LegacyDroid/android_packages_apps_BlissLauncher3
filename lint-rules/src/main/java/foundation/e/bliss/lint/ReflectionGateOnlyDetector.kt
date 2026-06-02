@@ -72,22 +72,24 @@ class ReflectionGateOnlyDetector : Detector(), SourceCodeScanner {
             ),
         )
 
-        private const val FORBIDDEN_OWNER = "java.lang.Class"
-        private const val FORBIDDEN_METHOD = "forName"
+        private val FORBIDDEN_METHODS = mapOf(
+            "java.lang.Class" to listOf("forName", "getMethod", "getDeclaredMethod"),
+        )
         private const val ALLOWED_QUALIFIED_CLASS =
             "foundation.e.bliss.compat.ReflectionGate"
     }
 
-    override fun getApplicableMethodNames(): List<String> = listOf(FORBIDDEN_METHOD)
+    override fun getApplicableMethodNames(): List<String> =
+        FORBIDDEN_METHODS.values.flatten()
 
     override fun visitMethodCall(
         context: JavaContext,
         node: UCallExpression,
         method: PsiMethod,
     ) {
-        // Only Class.forName, not arbitrary forName(...) on other classes.
         val owner = method.containingClass?.qualifiedName ?: return
-        if (owner != FORBIDDEN_OWNER) return
+        val allowedMethods = FORBIDDEN_METHODS[owner] ?: return
+        if (method.name !in allowedMethods) return
 
         // Skip test sources — invariant applies to production reflection only.
         // `Scope.JAVA_FILE_SCOPE` excludes test sources by default in production

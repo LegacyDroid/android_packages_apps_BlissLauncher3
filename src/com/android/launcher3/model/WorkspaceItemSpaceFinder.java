@@ -24,6 +24,10 @@
  *     VerifyIdleAppTask's touchpoint block.
  *     — Plan ref: Plans/Migration04/05-launcher-policy-strategies.md §5.4
  *
+ * Bliss touchpoint(s) (Audit03):
+ *   - IdleAppPolicy and idle/ implementations move to :bliss-policy-core.
+ *     Import path unchanged; module boundary enforced by Gradle.
+ *
  * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
  * future origin/a16 rebase merges cleanly.
  */

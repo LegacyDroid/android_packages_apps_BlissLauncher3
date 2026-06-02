@@ -14,6 +14,11 @@
  *   - Remains in the app source-set because it joins persisted folder rows
  *     with live AllAppsStore/AppInfo/FolderInfo launcher model classes.
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/allapps/BlissAlphabeticalAppsList.kt
+ * Module:  bliss root app source-set
+ * Role:    Extends alphabetical apps list to inject drawer folder cards before the flat app grid.
+ */
 package foundation.e.bliss.allapps
 
 import android.content.Context

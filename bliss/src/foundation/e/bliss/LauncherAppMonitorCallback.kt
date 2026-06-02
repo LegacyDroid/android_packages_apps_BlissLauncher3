@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/LauncherAppMonitorCallback.kt
+ * Module:  bliss root app source-set
+ * Role:    Interface providing optional callbacks for launcher lifecycle and system event observers.
+ */
 package foundation.e.bliss
 
 import android.content.Context

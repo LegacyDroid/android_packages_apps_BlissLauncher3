@@ -14,6 +14,11 @@
  * regardless of mode, so a launch failure or an exception during animation
  * setup never leaves a stuck scrim on top of the launcher.
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/animations/FullScreenOverlayView.kt
+ * Module:  bliss root app source-set
+ * Role:    Animated overlay performing suck/scale and fade animations on app launch.
+ */
 package foundation.e.bliss.animations
 
 import android.animation.Animator

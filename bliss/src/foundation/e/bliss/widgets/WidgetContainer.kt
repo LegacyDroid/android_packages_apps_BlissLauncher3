@@ -24,6 +24,11 @@
  *   binding, and database-backed widget state. Data-only classes can move
  *   later, but UI/host flows need instrumentation coverage first because
  *   failures can orphan widget IDs or break restoration.
+ *
+ * Audit03:
+ *   - Phase 05 extracts WidgetInfo, DefaultWidgets, WidgetsDbHelper into
+ *     :bliss-widgets-data behind a WidgetRepository. This file will consume
+ *     the repository instead of calling WidgetsDbHelper directly.
  */
 package foundation.e.bliss.widgets
 
@@ -74,6 +79,9 @@ import foundation.e.bliss.utils.BlissDbUtils
 import foundation.e.bliss.utils.Logger
 import foundation.e.bliss.utils.ObservableList
 import foundation.e.bliss.utils.OnDataChangedListener
+import foundation.e.bliss.widgets.data.DefaultWidgets
+import foundation.e.bliss.widgets.data.WidgetInfo
+import foundation.e.bliss.widgets.data.WidgetRepository
 import foundation.e.bliss.utils.disableComponent
 import foundation.e.bliss.widgets.BlissAppWidgetHost.Companion.REQUEST_CONFIGURE_APPWIDGET
 import io.reactivex.disposables.Disposable
@@ -216,11 +224,11 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
 
     fun updateWidgets() {
         if (::mRecyclerView.isInitialized) {
-            val widgetDbHelper = WidgetsDbHelper.getInstance(context)
+            val widgetRepo = WidgetRepository.get(context)
             val widgetManager = AppWidgetManager.getInstance(context)
 
             mWidgetAdapter.getWidgets().forEach {
-                val height = widgetDbHelper.getWidgetHeight(it.id) ?: 0
+                val height = widgetRepo.getWidgetHeight(it.id) ?: 0
 
                 val info = (it as AppWidgetHostView).appWidgetInfo
                 val opts =
@@ -314,7 +322,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
     class WidgetFragment : FragmentWithPreview() {
         private lateinit var recyclerView: RecyclerView
         private lateinit var widgetObserver: Disposable
-        private lateinit var widgetsDbHelper: WidgetsDbHelper
+        private lateinit var widgetRepo: WidgetRepository
         private lateinit var widgetsAdapter: StaggeredAdapter
 
         private val mOldWidgets by lazy { BlissDbUtils.getWidgetDetails(context) }
@@ -325,15 +333,15 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
         private val mAppMonitorCallback: LauncherAppMonitorCallback =
             object : LauncherAppMonitorCallback {
                 override fun onPackageRemoved(packageName: String?, user: UserHandle?) {
-                    if (!::widgetsDbHelper.isInitialized) {
+                    if (!::widgetRepo.isInitialized) {
                         return
                     }
                     val widgets =
-                        widgetsDbHelper.getWidgets().filter {
+                        widgetRepo.getWidgets().filter {
                             it.component.packageName == packageName
                         }
                     if (packageName != null && widgets.isNotEmpty()) {
-                        widgets.map { it.widgetId }.forEach { widgetsDbHelper.delete(it) }
+                        widgets.map { it.widgetId }.forEach { widgetRepo.delete(it) }
                         rebindWidgets()
                     }
                 }
@@ -363,7 +371,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
             container: ViewGroup?,
             savedInstanceState: Bundle?,
         ): View {
-            widgetsDbHelper = WidgetsDbHelper.getInstance(context)
+            widgetRepo = WidgetRepository.get(context)
             widgetsAdapter = StaggeredAdapter()
             val spanCount = getSpanCount(launcher)
             recyclerView =
@@ -433,7 +441,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
             widgetsAdapter.setWidgets(mutableListOf())
             if (!backup) {
                 val dbWidgets =
-                    widgetsDbHelper.getWidgets().apply {
+                    widgetRepo.getWidgets().apply {
                         sortedBy { it.position }
                         forEach { addView(it.widgetId) }
                     }
@@ -507,7 +515,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
                         view.updateAppWidgetOptions(opts)
                     }
                 } else {
-                    widgetsDbHelper.getWidgetHeight(view.id) ?: 0
+                    widgetRepo.getWidgetHeight(view.id) ?: 0
                 }
 
             if (params.height > 0) {
@@ -516,7 +524,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
             widgetsAdapter.addWidget(view)
 
             updateWidgetOptionsForView(view, info, params.height)
-            widgetsDbHelper.insert(
+            widgetRepo.insert(
                 WidgetInfo(
                     widgetsAdapter.getWidgets().indexOf(view),
                     view.appWidgetInfo.provider,

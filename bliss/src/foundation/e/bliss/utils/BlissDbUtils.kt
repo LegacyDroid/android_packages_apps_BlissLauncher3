@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/utils/BlissDbUtils.kt
+ * Module:  bliss root app source-set
+ * Role:    Utility for migrating data from old Bliss database to new launcher format.
+ */
 package foundation.e.bliss.utils
 
 import android.appwidget.AppWidgetManager

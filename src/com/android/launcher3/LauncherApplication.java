@@ -26,6 +26,9 @@ import com.android.launcher3.dagger.LauncherAppComponent;
 import com.android.launcher3.dagger.LauncherBaseAppComponent;
 import com.android.launcher3.util.TraceHelper;
 
+import foundation.e.bliss.adapters.LauncherDebugFlags;
+import foundation.e.bliss.animations.safety.FloatGuard;
+
 /**
  * Main application class for Launcher
  */
@@ -42,6 +45,7 @@ public class LauncherApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        FloatGuard.configure(LauncherDebugFlags.INSTANCE);
         MainProcessInitializer.initialize(this);
         runOneShotMigrations();
         primeAutoLabelColor();

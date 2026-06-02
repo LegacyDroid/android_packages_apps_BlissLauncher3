@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/folder/GridFolderController.kt
+ * Module:  bliss root app source-set
+ * Role:    Controller managing grid folder state and lifecycle, integrated with launcher app monitor.
+ */
 package foundation.e.bliss.folder
 
 import android.content.Context

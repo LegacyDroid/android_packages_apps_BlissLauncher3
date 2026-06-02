@@ -1,0 +1,32 @@
+// Audit03: :bliss-policy-core
+//
+// Role:
+//   Pure Bliss policy contracts and implementations for folder previews
+//   and idle-app placement.
+//
+// Public API:
+//   foundation.e.bliss.policy.FolderPreviewPolicy
+//   foundation.e.bliss.policy.IdleAppPolicy
+//   foundation.e.bliss.policy.folder.*
+//   foundation.e.bliss.policy.idle.*
+//
+// Dependency rules:
+//   - Kotlin/JDK only.
+//   - No Android resources.
+//   - No com.android.launcher3.*.
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+}
