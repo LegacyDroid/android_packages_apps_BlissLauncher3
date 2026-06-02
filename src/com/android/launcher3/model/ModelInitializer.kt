@@ -22,11 +22,13 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.LauncherApps
 import android.content.pm.LauncherApps.ArchiveCompatibilityParams
+import android.provider.Settings
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.Flags
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.InvariantDeviceProfile.OnIDPChangeListener
 import com.android.launcher3.LauncherModel
+import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherPrefs.Companion.getPrefs
 import com.android.launcher3.Utilities
 import com.android.launcher3.dagger.ApplicationContext
@@ -123,6 +125,24 @@ constructor(
         lifeCycle.addCloseable {
             settingsCache.unregister(PRIVATE_SPACE_HIDE_WHEN_LOCKED_URI, psSettingsListener)
         }
+
+        // After restore, compact the workspace only once SUW is complete.
+        val setupCompleteUri = Settings.Secure.getUriFor(Settings.Secure.USER_SETUP_COMPLETE)
+        val setupCompleteListener =
+            SettingsCache.OnChangeListener { isSetupComplete ->
+                if (!isSetupComplete) return@OnChangeListener
+                if (
+                    !LauncherPrefs.get(context).get(
+                        LauncherPrefs.NEEDS_WORKSPACE_REORDER_AFTER_RESTORE
+                    )
+                ) {
+                    return@OnChangeListener
+                }
+                model.enqueueModelUpdateTask(CompactWorkspaceAfterRestoreTask())
+            }
+        settingsCache.register(setupCompleteUri, setupCompleteListener)
+        setupCompleteListener.onSettingsChanged(settingsCache.getValue(setupCompleteUri, 0))
+        lifeCycle.addCloseable { settingsCache.unregister(setupCompleteUri, setupCompleteListener) }
 
         // Notification dots changes
         val notificationChanges =

@@ -17,6 +17,7 @@ package com.android.launcher3.model;
 
 import static com.android.launcher3.LauncherSettings.Favorites.DESKTOP_ICON_FLAG;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.LauncherActivityInfo;
@@ -267,10 +268,11 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
             // Skip items with null intents
             return true;
         }
-        if (intent.getComponent() != null) {
+        ComponentName component = intent.getComponent();
+        if (component != null) {
             // If component is not null, an intent with null package will produce
             // the same result and should also be a match.
-            compPkgName = intent.getComponent().getPackageName();
+            compPkgName = component.getPackageName();
             if (intent.getPackage() != null) {
                 intentWithPkg = intent.toUri(0);
                 intentWithoutPkg = new Intent(intent).setPackage(null).toUri(0);
@@ -284,7 +286,12 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
             intentWithoutPkg = intent.toUri(0);
         }
 
-        boolean isLauncherAppTarget = PackageManagerHelper.isLauncherAppTarget(intent);
+        final boolean isLauncherAppTarget = PackageManagerHelper.isLauncherAppTarget(intent);
+        final String targetPackage = compPkgName != null ? compPkgName : intent.getPackage();
+        final boolean isPackageOnlyLauncherAppTarget = isLauncherAppTarget
+                && targetPackage != null
+                && (component == null || component.getClassName().isEmpty());
+
         synchronized (dataModel.mLock) {
             for (ItemInfo item : dataModel.itemsIdMap) {
                 if (item instanceof WorkspaceItemInfo) {
@@ -294,6 +301,13 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
                         copyIntent.setSourceBounds(intent.getSourceBounds());
                         String s = copyIntent.toUri(0);
                         if (intentWithPkg.equals(s) || intentWithoutPkg.equals(s)) {
+                            return true;
+                        }
+
+                        // checking for existing app icon
+                        if (isPackageOnlyLauncherAppTarget
+                                && info.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
+                                && targetPackage.equals(info.getTargetPackage())) {
                             return true;
                         }
 

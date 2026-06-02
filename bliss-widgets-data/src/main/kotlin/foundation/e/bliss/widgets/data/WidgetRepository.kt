@@ -20,6 +20,8 @@ class WidgetRepository private constructor(context: Context) {
 
     fun delete(widgetId: Int) = db.delete(widgetId)
 
+    fun updateWidgetId(oldId: Int, newId: Int) = db.updateWidgetId(oldId, newId)
+
     fun updateHeight(widgetId: Int, height: Int) = db.updateHeight(widgetId, height)
 
     fun getWidgetHeight(widgetId: Int): Int? = db.getWidgetHeight(widgetId)

@@ -1,5 +1,7 @@
 package com.android.launcher3;
 
+import static com.android.launcher3.LauncherPrefs.NEEDS_WIDGET_REBIND_AFTER_RESTORE;
+import static com.android.launcher3.LauncherPrefs.NEEDS_WORKSPACE_REORDER_AFTER_RESTORE;
 import static com.android.launcher3.LauncherPrefs.NO_DB_FILES_RESTORED;
 
 import android.app.backup.BackupAgent;
@@ -54,6 +56,8 @@ public class LauncherBackupAgent extends BackupAgent {
     public void onRestoreFinished() {
         RestoreDbTask.setPending(this);
         FileLog.d(TAG, "onRestoreFinished: set pending for RestoreDbTask");
+        LauncherPrefs.get(this).putSync(NEEDS_WIDGET_REBIND_AFTER_RESTORE.to(true));
+        LauncherPrefs.get(this).putSync(NEEDS_WORKSPACE_REORDER_AFTER_RESTORE.to(true));
         markIfFilesWereNotActuallyRestored();
     }
 

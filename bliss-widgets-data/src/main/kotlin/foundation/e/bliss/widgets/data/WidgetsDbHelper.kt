@@ -76,6 +76,27 @@ internal class WidgetsDbHelper(context: Context) :
         }
     }
 
+    fun updateWidgetId(oldId: Int, newId: Int) {
+        if (oldId == newId) {
+            return
+        }
+        Logger.d(TAG, "Updating widgetId $oldId -> $newId")
+        writableDatabase.use { db ->
+            db.beginTransaction()
+            try {
+                // Avoid primary-key conflicts if the new id already exists for some reason.
+                db.execSQL("DELETE FROM $WIDGETS_TABLE WHERE widgetId = ?", arrayOf(newId))
+                db.execSQL(
+                    "UPDATE $WIDGETS_TABLE SET widgetId = ? WHERE widgetId = ?",
+                    arrayOf(newId, oldId),
+                )
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+        }
+    }
+
     fun updateHeight(id: Int, height: Int) {
         writableDatabase.use { db ->
             db.execSQL(
