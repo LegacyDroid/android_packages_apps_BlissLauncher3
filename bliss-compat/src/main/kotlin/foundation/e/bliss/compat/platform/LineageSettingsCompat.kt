@@ -56,7 +56,14 @@ object LineageSettingsCompat {
     @JvmStatic
     fun getSystemInt(resolver: ContentResolver, name: String, def: Int): Int {
         if (BuildCompat.isAtLeastBaklava) {
-            return Api36Impl.getSystemInt(resolver, name, def)
+            try {
+                return Api36Impl.getSystemInt(resolver, name, def)
+            } catch (e: Throwable) {
+                // The bundled LineageSettings is compiled against the /e/OS framework and may
+                // call framework methods absent on a mismatched build, or the lineage settings
+                // provider may be missing entirely (e.g. a stock emulator image). Fall through
+                // to a direct provider query / default instead of crashing.
+            }
         }
         // Query the lineage settings content provider directly to avoid
         // the bundled LineageSettings calling API 36-only ContentResolver methods.

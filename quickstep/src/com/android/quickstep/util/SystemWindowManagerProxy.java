@@ -71,8 +71,14 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
         if (Build.VERSION.SDK_INT < 36) {
             return super.getCurrentBounds(displayInfoContext);
         }
-        return displayInfoContext.getResources().getConfiguration().windowConfiguration
-                .getMaxBounds();
+        try {
+            return displayInfoContext.getResources().getConfiguration().windowConfiguration
+                    .getMaxBounds();
+        } catch (LinkageError e) {
+            // Configuration#windowConfiguration is a hidden field; absent on a mismatched
+            // framework. Fall back to the base proxy's public WindowMetrics path.
+            return super.getCurrentBounds(displayInfoContext);
+        }
     }
 
     @Override
@@ -101,9 +107,14 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
         if (!DesktopModeStatusCompat.enterDesktopByDefaultOnFreeformDisplay(displayInfoContext)) {
             return false;
         }
-        final boolean isFreeformDisplay = displayInfoContext.getResources().getConfiguration()
-                .windowConfiguration.getWindowingMode() == WINDOWING_MODE_FREEFORM;
-        return isFreeformDisplay;
+        try {
+            return displayInfoContext.getResources().getConfiguration()
+                    .windowConfiguration.getWindowingMode() == WINDOWING_MODE_FREEFORM;
+        } catch (LinkageError e) {
+            // Configuration#windowConfiguration is a hidden field; absent on a mismatched
+            // framework. Treat as non-freeform (desktop/taskbar features off) rather than crash.
+            return false;
+        }
     }
 
     @Override
@@ -123,9 +134,14 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
             return false;
         }
 
-        final boolean isFreeformDisplay = displayInfoContext.getResources().getConfiguration()
-                .windowConfiguration.getWindowingMode() == WINDOWING_MODE_FREEFORM;
-        return isFreeformDisplay;
+        try {
+            return displayInfoContext.getResources().getConfiguration()
+                    .windowConfiguration.getWindowingMode() == WINDOWING_MODE_FREEFORM;
+        } catch (LinkageError e) {
+            // Configuration#windowConfiguration is a hidden field; absent on a mismatched
+            // framework. Treat as non-freeform (desktop/taskbar features off) rather than crash.
+            return false;
+        }
     }
 
     @Override
@@ -138,8 +154,14 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
         if (Build.VERSION.SDK_INT < 36) {
             return super.getRotation(displayInfoContext);
         }
-        return displayInfoContext.getResources().getConfiguration().windowConfiguration
-                .getRotation();
+        try {
+            return displayInfoContext.getResources().getConfiguration().windowConfiguration
+                    .getRotation();
+        } catch (LinkageError e) {
+            // Configuration#windowConfiguration is a hidden field; absent on a mismatched
+            // framework (e.g. a stock emulator image). Use the base proxy's public path.
+            return super.getRotation(displayInfoContext);
+        }
     }
 
     @Override
@@ -147,9 +169,14 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
         if (Build.VERSION.SDK_INT < 36) {
             return super.getStatusBarHeight(context, isPortrait, statusBarInset);
         }
-        // See b/264656380, calculate the status bar height manually as the inset in the system
-        // server might not be updated by this point yet causing extra DeviceProfile updates
-        return SystemBarUtils.getStatusBarHeight(context);
+        try {
+            // See b/264656380, calculate the status bar height manually as the inset in the system
+            // server might not be updated by this point yet causing extra DeviceProfile updates
+            return SystemBarUtils.getStatusBarHeight(context);
+        } catch (LinkageError e) {
+            // com.android.internal SystemBarUtils may be absent on a mismatched framework.
+            return super.getStatusBarHeight(context, isPortrait, statusBarInset);
+        }
     }
 
     @Override
@@ -158,16 +185,24 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
         if (Build.VERSION.SDK_INT < 36) {
             return super.estimateInternalDisplayBounds(displayInfoContext);
         }
-        ArrayMap<CachedDisplayInfo, List<WindowBounds>> result = new ArrayMap<>();
-        WindowManager windowManager = displayInfoContext.getSystemService(WindowManager.class);
-        Set<WindowMetrics> possibleMaximumWindowMetrics =
-                windowManager.getPossibleMaximumWindowMetrics(DEFAULT_DISPLAY);
-        for (WindowMetrics windowMetrics : possibleMaximumWindowMetrics) {
-            CachedDisplayInfo info = getDisplayInfo(windowMetrics, Surface.ROTATION_0);
-            List<WindowBounds> bounds = estimateWindowBounds(displayInfoContext, info);
-            result.put(info, bounds);
+        try {
+            ArrayMap<CachedDisplayInfo, List<WindowBounds>> result = new ArrayMap<>();
+            WindowManager windowManager = displayInfoContext.getSystemService(WindowManager.class);
+            Set<WindowMetrics> possibleMaximumWindowMetrics =
+                    windowManager.getPossibleMaximumWindowMetrics(DEFAULT_DISPLAY);
+            for (WindowMetrics windowMetrics : possibleMaximumWindowMetrics) {
+                CachedDisplayInfo info = getDisplayInfo(windowMetrics, Surface.ROTATION_0);
+                List<WindowBounds> bounds = estimateWindowBounds(displayInfoContext, info);
+                result.put(info, bounds);
+            }
+            return result;
+        } catch (LinkageError e) {
+            // WindowManager#getPossibleMaximumWindowMetrics is a platform-framework API only
+            // guaranteed on the build BlissLauncher targets (/e/OS). On a mismatched framework
+            // (e.g. a stock emulator image) it may be absent; fall back to the base proxy's
+            // public-API estimation instead of crashing the whole launcher at startup.
+            return super.estimateInternalDisplayBounds(displayInfoContext);
         }
-        return result;
     }
 
     @Override
@@ -176,6 +211,12 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
         if (Build.VERSION.SDK_INT < 36) {
             return super.rotateCutout(original, startWidth, startHeight, fromRotation, toRotation);
         }
-        return original.getRotated(startWidth, startHeight, fromRotation, toRotation);
+        try {
+            return original.getRotated(startWidth, startHeight, fromRotation, toRotation);
+        } catch (LinkageError e) {
+            // DisplayCutout#getRotated may be absent on a mismatched framework; degrade to the
+            // base proxy's rotation handling rather than crash.
+            return super.rotateCutout(original, startWidth, startHeight, fromRotation, toRotation);
+        }
     }
 }

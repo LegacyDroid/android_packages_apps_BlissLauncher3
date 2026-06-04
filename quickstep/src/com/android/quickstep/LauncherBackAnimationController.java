@@ -142,7 +142,13 @@ public class LauncherBackAnimationController {
 
     private static @Nullable BackProgressAnimator createBackProgressAnimator() {
         if (android.os.Build.VERSION.SDK_INT >= 36) {
-            return new BackProgressAnimator();
+            try {
+                return new BackProgressAnimator();
+            } catch (LinkageError e) {
+                // BackProgressAnimator's no-arg constructor is absent on a mismatched framework
+                // (e.g. a stock emulator image); predictive-back progress animation stays off.
+                return null;
+            }
         }
         return null;
     }
@@ -663,7 +669,17 @@ public class LauncherBackAnimationController {
                 : 0;
         mWindowScaleStartCornerRadius = QuickStepContractCompat.getWindowCornerRadius(mLauncher);
         if (android.os.Build.VERSION.SDK_INT >= 36) {
-            mStatusBarHeight = SystemBarUtils.getStatusBarHeight(mLauncher);
+            try {
+                mStatusBarHeight = SystemBarUtils.getStatusBarHeight(mLauncher);
+            } catch (LinkageError e) {
+                // com.android.internal SystemBarUtils is absent on a mismatched framework
+                // (e.g. a stock emulator image); fall back to the platform status_bar_height
+                // resource, same as the pre-API-36 path.
+                int resourceId = mLauncher.getResources().getIdentifier(
+                        "status_bar_height", "dimen", "android");
+                mStatusBarHeight = resourceId > 0
+                        ? mLauncher.getResources().getDimensionPixelSize(resourceId) : 0;
+            }
         } else {
             int resourceId = mLauncher.getResources().getIdentifier(
                     "status_bar_height", "dimen", "android");

@@ -744,9 +744,15 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             // ViewCapture uses IDumpCallback.Stub which requires API 36+
         }
         if (android.os.Build.VERSION.SDK_INT >= 36) {
-            getWindow().addPrivateFlags(PRIVATE_FLAG_OPTIMIZE_MEASURE);
-            View.setTraceLayoutSteps(TRACE_LAYOUTS);
-            View.setTracedRequestLayoutClassClass(TRACE_RELAYOUT_CLASS);
+            try {
+                getWindow().addPrivateFlags(PRIVATE_FLAG_OPTIMIZE_MEASURE);
+                View.setTraceLayoutSteps(TRACE_LAYOUTS);
+                View.setTracedRequestLayoutClassClass(TRACE_RELAYOUT_CLASS);
+            } catch (LinkageError e) {
+                // Window#addPrivateFlags and the View trace hooks are hidden APIs absent on a
+                // mismatched framework (e.g. a stock emulator image). These are layout-perf /
+                // tracing optimizations and are safe to skip.
+            }
         }
         QuickstepOnboardingPrefs.setup(this);
         OverviewComponentObserver.INSTANCE.get(this)
@@ -757,8 +763,16 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     protected boolean initDeviceProfile(InvariantDeviceProfile idp) {
         final boolean ret = super.initDeviceProfile(idp);
         if (android.os.Build.VERSION.SDK_INT >= 36) {
-            mDeviceProfile.isPredictiveBackSwipe =
-                    getApplicationInfo().isOnBackInvokedCallbackEnabled();
+            boolean predictiveBack;
+            try {
+                predictiveBack = getApplicationInfo().isOnBackInvokedCallbackEnabled();
+            } catch (LinkageError e) {
+                // ApplicationInfo#isOnBackInvokedCallbackEnabled is a hidden API; absent on a
+                // mismatched framework (e.g. a stock emulator image). Assume enabled, matching
+                // the API 35 default below.
+                predictiveBack = true;
+            }
+            mDeviceProfile.isPredictiveBackSwipe = predictiveBack;
         } else {
             // On API 35, predictive back is enabled for apps targeting API 34+
             mDeviceProfile.isPredictiveBackSwipe = true;

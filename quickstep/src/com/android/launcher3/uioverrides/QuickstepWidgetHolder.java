@@ -149,8 +149,14 @@ public final class QuickstepWidgetHolder extends LauncherWidgetHolder {
 
         if (android.os.Build.VERSION.SDK_INT >= 36) {
             getWidgetHolderExecutor().execute(() -> {
-                mWidgetHost.setAppWidgetHidden();
-                setListeningFlag(false);
+                try {
+                    mWidgetHost.setAppWidgetHidden();
+                    setListeningFlag(false);
+                } catch (LinkageError e) {
+                    // AppWidgetHost#setAppWidgetHidden is a hidden API absent on a mismatched
+                    // framework (e.g. a stock emulator image); fall back to the public path.
+                    super.stopListening();
+                }
             });
         } else {
             super.stopListening();

@@ -928,10 +928,16 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
      */
     fun shareTransactionQueue() {
         if (android.os.Build.VERSION.SDK_INT < 36) return
-        if (originalTransactionToken == null) {
-            originalTransactionToken = Transaction.getDefaultApplyToken()
+        try {
+            if (originalTransactionToken == null) {
+                originalTransactionToken = Transaction.getDefaultApplyToken()
+            }
+            setupTransactionQueue()
+        } catch (e: LinkageError) {
+            // SurfaceControl.Transaction#getDefaultApplyToken and the shared transaction queue are
+            // system APIs absent on a mismatched framework (e.g. a stock emulator image). Skip
+            // queue sharing — Launcher keeps its own transaction queue, same as pre-API-36.
         }
-        setupTransactionQueue()
     }
 
     /** Switch back to using Launcher's independent transaction queue. */

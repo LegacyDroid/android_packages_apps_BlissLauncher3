@@ -60,7 +60,13 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
 
     override fun getActivityOverrides(): Map<String, LauncherActivityInfo> =
         if (android.os.Build.VERSION.SDK_INT >= 36) {
-            mContext.getSystemService(LauncherApps::class.java)!!.activityOverrides
+            try {
+                mContext.getSystemService(LauncherApps::class.java)!!.activityOverrides
+            } catch (e: LinkageError) {
+                // LauncherApps#getActivityOverrides is a hidden API absent on a mismatched
+                // framework (e.g. a stock emulator image); no overrides.
+                emptyMap()
+            }
         } else {
             emptyMap()
         }
@@ -68,7 +74,12 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
     override fun createFadeOutAnimOptions(): ActivityOptions =
         ActivityOptions.makeBasic().apply {
             if (android.os.Build.VERSION.SDK_INT >= 36) {
-                remoteTransition = RemoteTransition(FadeOutRemoteTransition(), "FadeOut")
+                try {
+                    remoteTransition = RemoteTransition(FadeOutRemoteTransition(), "FadeOut")
+                } catch (e: LinkageError) {
+                    // RemoteTransition / RemoteTransitionStub system APIs absent on a mismatched
+                    // framework; use the default options without a custom fade-out transition.
+                }
             }
         }
 
@@ -160,7 +171,9 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
         }
         return try {
             super.supportsMultiInstance(lai) || lai.supportsMultiInstance()
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            // LauncherActivityInfo#supportsMultiInstance is a hidden API; on a mismatched framework
+            // it throws NoSuchMethodError (an Error, not an Exception), so catch Throwable here.
             false
         }
     }
@@ -226,5 +239,11 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
         }
 
     override fun isFileDrawable(shortcutInfo: ShortcutInfo) =
-        shortcutInfo.hasIconFile() || shortcutInfo.hasIconUri()
+        try {
+            shortcutInfo.hasIconFile() || shortcutInfo.hasIconUri()
+        } catch (e: LinkageError) {
+            // ShortcutInfo#hasIconFile / #hasIconUri are hidden APIs absent on a mismatched
+            // framework (e.g. a stock emulator image); treat as not a file-backed drawable.
+            false
+        }
 }

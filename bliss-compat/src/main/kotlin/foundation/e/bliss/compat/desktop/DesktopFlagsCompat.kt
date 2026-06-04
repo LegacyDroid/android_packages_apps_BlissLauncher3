@@ -31,6 +31,11 @@
  *   `com.android.launcher3.util.DesktopFlagsCompat`; only the package and the
  *   SDK literal (now `BuildCompat.isAtLeastBaklava`) change.
  *
+ *   Each getter also degrades to `false` (the same default as pre-API-36) when
+ *   the underlying flag symbol is absent at runtime on a mismatched framework
+ *   (e.g. a stock emulator image rather than /e/OS), instead of crashing the
+ *   launcher with NoSuchFieldError/NoSuchMethodError. See [safe].
+ *
  * Consumed by: see ~37 call-sites across `src/` and `quickstep/` listed in
  *   Plans/Migration04/01-compat-platform.md §4 (rewritten by the call-site
  *   sweep).
@@ -55,83 +60,83 @@ object DesktopFlagsCompat {
 
     @JvmStatic
     fun enableDesktopWindowingWallpaperActivity(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableDesktopWindowingWallpaperActivity()
+        safe { Api36Impl.enableDesktopWindowingWallpaperActivity() }
 
     @JvmStatic
     fun enableDesktopWindowingQuickSwitch(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableDesktopWindowingQuickSwitch()
+        safe { Api36Impl.enableDesktopWindowingQuickSwitch() }
 
     @JvmStatic
     fun enableDesktopAppLaunchAlttabTransitionsBugfix(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableDesktopAppLaunchAlttabTransitionsBugfix()
+        safe { Api36Impl.enableDesktopAppLaunchAlttabTransitionsBugfix() }
 
     @JvmStatic
     fun enableDesktopAppLaunchTransitionsBugfix(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableDesktopAppLaunchTransitionsBugfix()
+        safe { Api36Impl.enableDesktopAppLaunchTransitionsBugfix() }
 
     @JvmStatic
     fun enableStartLaunchTransitionFromTaskbarBugfix(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableStartLaunchTransitionFromTaskbarBugfix()
+        safe { Api36Impl.enableStartLaunchTransitionFromTaskbarBugfix() }
 
     @JvmStatic
     fun enableDesktopWindowingExitTransitionsBugfix(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableDesktopWindowingExitTransitionsBugfix()
+        safe { Api36Impl.enableDesktopWindowingExitTransitionsBugfix() }
 
     @JvmStatic
     fun enableTaskbarRecentsLayoutTransition(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableTaskbarRecentsLayoutTransition()
+        safe { Api36Impl.enableTaskbarRecentsLayoutTransition() }
 
     @JvmStatic
     fun enableDesktopWindowingBackNavigation(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableDesktopWindowingBackNavigation()
+        safe { Api36Impl.enableDesktopWindowingBackNavigation() }
 
     @JvmStatic
     fun enableDesktopWindowingTaskbarRunningApps(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableDesktopWindowingTaskbarRunningApps()
+        safe { Api36Impl.enableDesktopWindowingTaskbarRunningApps() }
 
     @JvmStatic
     fun enableDesktopTrampolineCloseAnimationBugfix(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableDesktopTrampolineCloseAnimationBugfix()
+        safe { Api36Impl.enableDesktopTrampolineCloseAnimationBugfix() }
 
     @JvmStatic
     fun enableQuickswitchDesktopSplitBugfix(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableQuickswitchDesktopSplitBugfix()
+        safe { Api36Impl.enableQuickswitchDesktopSplitBugfix() }
 
     // DesktopExperienceFlags
 
     @JvmStatic
     fun enableMultipleDesktopsBackend(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableMultipleDesktopsBackend()
+        safe { Api36Impl.enableMultipleDesktopsBackend() }
 
     @JvmStatic
     fun enableMultipleDesktopsFrontend(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableMultipleDesktopsFrontend()
+        safe { Api36Impl.enableMultipleDesktopsFrontend() }
 
     @JvmStatic
     fun enableTaskbarConnectedDisplays(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableTaskbarConnectedDisplays()
+        safe { Api36Impl.enableTaskbarConnectedDisplays() }
 
     // Custom DesktopModeFlag instances
 
     @JvmStatic
     fun enableTaskbarBehindShade(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableTaskbarBehindShade()
+        safe { Api36Impl.enableTaskbarBehindShade() }
 
     @JvmStatic
     fun enableGestureNavOnConnectedDisplays(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableGestureNavOnConnectedDisplays()
+        safe { Api36Impl.enableGestureNavOnConnectedDisplays() }
 
     @JvmStatic
     fun enableLauncherOverviewInWindow(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableLauncherOverviewInWindow()
+        safe { Api36Impl.enableLauncherOverviewInWindow() }
 
     @JvmStatic
     fun enableFallbackOverviewInWindow(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableFallbackOverviewInWindow()
+        safe { Api36Impl.enableFallbackOverviewInWindow() }
 
     @JvmStatic
     fun enableOverviewOnConnectedDisplays(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableOverviewOnConnectedDisplays()
+        safe { Api36Impl.enableOverviewOnConnectedDisplays() }
 
     @JvmStatic
     fun enableOverviewInWindow(): Boolean =
@@ -143,45 +148,62 @@ object DesktopFlagsCompat {
 
     @JvmStatic
     fun enableDesktopWindowingMode(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableDesktopWindowingMode()
+        safe { Api36Impl.enableDesktopWindowingMode() }
 
     @JvmStatic
     fun predictiveBackThreeButtonNav(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.predictiveBackThreeButtonNav()
+        safe { Api36Impl.predictiveBackThreeButtonNav() }
 
     @JvmStatic
     fun removeDepartTargetFromMotion(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.removeDepartTargetFromMotion()
+        safe { Api36Impl.removeDepartTargetFromMotion() }
 
     @JvmStatic
     fun universalResizableByDefault(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.universalResizableByDefault()
+        safe { Api36Impl.universalResizableByDefault() }
 
     @JvmStatic
     fun enableDesktopRecentsTransitionsCornersBugfix(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableDesktopRecentsTransitionsCornersBugfix()
+        safe { Api36Impl.enableDesktopRecentsTransitionsCornersBugfix() }
 
     @JvmStatic
     fun enableDesktopWindowingPersistence(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableDesktopWindowingPersistence()
+        safe { Api36Impl.enableDesktopWindowingPersistence() }
 
     @JvmStatic
     fun moveToExternalDisplayShortcut(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.moveToExternalDisplayShortcut()
+        safe { Api36Impl.moveToExternalDisplayShortcut() }
 
     @JvmStatic
     fun enableDesktopTaskbarOnFreeformDisplays(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableDesktopTaskbarOnFreeformDisplays()
+        safe { Api36Impl.enableDesktopTaskbarOnFreeformDisplays() }
 
     // ProtoLog flags
 
     @JvmStatic
     fun enableStateManagerProtoLog(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableStateManagerProtoLog()
+        safe { Api36Impl.enableStateManagerProtoLog() }
 
     @JvmStatic
     fun enableRecentsWindowProtoLog(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableRecentsWindowProtoLog()
+        safe { Api36Impl.enableRecentsWindowProtoLog() }
+
+    /**
+     * Runs [block] only on API 36+, returning false when the underlying
+     * `android.window.DesktopModeFlags` / `DesktopExperienceFlags` /
+     * `com.android.window.flags.Flags` symbol is absent on a mismatched framework
+     * (e.g. a stock emulator image) rather than crashing. The flag simply reads off.
+     */
+    private inline fun safe(block: () -> Boolean): Boolean =
+        if (BuildCompat.isAtLeastBaklava) {
+            try {
+                block()
+            } catch (e: LinkageError) {
+                false
+            }
+        } else {
+            false
+        }
 
     @SuppressLint("NewApi")
     @RequiresApi(36)

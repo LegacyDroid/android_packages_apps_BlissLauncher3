@@ -74,7 +74,12 @@ public class DepthController extends BaseDepthController implements StateHandler
         ViewRootImpl viewRootImpl = view.getViewRootImpl();
         SurfaceControl surfaceControl = null;
         if (viewRootImpl != null && android.os.Build.VERSION.SDK_INT >= 36) {
-            surfaceControl = viewRootImpl.getSurfaceControl();
+            try {
+                surfaceControl = viewRootImpl.getSurfaceControl();
+            } catch (LinkageError e) {
+                // ViewRootImpl#getSurfaceControl is a hidden API absent on a mismatched framework
+                // (e.g. a stock emulator image); proceed without a base surface, as pre-API-36.
+            }
         }
         setBaseSurface(surfaceControl);
         view.post(this::removeOnDrawListener);

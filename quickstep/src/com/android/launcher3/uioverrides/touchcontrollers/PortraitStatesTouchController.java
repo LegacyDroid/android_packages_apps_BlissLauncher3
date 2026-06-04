@@ -191,10 +191,17 @@ public class PortraitStatesTouchController extends AbstractStateChangeTouchContr
     public boolean onControllerInterceptTouchEvent(MotionEvent ev) {
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                InteractionJankMonitorWrapper.begin(
-                        mLauncher.getRootView(), Cuj.CUJ_LAUNCHER_OPEN_ALL_APPS, /*tag=*/ "swipe");
-                InteractionJankMonitorWrapper.begin(
-                        mLauncher.getRootView(), Cuj.CUJ_LAUNCHER_CLOSE_ALL_APPS_SWIPE);
+                try {
+                    InteractionJankMonitorWrapper.begin(mLauncher.getRootView(),
+                            Cuj.CUJ_LAUNCHER_OPEN_ALL_APPS, /*tag=*/ "swipe");
+                    InteractionJankMonitorWrapper.begin(mLauncher.getRootView(),
+                            Cuj.CUJ_LAUNCHER_CLOSE_ALL_APPS_SWIPE);
+                } catch (LinkageError e) {
+                    // InteractionJankMonitorWrapper is a prebuilt SystemUI shared lib whose
+                    // internal InteractionJankMonitor API signatures don't match a stock framework
+                    // (e.g. an emulator image). Jank telemetry is non-essential; skip it so touch
+                    // handling isn't broken.
+                }
                 break;
 
             case MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP:

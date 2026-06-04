@@ -51,27 +51,43 @@ object DesktopModeStatusCompat {
 
     @JvmStatic
     fun canEnterDesktopMode(context: Context): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.canEnterDesktopMode(context)
+        safe { Api36Impl.canEnterDesktopMode(context) }
 
     @JvmStatic
     fun canEnterDesktopModeOrShowAppHandle(context: Context): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.canEnterDesktopModeOrShowAppHandle(context)
+        safe { Api36Impl.canEnterDesktopModeOrShowAppHandle(context) }
 
     @JvmStatic
     fun enterDesktopByDefaultOnFreeformDisplay(context: Context): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enterDesktopByDefaultOnFreeformDisplay(context)
+        safe { Api36Impl.enterDesktopByDefaultOnFreeformDisplay(context) }
 
     @JvmStatic
     fun enableMultipleDesktops(context: Context): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.enableMultipleDesktops(context)
+        safe { Api36Impl.enableMultipleDesktops(context) }
 
     @JvmStatic
     fun useRoundedCorners(context: Context): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.useRoundedCorners()
+        safe { Api36Impl.useRoundedCorners() }
 
     @JvmStatic
     fun useRoundedCorners(): Boolean =
-        BuildCompat.isAtLeastBaklava && Api36Impl.useRoundedCorners()
+        safe { Api36Impl.useRoundedCorners() }
+
+    /**
+     * Runs [block] only on API 36+, returning false when the underlying WM Shell /
+     * `android.window.DesktopExperienceFlags` symbol is absent on a mismatched framework
+     * (e.g. a stock emulator image) rather than crashing. Desktop windowing simply stays off.
+     */
+    private inline fun safe(block: () -> Boolean): Boolean =
+        if (BuildCompat.isAtLeastBaklava) {
+            try {
+                block()
+            } catch (e: LinkageError) {
+                false
+            }
+        } else {
+            false
+        }
 
     @SuppressLint("NewApi")
     @RequiresApi(36)

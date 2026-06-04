@@ -53,7 +53,14 @@ object DisplayIdCompat {
     @SuppressLint("NewApi")
     fun getDisplayId(context: Context): Int {
         if (BuildCompat.isAtLeastBaklava) {
-            return Api36Impl.getDisplayId(context)
+            try {
+                return Api36Impl.getDisplayId(context)
+            } catch (e: NoSuchMethodError) {
+                // Context.getDisplayId() is a system/hidden API. It resolves when
+                // BlissLauncher runs as a privileged/system app (as on /e/OS), but is
+                // absent for an ordinary app (e.g. a sideloaded debug build on a stock
+                // image). Fall through to the public display API below.
+            }
         }
         return try {
             val display = context.display

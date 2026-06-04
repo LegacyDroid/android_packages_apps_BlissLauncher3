@@ -1303,6 +1303,17 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             // Shell remote transitions API requires API 36+
             return;
         }
+        try {
+            registerRemoteTransitionsInternal();
+        } catch (LinkageError e) {
+            // The shell remote-transition / RemoteTransitionStub system APIs are absent on a
+            // mismatched framework (e.g. a stock emulator image rather than /e/OS). Skip
+            // remote-transition registration; app open/close animations fall back to defaults.
+            Log.w(TAG, "Skipping remote transition registration; system API unavailable", e);
+        }
+    }
+
+    private void registerRemoteTransitionsInternal() {
         SystemUiProxy.INSTANCE.get(mLauncher).shareTransactionQueue();
         if (SEPARATE_RECENTS_ACTIVITY.get()) {
             return;

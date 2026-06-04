@@ -131,7 +131,13 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
 
     private static boolean canImeRenderGesturalNavButtonsSafe() {
         if (android.os.Build.VERSION.SDK_INT >= 36) {
-            return InputMethodService.canImeRenderGesturalNavButtons();
+            try {
+                return InputMethodService.canImeRenderGesturalNavButtons();
+            } catch (LinkageError e) {
+                // Hidden static absent on a mismatched framework (e.g. a stock emulator image);
+                // assume the IME can't render the gestural nav buttons.
+                return false;
+            }
         }
         return false;
     }
