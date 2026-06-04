@@ -482,10 +482,10 @@
     <string name="first_run_layout_message">You can change this later in Settings.</string>
     <string name="first_run_layout_simple_title">Simple home</string>
     <string name="first_run_layout_simple_summary">All your apps live on the home screen — no separate app drawer. Like iOS. New apps land at the end automatically.</string>
-    <string name="first_run_layout_classic_title">Classic Android</string>
-    <string name="first_run_layout_classic_summary">Apps live in a drawer; drag the ones you use to the home screen. Leave empty cells wherever you want.</string>
+    <string name="first_run_layout_classic_title">Advanced</string>
+    <string name="first_run_layout_classic_summary">The full BlissLauncher experience: a separate app drawer, folders, widgets and more. Drag the apps you use to the home screen and leave empty cells wherever you want.</string>
     <string name="first_run_layout_choose_simple">Use simple home</string>
-    <string name="first_run_layout_choose_classic">Use classic Android</string>
+    <string name="first_run_layout_choose_classic">Use advanced mode</string>
 
     <!-- First-run wizard: Lawnchair backup import step -->
     <string name="first_run_import_lawnchair_title">Import from Lawnchair?</string>
