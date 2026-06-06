@@ -34,12 +34,14 @@
 package foundation.e.bliss.firstrun.ui
 
 import android.os.Bundle
+import android.os.Process
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.android.launcher3.R
 import foundation.e.bliss.firstrun.FirstRunStateStore
 import foundation.e.bliss.firstrun.FirstRunStep
 import foundation.e.bliss.firstrun.FirstRunWizard
+import foundation.e.bliss.multimode.MultiModeController
 
 /**
  * Hosts the wizard's step Fragments.
@@ -53,9 +55,26 @@ class FirstRunActivity : AppCompatActivity() {
     private lateinit var queue: ArrayDeque<FirstRunStep>
     private var current: FirstRunStep? = null
 
+    /**
+     * The layout mode the launcher process booted with. Its view hierarchy (app drawer vs. no
+     * drawer, QSB first page, hotseat search) is wired up in Launcher.onCreate() and a live pref
+     * change cannot rebuild it, so if the user's choice flips this we restart the launcher once the
+     * wizard finishes.
+     */
+    private var bootSingleLayer: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_first_run)
+
+        // Capture the booted mode before any step writes the pref. Preserve it
+        // across config changes so a rotation mid-wizard can't lose it.
+        bootSingleLayer =
+            if (savedInstanceState?.containsKey(KEY_BOOT_SINGLE_LAYER) == true) {
+                savedInstanceState.getBoolean(KEY_BOOT_SINGLE_LAYER)
+            } else {
+                MultiModeController.isSingleLayerMode
+            }
 
         // Swallow the back press: progressing requires picking an option.
         onBackPressedDispatcher.addCallback(
@@ -120,6 +139,30 @@ class FirstRunActivity : AppCompatActivity() {
             return
         }
         current = null
+        finishWizard()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_BOOT_SINGLE_LAYER, bootSingleLayer)
+    }
+
+    /**
+     * Close the wizard. If the user's layout choice changed the mode the launcher is currently
+     * running, restart the process cleanly so the new structure (drawer/home layout) fully applies
+     * — otherwise the home is left empty or stale until a manual restart. Every wizard pref was
+     * written synchronously (putSync) before we reach here, so the new value is already on disk and
+     * the relaunched launcher reads it.
+     */
+    private fun finishWizard() {
+        val modeChanged = MultiModeController.isSingleLayerMode != bootSingleLayer
         finish()
+        if (modeChanged) {
+            Process.killProcess(Process.myPid())
+        }
+    }
+
+    companion object {
+        private const val KEY_BOOT_SINGLE_LAYER = "boot_single_layer"
     }
 }
