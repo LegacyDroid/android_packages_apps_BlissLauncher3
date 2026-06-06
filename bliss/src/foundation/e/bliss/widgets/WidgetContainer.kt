@@ -79,11 +79,11 @@ import foundation.e.bliss.utils.BlissDbUtils
 import foundation.e.bliss.utils.Logger
 import foundation.e.bliss.utils.ObservableList
 import foundation.e.bliss.utils.OnDataChangedListener
+import foundation.e.bliss.utils.disableComponent
+import foundation.e.bliss.widgets.BlissAppWidgetHost.Companion.REQUEST_CONFIGURE_APPWIDGET
 import foundation.e.bliss.widgets.data.DefaultWidgets
 import foundation.e.bliss.widgets.data.WidgetInfo
 import foundation.e.bliss.widgets.data.WidgetRepository
-import foundation.e.bliss.utils.disableComponent
-import foundation.e.bliss.widgets.BlissAppWidgetHost.Companion.REQUEST_CONFIGURE_APPWIDGET
 import io.reactivex.disposables.Disposable
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
@@ -337,9 +337,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
                         return
                     }
                     val widgets =
-                        widgetRepo.getWidgets().filter {
-                            it.component.packageName == packageName
-                        }
+                        widgetRepo.getWidgets().filter { it.component.packageName == packageName }
                     if (packageName != null && widgets.isNotEmpty()) {
                         widgets.map { it.widgetId }.forEach { widgetRepo.delete(it) }
                         rebindWidgets()
