@@ -34,6 +34,7 @@ import com.android.app.animation.Interpolators;
 import com.android.launcher3.DragSource;
 import com.android.launcher3.DropTarget;
 import com.android.launcher3.Flags;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.model.data.AppPairInfo;
 import com.android.launcher3.model.data.ItemInfo;
@@ -363,8 +364,8 @@ public abstract class DragController<T extends ActivityContext>
      */
     protected Point getClampedDragLayerPos(float x, float y) {
         mActivity.getDragLayer().getLocalVisibleRect(mRectTemp);
-        mTmpPoint.x = (int) Math.clamp(x, mRectTemp.left, mRectTemp.right - 1);
-        mTmpPoint.y = (int) Math.clamp(y, mRectTemp.top, mRectTemp.bottom - 1);
+        mTmpPoint.x = (int) Utilities.boundToRange(x, (float) mRectTemp.left, (float) (mRectTemp.right - 1));
+        mTmpPoint.y = (int) Utilities.boundToRange(y, (float) mRectTemp.top, (float) (mRectTemp.bottom - 1));
         return mTmpPoint;
     }
 

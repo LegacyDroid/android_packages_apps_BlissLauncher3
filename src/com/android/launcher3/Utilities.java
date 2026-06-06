@@ -542,21 +542,24 @@ public final class Utilities {
      * return upperBound; else return value unchanged.
      */
     public static int boundToRange(int value, int lowerBound, int upperBound) {
-        return Math.clamp(value, lowerBound, upperBound);
+        // NOTE: Math.clamp() throws if lowerBound > upperBound, but callers (e.g. the
+        // fast-scroller during layout) legitimately pass inverted ranges. Use the tolerant
+        // max/min form so an inverted range clamps to lowerBound instead of crashing.
+        return Math.max(lowerBound, Math.min(value, upperBound));
     }
 
     /**
      * @see #boundToRange(int, int, int).
      */
     public static float boundToRange(float value, float lowerBound, float upperBound) {
-        return Math.clamp(value, lowerBound, upperBound);
+        return Math.max(lowerBound, Math.min(value, upperBound));
     }
 
     /**
      * @see #boundToRange(int, int, int).
      */
     public static long boundToRange(long value, long lowerBound, long upperBound) {
-        return Math.clamp(value, lowerBound, upperBound);
+        return Math.max(lowerBound, Math.min(value, upperBound));
     }
 
     /**

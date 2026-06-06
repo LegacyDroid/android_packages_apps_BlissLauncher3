@@ -289,7 +289,7 @@ public class AllAppsRecyclerView extends FastScrollRecyclerView {
                                 (float) (availableScrollBarHeight - scrollBarY));
                         thumbScrollY += Math.min(offset, diffScrollY);
                     }
-                    thumbScrollY = Math.clamp(thumbScrollY, 0, availableScrollBarHeight);
+                    thumbScrollY = Utilities.boundToRange(thumbScrollY, 0, availableScrollBarHeight);
                     mScrollbar.setThumbOffsetY(thumbScrollY);
                     if (scrollBarY == thumbScrollY) {
                         mScrollbar.reattachThumbToScroll();

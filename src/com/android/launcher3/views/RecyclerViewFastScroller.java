@@ -341,7 +341,7 @@ public class RecyclerViewFastScroller extends View {
     private void updateFastScrollSectionNameAndThumbOffset(int y) {
         // Update the fastscroller section name at this touch position
         int bottom = mRv.getScrollbarTrackHeight() - mThumbHeight;
-        float boundedY = (float) Math.clamp((long) y - mTouchOffsetY, 0, bottom);
+        float boundedY = (float) Utilities.boundToRange((long) y - mTouchOffsetY, 0L, (long) bottom);
         CharSequence sectionName = mRv.scrollToPositionAtProgress(boundedY / bottom);
         if (!sectionName.equals(mPopupSectionName)) {
             mPopupSectionName = sectionName;

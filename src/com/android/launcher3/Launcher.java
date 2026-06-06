@@ -2180,8 +2180,8 @@ public class Launcher extends StatefulActivity<LauncherState>
             // Folder height is less than page height, so bound it to the absolute open folder
             // bounds if necessary
             Rect folderBounds = grid.getAbsoluteOpenFolderBounds();
-            left = Math.clamp(left, folderBounds.left, folderBounds.right - width);
-            top = Math.clamp(top, folderBounds.top, folderBounds.bottom - height);
+            left = Utilities.boundToRange(left, folderBounds.left, folderBounds.right - width);
+            top = Utilities.boundToRange(top, folderBounds.top, folderBounds.bottom - height);
         }
         inOutPosition[0] = left;
         inOutPosition[1] = top;
