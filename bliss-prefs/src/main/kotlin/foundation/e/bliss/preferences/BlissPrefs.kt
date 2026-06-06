@@ -48,6 +48,9 @@ package foundation.e.bliss.preferences
 
 object BlissPrefs {
     // region — Home & layout
+    // Native Launcher3 rotation pref (RotationHelper / LauncherPrefs.ALLOW_ROTATION), surfaced in
+    // preferences_home.xml. Registered here so the BlissPrefSchema XML self-test recognizes it.
+    const val PREF_ALLOW_ROTATION = "pref_allowRotation"
     const val PREF_SINGLE_LAYER_MODE = "pref_single_layer"
     const val PREF_PRESERVE_LAYOUT_GAPS = "pref_preserve_layout_gaps"
     const val PREF_GRID_FOLDER_PREVIEW = "pref_grid_folder_preview"
