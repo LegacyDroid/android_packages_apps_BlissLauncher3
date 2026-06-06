@@ -374,10 +374,19 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         }
         orderedScreenIds
             .filterNot { screenId ->
+                // Skip re-inserting the screens that bindAndInitFirstWorkspaceScreen()
+                // already pre-creates. It pre-creates BOTH the pinned-QSB first page
+                // (FIRST_SCREEN_ID) and its companion content page (SECOND_SCREEN_ID),
+                // but only under this exact condition. The skip MUST mirror the create
+                // condition: when the pinned first page is disabled (e.g.
+                // enableSmartspaceRemovalToggle()), neither screen is pre-created, so
+                // neither may be skipped here — otherwise single-layer mode, whose
+                // default layout places every app on SECOND_SCREEN_ID, would drop that
+                // screen and render an empty home.
                 isFirstPagePinnedItemEnabled &&
                     !SHOULD_SHOW_FIRST_PAGE_WIDGET &&
-                    screenId == WorkspaceLayoutManager.FIRST_SCREEN_ID
-                        || FeatureFlags.QSB_ON_FIRST_SCREEN.get() && screenId == Workspace.SECOND_SCREEN_ID
+                    (screenId == WorkspaceLayoutManager.FIRST_SCREEN_ID ||
+                        screenId == Workspace.SECOND_SCREEN_ID)
             }
             .forEach { screenId ->
                 launcher.workspace.insertNewWorkspaceScreenBeforeEmptyScreen(screenId)
