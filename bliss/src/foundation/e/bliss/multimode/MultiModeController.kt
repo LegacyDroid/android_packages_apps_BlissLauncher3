@@ -31,7 +31,6 @@ import foundation.e.bliss.BaseController
 import foundation.e.bliss.LauncherAppMonitor
 import foundation.e.bliss.LauncherAppMonitorCallback
 import foundation.e.bliss.blur.BlurWallpaperProvider
-import foundation.e.bliss.preferences.BlissPrefs
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
@@ -67,14 +66,14 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
                 }
             }
 
-            override fun onAppSharedPreferenceChanged(key: String?) {
-                when (key) {
-                    BlissPrefs.PREF_SINGLE_LAYER_MODE -> {
-                        monitor.launcher?.model?.forceReload()
-                    }
-                    else -> Unit
-                }
-            }
+            // A live model reload cannot rebuild the launcher's structure for a
+            // single-layer mode change (drawer vs. no drawer, QSB first page,
+            // hotseat search) — those views are wired up in Launcher.onCreate().
+            // Both entry points that change the mode therefore restart the
+            // launcher cleanly instead: SingleLayerModeController (settings
+            // toggle) and FirstRunActivity (first-run wizard). Backup/restore and
+            // Lawnchair import issue their own explicit forceReload() calls. So
+            // there is deliberately no onAppSharedPreferenceChanged override here.
 
             override fun onLauncherOrientationChanged() {
                 BlurWallpaperProvider.getInstance(context).orientationChanged()
