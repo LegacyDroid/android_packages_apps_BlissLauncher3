@@ -34,6 +34,14 @@ import foundation.e.bliss.blur.BlurWallpaperProvider
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
+/**
+ * App-singleton controller. Constructed by [LauncherAppMonitor]'s constructor (see
+ * LauncherAppMonitor.java:129) and held for the process lifetime. The monitor callback registered
+ * in [init] therefore correctly matches the monitor's lifetime; no `release()` /
+ * `unregisterCallback` is required.
+ *
+ * Audit01 #11: verified non-leak. Do not flag again.
+ */
 class MultiModeController(val context: Context, val monitor: LauncherAppMonitor) : BaseController {
     private val idp by lazy { InvariantDeviceProfile.INSTANCE.get(context) }
     private val mAppMonitorCallback: LauncherAppMonitorCallback =

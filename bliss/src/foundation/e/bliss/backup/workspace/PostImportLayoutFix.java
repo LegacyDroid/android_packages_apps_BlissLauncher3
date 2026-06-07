@@ -100,18 +100,34 @@ public final class PostImportLayoutFix {
 
         final Map<Long, int[]> originalPositions = captureOriginalPositions(finalItems);
 
-        // Force model reload, then re-apply original positions.
+        final java.util.concurrent.CountDownLatch bindLatch = new java.util.concurrent.CountDownLatch(1);
+        final foundation.e.bliss.LauncherAppMonitor monitor = foundation.e.bliss.LauncherAppMonitor
+                .getInstance(context);
+        final foundation.e.bliss.LauncherAppMonitorCallback bindCb = new foundation.e.bliss.LauncherAppMonitorCallback() {
+            @Override
+            public void onLauncherWorkspaceBindingFinish() {
+                bindLatch.countDown();
+            }
+        };
+        monitor.registerCallback(bindCb);
+
         try {
             Executors.MAIN_EXECUTOR.submit(() -> LauncherAppState.getInstance(context).getModel().forceReload()).get();
         } catch (Exception e) {
             LOG.w("forceReload submit failed: " + e.getMessage());
         }
 
-        // Wait for the loader's current pass before patching positions.
+        // Wait for the loader's workspace-bind to finish, with a generous timeout
+        // as a safety net. 5s covers slow devices; the latch normally fires in <1s.
         try {
-            Thread.sleep(500);
+            boolean ok = bindLatch.await(5, java.util.concurrent.TimeUnit.SECONDS);
+            if (!ok) {
+                LOG.w("PostImportLayoutFix: bind-complete latch timed out at 5s; continuing.");
+            }
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
+        } finally {
+            monitor.unregisterCallback(bindCb);
         }
 
         try {
@@ -120,13 +136,13 @@ public final class PostImportLayoutFix {
             LOG.w("first-pass position fixup submit failed: " + e.getMessage());
         }
 
-        // Second fixup pass + final forceReload at +4 s.
+        // Belt-and-braces: schedule a second pass after a short delay to cover
+        // any late-binding loader work. Once telemetry confirms the latch is
+        // sufficient, gate this behind LauncherPrefs.POSTIMPORT_SECOND_PASS.
         Executors.MAIN_EXECUTOR.getHandler().postDelayed(
                 () -> Executors.MODEL_EXECUTOR.execute(() -> applyPositionFixupSecondPass(context, originalPositions)),
-                4000L);
+                1000L); // tightened from 4000ms — latch already covered the slow path
 
-        // Trailing pref writes (Migration03 acceptance: preserve gaps + 2×2 folder
-        // previews).
         LauncherPrefs prefs = LauncherComponentProvider.get(context).getLauncherPrefs();
         prefs.put(LauncherPrefs.PRESERVE_LAYOUT_GAPS, true);
         prefs.put(LauncherPrefs.GRID_FOLDER_PREVIEW, true);

@@ -74,6 +74,17 @@ spotlessCheck:
   script:
     - ./gradlew spotlessCheck
 
+# Audit01 #07 — fail CI if lint-baseline.xml grows beyond the recorded cap.
+# See hooks/check-lint-baseline-cap.sh and Plans/Audits/audit01/07-lint-baseline-drainage.md.
+lint-baseline-cap:
+  stage: build
+  rules:
+    - if: '$CI_PROJECT_PATH == "Siavash/BlissLauncher3"'
+  interruptible: true
+  script:
+    - chmod +x ./hooks/check-lint-baseline-cap.sh
+    - ./hooks/check-lint-baseline-cap.sh
+
 lintblissWithQuickstepDebug:
   stage: build
   rules:

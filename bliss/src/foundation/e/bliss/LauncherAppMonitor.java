@@ -139,6 +139,12 @@ public class LauncherAppMonitor extends LauncherApps.Callback
         if (mLauncher != null) {
             onLauncherDestroy(mLauncher);
         }
+        // Audit01 #11: tear down the per-launcher GridFolderController explicitly
+        // before the new launcher's onLauncherCreated runs.
+        if (mGridFolderController != null) {
+            mGridFolderController.release();
+            mGridFolderController = null;
+        }
         mLauncher = launcher;
 
         for (int i = 0; i < mCallbacks.size(); i++) {

@@ -197,26 +197,6 @@
             android:name="android.window.PROPERTY_ACTIVITY_EMBEDDING_SPLITS_ENABLED"
             android:value="true" />
 
-        <!-- Migration04 §08 — debug-only test/diagnostics receivers. Both
-             onReceive() bodies fail-fast on !BuildConfig.DEBUG, so a release
-             APK does nothing useful even if these manifest entries leak in.
-             A full debug-flavoured manifest split is deferred to phase 09
-             (build-and-rollout). -->
-        <receiver
-            android:name="foundation.e.bliss.backup.LawnchairImportTestReceiver"
-            android:exported="true"
-            android:permission="android.permission.DUMP">
-            <intent-filter>
-                <action android:name="foundation.e.blisslauncher.test.IMPORT" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name="foundation.e.bliss.utils.BlissDiagnosticsReceiver"
-            android:exported="true"
-            android:permission="android.permission.DUMP">
-            <intent-filter>
-                <action android:name="foundation.e.blisslauncher.test.DUMP_PREFS" />
-            </intent-filter>
-        </receiver>
+        <!-- Audit01 #12: debug-only receivers moved to src/debug/AndroidManifest.xml -->
     </application>
 </manifest>

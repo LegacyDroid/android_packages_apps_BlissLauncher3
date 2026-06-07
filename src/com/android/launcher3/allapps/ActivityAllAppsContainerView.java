@@ -41,7 +41,9 @@ import static foundation.e.bliss.compat.desktop.DesktopFlagsCompat.predictiveBac
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
+import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Outline;
@@ -459,6 +461,31 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         mActivityContext.removeOnDeviceProfileChangeListener(this);
+        // Audit01 #01: the BlissAlphabeticalAppsList holds an AllAppsStore listener and a
+        // coroutine collector; both must be cancelled when the owning Activity is finishing
+        // or they retain the previous Activity instance across recreation.
+        Activity activity = unwrapActivity(getContext());
+        if (activity == null || !activity.isFinishing()) {
+            return; // configuration change or transient detach keeps the activity around
+        }
+        for (int i = 0; i < mAH.size(); i++) {
+            AdapterHolder ah = mAH.get(i);
+            if (ah != null && ah.mAppsList
+                    instanceof foundation.e.bliss.allapps.BlissAlphabeticalAppsList) {
+                ((foundation.e.bliss.allapps.BlissAlphabeticalAppsList<?>) ah.mAppsList).release();
+            }
+        }
+    }
+
+    private static Activity unwrapActivity(Context context) {
+        Context c = context;
+        while (c instanceof ContextWrapper) {
+            if (c instanceof Activity) {
+                return (Activity) c;
+            }
+            c = ((ContextWrapper) c).getBaseContext();
+        }
+        return null;
     }
 
     public SearchUiManager getSearchUiManager() {

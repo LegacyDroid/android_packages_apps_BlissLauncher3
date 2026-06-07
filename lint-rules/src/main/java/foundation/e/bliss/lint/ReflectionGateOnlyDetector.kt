@@ -45,9 +45,10 @@ import org.jetbrains.uast.getContainingUFile
 
 /**
  * Detector that flags any Class.forName call site outside the allow-listed
- * ReflectionGate object. Severity is intentionally WARNING for Migration05;
- * promotion to ERROR is gated on a full clean run (Plan §7) and lands in a
- * follow-up migration once the codebase is verified violation-free.
+ * ReflectionGate object. Severity was originally WARNING for Migration05
+ * (Plan §7); promoted to ERROR by Audit01 #08 once the codebase was verified
+ * violation-free. The cap mechanism in Audit01 #07 catches any new entries
+ * that would otherwise slip silently into lint-baseline.xml.
  */
 class ReflectionGateOnlyDetector : Detector(), SourceCodeScanner {
 
@@ -65,7 +66,7 @@ class ReflectionGateOnlyDetector : Detector(), SourceCodeScanner {
             """.trimIndent(),
             category = Category.CORRECTNESS,
             priority = 6,
-            severity = Severity.WARNING,
+            severity = Severity.ERROR, // promoted from WARNING by Audit01 #08
             implementation = Implementation(
                 ReflectionGateOnlyDetector::class.java,
                 Scope.JAVA_FILE_SCOPE,

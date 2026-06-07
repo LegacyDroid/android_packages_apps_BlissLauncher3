@@ -778,7 +778,8 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
     }
 
     companion object {
-        @SuppressLint("NewApi")
+        // Audit01 #10: @SuppressLint("NewApi") removed — currentWindowMetrics +
+        // WindowInsets.Type.systemBars() are API 30, <= minSdk 35.
         fun getSystemInsets(context: Context): Insets {
             val windowInsets =
                 context

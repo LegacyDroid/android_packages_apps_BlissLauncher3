@@ -70,6 +70,8 @@ class BlissAlphabeticalAppsList<T>(
     private var folders: List<FolderInfo> = emptyList()
     @Volatile private var rawFolders: List<DrawerFolderWithItems> = emptyList()
     private var collectJob: Job? = null
+    private val storeListener: AllAppsStore.OnUpdateListener =
+        AllAppsStore.OnUpdateListener { recomputeFoldersFromCache() }
 
     init {
         if (enableFolders) {
@@ -80,10 +82,7 @@ class BlissAlphabeticalAppsList<T>(
     private fun startObserving() {
         // Re-resolve when the AllAppsStore updates so component-key → AppInfo joins succeed
         // even when the store hydrates after the first folder emission.
-        mAllAppsStore?.addUpdateListener {
-            // The base class also listens; we recompute the folder side and re-render.
-            recomputeFoldersFromCache()
-        }
+        mAllAppsStore?.addUpdateListener(storeListener)
         collectJob =
             scope.launch {
                 service.observeFolders().collectLatest { latest ->
@@ -189,6 +188,9 @@ class BlissAlphabeticalAppsList<T>(
 
     /** Cancel observers; called when the launcher activity is being destroyed. */
     fun release() {
+        try {
+            mAllAppsStore?.removeUpdateListener(storeListener)
+        } catch (_: Throwable) {}
         collectJob?.cancel()
         supervisor.cancel()
     }

@@ -50,7 +50,11 @@ abstract class DrawerFolderDatabase : RoomDatabase() {
                                 DrawerFolderDatabase::class.java,
                                 "drawer_folders.db",
                             )
-                            .fallbackToDestructiveMigration(true)
+                            // Audit01 #02: never destructively wipe user drawer folders. Schema
+                            // bumps must register a Migration via .addMigrations(...). The
+                            // downgrade fallback is OK because side-grading APKs is a developer
+                            // workflow, not a user one.
+                            .fallbackToDestructiveMigrationOnDowngrade(true)
                             .build()
                             .also { instance = it }
                 }

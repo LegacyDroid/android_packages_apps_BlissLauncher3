@@ -50,7 +50,7 @@ import foundation.e.bliss.utils.runOnMainThread
 import foundation.e.bliss.utils.safeForEach
 import kotlin.math.ceil
 
-@SuppressLint("NewApi")
+// Audit01 #10: @SuppressLint("NewApi") removed — covered APIs are <= minSdk 35.
 class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
     private val mWallpaperManager: WallpaperManager = WallpaperManager.getInstance(context)

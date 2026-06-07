@@ -297,11 +297,8 @@ public class CustomAdaptiveIconDrawable extends AdaptiveIconDrawable implements 
 
     @Override
     public void getOutline(@NonNull Outline outline) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            outline.setPath(mMask);
-        } else {
-            outline.setConvexPath(mMask);
-        }
+        // Audit01 #10: minSdk 35 — R (30) gate is always true; inlined.
+        outline.setPath(mMask);
     }
 
     @Override

@@ -8,9 +8,9 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
-    <uses-permission
-        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" />
+    <!-- Audit01 #13: MANAGE_EXTERNAL_STORAGE removed. The wizard's
+         LawnchairBackupDetector now scans only the public Downloads/ and
+         Documents/ directories, which do not require the permission. -->
     <uses-permission android:name="foundation.e.pwaplayer.provider.READ_WRITE" />
 
     <application

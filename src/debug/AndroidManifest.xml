@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Audit01 #12: debug-only test/diagnostics receivers. Lifted out
+             of AndroidManifest-common.xml so a release APK does not even
+             declare these receivers. The runtime BuildConfig.DEBUG fail-fast
+             remains as belt-and-braces. -->
+        <receiver
+            android:name="foundation.e.bliss.backup.LawnchairImportTestReceiver"
+            android:exported="true"
+            android:permission="android.permission.DUMP">
+            <intent-filter>
+                <action android:name="foundation.e.blisslauncher.test.IMPORT" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="foundation.e.bliss.utils.BlissDiagnosticsReceiver"
+            android:exported="true"
+            android:permission="android.permission.DUMP">
+            <intent-filter>
+                <action android:name="foundation.e.blisslauncher.test.DUMP_PREFS" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
