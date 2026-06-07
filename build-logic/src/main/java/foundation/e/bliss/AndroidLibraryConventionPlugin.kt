@@ -40,7 +40,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
             extensions.configure<LibraryExtension> {
                 compileSdk = 36
 
-                defaultConfig { minSdk = 35 }
+                defaultConfig { minSdk = 36 }
 
                 compileOptions {
                     sourceCompatibility = JavaVersion.VERSION_21

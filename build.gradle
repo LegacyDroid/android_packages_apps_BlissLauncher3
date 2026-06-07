@@ -35,7 +35,7 @@ subprojects {
         if (extensions.findByName("android") != null) {
             android {
                 defaultConfig {
-                    if (minSdk > 35) minSdk = 35
+                    if (minSdk < 36) minSdk = 36
                 }
             }
         }
@@ -94,7 +94,7 @@ android {
     compileSdkVersion 36
 
     defaultConfig {
-        minSdkVersion 35 // system default is 36; lowered for sideload testing on Android 15
+        minSdkVersion 36
         targetSdkVersion 36
         versionCode getVersionCode()
         versionName appVersion
