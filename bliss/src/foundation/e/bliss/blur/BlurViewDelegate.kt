@@ -74,6 +74,13 @@ class BlurViewDelegate(
     private var parentOffsetX = 0f
     private var parentOffsetY = 0f
 
+    // Cached layout so global-layout passes that don't move us are no-ops (see updateBounds).
+    private var lastLeft = Int.MIN_VALUE
+    private var lastTop = Int.MIN_VALUE
+    private var lastRight = Int.MIN_VALUE
+    private var lastBottom = Int.MIN_VALUE
+    private val tmpOffsetParents = mutableListOf<OffsetParent>()
+
     private val onGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener { updateBounds() }
     private val onScrollChangedListener =
         ViewTreeObserver.OnScrollChangedListener {
@@ -168,7 +175,7 @@ class BlurViewDelegate(
 
     private fun updateBounds() {
         scrollViews.clear()
-        val offsetParents = mutableListOf<OffsetParent>()
+        tmpOffsetParents.clear()
         var left = 0
         var top = 0
         var current: View? = view
@@ -178,21 +185,35 @@ class BlurViewDelegate(
             if (current is ScrollView || current is PagedView<*>) {
                 scrollViews.add(current)
             } else if (current is OffsetParent) {
-                offsetParents.add(current)
+                tmpOffsetParents.add(current)
             }
             current = current.parent as? View
         }
 
         val right = left + view.width
         val bottom = top + view.height
+
+        // Global layout fires on every layout pass in the tree; bail out when nothing moved to
+        // avoid a needless full-screen invalidate + listener re-registration.
+        val boundsUnchanged =
+            left == lastLeft && top == lastTop && right == lastRight && bottom == lastBottom
+        val parentsChanged = tmpOffsetParents != offsetParents
+        if (boundsUnchanged && !parentsChanged) return
+
+        lastLeft = left
+        lastTop = top
+        lastRight = right
+        lastBottom = bottom
+
         fullBlurDrawable?.setBlurBounds(
             left.toFloat(),
             top.toFloat(),
             right.toFloat(),
             bottom.toFloat(),
         )
+        // Re-register offset listeners only when the parent list actually changed.
+        if (parentsChanged) offsetParents = tmpOffsetParents.toList()
         view.invalidate()
-        this.offsetParents = offsetParents
         computeScrollOffset()
         computeParentOffset()
     }
@@ -246,12 +267,10 @@ class BlurViewDelegate(
     }
 
     override fun onScrollOffsetChanged(offset: Float) {
-        offsetParents.forEach {
-            if (it.needWallpaperScroll) {
-                wallpaperScrollOffset = offset.toInt()
-                isScrolling = true
-                view.invalidate()
-            }
+        if (offsetParents.any { it.needWallpaperScroll }) {
+            wallpaperScrollOffset = offset.toInt()
+            isScrolling = true
+            view.invalidate()
         }
     }
 

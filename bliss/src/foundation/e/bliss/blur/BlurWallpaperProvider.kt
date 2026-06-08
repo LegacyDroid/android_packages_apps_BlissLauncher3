@@ -26,6 +26,8 @@ import android.graphics.Color
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
+import android.graphics.Point
+import android.graphics.Rect
 import android.widget.Toast
 import androidx.core.graphics.drawable.toBitmap
 import com.android.launcher3.Utilities
@@ -73,6 +75,8 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
     private var isLiveWallpaper = false
 
     private var lastOffset = 0.5f
+
+    private var lastScrollOffset = Float.NaN
 
     init {
         isEnabled = getEnabledStatus()
@@ -180,48 +184,76 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
     }
 
     private fun applyVibrancy(wallpaper: Bitmap): Bitmap {
-
         mVibrancyPaint.colorFilter =
             ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(1.25f) })
 
-        val origBitmap = Bitmap.createBitmap(wallpaper)
-        val bitmap = origBitmap.copy(Bitmap.Config.ARGB_8888, true)
-        Canvas().apply {
-            try {
-                setBitmap(bitmap)
-            } catch (e: IllegalStateException) {
-                Logger.e(TAG, "Failed to set bitmap, using fallback", e)
-                val newBitmap =
-                    Bitmap.createBitmap(
-                        wallpaper.width,
-                        wallpaper.height,
-                        wallpaper.config ?: Bitmap.Config.ARGB_8888,
-                    )
-                setBitmap(newBitmap)
-            }
-            drawBitmap(wallpaper, 0f, 0f, mVibrancyPaint)
+        // Single allocation: draw the source through the vibrancy filter into a fresh bitmap.
+        return try {
+            val bitmap =
+                Bitmap.createBitmap(wallpaper.width, wallpaper.height, Bitmap.Config.ARGB_8888)
+            Canvas(bitmap).drawBitmap(wallpaper, 0f, 0f, mVibrancyPaint)
+            wallpaper.recycle()
+            bitmap
+        } catch (e: Exception) {
+            Logger.e(TAG, "applyVibrancy failed, using source", e)
+            wallpaper
         }
-
-        wallpaper.recycle()
-        return bitmap
     }
 
+    /**
+     * The sub-rectangle of the wallpaper bitmap the system shows on this display. With multi-crop
+     * the wallpaper parallaxes across a per-orientation crop, not the whole bitmap, so we match it.
+     */
+    private fun getWallpaperCrop(wallpaper: Bitmap): Rect {
+        val full = Rect(0, 0, wallpaper.width, wallpaper.height)
+        val crop =
+            try {
+                mWallpaperManager
+                    .getBitmapCrops(
+                        listOf(Point(mDisplaySize.x, mDisplaySize.y)),
+                        WallpaperManager.FLAG_SYSTEM,
+                        false,
+                    )
+                    ?.firstOrNull()
+            } catch (e: Throwable) {
+                Logger.e(TAG, "getBitmapCrops failed, using full bitmap", e)
+                null
+            }
+
+        val safe = crop?.takeUnless { it.isEmpty } ?: return full
+        return Rect(
+                safe.left.coerceIn(0, wallpaper.width),
+                safe.top.coerceIn(0, wallpaper.height),
+                safe.right.coerceIn(0, wallpaper.width),
+                safe.bottom.coerceIn(0, wallpaper.height),
+            )
+            .takeIf { it.width() > 0 && it.height() > 0 } ?: full
+    }
+
+    /**
+     * Crop the wallpaper to [getWallpaperCrop] and scale it to cover the screen. The scaled crop's
+     * surplus width is the parallax range the real wallpaper travels, so the 1:1 offset lines up.
+     */
     private fun scaleAndCropToScreenSize(wallpaper: Bitmap): Bitmap {
         val width = mDisplaySize.x
         val height = mDisplaySize.y
+        val crop = getWallpaperCrop(wallpaper)
 
-        val widthFactor = width.toFloat() / wallpaper.width
-        val heightFactor = height.toFloat() / wallpaper.height
+        val coverFactor = maxOf(width.toFloat() / crop.width(), height.toFloat() / crop.height())
+        if (coverFactor <= 0f) return wallpaper
 
-        val upscaleFactor = widthFactor.coerceAtLeast(heightFactor)
-        if (upscaleFactor <= 0) {
-            return wallpaper
-        }
+        val scaledWidth = width.coerceAtLeast(ceil(crop.width() * coverFactor).toInt())
+        val scaledHeight = height.coerceAtLeast(ceil(crop.height() * coverFactor).toInt())
 
-        val scaledWidth = width.coerceAtLeast(ceil(wallpaper.width * upscaleFactor).toInt())
-        val scaledHeight = height.coerceAtLeast(ceil(wallpaper.height * upscaleFactor).toInt())
-
-        return Bitmap.createScaledBitmap(wallpaper, scaledWidth, scaledHeight, false)
+        val result = Bitmap.createBitmap(scaledWidth, scaledHeight, Bitmap.Config.ARGB_8888)
+        Canvas(result)
+            .drawBitmap(
+                wallpaper,
+                crop,
+                Rect(0, 0, scaledWidth, scaledHeight),
+                Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG),
+            )
+        return result
     }
 
     fun addListener(listener: Listener) {
@@ -253,6 +285,9 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
                 0f,
                 (mWallpaperWidth - mDisplaySize.x).toFloat(),
             )
+
+        if (scrollOffset == lastScrollOffset) return
+        lastScrollOffset = scrollOffset
 
         runOnMainThread { mListeners.forEach { it.onScrollOffsetChanged(scrollOffset) } }
     }

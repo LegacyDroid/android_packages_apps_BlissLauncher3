@@ -69,9 +69,8 @@ class BlurWallpaperFilter(private val context: Context) :
                 )
             }
 
-        // Bypass blur processor if we don't need to blur (hotseat)
-        // This will only happen if the input is full resolution (scale = 1) and blur radius = 0
-        if (config.radius == 0 && config.scale == 1) {
+        // Bypass blur processor if we don't need to blur (hotseat), regardless of downscale.
+        if (config.radius == 0) {
             return source
         }
 
