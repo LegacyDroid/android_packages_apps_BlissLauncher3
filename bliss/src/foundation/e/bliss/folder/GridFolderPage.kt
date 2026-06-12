@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/folder/GridFolderPage.kt
+ * Module:  bliss root app source-set
+ * Role:    FrameLayout clipping folder content to a path for smooth folder opening animations.
+ */
 package foundation.e.bliss.folder
 
 import android.content.Context

@@ -282,10 +282,9 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
     @Override
     public void onStateTransitionComplete(RecentsState finalState) {
         DesktopVisibilityController.INSTANCE.get(mContainer).onLauncherStateChanged(finalState);
-        if (enableGridOnlyOverview()) {
-            if (!finalState.displayOverviewTasksAsGrid(mContainer.getDeviceProfile())) {
-                setOverviewGridEnabled(false);
-            }
+        if (enableGridOnlyOverview()
+                && !finalState.displayOverviewTasksAsGrid(mContainer.getDeviceProfile())) {
+            setOverviewGridEnabled(false);
         }
         if (!finalState.isRecentsViewVisible()) {
             // Clean-up logic that occurs when recents is no longer in use/visible.

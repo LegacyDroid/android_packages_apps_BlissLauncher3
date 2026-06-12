@@ -157,11 +157,13 @@ public class GestureSandboxActivity extends FragmentActivity {
                     && getResources().getConfiguration().orientation
                     == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
 
-            GestureSandboxFragment fragment = showRotationPrompt
-                    ? new RotationPromptFragment()
-                    : mCurrentFragment.canRecreateFragment() || mPendingFragment == null
+            GestureSandboxFragment recreatedFragment =
+                    mCurrentFragment.canRecreateFragment() || mPendingFragment == null
                             ? mCurrentFragment.recreateFragment()
                             : mPendingFragment.recreateFragment();
+            GestureSandboxFragment fragment = showRotationPrompt
+                    ? new RotationPromptFragment()
+                    : recreatedFragment;
             showFragment(fragment == null ? mCurrentFragment : fragment);
 
         } else {
@@ -298,11 +300,11 @@ public class GestureSandboxActivity extends FragmentActivity {
 
         String[] savedStepsNames;
         Object savedSteps = extras.get(KEY_TUTORIAL_STEPS);
-        if (savedSteps instanceof String) {
-            savedStepsNames = TextUtils.isEmpty((String) savedSteps)
-                    ? null : ((String) savedSteps).split(",");
-        } else if (savedSteps instanceof String[]) {
-            savedStepsNames = (String[]) savedSteps;
+        if (savedSteps instanceof String savedStepsString) {
+            savedStepsNames = TextUtils.isEmpty(savedStepsString)
+                    ? null : savedStepsString.split(",");
+        } else if (savedSteps instanceof String[] savedStepsArray) {
+            savedStepsNames = savedStepsArray;
         } else {
             return defaultSteps;
         }

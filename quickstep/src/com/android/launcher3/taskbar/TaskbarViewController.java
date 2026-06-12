@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
 
 import static android.animation.LayoutTransition.APPEARING;
@@ -20,8 +28,6 @@ import static android.animation.LayoutTransition.CHANGE_APPEARING;
 import static android.animation.LayoutTransition.CHANGE_DISAPPEARING;
 import static android.animation.LayoutTransition.DISAPPEARING;
 import static android.view.Display.DEFAULT_DISPLAY;
-import static android.window.DesktopModeFlags.ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION;
-
 import static com.android.app.animation.Interpolators.EMPHASIZED;
 import static com.android.app.animation.Interpolators.FINAL_FRAME;
 import static com.android.app.animation.Interpolators.LINEAR;
@@ -33,7 +39,7 @@ import static com.android.launcher3.LauncherAnimUtils.VIEW_ALPHA;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_TRANSLATE_X;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_TRANSLATE_Y;
 import static com.android.launcher3.Utilities.mapRange;
-import static com.android.launcher3.anim.AnimatedFloat.VALUE;
+import static com.android.launcher3.anim.AnimatedFloat.VALUE_PROPERTY;
 import static com.android.launcher3.anim.AnimatorListeners.forEndCallback;
 import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
 import static com.android.launcher3.config.FeatureFlags.enableTaskbarPinning;
@@ -87,6 +93,7 @@ import com.android.launcher3.taskbar.bubbles.BubbleBarController;
 import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.taskbar.customization.TaskbarAllAppsButtonContainer;
 import com.android.launcher3.taskbar.customization.TaskbarDividerContainer;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 import com.android.launcher3.util.ItemInfoMatcher;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.MultiPropertyFactory;
@@ -115,7 +122,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
     private static final Runnable NO_OP = () -> { };
 
-    public static long TRANSLATION_X_FOR_BUBBLEBAR_ANIM_DURATION_MS = 250;
+    public static final long TRANSLATION_X_FOR_BUBBLEBAR_ANIM_DURATION_MS = 250;
 
     public static final int ALPHA_INDEX_HOME = 0;
     public static final int ALPHA_INDEX_KEYGUARD = 1;
@@ -192,7 +199,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
     private final View.OnLayoutChangeListener mTaskbarViewLayoutChangeListener =
             (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-                if (!ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue()) {
+                if (!DesktopFlagsCompat.enableTaskbarRecentsLayoutTransition()) {
                     // update shiftX is handled with the animation at the end of the method
                     updateTaskbarIconTranslationXForPinning(/* updateShiftXForBubbleBar = */ false);
                 }
@@ -513,8 +520,8 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
      */
     public void animateAwayNotificationDotsDuringTaskbarPinningAnimation() {
         for (View iconView : mTaskbarView.getIconViews()) {
-            if (iconView instanceof BubbleTextView && ((BubbleTextView) iconView).hasDot()) {
-                ((BubbleTextView) iconView).animateDotScale(0);
+            if (iconView instanceof BubbleTextView btv && btv.hasDot()) {
+                btv.animateDotScale(0);
             }
         }
     }
@@ -930,7 +937,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     /**
      * Creates an animation for aligning the Taskbar icons with the provided Launcher device profile
      */
-    private AnimatorPlaybackController createIconAlignmentController(DeviceProfile launcherDp) {
+    private AnimatorPlaybackController createIconAlignmentController(DeviceProfile launcherDp) { // NOSONAR pristine-AOSP-do-not-refactor
         PendingAnimation setter = new PendingAnimation(100);
         // icon alignment not needed for pinned taskbar.
         if (mActivity.isPinnedTaskbar()) {
@@ -956,9 +963,9 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
         int offsetY =
                 isDeviceLocked ? taskbarDp.getTaskbarOffsetY() : launcherDp.getTaskbarOffsetY();
-        setter.setFloat(mTaskbarIconTranslationYForHome, VALUE, -offsetY, interpolator);
-        setter.setFloat(mTaskbarNavButtonTranslationY, VALUE, -offsetY, interpolator);
-        setter.setFloat(mTaskbarNavButtonTranslationYForInAppDisplay, VALUE, offsetY, interpolator);
+        setter.setFloat(mTaskbarIconTranslationYForHome, VALUE_PROPERTY, -offsetY, interpolator);
+        setter.setFloat(mTaskbarNavButtonTranslationY, VALUE_PROPERTY, -offsetY, interpolator);
+        setter.setFloat(mTaskbarNavButtonTranslationYForInAppDisplay, VALUE_PROPERTY, offsetY, interpolator);
         if (mBubbleControllers != null
                 && mCurrentBubbleBarLocation != null
                 && mActivity.isTransientTaskbar()) {
@@ -967,7 +974,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             if (offsetX != 0) {
                 // if taskbar should be adjusted for the bubble bar adjust the taskbar translation
                 mTranslationXForBubbleBar.updateValue(offsetX);
-                setter.setFloat(mTranslationXForBubbleBar, VALUE, 0, interpolator);
+                setter.setFloat(mTranslationXForBubbleBar, VALUE_PROPERTY, 0, interpolator);
             }
         }
         int collapsedHeight = mActivity.getDefaultTaskbarWindowSize();
@@ -1057,12 +1064,15 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                 }
 
                 if (mIsHotseatIconOnTopWhenAligned) {
-                    setter.addFloat(child, VIEW_ALPHA, 0f, 1f,
-                            isToHome
-                                    ? Interpolators.clampToProgress(LINEAR, 0f, 0.35f)
-                                    : mActivity.getDeviceProfile().isQsbInline
-                                            ? Interpolators.clampToProgress(LINEAR, 0f, 1f)
-                                            : Interpolators.clampToProgress(LINEAR, 0.84f, 1f));
+                    Interpolator alphaInterpolator;
+                    if (isToHome) {
+                        alphaInterpolator = Interpolators.clampToProgress(LINEAR, 0f, 0.35f);
+                    } else if (mActivity.getDeviceProfile().isQsbInline) {
+                        alphaInterpolator = Interpolators.clampToProgress(LINEAR, 0f, 1f);
+                    } else {
+                        alphaInterpolator = Interpolators.clampToProgress(LINEAR, 0.84f, 1f);
+                    }
+                    setter.addFloat(child, VIEW_ALPHA, 0f, 1f, alphaInterpolator);
                 }
                 setter.addOnFrameListener(animator -> AlphaUpdateListener.updateVisibility(child));
                 continue;
@@ -1218,7 +1228,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     /** Called when there's a change in running apps to update the UI. */
     public void commitRunningAppsToUI() {
         mModelCallbacks.commitRunningAppsToUI();
-        if (ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue()
+        if (DesktopFlagsCompat.enableTaskbarRecentsLayoutTransition()
                 && !mActivity.isTransientTaskbar()
                 && mTaskbarView.getLayoutTransition() == null) {
             // Set up after the first commit so that the initial recents do not animate (janky).

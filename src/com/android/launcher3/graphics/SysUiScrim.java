@@ -33,6 +33,7 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.statemanager.StatefulContainer;
@@ -74,7 +75,8 @@ public class SysUiScrim implements View.OnAttachStateChangeListener {
     private static final int BOTTOM_MASK_HEIGHT_DP = 200;
     private static final int TOP_MASK_HEIGHT_DP = 70;
 
-    private boolean mDrawTopScrim, mDrawBottomScrim;
+    private boolean mDrawTopScrim;
+    private boolean mDrawBottomScrim;
 
     private final RectF mTopMaskRect = new RectF();
     private final Paint mTopMaskPaint = new Paint(FILTER_BITMAP_FLAG | DITHER_FLAG);
@@ -170,8 +172,17 @@ public class SysUiScrim implements View.OnAttachStateChangeListener {
      */
     public void onInsetsChanged(Rect insets) {
         DeviceProfile dp = mContainer.getDeviceProfile();
-        mDrawTopScrim = insets.top > 0;
+        mDrawTopScrim = insets.top > 0 && isStatusBarVisible();
         mDrawBottomScrim = !dp.isVerticalBarLayout() && !dp.isGestureMode && !dp.isTaskbarPresent;
+    }
+
+    private boolean isStatusBarVisible() {
+        try {
+            return LauncherPrefs.get(mRoot.getContext())
+                    .get(LauncherPrefs.SHOW_STATUS_BAR);
+        } catch (Exception e) {
+            return true;
+        }
     }
 
     @Override

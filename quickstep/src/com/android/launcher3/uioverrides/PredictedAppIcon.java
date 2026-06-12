@@ -233,7 +233,7 @@ public class PredictedAppIcon extends DoubleShadowBubbleTextView {
             AnimatorSet changeIconAnim = new AnimatorSet();
 
             ObjectAnimator plateColorAnim =
-                    ObjectAnimator.ofFloat(mPlateColor.progress, AnimatedFloat.VALUE, 0, 1);
+                    ObjectAnimator.ofFloat(mPlateColor.progress, AnimatedFloat.VALUE_PROPERTY, 0, 1);
             plateColorAnim.setAutoCancel(true);
             changeIconAnim.play(plateColorAnim);
 
@@ -472,10 +472,10 @@ public class PredictedAppIcon extends DoubleShadowBubbleTextView {
 
         public final AnimatedFloat progress = new AnimatedFloat(this::onUpdate, 1);
         public final ArgbEvaluator evaluator = ArgbEvaluator.getInstance();
-        public Integer startColor = 0;
-        public Integer endColor = 0;
+        private Integer startColor = 0;
+        private Integer endColor = 0;
 
-        public int currentColor = 0;
+        private int currentColor = 0;
 
         private void onUpdate() {
             currentColor = (Integer) evaluator.evaluate(progress.value, startColor, endColor);

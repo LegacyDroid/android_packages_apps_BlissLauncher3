@@ -180,11 +180,14 @@ public class ShortcutAndWidgetContainer extends ViewGroup implements FolderIcon.
                         (dp.cellLayoutBorderSpacePx.x > 0 && mContainerType == WORKSPACE)
                                 || (dp.folderCellLayoutBorderSpacePx.x > 0 && mContainerType == FOLDER)
                                 || (dp.hotseatBorderSpace > 0 && mContainerType == HOTSEAT);
-                int cellPaddingX = noPaddingX
-                        ? 0
-                        : mContainerType == WORKSPACE
-                        ? dp.workspaceCellPaddingXPx
-                        : (int) (dp.edgeMarginPx / 2f);
+                int cellPaddingX;
+                if (noPaddingX) {
+                    cellPaddingX = 0;
+                } else if (mContainerType == WORKSPACE) {
+                    cellPaddingX = dp.workspaceCellPaddingXPx;
+                } else {
+                    cellPaddingX = (int) (dp.edgeMarginPx / 2f);
+                }
                 child.setPadding(cellPaddingX, cellPaddingY, cellPaddingX, 0);
             }
         } else if (isChildQsb(child)) {

@@ -66,11 +66,16 @@ import java.util.function.Supplier;
  */
 public class ImageActionUtils {
 
+    private ImageActionUtils() {
+        // Utility class.
+    }
+
     private static final String AUTHORITY = BuildConfig.APPLICATION_ID + ".overview.fileprovider";
     private static final long FILE_LIFE = 1000L /*ms*/ * 60L /*s*/ * 60L /*m*/ * 24L /*h*/;
     private static final String SUB_FOLDER = "Overview";
     private static final String BASE_NAME = "overview_image_";
     private static final String TAG = "ImageActionUtils";
+    private static final String MIME_TYPE_PNG = "image/png";
 
     /**
      * Saves screenshot to location determine by SystemUiProxy
@@ -106,21 +111,22 @@ public class ImageActionUtils {
             Intent intent = new Intent();
             Uri uri = getImageUri(bitmap, crop, context, tag);
             ClipData clipdata = new ClipData(new ClipDescription("content",
-                    new String[]{"image/png"}),
+                    new String[]{MIME_TYPE_PNG}),
                     new ClipData.Item(uri));
             intent.setAction(Intent.ACTION_SEND)
                     .setComponent(
                             new ComponentName(appTarget.getPackageName(), appTarget.getClassName()))
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     .addFlags(FLAG_GRANT_READ_URI_PERMISSION)
-                    .setType("image/png")
+                    .setType(MIME_TYPE_PNG)
                     .putExtra(Intent.EXTRA_STREAM, uri)
                     .putExtra(Intent.EXTRA_SHORTCUT_ID, shortcutInfo.getId())
                     .setClipData(clipdata);
 
-            if (context.getUserId() != appTarget.getUser().getIdentifier()) {
-                intent.prepareToLeaveUser(context.getUserId());
-                intent.fixUris(context.getUserId());
+            int myUserId = android.os.Process.myUserHandle().getIdentifier();
+            if (myUserId != appTarget.getUser().getIdentifier()) {
+                intent.prepareToLeaveUser(myUserId);
+                intent.fixUris(myUserId);
                 context.startActivityAsUser(intent, appTarget.getUser());
             } else {
                 context.startActivity(intent);
@@ -288,13 +294,13 @@ public class ImageActionUtils {
             intent = new Intent();
         }
         ClipData clipdata = new ClipData(new ClipDescription("content",
-                new String[]{"image/png"}),
+                new String[]{MIME_TYPE_PNG}),
                 new ClipData.Item(uri));
         intent.setAction(Intent.ACTION_SEND)
                 .setComponent(null)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .addFlags(FLAG_GRANT_READ_URI_PERMISSION)
-                .setType("image/png")
+                .setType(MIME_TYPE_PNG)
                 .putExtra(Intent.EXTRA_STREAM, uri)
                 .setClipData(clipdata);
         return new Intent[]{Intent.createChooser(intent, null).addFlags(FLAG_ACTIVITY_NEW_TASK)};

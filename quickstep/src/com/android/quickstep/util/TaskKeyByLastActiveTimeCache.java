@@ -45,7 +45,7 @@ public class TaskKeyByLastActiveTimeCache<V> implements TaskKeyCache<V> {
     private final PriorityQueue<Task.TaskKey> mQueue;
 
     public TaskKeyByLastActiveTimeCache(int maxSize) {
-        mMap = new HashMap(0);
+        mMap = new HashMap<>(0);
         mQueue = new PriorityQueue<>(Comparator.comparingLong(t -> t.lastActiveTime));
         mMaxSize = new AtomicInteger(maxSize);
     }

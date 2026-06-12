@@ -42,7 +42,7 @@ public interface CustomWidgetPlugin extends Plugin {
      *
      * @deprecated Not used
      */
-    @Deprecated
+    @Deprecated(since = "1.0", forRemoval = false)
     default String getId() {
         return "";
     }

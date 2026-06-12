@@ -76,7 +76,7 @@ public class UserLockStateChangedTask implements ModelUpdateTask {
         ArrayList<WorkspaceItemInfo> updatedWorkspaceItemInfos = new ArrayList<>();
         HashSet<ShortcutKey> removedKeys = new HashSet<>();
 
-        synchronized (dataModel) {
+        synchronized (dataModel.mLock) {
             dataModel.forAllWorkspaceItemInfos(mUser, si -> {
                 if (si.itemType == LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT) {
                     if (mIsUserUnlocked) {

@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/OnBackPressedHandler.java
+ * Module:  bliss root app source-set
+ * Role:    Interface for handling back gesture events with progress tracking and callbacks.
+ */
 package foundation.e.bliss;
 
 import androidx.annotation.FloatRange;

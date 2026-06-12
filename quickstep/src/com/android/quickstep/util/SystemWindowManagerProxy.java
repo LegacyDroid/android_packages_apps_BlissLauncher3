@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.util;
 
 import static android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM;
@@ -20,6 +29,7 @@ import static android.view.Display.DEFAULT_DISPLAY;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.os.Build;
 import android.util.ArrayMap;
 import android.view.DisplayCutout;
 import android.view.Surface;
@@ -33,8 +43,8 @@ import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.util.window.CachedDisplayInfo;
 import com.android.launcher3.util.window.WindowManagerProxy;
 import com.android.quickstep.SystemUiProxy;
-import com.android.window.flags.Flags;
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat;
 
 import java.util.List;
 import java.util.Set;
@@ -58,8 +68,17 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
 
     @Override
     public Rect getCurrentBounds(Context displayInfoContext) {
-        return displayInfoContext.getResources().getConfiguration().windowConfiguration
-                .getMaxBounds();
+        if (Build.VERSION.SDK_INT < 36) {
+            return super.getCurrentBounds(displayInfoContext);
+        }
+        try {
+            return displayInfoContext.getResources().getConfiguration().windowConfiguration
+                    .getMaxBounds();
+        } catch (LinkageError e) {
+            // Configuration#windowConfiguration is a hidden field; absent on a mismatched
+            // framework. Fall back to the base proxy's public WindowMetrics path.
+            return super.getCurrentBounds(displayInfoContext);
+        }
     }
 
     @Override
@@ -79,34 +98,50 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
 
     @Override
     public boolean showLockedTaskbarOnHome(Context displayInfoContext) {
-        if (!DesktopModeStatus.canEnterDesktopMode(displayInfoContext)) {
+        if (Build.VERSION.SDK_INT < 36) {
             return false;
         }
-        if (!DesktopModeStatus.enterDesktopByDefaultOnFreeformDisplay(displayInfoContext)) {
+        if (!DesktopModeStatusCompat.canEnterDesktopMode(displayInfoContext)) {
             return false;
         }
-        final boolean isFreeformDisplay = displayInfoContext.getResources().getConfiguration()
-                .windowConfiguration.getWindowingMode() == WINDOWING_MODE_FREEFORM;
-        return isFreeformDisplay;
+        if (!DesktopModeStatusCompat.enterDesktopByDefaultOnFreeformDisplay(displayInfoContext)) {
+            return false;
+        }
+        try {
+            return displayInfoContext.getResources().getConfiguration()
+                    .windowConfiguration.getWindowingMode() == WINDOWING_MODE_FREEFORM;
+        } catch (LinkageError e) {
+            // Configuration#windowConfiguration is a hidden field; absent on a mismatched
+            // framework. Treat as non-freeform (desktop/taskbar features off) rather than crash.
+            return false;
+        }
     }
 
     @Override
     public boolean showDesktopTaskbarForFreeformDisplay(Context displayInfoContext) {
-        if (!DesktopModeStatus.canEnterDesktopMode(displayInfoContext)) {
+        if (Build.VERSION.SDK_INT < 36) {
+            return false;
+        }
+        if (!DesktopModeStatusCompat.canEnterDesktopMode(displayInfoContext)) {
             return false;
         }
 
-        if (!DesktopModeStatus.enterDesktopByDefaultOnFreeformDisplay(displayInfoContext)) {
+        if (!DesktopModeStatusCompat.enterDesktopByDefaultOnFreeformDisplay(displayInfoContext)) {
             return false;
         }
 
-        if (!Flags.enableDesktopTaskbarOnFreeformDisplays()) {
+        if (!DesktopFlagsCompat.enableDesktopTaskbarOnFreeformDisplays()) {
             return false;
         }
 
-        final boolean isFreeformDisplay = displayInfoContext.getResources().getConfiguration()
-                .windowConfiguration.getWindowingMode() == WINDOWING_MODE_FREEFORM;
-        return isFreeformDisplay;
+        try {
+            return displayInfoContext.getResources().getConfiguration()
+                    .windowConfiguration.getWindowingMode() == WINDOWING_MODE_FREEFORM;
+        } catch (LinkageError e) {
+            // Configuration#windowConfiguration is a hidden field; absent on a mismatched
+            // framework. Treat as non-freeform (desktop/taskbar features off) rather than crash.
+            return false;
+        }
     }
 
     @Override
@@ -116,35 +151,72 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
 
     @Override
     public int getRotation(Context displayInfoContext) {
-        return displayInfoContext.getResources().getConfiguration().windowConfiguration
-                .getRotation();
+        if (Build.VERSION.SDK_INT < 36) {
+            return super.getRotation(displayInfoContext);
+        }
+        try {
+            return displayInfoContext.getResources().getConfiguration().windowConfiguration
+                    .getRotation();
+        } catch (LinkageError e) {
+            // Configuration#windowConfiguration is a hidden field; absent on a mismatched
+            // framework (e.g. a stock emulator image). Use the base proxy's public path.
+            return super.getRotation(displayInfoContext);
+        }
     }
 
     @Override
     protected int getStatusBarHeight(Context context, boolean isPortrait, int statusBarInset) {
-        // See b/264656380, calculate the status bar height manually as the inset in the system
-        // server might not be updated by this point yet causing extra DeviceProfile updates
-        return SystemBarUtils.getStatusBarHeight(context);
+        if (Build.VERSION.SDK_INT < 36) {
+            return super.getStatusBarHeight(context, isPortrait, statusBarInset);
+        }
+        try {
+            // See b/264656380, calculate the status bar height manually as the inset in the system
+            // server might not be updated by this point yet causing extra DeviceProfile updates
+            return SystemBarUtils.getStatusBarHeight(context);
+        } catch (LinkageError e) {
+            // com.android.internal SystemBarUtils may be absent on a mismatched framework.
+            return super.getStatusBarHeight(context, isPortrait, statusBarInset);
+        }
     }
 
     @Override
     public ArrayMap<CachedDisplayInfo, List<WindowBounds>> estimateInternalDisplayBounds(
             Context displayInfoContext) {
-        ArrayMap<CachedDisplayInfo, List<WindowBounds>> result = new ArrayMap<>();
-        WindowManager windowManager = displayInfoContext.getSystemService(WindowManager.class);
-        Set<WindowMetrics> possibleMaximumWindowMetrics =
-                windowManager.getPossibleMaximumWindowMetrics(DEFAULT_DISPLAY);
-        for (WindowMetrics windowMetrics : possibleMaximumWindowMetrics) {
-            CachedDisplayInfo info = getDisplayInfo(windowMetrics, Surface.ROTATION_0);
-            List<WindowBounds> bounds = estimateWindowBounds(displayInfoContext, info);
-            result.put(info, bounds);
+        if (Build.VERSION.SDK_INT < 36) {
+            return super.estimateInternalDisplayBounds(displayInfoContext);
         }
-        return result;
+        try {
+            ArrayMap<CachedDisplayInfo, List<WindowBounds>> result = new ArrayMap<>();
+            WindowManager windowManager = displayInfoContext.getSystemService(WindowManager.class);
+            Set<WindowMetrics> possibleMaximumWindowMetrics =
+                    windowManager.getPossibleMaximumWindowMetrics(DEFAULT_DISPLAY);
+            for (WindowMetrics windowMetrics : possibleMaximumWindowMetrics) {
+                CachedDisplayInfo info = getDisplayInfo(windowMetrics, Surface.ROTATION_0);
+                List<WindowBounds> bounds = estimateWindowBounds(displayInfoContext, info);
+                result.put(info, bounds);
+            }
+            return result;
+        } catch (LinkageError e) {
+            // WindowManager#getPossibleMaximumWindowMetrics is a platform-framework API only
+            // guaranteed on the build BlissLauncher targets (/e/OS). On a mismatched framework
+            // (e.g. a stock emulator image) it may be absent; fall back to the base proxy's
+            // public-API estimation instead of crashing the whole launcher at startup.
+            return super.estimateInternalDisplayBounds(displayInfoContext);
+        }
     }
 
     @Override
     protected DisplayCutout rotateCutout(DisplayCutout original, int startWidth, int startHeight,
             int fromRotation, int toRotation) {
-        return original.getRotated(startWidth, startHeight, fromRotation, toRotation);
+        if (Build.VERSION.SDK_INT < 36) {
+            return super.rotateCutout(original, startWidth, startHeight, fromRotation, toRotation);
+        }
+        try {
+            return original.getRotated(startWidth, startHeight, fromRotation, toRotation);
+        } catch (LinkageError e) {
+            // DisplayCutout#getRotated may be absent on a mismatched framework; degrade to the
+            // base proxy's rotation handling rather than crash.
+            return super.rotateCutout(original, startWidth, startHeight, fromRotation, toRotation);
+        }
     }
 }

@@ -26,14 +26,14 @@ import android.view.animation.Interpolator;
  */
 abstract class SplitToConfirmTimings implements SplitAnimationTimings {
     // Overwritten by device-specific timings
-    abstract public int getPlaceholderFadeInStart();
-    abstract public int getPlaceholderFadeInEnd();
-    abstract public int getPlaceholderIconFadeInStart();
-    abstract public int getPlaceholderIconFadeInEnd();
-    abstract public int getStagedRectSlideStart();
-    abstract public int getStagedRectSlideEnd();
-    abstract public int getBackingScrimFadeInStart();
-    abstract public int getBackingScrimFadeInEnd();
+    public abstract int getPlaceholderFadeInStart();
+    public abstract int getPlaceholderFadeInEnd();
+    public abstract int getPlaceholderIconFadeInStart();
+    public abstract int getPlaceholderIconFadeInEnd();
+    public abstract int getStagedRectSlideStart();
+    public abstract int getStagedRectSlideEnd();
+    public abstract int getBackingScrimFadeInStart();
+    public abstract int getBackingScrimFadeInEnd();
 
     // Common timings
     public int getInstructionsFadeStart() { return 0; }
@@ -44,7 +44,7 @@ abstract class SplitToConfirmTimings implements SplitAnimationTimings {
     public Interpolator getStagedRectScaleYInterpolator() { return EMPHASIZED; }
     public Interpolator getBackingScrimFadeInterpolator() { return LINEAR; }
 
-    abstract public int getDuration();
+    public abstract int getDuration();
 
     public float getInstructionsFadeStartOffset() {
         return (float) getInstructionsFadeStart() / getDuration();

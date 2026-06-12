@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/suggestions/AutoCompleteAdapter.kt
+ * Module:  bliss root app source-set
+ * Role:    RecyclerView adapter displaying autocomplete suggestions with bold query highlighting.
+ */
 package foundation.e.bliss.suggestions
 
 import android.annotation.SuppressLint

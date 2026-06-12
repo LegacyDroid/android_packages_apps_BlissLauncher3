@@ -24,6 +24,7 @@ package com.android.launcher3.debug;
  */
 public class TestEventEmitter {
     public static void sendEvent(TestEvent event) {
+        // No-op in production: tests statically mock this method (see EventsRule.kt).
     }
 
     /** Events fired by the launcher. */

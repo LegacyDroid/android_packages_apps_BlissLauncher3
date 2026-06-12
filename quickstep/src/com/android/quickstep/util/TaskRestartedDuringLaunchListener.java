@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.util;
 
 import android.app.ActivityManager;
@@ -22,7 +30,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.android.systemui.shared.system.TaskStackChangeListener;
-import com.android.systemui.shared.system.TaskStackChangeListeners;
+import foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat;
 
 /**
  * This class tracks the failure of a task launch through the Launcher.startActivitySafely() call,
@@ -43,7 +51,11 @@ public class TaskRestartedDuringLaunchListener implements TaskStackChangeListene
      * resulted in an already existing task to be "restarted".
      */
     public void register(@NonNull Runnable taskRestartedCallback) {
-        TaskStackChangeListeners.getInstance().registerTaskStackListener(this);
+        try {
+            ActivityTaskManagerCompat.registerTaskStackListener(this);
+        } catch (SecurityException e) {
+            // MANAGE_ACTIVITY_TASKS not available for non-system apps
+        }
         mTaskRestartedCallback = taskRestartedCallback;
     }
 
@@ -51,7 +63,7 @@ public class TaskRestartedDuringLaunchListener implements TaskStackChangeListene
      * Unregisters the failure listener.
      */
     public void unregister() {
-        TaskStackChangeListeners.getInstance().unregisterTaskStackListener(this);
+        ActivityTaskManagerCompat.unregisterTaskStackListener(this);
         mTaskRestartedCallback = null;
     }
 

@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.PrivateSpaceFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.popup;
 
-import static android.multiuser.Flags.enableMovingContentIntoPrivateSpace;
+import static foundation.e.bliss.compat.platform.PrivateSpaceFlagsCompat.enableMovingContentIntoPrivateSpace;
 
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_SHORTCUTS;
 import static com.android.launcher3.Utilities.squaredHypot;
@@ -99,7 +107,6 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
     private int mContainerWidth;
 
     private ViewGroup mWidgetContainer;
-    private ViewGroup mDeepShortcutContainer;
     private ViewGroup mSystemShortcutContainer;
 
     protected PopupItemDragHandler mPopupItemDragHandler;
@@ -149,9 +156,7 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
     }
 
     public OnClickListener getItemClickListener() {
-        return (view) -> {
-            mActivityContext.getItemOnClickListener().onClick(view);
-        };
+        return view -> mActivityContext.getItemOnClickListener().onClick(view);
     }
 
     public void setPopupItemDragHandler(PopupItemDragHandler popupItemDragHandler) {
@@ -183,7 +188,7 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
      *
      * @deprecated Left here since some dependent projects are using this method
      */
-    @Deprecated
+    @Deprecated(since = "1.0", forRemoval = false)
     public static boolean canShow(View icon, ItemInfo item) {
         return icon instanceof BubbleTextView && ShortcutUtil.supportsShortcuts(item);
     }
@@ -410,13 +415,13 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
      * @param currentHeight height of popup before adding deep shortcuts
      */
     private void addDeepShortcuts(int deepShortcutCount, float currentHeight) {
-        mDeepShortcutContainer = inflateAndAdd(R.layout.deep_shortcut_container, this);
+        ViewGroup deepShortcutContainer = inflateAndAdd(R.layout.deep_shortcut_container, this);
         for (int i = deepShortcutCount; i > 0; i--) {
             currentHeight += mShortcutHeight;
             // when there is limited vertical screen space, limit total popup rows to fit
             if (currentHeight >= mActivityContext.getDeviceProfile().availableHeightPx) break;
             DeepShortcutView v = inflateAndAdd(R.layout.deep_shortcut,
-                    mDeepShortcutContainer);
+                    deepShortcutContainer);
             v.getLayoutParams().width = mContainerWidth;
             mDeepShortcuts.add(v);
         }
@@ -552,7 +557,9 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
     }
 
     @Override
-    public void onDropCompleted(View target, DragObject d, boolean success) {  }
+    public void onDropCompleted(View target, DragObject d, boolean success) {
+        // intentionally empty — popup does not act on completed drops.
+    }
 
     @Override
     public void onDragStart(DropTarget.DragObject dragObject, DragOptions options) {
@@ -590,7 +597,7 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
         if (mActivityContext.getDragController() != null) {
             mActivityContext.getDragController().removeDragListener(this);
         }
-        PopupContainerWithArrow openPopup = getOpen(mActivityContext);
+        PopupContainerWithArrow<?> openPopup = getOpen(mActivityContext);
         if (openPopup == null || openPopup.mOriginalIcon != mOriginalIcon) {
             mOriginalIcon.setTextVisibility(mOriginalIcon.shouldTextBeVisible());
             mOriginalIcon.setForceHideDot(false);
@@ -600,7 +607,7 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
     /**
      * Returns a PopupContainerWithArrow which is already open or null
      */
-    public static <T extends Context & ActivityContext> PopupContainerWithArrow getOpen(T context) {
+    public static <T extends Context & ActivityContext> PopupContainerWithArrow<?> getOpen(T context) {
         return getOpenView(context, TYPE_ACTION_POPUP);
     }
 
@@ -608,7 +615,7 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
      * Dismisses the popup if it is no longer valid
      */
     public static <T extends Context & ActivityContext> void dismissInvalidPopup(T activity) {
-        PopupContainerWithArrow popup = getOpen(activity);
+        PopupContainerWithArrow<?> popup = getOpen(activity);
         if (popup != null && (!popup.mOriginalIcon.isAttachedToWindow()
                 || !ShortcutUtil.supportsShortcuts((ItemInfo) popup.mOriginalIcon.getTag()))) {
             popup.animateClose();
@@ -627,9 +634,9 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
 
         protected final Point mIconLastTouchPos = new Point();
         private final Launcher mLauncher;
-        private final PopupContainerWithArrow mContainer;
+        private final PopupContainerWithArrow<?> mContainer;
 
-        LauncherPopupItemDragHandler(Launcher launcher, PopupContainerWithArrow container) {
+        LauncherPopupItemDragHandler(Launcher launcher, PopupContainerWithArrow<?> container) {
             mLauncher = launcher;
             mContainer = container;
         }
@@ -638,11 +645,9 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
         public boolean onTouch(View v, MotionEvent ev) {
             // Touched a shortcut, update where it was touched so we can drag from there on
             // long click.
-            switch (ev.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_MOVE:
-                    mIconLastTouchPos.set((int) ev.getX(), (int) ev.getY());
-                    break;
+            int action = ev.getAction();
+            if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
+                mIconLastTouchPos.set((int) ev.getX(), (int) ev.getY());
             }
             return false;
         }

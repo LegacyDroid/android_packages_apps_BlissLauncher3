@@ -13,7 +13,22 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+/*
+ * File:    bliss/src/foundation/e/bliss/widgets/WidgetContainer.kt
+ * Module:  bliss root app source-set
  *
+ * Module boundary:
+ *   Widget runtime stays app-owned because this container coordinates
+ *   Launcher, LauncherPrefs, WidgetCells, WidgetsFullSheet, app-widget host
+ *   binding, and database-backed widget state. Data-only classes can move
+ *   later, but UI/host flows need instrumentation coverage first because
+ *   failures can orphan widget IDs or break restoration.
+ *
+ * Audit03:
+ *   - Phase 05 extracts WidgetInfo, DefaultWidgets, WidgetsDbHelper into
+ *     :bliss-widgets-data behind a WidgetRepository. This file will consume
+ *     the repository instead of calling WidgetsDbHelper directly.
  */
 package foundation.e.bliss.widgets
 
@@ -66,6 +81,9 @@ import foundation.e.bliss.utils.ObservableList
 import foundation.e.bliss.utils.OnDataChangedListener
 import foundation.e.bliss.utils.disableComponent
 import foundation.e.bliss.widgets.BlissAppWidgetHost.Companion.REQUEST_CONFIGURE_APPWIDGET
+import foundation.e.bliss.widgets.data.DefaultWidgets
+import foundation.e.bliss.widgets.data.WidgetInfo
+import foundation.e.bliss.widgets.data.WidgetRepository
 import io.reactivex.disposables.Disposable
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
@@ -206,11 +224,11 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
 
     fun updateWidgets() {
         if (::mRecyclerView.isInitialized) {
-            val widgetDbHelper = WidgetsDbHelper.getInstance(context)
+            val widgetRepo = WidgetRepository.get(context)
             val widgetManager = AppWidgetManager.getInstance(context)
 
             mWidgetAdapter.getWidgets().forEach {
-                val height = widgetDbHelper.getWidgetHeight(it.id) ?: 0
+                val height = widgetRepo.getWidgetHeight(it.id) ?: 0
 
                 val info = (it as AppWidgetHostView).appWidgetInfo
                 val opts =
@@ -304,7 +322,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
     class WidgetFragment : FragmentWithPreview() {
         private lateinit var recyclerView: RecyclerView
         private lateinit var widgetObserver: Disposable
-        private lateinit var widgetsDbHelper: WidgetsDbHelper
+        private lateinit var widgetRepo: WidgetRepository
         private lateinit var widgetsAdapter: StaggeredAdapter
 
         private val mOldWidgets by lazy { BlissDbUtils.getWidgetDetails(context) }
@@ -315,15 +333,13 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
         private val mAppMonitorCallback: LauncherAppMonitorCallback =
             object : LauncherAppMonitorCallback {
                 override fun onPackageRemoved(packageName: String?, user: UserHandle?) {
-                    if (!::widgetsDbHelper.isInitialized) {
+                    if (!::widgetRepo.isInitialized) {
                         return
                     }
                     val widgets =
-                        widgetsDbHelper.getWidgets().filter {
-                            it.component.packageName == packageName
-                        }
+                        widgetRepo.getWidgets().filter { it.component.packageName == packageName }
                     if (packageName != null && widgets.isNotEmpty()) {
-                        widgets.map { it.widgetId }.forEach { widgetsDbHelper.delete(it) }
+                        widgets.map { it.widgetId }.forEach { widgetRepo.delete(it) }
                         rebindWidgets()
                     }
                 }
@@ -334,7 +350,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
                     replacing: Boolean,
                 ) {
                     if (!shouldAttemptWidgetIdRepair(context)) return
-                    if (::widgetsDbHelper.isInitialized && ::widgetsAdapter.isInitialized) {
+                    if (::widgetRepo.isInitialized && ::widgetsAdapter.isInitialized) {
                         rebindWidgets()
                     }
                 }
@@ -364,7 +380,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
             container: ViewGroup?,
             savedInstanceState: Bundle?,
         ): View {
-            widgetsDbHelper = WidgetsDbHelper.getInstance(context)
+            widgetRepo = WidgetRepository.get(context)
             widgetsAdapter = StaggeredAdapter()
             val spanCount = getSpanCount(launcher)
             recyclerView =
@@ -414,7 +430,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
                     rebindWidgets(true)
                 }
 
-                disableComponent(context, DefaultWidgets.oldWeatherWidget)
+                disableComponent(context, DefaultWidgets.oldWeatherWidget(context))
                 initialWidgetsAdded = true
             } else {
                 rebindWidgets()
@@ -433,7 +449,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
         fun rebindWidgets(backup: Boolean = false) {
             widgetsAdapter.setWidgets(mutableListOf())
             if (!backup) {
-                val dbWidgets = widgetsDbHelper.getWidgets().sortedBy { it.position }
+                val dbWidgets = widgetRepo.getWidgets().sortedBy { it.position }
                 val keepWidgetIds = dbWidgets.mapTo(hashSetOf()) { it.widgetId }
                 if (shouldAttemptWidgetIdRepair(context)) {
                     dbWidgets.forEach { restoreWidgetFromDb(it, keepWidgetIds) }
@@ -510,7 +526,7 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
             }
 
             if (newWidgetId != widgetInfo.widgetId) {
-                widgetsDbHelper.updateWidgetId(widgetInfo.widgetId, newWidgetId)
+                widgetRepo.updateWidgetId(widgetInfo.widgetId, newWidgetId)
                 keepWidgetIds.remove(widgetInfo.widgetId)
                 keepWidgetIds.add(newWidgetId)
                 mWidgetHost.deleteAppWidgetId(widgetInfo.widgetId)
@@ -524,104 +540,120 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
 
         private fun addView(widgetId: Int, backup: Boolean = false) {
             val info = mWidgetManager.getAppWidgetInfo(widgetId)
-            if (info != null) {
-                val widgetInfo = LauncherAppWidgetProviderInfo.fromProviderInfo(launcher, info)
-                mWidgetHost
-                    .createView(widgetId, widgetInfo)
-                    .apply {
-                        id = widgetId
-                        layoutTransition = LayoutTransition()
-                        setOnLongClickListener {
-                            if (
-                                (widgetInfo.resizeMode and AppWidgetProviderInfo.RESIZE_VERTICAL) ==
-                                    AppWidgetProviderInfo.RESIZE_VERTICAL
-                            ) {
-                                launcher.hideWidgetResizeContainer()
-                                launcher.showWidgetResizeContainer(this as RoundedWidgetView)
-                            }
-                            true
-                        }
-                    }
-                    .also {
-                        var opts = mWidgetManager.getAppWidgetOptions(it.appWidgetId)
-                        val params =
-                            LayoutParams(
-                                -1,
-                                opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT),
-                            )
-
-                        if (backup) {
-                            if (it.appWidgetInfo.provider.equals(DefaultWidgets.oldWeatherWidget)) {
-                                mWidgetHost.deleteAppWidgetId(it.id)
-
-                                // Swap with new widget
-                                bindWidget(DefaultWidgets.weatherWidget)
-                                return
-                            }
-                            val oldHeight =
-                                if (mOldWidgets.isNotEmpty()) {
-                                    mOldWidgets
-                                        .find { widgetItems -> widgetItems.id == widgetId }
-                                        ?.height
-                                } else {
-                                    0
-                                }
-                            val minHeight: Int = widgetInfo.minResizeHeight
-                            val maxHeight: Int =
-                                InvariantDeviceProfile.INSTANCE.get(context)
-                                    .getDeviceProfile(context)
-                                    .heightPx * 3 / 4
-                            val normalisedDifference = (maxHeight - minHeight) / 100
-
-                            if (oldHeight != null && oldHeight > 0) {
-                                params.height = minHeight + normalisedDifference * oldHeight
-                            } else {
-                                params.height = 0
-                            }
-                            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT)
-                            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
-                            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH)
-                            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
-                            it.updateAppWidgetOptions(opts)
-                        } else {
-                            params.height = widgetsDbHelper.getWidgetHeight(it.id) ?: 0
-                        }
-
-                        if (params.height > 0) {
-                            it.layoutParams = params
-                        }
-                        widgetsAdapter.addWidget(it)
-
-                        opts =
-                            WidgetSizes.getWidgetSizeOptions(
-                                launcher,
-                                info.provider,
-                                launcher.deviceProfile.inv.numColumns,
-                                launcher.deviceProfile.inv.numRows,
-                            )
-
-                        if (params.height > 0) {
-                            opts.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, params.height)
-                            opts.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, params.height)
-                        }
-
-                        val blacklistedComponents =
-                            launcher.resources.getStringArray(R.array.blacklisted_widget_options)
-                        if (!blacklistedComponents.contains(info.provider.className)) {
-                            mWidgetManager.updateAppWidgetOptions(it.appWidgetId, opts)
-                        }
-
-                        widgetsDbHelper.insert(
-                            WidgetInfo(
-                                widgetsAdapter.getWidgets().indexOf(it),
-                                it.appWidgetInfo.provider,
-                                it.appWidgetId,
-                                params.height,
-                            )
-                        )
-                    }
-            } else {
+            if (info == null) {
                 mWidgetHost.deleteAppWidgetId(widgetId)
+                return
+            }
+            val widgetInfo = LauncherAppWidgetProviderInfo.fromProviderInfo(launcher, info)
+            val view = mWidgetHost.createView(widgetId, widgetInfo)
+            configureWidgetView(view, widgetId, widgetInfo)
+
+            if (backup && isOldWeatherWidget(view)) {
+                mWidgetHost.deleteAppWidgetId(view.id)
+                // Swap with new widget
+                bindWidget(DefaultWidgets.weatherWidget)
+                return
+            }
+
+            val opts = mWidgetManager.getAppWidgetOptions(view.appWidgetId)
+            val params = LayoutParams(-1, opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT))
+            params.height =
+                if (backup) {
+                    resolveBackupHeight(widgetId, widgetInfo, opts).also {
+                        view.updateAppWidgetOptions(opts)
+                    }
+                } else {
+                    widgetRepo.getWidgetHeight(view.id) ?: 0
+                }
+
+            if (params.height > 0) {
+                view.layoutParams = params
+            }
+            widgetsAdapter.addWidget(view)
+
+            updateWidgetOptionsForView(view, info, params.height)
+            widgetRepo.insert(
+                WidgetInfo(
+                    widgetsAdapter.getWidgets().indexOf(view),
+                    view.appWidgetInfo.provider,
+                    view.appWidgetId,
+                    params.height,
+                )
+            )
+        }
+
+        private fun configureWidgetView(
+            view: AppWidgetHostView,
+            widgetId: Int,
+            widgetInfo: LauncherAppWidgetProviderInfo,
+        ) {
+            view.id = widgetId
+            view.layoutTransition = LayoutTransition()
+            view.setOnLongClickListener {
+                if (
+                    (widgetInfo.resizeMode and AppWidgetProviderInfo.RESIZE_VERTICAL) ==
+                        AppWidgetProviderInfo.RESIZE_VERTICAL
+                ) {
+                    launcher.hideWidgetResizeContainer()
+                    launcher.showWidgetResizeContainer(view as RoundedWidgetView)
+                }
+                true
+            }
+        }
+
+        private fun isOldWeatherWidget(view: AppWidgetHostView): Boolean {
+            return view.appWidgetInfo.provider.equals(DefaultWidgets.oldWeatherWidget(context))
+        }
+
+        private fun resolveBackupHeight(
+            widgetId: Int,
+            widgetInfo: LauncherAppWidgetProviderInfo,
+            opts: Bundle,
+        ): Int {
+            val oldHeight =
+                if (mOldWidgets.isNotEmpty()) {
+                    mOldWidgets.find { widgetItems -> widgetItems.id == widgetId }?.height
+                } else {
+                    0
+                }
+            val minHeight: Int = widgetInfo.minResizeHeight
+            val maxHeight: Int =
+                InvariantDeviceProfile.INSTANCE.get(context).getDeviceProfile(context).heightPx *
+                    3 / 4
+            val normalisedDifference = (maxHeight - minHeight) / 100
+            val resolved =
+                if (oldHeight != null && oldHeight > 0) {
+                    minHeight + normalisedDifference * oldHeight
+                } else {
+                    0
+                }
+            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT)
+            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
+            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH)
+            opts.remove(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
+            return resolved
+        }
+
+        private fun updateWidgetOptionsForView(
+            view: AppWidgetHostView,
+            info: AppWidgetProviderInfo,
+            height: Int,
+        ) {
+            val opts =
+                WidgetSizes.getWidgetSizeOptions(
+                    launcher,
+                    info.provider,
+                    launcher.deviceProfile.inv.numColumns,
+                    launcher.deviceProfile.inv.numRows,
+                )
+            if (height > 0) {
+                opts.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, height)
+                opts.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, height)
+            }
+            val blacklistedComponents =
+                launcher.resources.getStringArray(R.array.blacklisted_widget_options)
+            if (!blacklistedComponents.contains(info.provider.className)) {
+                mWidgetManager.updateAppWidgetOptions(view.appWidgetId, opts)
             }
         }
 
@@ -746,7 +778,8 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) :
     }
 
     companion object {
-        @SuppressLint("NewApi")
+        // Audit01 #10: @SuppressLint("NewApi") removed — currentWindowMetrics +
+        // WindowInsets.Type.systemBars() are API 30, <= minSdk 35.
         fun getSystemInsets(context: Context): Insets {
             val windowInsets =
                 context

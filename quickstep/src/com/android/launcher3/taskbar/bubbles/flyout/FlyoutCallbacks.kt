@@ -17,7 +17,7 @@
 package com.android.launcher3.taskbar.bubbles.flyout
 
 /** Callbacks that the flyout uses to notify of events. */
-interface FlyoutCallbacks {
+fun interface FlyoutCallbacks {
 
     /** The flyout was clicked. */
     fun flyoutClicked()

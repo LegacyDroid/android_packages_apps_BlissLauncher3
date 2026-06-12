@@ -19,14 +19,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/materialColorSurface"
     android:fitsSystemWindows="true">
 
-    <Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/action_bar"
-        style="?android:attr/actionBarStyle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="?android:attr/actionBarTheme" />
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/materialColorSurface"
+        android:titleTextColor="@color/materialColorOnSurface" />
 
     <FrameLayout
         android:id="@+id/content_frame"

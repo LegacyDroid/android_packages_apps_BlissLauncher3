@@ -27,6 +27,8 @@ import com.android.launcher3.config.FeatureFlags;
  */
 public class Preconditions {
 
+    private Preconditions() {}
+
     public static void assertNotNull(Object o) {
         if (FeatureFlags.IS_STUDIO_BUILD && o == null) {
             throw new IllegalStateException();

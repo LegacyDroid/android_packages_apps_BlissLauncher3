@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/folder/GridFolderController.kt
+ * Module:  bliss root app source-set
+ * Role:    Controller managing grid folder state and lifecycle, integrated with launcher app monitor.
+ */
 package foundation.e.bliss.folder
 
 import android.content.Context
@@ -43,6 +48,14 @@ class GridFolderController(context: Context, val monitor: LauncherAppMonitor) : 
     init {
         monitor.registerCallback(mAppMonitorCallback)
         gridFolderIconLayoutRule = GridFolderIconLayoutRule(context)
+    }
+
+    /**
+     * Audit01 #11: tear down the monitor callback so the next-launcher recreation does not leave
+     * two controllers firing.
+     */
+    fun release() {
+        monitor.unregisterCallback(mAppMonitorCallback)
     }
 
     override fun dumpState(

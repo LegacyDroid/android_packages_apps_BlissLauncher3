@@ -1,0 +1,29 @@
+/*
+ * Audit02: :bliss-search-providers owns built-in web suggestion transport,
+ * response models, and response parsing. Launcher UI, provider preference
+ * selection, custom URL preference reads, and search-result rendering stay
+ * in the app source-set.
+ */
+plugins {
+    id 'foundation.e.bliss.android-library'
+    alias libs.plugins.kotlin.serialization
+}
+
+android {
+    namespace = "foundation.e.bliss.search.providers"
+
+    sourceSets {
+        main.java.srcDirs = ['src/main/kotlin']
+        test.java.srcDirs = ['src/test/kotlin']
+    }
+}
+
+dependencies {
+    implementation project(':bliss-core-contracts')
+    implementation libs.kotlinx.coroutines.core
+    implementation libs.kotlinx.serialization.json
+    implementation libs.okhttp
+    implementation libs.logging.interceptor
+
+    testImplementation 'junit:junit:4.13.2'
+}

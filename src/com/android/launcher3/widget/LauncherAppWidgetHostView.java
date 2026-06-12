@@ -102,6 +102,18 @@ public class LauncherAppWidgetHostView extends BaseLauncherAppWidgetHostView
         if (Themes.getAttrBoolean(context, R.attr.isWorkspaceDarkText)) {
             setOnLightBackground(true);
         }
+
+        // Custom widget padding
+        try {
+            int padding = com.android.launcher3.dagger.LauncherComponentProvider
+                    .get(context).getLauncherPrefs()
+                    .get(com.android.launcher3.LauncherPrefs.WIDGET_PADDING);
+            if (padding > 0) {
+                int px = (int) (padding * context.getResources().getDisplayMetrics().density);
+                setPadding(px, px, px, px);
+                setClipToPadding(false);
+            }
+        } catch (Exception e) { /* pref not available */ }
     }
 
     @Override
@@ -171,10 +183,8 @@ public class LauncherAppWidgetHostView extends BaseLauncherAppWidgetHostView
         } else {
             for (int i = 0; i < viewGroup.getChildCount(); i++) {
                 View child = viewGroup.getChildAt(i);
-                if (child instanceof ViewGroup) {
-                    if (checkScrollableRecursively((ViewGroup) child)) {
-                        return true;
-                    }
+                if (child instanceof ViewGroup && checkScrollableRecursively((ViewGroup) child)) {
+                    return true;
                 }
             }
         }

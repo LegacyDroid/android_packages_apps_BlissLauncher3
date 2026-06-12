@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
 
 import static com.android.app.animation.Interpolators.EMPHASIZED;
@@ -61,6 +69,7 @@ import com.android.launcher3.anim.AnimatorListeners;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController.BubbleLauncherState;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.quickstep.RecentsAnimationCallbacks;
 import com.android.quickstep.RecentsAnimationController;
@@ -368,9 +377,7 @@ public class TaskbarLauncherStateController {
         if (recentsView != null) {
             recentsView.setTaskLaunchListener(() -> mTaskBarRecentsAnimationListener
                     .endGestureStateOverride(true, false /*canceled*/));
-            recentsView.setTaskLaunchCancelledRunnable(() -> {
-                updateStateForUserFinishedToApp(false /* finishedToApp */);
-            });
+            recentsView.setTaskLaunchCancelledRunnable(() -> updateStateForUserFinishedToApp(false /* finishedToApp */));
         }
 
         return animatorSet;
@@ -492,7 +499,7 @@ public class TaskbarLauncherStateController {
         return animator;
     }
 
-    private Animator onStateChangeApplied(int changedFlags, long duration, boolean start) {
+    private Animator onStateChangeApplied(int changedFlags, long duration, boolean start) { // NOSONAR pristine-AOSP-do-not-refactor
         final boolean isInLauncher = isInLauncher();
         final boolean isInOverview = mControllers.uiController.isInOverviewUi();
         final boolean isIconAlignedWithHotseat = isIconAlignedWithHotseat();
@@ -510,11 +517,14 @@ public class TaskbarLauncherStateController {
             boolean onOverview = isInLauncher && mLauncherState == LauncherState.OVERVIEW;
             boolean hotseatIconsVisible = isInLauncher && mLauncherState.areElementsVisible(
                     mLauncher, HOTSEAT_ICONS);
-            BubbleLauncherState state = onOverview
-                    ? BubbleLauncherState.OVERVIEW
-                    : hotseatIconsVisible
-                            ? BubbleLauncherState.HOME
-                            : BubbleLauncherState.IN_APP;
+            BubbleLauncherState state;
+            if (onOverview) {
+                state = BubbleLauncherState.OVERVIEW;
+            } else if (hotseatIconsVisible) {
+                state = BubbleLauncherState.HOME;
+            } else {
+                state = BubbleLauncherState.IN_APP;
+            }
             controllers.bubbleStashController.setLauncherState(state);
         });
 
@@ -668,7 +678,7 @@ public class TaskbarLauncherStateController {
         float cornerRoundness = isInLauncher ? 0 : 1;
 
         if (mControllers.taskbarDesktopModeController.isInDesktopModeAndNotInOverview(
-                mControllers.taskbarActivityContext.getDisplayId())
+                DisplayIdCompat.getDisplayId(mControllers.taskbarActivityContext))
                 && mControllers.getSharedState() != null) {
             cornerRoundness =
                     mControllers.taskbarDesktopModeController.getTaskbarCornerRoundness(
@@ -921,12 +931,8 @@ public class TaskbarLauncherStateController {
                 mLauncher.getDeviceProfile());
         TaskbarStashController stashController = mControllers.taskbarStashController;
         stashController.updateStateForFlag(FLAG_STASHED_FOR_BUBBLES, stash);
-        Runnable swapHotseatWithTaskbar = new Runnable() {
-            @Override
-            public void run() {
+        Runnable swapHotseatWithTaskbar = () ->
                 updateIconAlphaForHome(stash ? 1 : 0, ALPHA_CHANNEL_TASKBAR_STASH);
-            }
-        };
         if (stash) {
             stashController.applyState();
             // if we stashing the hotseat we need to immediately swap it with the animating taskbar
@@ -1150,7 +1156,7 @@ public class TaskbarLauncherStateController {
         if (RecentsWindowFlags.getEnableOverviewInWindow()) {
             final TaskbarActivityContext taskbarContext = mControllers.taskbarActivityContext;
             RecentsWindowManager recentsWindowManager = RecentsDisplayModel.getINSTANCE()
-                    .get(taskbarContext).getRecentsWindowManager(taskbarContext.getDisplayId());
+                    .get(taskbarContext).getRecentsWindowManager(DisplayIdCompat.getDisplayId(taskbarContext));
             if (recentsWindowManager != null) {
                 callback.accept(recentsWindowManager);
             }

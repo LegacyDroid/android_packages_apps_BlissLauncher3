@@ -207,6 +207,11 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
     }
 
     private boolean isOnBackInvokedCallbackEnabled(OnBackInvokedDispatcher dispatcher) {
+        if (android.os.Build.VERSION.SDK_INT < 36) {
+            // On API 35, predictive back is enabled for apps targeting API 34+
+            return dispatcher instanceof WindowOnBackInvokedDispatcher
+                    && mViewCallbacks != null;
+        }
         return dispatcher instanceof WindowOnBackInvokedDispatcher
                 && ((WindowOnBackInvokedDispatcher) dispatcher).isOnBackInvokedCallbackEnabled()
                 && mViewCallbacks != null;
@@ -259,79 +264,19 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
 
         mViewCallbacks = viewCallbacks;
         Resources resources = context.getResources();
-        Resources.Theme theme = context.getTheme();
 
-        View previousTaskView = null;
         LayoutInflater layoutInflater = LayoutInflater.from(context);
         int tasksToDisplay = groupTasks.size();
-        for (int i = 0; i < tasksToDisplay; i++) {
-            GroupTask groupTask = groupTasks.get(i);
-            KeyboardQuickSwitchTaskView currentTaskView = createAndAddTaskView(
-                    i,
-                    /* isFinalView= */ i == tasksToDisplay - 1
-                            && numHiddenTasks == 0 && !useDesktopTaskView,
-                    /* useSmallStartSpacing= */ false,
-                    mViewCallbacks.isAspectRatioSquare()
-                            ? R.layout.keyboard_quick_switch_taskview_square
-                            : R.layout.keyboard_quick_switch_taskview,
-                    layoutInflater,
-                    previousTaskView);
-
-            Task task1;
-            Task task2;
-            if (groupTask instanceof SplitTask splitTask) {
-                task1 = splitTask.getTopLeftTask();
-                task2 = splitTask.getBottomRightTask();
-            } else if (groupTask instanceof SingleTask singleTask) {
-                task1 = singleTask.getTask();
-                task2 = null;
-            } else {
-                continue;
-            }
-
-            currentTaskView.setPositionInformation(i, tasksToDisplay);
-            currentTaskView.setThumbnailsForSplitTasks(
-                    task1,
-                    task2,
-                    updateTasks ? mViewCallbacks::updateThumbnailInBackground : null,
-                    updateTasks ? mViewCallbacks::updateIconInBackground : null,
-                    groupTask instanceof SplitTask splitTask ? splitTask.getSplitBounds() : null);
-
-            previousTaskView = currentTaskView;
-        }
+        View previousTaskView = bindGroupTaskViews(
+                groupTasks, numHiddenTasks, updateTasks, useDesktopTaskView,
+                tasksToDisplay, layoutInflater);
         if (numHiddenTasks > 0) {
-            HashMap<String, Integer> args = new HashMap<>();
-            args.put("count", numHiddenTasks);
-
-            mOverviewTaskIndex = getTaskCount();
-            View overviewButton = createAndAddTaskView(
-                    mOverviewTaskIndex,
-                    /* isFinalView= */ !useDesktopTaskView,
-                    /* useSmallStartSpacing= */ false,
-                    R.layout.keyboard_quick_switch_overview_taskview,
-                    layoutInflater,
+            previousTaskView = addOverviewButton(
+                    resources, numHiddenTasks, useDesktopTaskView, layoutInflater,
                     previousTaskView);
-
-            overviewButton.<TextView>findViewById(R.id.large_text).setText(
-                    String.format(Locale.getDefault(), "%d", numHiddenTasks));
-            overviewButton.<TextView>findViewById(R.id.small_text).setText(new MessageFormat(
-                    resources.getString(R.string.quick_switch_overflow),
-                    Locale.getDefault()).format(args));
-
-            previousTaskView = overviewButton;
         }
         if (useDesktopTaskView) {
-            mDesktopTaskIndex = getTaskCount();
-            View desktopButton = createAndAddTaskView(
-                    mDesktopTaskIndex,
-                    /* isFinalView= */ true,
-                    /* useSmallStartSpacing= */ numHiddenTasks > 0,
-                    R.layout.keyboard_quick_switch_desktop_taskview,
-                    layoutInflater,
-                    previousTaskView);
-
-            desktopButton.<TextView>findViewById(R.id.small_text).setText(
-                    resources.getString(R.string.quick_switch_desktop));
+            addDesktopButton(resources, numHiddenTasks, layoutInflater, previousTaskView);
         }
         mDisplayingRecentTasks = !groupTasks.isEmpty() || useDesktopTaskView;
 
@@ -345,6 +290,99 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                         getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     }
                 });
+    }
+
+    @Nullable
+    private View bindGroupTaskViews(
+            @NonNull List<GroupTask> groupTasks,
+            int numHiddenTasks,
+            boolean updateTasks,
+            boolean useDesktopTaskView,
+            int tasksToDisplay,
+            LayoutInflater layoutInflater) {
+        View previousTaskView = null;
+        for (int i = 0; i < tasksToDisplay; i++) {
+            GroupTask groupTask = groupTasks.get(i);
+            boolean isFinalView = i == tasksToDisplay - 1
+                    && numHiddenTasks == 0 && !useDesktopTaskView;
+            int taskLayoutRes = mViewCallbacks.isAspectRatioSquare()
+                    ? R.layout.keyboard_quick_switch_taskview_square
+                    : R.layout.keyboard_quick_switch_taskview;
+            KeyboardQuickSwitchTaskView currentTaskView = createAndAddTaskView(
+                    i,
+                    isFinalView,
+                    /* useSmallStartSpacing= */ false,
+                    taskLayoutRes,
+                    layoutInflater,
+                    previousTaskView);
+
+            if (!bindGroupTask(currentTaskView, groupTask, i, tasksToDisplay, updateTasks)) {
+                continue;
+            }
+            previousTaskView = currentTaskView;
+        }
+        return previousTaskView;
+    }
+
+    private boolean bindGroupTask(KeyboardQuickSwitchTaskView taskView, GroupTask groupTask,
+            int index, int tasksToDisplay, boolean updateTasks) {
+        Task task1;
+        Task task2;
+        if (groupTask instanceof SplitTask splitTask) {
+            task1 = splitTask.getTopLeftTask();
+            task2 = splitTask.getBottomRightTask();
+        } else if (groupTask instanceof SingleTask singleTask) {
+            task1 = singleTask.getTask();
+            task2 = null;
+        } else {
+            return false;
+        }
+
+        taskView.setPositionInformation(index, tasksToDisplay);
+        taskView.setThumbnailsForSplitTasks(
+                task1,
+                task2,
+                updateTasks ? mViewCallbacks::updateThumbnailInBackground : null,
+                updateTasks ? mViewCallbacks::updateIconInBackground : null,
+                groupTask instanceof SplitTask splitTask ? splitTask.getSplitBounds() : null);
+        return true;
+    }
+
+    private View addOverviewButton(Resources resources, int numHiddenTasks,
+            boolean useDesktopTaskView, LayoutInflater layoutInflater, View previousTaskView) {
+        HashMap<String, Integer> args = new HashMap<>();
+        args.put("count", numHiddenTasks);
+
+        mOverviewTaskIndex = getTaskCount();
+        View overviewButton = createAndAddTaskView(
+                mOverviewTaskIndex,
+                /* isFinalView= */ !useDesktopTaskView,
+                /* useSmallStartSpacing= */ false,
+                R.layout.keyboard_quick_switch_overview_taskview,
+                layoutInflater,
+                previousTaskView);
+
+        overviewButton.<TextView>findViewById(R.id.large_text).setText(
+                String.format(Locale.getDefault(), "%d", numHiddenTasks));
+        overviewButton.<TextView>findViewById(R.id.small_text).setText(new MessageFormat(
+                resources.getString(R.string.quick_switch_overflow),
+                Locale.getDefault()).format(args));
+        return overviewButton;
+    }
+
+    private void addDesktopButton(Resources resources, int numHiddenTasks,
+            LayoutInflater layoutInflater, View previousTaskView) {
+        mDesktopTaskIndex = getTaskCount();
+        View desktopButton = createAndAddTaskView(
+                mDesktopTaskIndex,
+                /* isFinalView= */ true,
+                /* useSmallStartSpacing= */ numHiddenTasks > 0,
+                R.layout.keyboard_quick_switch_desktop_taskview,
+                layoutInflater,
+                previousTaskView);
+
+        desktopButton.<TextView>findViewById(R.id.small_text).setText(
+                resources.getString(R.string.quick_switch_desktop));
     }
 
 
@@ -366,13 +404,9 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
             @Override
             public void onClick(View v) {
                 if (mIsRtl) {
-                    runScrollCommand(false, () -> {
-                        mScrollView.smoothScrollBy(mScrollView.getWidth(), 0);
-                    });
+                    runScrollCommand(false, () -> mScrollView.smoothScrollBy(mScrollView.getWidth(), 0));
                 } else {
-                    runScrollCommand(false, () -> {
-                        mScrollView.smoothScrollBy(-mScrollView.getWidth(), 0);
-                    });
+                    runScrollCommand(false, () -> mScrollView.smoothScrollBy(-mScrollView.getWidth(), 0));
                 }
             }
         });
@@ -381,13 +415,9 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
             @Override
             public void onClick(View v) {
                 if (mIsRtl) {
-                    runScrollCommand(false, () -> {
-                        mScrollView.smoothScrollBy(-mScrollView.getWidth(), 0);
-                    });
+                    runScrollCommand(false, () -> mScrollView.smoothScrollBy(-mScrollView.getWidth(), 0));
                 } else {
-                    runScrollCommand(false, () -> {
-                        mScrollView.smoothScrollBy(mScrollView.getWidth(), 0);
-                    });
+                    runScrollCommand(false, () -> mScrollView.smoothScrollBy(mScrollView.getWidth(), 0));
                 }
             }
         });
@@ -559,50 +589,10 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                 InteractionJankMonitorWrapper.begin(
                         KeyboardQuickSwitchView.this, Cuj.CUJ_LAUNCHER_KEYBOARD_QUICK_SWITCH_OPEN);
                 setClipToPadding(false);
-                setOutlineProvider(new ViewOutlineProvider() {
-                    @Override
-                    public void getOutline(View view, Outline outline) {
-                        outline.setRoundRect(
-                                /* rect= */ new Rect(
-                                        /* left= */ 0,
-                                        /* top= */ 0,
-                                        /* right= */ getWidth(),
-                                        /* bottom= */
-                                        (int) (getHeight() * Utilities.mapBoundToRange(
-                                                mOutlineAnimationProgress.value,
-                                                /* lowerBound= */ 0f,
-                                                /* upperBound= */ 1f,
-                                                /* toMin= */ OUTLINE_START_HEIGHT_FACTOR,
-                                                /* toMax= */ 1f,
-                                                OPEN_OUTLINE_INTERPOLATOR))),
-                                /* radius= */ mOutlineRadius * Utilities.mapBoundToRange(
-                                        mOutlineAnimationProgress.value,
-                                        /* lowerBound= */ 0f,
-                                        /* upperBound= */ 1f,
-                                        /* toMin= */ OUTLINE_START_RADIUS_FACTOR,
-                                        /* toMax= */ 1f,
-                                        OPEN_OUTLINE_INTERPOLATOR));
-                    }
-                });
+                setOutlineProvider(createOpenAnimationOutlineProvider());
 
                 if (mSupportsScrollArrows) {
-                    mScrollView.getViewTreeObserver().addOnGlobalLayoutListener(
-                            new ViewTreeObserver.OnGlobalLayoutListener() {
-                                @Override
-                                public void onGlobalLayout() {
-                                    if (mScrollView.getWidth() == 0) {
-                                        return;
-                                    }
-
-                                    if (mContent.getWidth() > mScrollView.getWidth()) {
-                                        mStartScrollArrow.setVisibility(VISIBLE);
-                                        mEndScrollArrow.setVisibility(VISIBLE);
-                                        updateArrowButtonsEnabledState();
-                                    }
-                                    mScrollView.getViewTreeObserver().removeOnGlobalLayoutListener(
-                                            this);
-                                }
-                            });
+                    installScrollArrowsLayoutListener();
                 }
 
                 animateFocusMove(-1, defaultFocusedTaskIndex);
@@ -636,7 +626,55 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
         mOpenAnimation.start();
     }
 
-    protected void animateFocusMove(int fromIndex, int toIndex) {
+    private ViewOutlineProvider createOpenAnimationOutlineProvider() {
+        return new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                outline.setRoundRect(
+                        /* rect= */ new Rect(
+                                /* left= */ 0,
+                                /* top= */ 0,
+                                /* right= */ getWidth(),
+                                /* bottom= */
+                                (int) (getHeight() * Utilities.mapBoundToRange(
+                                        mOutlineAnimationProgress.value,
+                                        /* lowerBound= */ 0f,
+                                        /* upperBound= */ 1f,
+                                        /* toMin= */ OUTLINE_START_HEIGHT_FACTOR,
+                                        /* toMax= */ 1f,
+                                        OPEN_OUTLINE_INTERPOLATOR))),
+                        /* radius= */ mOutlineRadius * Utilities.mapBoundToRange(
+                                mOutlineAnimationProgress.value,
+                                /* lowerBound= */ 0f,
+                                /* upperBound= */ 1f,
+                                /* toMin= */ OUTLINE_START_RADIUS_FACTOR,
+                                /* toMax= */ 1f,
+                                OPEN_OUTLINE_INTERPOLATOR));
+            }
+        };
+    }
+
+    private void installScrollArrowsLayoutListener() {
+        mScrollView.getViewTreeObserver().addOnGlobalLayoutListener(
+                new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        if (mScrollView.getWidth() == 0) {
+                            return;
+                        }
+
+                        if (mContent.getWidth() > mScrollView.getWidth()) {
+                            mStartScrollArrow.setVisibility(VISIBLE);
+                            mEndScrollArrow.setVisibility(VISIBLE);
+                            updateArrowButtonsEnabledState();
+                        }
+                        mScrollView.getViewTreeObserver().removeOnGlobalLayoutListener(
+                                this);
+                    }
+                });
+    }
+
+    protected void animateFocusMove(int fromIndex, int toIndex) { // NOSONAR pristine-AOSP-do-not-refactor
         if (!mDisplayingRecentTasks) {
             return;
         }
@@ -658,10 +696,14 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                 super.onAnimationStart(animation);
                 focusedTask.requestAccessibilityFocus();
                 if (fromIndex == -1) {
-                    int firstVisibleTaskIndex = toIndex == 0
-                            ? toIndex
-                            : getTaskAt(toIndex - 1) == null
-                                    ? toIndex : toIndex - 1;
+                    int firstVisibleTaskIndex;
+                    if (toIndex == 0) {
+                        firstVisibleTaskIndex = toIndex;
+                    } else if (getTaskAt(toIndex - 1) == null) {
+                        firstVisibleTaskIndex = toIndex;
+                    } else {
+                        firstVisibleTaskIndex = toIndex - 1;
+                    }
                     // Scroll so that the previous task view is truncated as a visual hint that
                     // there are more tasks
                     initializeScroll(

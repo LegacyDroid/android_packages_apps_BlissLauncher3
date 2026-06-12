@@ -18,13 +18,14 @@ package com.android.launcher3.util;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 /**
  * Copy of the platform hidden implementation of android.util.IntArray.
  * Implements a growing array of int primitives.
  */
-public class IntArray implements Cloneable, Iterable<Integer> {
+public class IntArray implements Iterable<Integer> {
     private static final int MIN_CAPACITY_INCREMENT = 12;
 
     private static final int[] EMPTY_INT = new int[0];
@@ -132,8 +133,10 @@ public class IntArray implements Cloneable, Iterable<Integer> {
         mSize = 0;
     }
 
-    @Override
-    public IntArray clone() {
+    /**
+     * Returns a new {@link IntArray} containing the same values as this one.
+     */
+    public IntArray copy() {
         return wrap(toArray());
     }
 
@@ -142,18 +145,24 @@ public class IntArray implements Cloneable, Iterable<Integer> {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof IntArray) {
-            IntArray arr = (IntArray) obj;
-            if (mSize == arr.mSize) {
-                for (int i = 0; i < mSize; i++) {
-                    if (arr.mValues[i] != mValues[i]) {
-                        return false;
-                    }
+        if (obj instanceof IntArray arr && mSize == arr.mSize) {
+            for (int i = 0; i < mSize; i++) {
+                if (arr.mValues[i] != mValues[i]) {
+                    return false;
                 }
-                return true;
             }
+            return true;
         }
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 1;
+        for (int i = 0; i < mSize; i++) {
+            result = 31 * result + mValues[i];
+        }
+        return result;
     }
 
     /**
@@ -296,6 +305,9 @@ public class IntArray implements Cloneable, Iterable<Integer> {
 
         @Override
         public Integer next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
             return get(mNextIndex++);
         }
 

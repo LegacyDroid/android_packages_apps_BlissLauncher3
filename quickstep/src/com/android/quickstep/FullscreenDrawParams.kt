@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.QuickStepContractCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep
 
 import android.content.Context
@@ -23,7 +31,7 @@ import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.SafeCloseable
 import com.android.launcher3.views.ActivityContext
 import com.android.quickstep.util.TaskCornerRadius
-import com.android.systemui.shared.system.QuickStepContract
+import foundation.e.bliss.compat.quickstep.QuickStepContractCompat
 
 /**
  * Class for computing corner radius by interpolating between overview and fullscreen corner radius
@@ -58,7 +66,9 @@ constructor(
                 taskViewScale
     }
 
-    override fun close() {}
+    override fun close() {
+        // no-op: no resources to release; AutoCloseable contract is satisfied trivially
+    }
 
     companion object {
         private fun computeTaskCornerRadius(context: Context): Float = TaskCornerRadius.get(context)
@@ -74,7 +84,7 @@ constructor(
                     .toFloat()
             } else {
                 // The corner radius is fixed to match when Taskbar is persistent mode
-                QuickStepContract.getWindowCornerRadius(context)
+                QuickStepContractCompat.getWindowCornerRadius(context)
             }
         }
     }

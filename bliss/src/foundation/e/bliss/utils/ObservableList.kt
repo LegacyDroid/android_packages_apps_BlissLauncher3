@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/utils/ObservableList.kt
+ * Module:  bliss root app source-set
+ * Role:    List wrapper with RxJava PublishSubject for emitting add events to subscribers.
+ */
 package foundation.e.bliss.utils
 
 import io.reactivex.Observable

@@ -1,0 +1,45 @@
+// Audit02: :bliss-folders-data
+//
+// Role:
+//   Room-backed persistence for Bliss drawer folders.
+//
+// Public API:
+//   foundation.e.bliss.folders.db.DrawerFolderDatabase
+//   foundation.e.bliss.folders.db.DrawerFolderDao
+//   foundation.e.bliss.folders.db.DrawerFolderEntity
+//   foundation.e.bliss.folders.db.DrawerFolderItemEntity
+//   foundation.e.bliss.folders.db.DrawerFolderWithItems
+//
+// Dependency rules:
+//   - May depend on AndroidX Room and Kotlin coroutines Flow.
+//   - Must not depend on root launcher model/UI classes. App-root services
+//     adapt persisted component-key strings to live launcher models.
+//
+// Migration note:
+//   Source moved from bliss/src/foundation/e/bliss/folders/db with package
+//   names kept stable for existing consumers.
+plugins {
+    id 'foundation.e.bliss.android-library'
+    alias libs.plugins.ksp
+}
+
+android {
+    namespace 'foundation.e.bliss.folders.data'
+
+    sourceSets {
+        named("main") {
+            java.srcDirs("src/main/kotlin")
+        }
+    }
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas".toString())
+    arg("room.incremental", "true")
+}
+
+dependencies {
+    implementation libs.androidx.room.runtime
+    implementation libs.androidx.room.ktx
+    ksp libs.androidx.room.compiler
+}

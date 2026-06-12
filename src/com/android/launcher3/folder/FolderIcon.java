@@ -173,7 +173,7 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
         if (MultiModeController.isSingleLayerMode() && controller != null) {
             mPreviewLayoutRule = controller.getGridFolderIconLayoutRule();
         } else{
-            mPreviewLayoutRule = new ClippedFolderIconLayoutRule();
+            mPreviewLayoutRule = new ClippedFolderIconLayoutRule(getContext());
         }
 
         mPreviewItemManager = new PreviewItemManager(this);
@@ -231,11 +231,21 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
             lp.topMargin = grid.iconSizePx + grid.iconDrawablePaddingPx;
         }
 
+        // Apply folder label visibility preference
+        boolean showFolderLabels = com.android.launcher3.dagger.LauncherComponentProvider
+                .get(icon.getContext()).getLauncherPrefs()
+                .get(com.android.launcher3.LauncherPrefs.SHOW_FOLDER_LABELS);
+        if (!showFolderLabels) {
+            icon.mFolderName.setVisibility(INVISIBLE);
+        }
+
         icon.setTag(folderInfo);
         icon.setOnClickListener(activity.getItemOnClickListener());
         icon.mInfo = folderInfo;
         icon.mActivity = activity;
         icon.mDotRenderer = grid.mDotRendererWorkSpace;
+        // Wire per-folder color override lookup
+        icon.mBackground.setOwnerFolderId(folderInfo.id);
 
         icon.setContentDescription(icon.getAccessiblityTitle(folderInfo.title));
         icon.updateDotInfo();
@@ -252,6 +262,15 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
     public void animateBgShadowAndStroke() {
         mBackground.fadeInBackgroundShadow();
         mBackground.animateBackgroundStroke();
+    }
+
+    /**
+     * Migration02 / Phase 7.1 (XC-5): mark the underlying {@link PreviewBackground} as belonging
+     * to a drawer folder so per-folder color overrides are looked up under the "dr-{id}" key.
+     */
+    public void markAsDrawerFolder(boolean isDrawerFolder) {
+        mBackground.setIsDrawerFolder(isDrawerFolder);
+        invalidate();
     }
 
     public BubbleTextView getFolderName() {
@@ -627,6 +646,13 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
     }
 
     public void drawDot(Canvas canvas) {
+        // Check folder badges pref
+        try {
+            boolean folderBadges = com.android.launcher3.dagger.LauncherComponentProvider
+                    .get(getContext()).getLauncherPrefs()
+                    .get(com.android.launcher3.LauncherPrefs.FOLDER_BADGES);
+            if (!folderBadges) return;
+        } catch (Exception e) { /* default to showing badges */ }
         if (!mForceHideDot && ((mDotInfo != null && mDotInfo.hasDot()) || mDotScale > 0)) {
             Rect iconBounds = mDotParams.iconBounds;
             // FolderIcon draws the icon to be top-aligned (with padding) & horizontally-centered

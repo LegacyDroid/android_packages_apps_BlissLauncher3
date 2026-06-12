@@ -20,6 +20,8 @@ import static com.android.launcher3.widget.WidgetSections.NO_CATEGORY;
 
 import android.os.UserHandle;
 
+import androidx.annotation.NonNull;
+
 import com.android.launcher3.LauncherSettings;
 
 import java.util.Objects;
@@ -59,8 +61,9 @@ public class PackageItemInfo extends ItemInfoWithIcon {
         return super.dumpProperties() + " packageName=" + packageName;
     }
 
+    @NonNull
     @Override
-    public PackageItemInfo clone() {
+    public PackageItemInfo makeShallowCopy() {
         return new PackageItemInfo(this);
     }
 

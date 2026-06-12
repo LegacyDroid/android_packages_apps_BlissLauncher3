@@ -26,10 +26,10 @@ class GitHooksPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         project.tasks.register("createPreCommitHook") {
-            description = "Creates the .git/hooks/pre-commit file with predefined content."
+            description = "Creates the Git pre-commit hook with predefined content."
 
             doLast {
-                val gitHooksDir = File(project.rootDir, ".git/hooks")
+                val gitHooksDir = project.gitHooksDir()
                 if (!gitHooksDir.exists()) {
                     gitHooksDir.mkdirs()
                 }
@@ -48,5 +48,20 @@ class GitHooksPlugin : Plugin<Project> {
                 preCommitFile.setExecutable(true)
             }
         }
+    }
+
+    private fun Project.gitHooksDir(): File {
+        val process =
+            ProcessBuilder("git", "rev-parse", "--git-path", "hooks")
+                .directory(rootDir)
+                .redirectErrorStream(true)
+                .start()
+        val output = process.inputStream.use { it.readBytes() }
+        if (process.waitFor() == 0) {
+            val path = String(output).trim()
+            if (path.isNotEmpty())
+                return File(path).let { if (it.isAbsolute) it else File(rootDir, path) }
+        }
+        return File(rootDir, ".git/hooks")
     }
 }

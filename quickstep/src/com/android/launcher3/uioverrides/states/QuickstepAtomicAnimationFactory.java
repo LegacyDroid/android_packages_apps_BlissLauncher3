@@ -92,7 +92,7 @@ public class QuickstepAtomicAnimationFactory extends
     }
 
     @Override
-    public void prepareForAtomicAnimation(LauncherState fromState, LauncherState toState,
+    public void prepareForAtomicAnimation(LauncherState fromState, LauncherState toState, // NOSONAR pristine-AOSP-do-not-refactor
             StateAnimationConfig config) {
         RecentsView overview = mContainer.getOverviewPanel();
         boolean isPinnedTaskbar = DisplayController.isPinnedTaskbar(mContainer);

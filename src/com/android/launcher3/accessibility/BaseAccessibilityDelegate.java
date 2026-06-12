@@ -50,9 +50,9 @@ public abstract class BaseAccessibilityDelegate<T extends Context & ActivityCont
     }
 
     public static class DragInfo {
-        public DragType dragType;
-        public ItemInfo info;
-        public View item;
+        DragType dragType;
+        ItemInfo info;
+        View item;
     }
 
     protected final SparseArray<LauncherAction> mActions = new SparseArray<>();
@@ -87,14 +87,12 @@ public abstract class BaseAccessibilityDelegate<T extends Context & ActivityCont
     protected abstract void getSupportedActions(View host, ItemInfo item, List<LauncherAction> out);
 
     private boolean itemSupportsLongClick(View host) {
-        if (host instanceof BubbleTextView) {
-            return ((BubbleTextView) host).canShowLongPressPopup();
-        } else if (host instanceof BubbleTextHolder) {
-            BubbleTextHolder holder = (BubbleTextHolder) host;
-            return holder.getBubbleText() != null && holder.getBubbleText().canShowLongPressPopup();
-        } else {
-            return false;
-        }
+        return switch (host) {
+            case BubbleTextView btv -> btv.canShowLongPressPopup();
+            case BubbleTextHolder holder ->
+                    holder.getBubbleText() != null && holder.getBubbleText().canShowLongPressPopup();
+            default -> false;
+        };
     }
 
     protected boolean itemSupportsAccessibleDrag(ItemInfo item) {

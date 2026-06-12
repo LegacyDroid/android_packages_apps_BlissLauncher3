@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
 
 import static android.os.Trace.TRACE_TAG_APP;
@@ -81,9 +90,6 @@ import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.Toast;
-import android.window.DesktopExperienceFlags;
-import android.window.DesktopModeFlags;
-import android.window.DesktopModeFlags.DesktopModeFlag;
 import android.window.RemoteTransition;
 
 import androidx.annotation.NonNull;
@@ -157,7 +163,9 @@ import com.android.launcher3.util.ActivityOptionsWrapper;
 import com.android.launcher3.util.ApiWrapper;
 import com.android.launcher3.util.ApplicationInfoWrapper;
 import com.android.launcher3.util.ComponentKey;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 import com.android.launcher3.util.DisplayController;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.MultiPropertyFactory;
@@ -207,9 +215,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     private static final String TAG = "TaskbarActivityContext";
 
     private static final String WINDOW_TITLE = "Taskbar";
-
-    protected static final DesktopModeFlag ENABLE_TASKBAR_BEHIND_SHADE = new DesktopModeFlag(
-            Flags::enableTaskbarBehindShade, false);
 
     private final @Nullable Context mNavigationBarPanelContext;
 
@@ -438,7 +443,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     @Override
     public boolean isInDesktopMode() {
         return mControllers != null
-                && mControllers.taskbarDesktopModeController.isInDesktopMode(getDisplayId());
+                && mControllers.taskbarDesktopModeController.isInDesktopMode(DisplayIdCompat.getDisplayId(this));
     }
 
     @Override
@@ -784,6 +789,9 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 lp.width = mLastRequestedNonFullscreenSize;
                 lp.gravity = Gravity.START;
             }
+            default -> {
+                // No rotation-specific overrides for unexpected values; keep defaults.
+            }
         }
     }
 
@@ -865,18 +873,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         }
 
         if (oldContainer.hasPredictedHotseatContainer()) {
-            LauncherAtom.PredictedHotseatContainer predictedHotseat =
-                    oldContainer.getPredictedHotseatContainer();
-
-            if (predictedHotseat.hasIndex()) {
-                taskbarBuilder.setIndex(predictedHotseat.getIndex());
-            }
-            if (predictedHotseat.hasCardinality()) {
-                taskbarBuilder.setCardinality(predictedHotseat.getCardinality());
-            }
-
-            itemInfoBuilder.setContainerInfo(LauncherAtom.ContainerInfo.newBuilder()
-                    .setTaskBarContainer(taskbarBuilder));
+            applyPredictedHotseatOverwrite(itemInfoBuilder, oldContainer, taskbarBuilder);
         } else if (oldContainer.hasHotseat()) {
             LauncherAtom.HotseatContainer hotseat = oldContainer.getHotseat();
 
@@ -887,18 +884,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             itemInfoBuilder.setContainerInfo(LauncherAtom.ContainerInfo.newBuilder()
                     .setTaskBarContainer(taskbarBuilder));
         } else if (oldContainer.hasFolder() && oldContainer.getFolder().hasHotseat()) {
-            LauncherAtom.FolderContainer.Builder folderBuilder = oldContainer.getFolder()
-                    .toBuilder();
-            LauncherAtom.HotseatContainer hotseat = folderBuilder.getHotseat();
-
-            if (hotseat.hasIndex()) {
-                taskbarBuilder.setIndex(hotseat.getIndex());
-            }
-
-            folderBuilder.setTaskbar(taskbarBuilder);
-            folderBuilder.clearHotseat();
-            itemInfoBuilder.setContainerInfo(LauncherAtom.ContainerInfo.newBuilder()
-                    .setFolder(folderBuilder));
+            applyFolderHotseatOverwrite(itemInfoBuilder, oldContainer, taskbarBuilder);
         } else if (oldContainer.hasAllAppsContainer()) {
             itemInfoBuilder.setContainerInfo(LauncherAtom.ContainerInfo.newBuilder()
                     .setAllAppsContainer(oldContainer.getAllAppsContainer().toBuilder()
@@ -908,6 +894,40 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     .setPredictionContainer(oldContainer.getPredictionContainer().toBuilder()
                             .setTaskbarContainer(taskbarBuilder)));
         }
+    }
+
+    private void applyPredictedHotseatOverwrite(LauncherAtom.ItemInfo.Builder itemInfoBuilder,
+            LauncherAtom.ContainerInfo oldContainer,
+            LauncherAtom.TaskBarContainer.Builder taskbarBuilder) {
+        LauncherAtom.PredictedHotseatContainer predictedHotseat =
+                oldContainer.getPredictedHotseatContainer();
+
+        if (predictedHotseat.hasIndex()) {
+            taskbarBuilder.setIndex(predictedHotseat.getIndex());
+        }
+        if (predictedHotseat.hasCardinality()) {
+            taskbarBuilder.setCardinality(predictedHotseat.getCardinality());
+        }
+
+        itemInfoBuilder.setContainerInfo(LauncherAtom.ContainerInfo.newBuilder()
+                .setTaskBarContainer(taskbarBuilder));
+    }
+
+    private void applyFolderHotseatOverwrite(LauncherAtom.ItemInfo.Builder itemInfoBuilder,
+            LauncherAtom.ContainerInfo oldContainer,
+            LauncherAtom.TaskBarContainer.Builder taskbarBuilder) {
+        LauncherAtom.FolderContainer.Builder folderBuilder = oldContainer.getFolder()
+                .toBuilder();
+        LauncherAtom.HotseatContainer hotseat = folderBuilder.getHotseat();
+
+        if (hotseat.hasIndex()) {
+            taskbarBuilder.setIndex(hotseat.getIndex());
+        }
+
+        folderBuilder.setTaskbar(taskbarBuilder);
+        folderBuilder.clearHotseat();
+        itemInfoBuilder.setContainerInfo(LauncherAtom.ContainerInfo.newBuilder()
+                .setFolder(folderBuilder));
     }
 
     @NonNull
@@ -951,9 +971,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     public void onSplitScreenMenuButtonClicked() {
         PopupContainerWithArrow popup = PopupContainerWithArrow.getOpen(this);
         if (popup != null) {
-            popup.addOnCloseCallback(() -> {
-                mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(true);
-            });
+            popup.addOnCloseCallback(() ->
+                    mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(true));
         }
     }
 
@@ -1118,74 +1137,85 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     }
 
     private void updateTaskbarSnapshot(AnimatorSet anim, boolean isExpanded) {
-        if (!ENABLE_TASKBAR_BEHIND_SHADE.isTrue()) {
+        if (!DesktopFlagsCompat.enableTaskbarBehindShade()) {
             return;
         }
         if (mTaskbarSnapshotView == null) {
             mTaskbarSnapshotView = new View(this);
         }
         if (isExpanded) {
-            if (!mTaskbarSnapshotView.isAttachedToWindow()
-                    && mDragLayer.isAttachedToWindow()
-                    && mDragLayer.isLaidOut()
-                    && mTaskbarSnapshotView.getParent() == null) {
-                NearestTouchFrame navButtonsView = mDragLayer.findViewById(R.id.navbuttons_view);
-                int oldNavButtonsVisibility = navButtonsView.getVisibility();
-                navButtonsView.setVisibility(View.INVISIBLE);
+            attachTaskbarSnapshotIfNeeded(anim);
+        } else {
+            detachTaskbarSnapshot(anim);
+        }
+    }
 
-                Drawable drawable = new FastBitmapDrawable(BitmapRenderer.createHardwareBitmap(
-                        mDragLayer.getWidth(),
-                        mDragLayer.getHeight(),
-                        mDragLayer::draw));
+    private void attachTaskbarSnapshotIfNeeded(AnimatorSet anim) {
+        if (mTaskbarSnapshotView.isAttachedToWindow()
+                || !mDragLayer.isAttachedToWindow()
+                || !mDragLayer.isLaidOut()
+                || mTaskbarSnapshotView.getParent() != null) {
+            return;
+        }
+        NearestTouchFrame navButtonsView = mDragLayer.findViewById(R.id.navbuttons_view);
+        int oldNavButtonsVisibility = navButtonsView.getVisibility();
+        navButtonsView.setVisibility(View.INVISIBLE);
 
-                navButtonsView.setVisibility(oldNavButtonsVisibility);
-                mTaskbarSnapshotView.setBackground(drawable);
-                mTaskbarSnapshotView.setAlpha(0f);
+        Drawable drawable = new FastBitmapDrawable(BitmapRenderer.createHardwareBitmap(
+                mDragLayer.getWidth(),
+                mDragLayer.getHeight(),
+                mDragLayer::draw));
 
-                mTaskbarSnapshotView.addOnAttachStateChangeListener(
-                        new View.OnAttachStateChangeListener() {
-                            @Override
-                            public void onViewAttachedToWindow(@NonNull View v) {
-                                mTaskbarSnapshotView.removeOnAttachStateChangeListener(this);
-                                anim.end();
-                                mTaskbarSnapshotView.setAlpha(1f);
-                                if (!Utilities.isRunningInTestHarness()) {
-                                    ViewRootSync.synchronizeNextDraw(mDragLayer,
-                                            mTaskbarSnapshotView,
-                                            () -> {});
-                                }
-                            }
+        navButtonsView.setVisibility(oldNavButtonsVisibility);
+        mTaskbarSnapshotView.setBackground(drawable);
+        mTaskbarSnapshotView.setAlpha(0f);
 
-                            @Override
-                            public void onViewDetachedFromWindow(@NonNull View v) {}
-                        });
-                BaseDragLayer.LayoutParams layoutParams = new BaseDragLayer.LayoutParams(
-                        mDragLayer.getWidth(), mDragLayer.getHeight());
-                layoutParams.gravity = mWindowLayoutParams.gravity;
-                layoutParams.ignoreInsets = true;
-                mTaskbarSnapshotOverlay = mControllers.taskbarOverlayController.requestWindow();
-                mTaskbarSnapshotOverlay.getDragLayer().addView(mTaskbarSnapshotView, layoutParams);
+        mTaskbarSnapshotView.addOnAttachStateChangeListener(
+                new View.OnAttachStateChangeListener() {
+                    @Override
+                    public void onViewAttachedToWindow(@NonNull View v) {
+                        mTaskbarSnapshotView.removeOnAttachStateChangeListener(this);
+                        anim.end();
+                        mTaskbarSnapshotView.setAlpha(1f);
+                        if (!Utilities.isRunningInTestHarness()) {
+                            ViewRootSync.synchronizeNextDraw(mDragLayer,
+                                    mTaskbarSnapshotView,
+                                    () -> {});
+                        }
+                    }
+
+                    @Override
+                    public void onViewDetachedFromWindow(@NonNull View v) {
+                        // no-op: only attach is observed for snapshot sync
+                    }
+                });
+        BaseDragLayer.LayoutParams layoutParams = new BaseDragLayer.LayoutParams(
+                mDragLayer.getWidth(), mDragLayer.getHeight());
+        layoutParams.gravity = mWindowLayoutParams.gravity;
+        layoutParams.ignoreInsets = true;
+        mTaskbarSnapshotOverlay = mControllers.taskbarOverlayController.requestWindow();
+        mTaskbarSnapshotOverlay.getDragLayer().addView(mTaskbarSnapshotView, layoutParams);
+    }
+
+    private void detachTaskbarSnapshot(AnimatorSet anim) {
+        Runnable removeSnapshotView = () -> {
+            if (mTaskbarSnapshotOverlay != null) {
+                mTaskbarSnapshotOverlay.getDragLayer().removeView(mTaskbarSnapshotView);
+                mTaskbarSnapshotView = null;
+                mTaskbarSnapshotOverlay = null;
+            }
+        };
+        if (mTaskbarSnapshotView.isAttachedToWindow()) {
+            mTaskbarSnapshotView.setAlpha(0f);
+            anim.end();
+            if (Utilities.isRunningInTestHarness()) {
+                removeSnapshotView.run();
+            } else {
+                ViewRootSync.synchronizeNextDraw(mDragLayer, mTaskbarSnapshotView,
+                        removeSnapshotView);
             }
         } else {
-            Runnable removeSnapshotView = () -> {
-                if (mTaskbarSnapshotOverlay != null) {
-                    mTaskbarSnapshotOverlay.getDragLayer().removeView(mTaskbarSnapshotView);
-                    mTaskbarSnapshotView = null;
-                    mTaskbarSnapshotOverlay = null;
-                }
-            };
-            if (mTaskbarSnapshotView.isAttachedToWindow()) {
-                mTaskbarSnapshotView.setAlpha(0f);
-                anim.end();
-                if (Utilities.isRunningInTestHarness()) {
-                    removeSnapshotView.run();
-                } else {
-                    ViewRootSync.synchronizeNextDraw(mDragLayer, mTaskbarSnapshotView,
-                            removeSnapshotView);
-                }
-            } else {
-                removeSnapshotView.run();
-            }
+            removeSnapshotView.run();
         }
     }
 
@@ -1194,7 +1224,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     }
 
     public void disableNavBarElements(int displayId, int state1, int state2, boolean animate) {
-        if (displayId != getDisplayId()) {
+        if (displayId != DisplayIdCompat.getDisplayId(this)) {
             return;
         }
         mControllers.rotationButtonController.onDisable2FlagChanged(state2);
@@ -1454,7 +1484,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         mControllers.uiController.startSplitSelection(splitSelectSource);
     }
 
-    protected void onTaskbarIconClicked(View view) {
+    protected void onTaskbarIconClicked(View view) { // NOSONAR pristine-AOSP-do-not-refactor
         TaskbarUIController taskbarUIController = mControllers.uiController;
         RecentsView recents = taskbarUIController.getRecentsView();
         boolean shouldCloseAllOpenViews = true;
@@ -1680,19 +1710,17 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 mControllers.taskbarRecentAppsController.getRunningAppState(taskId);
         Log.d(TAG, "Task id=" + taskId + ", Running app state=" + runningAppState);
         return runningAppState == RunningAppState.MINIMIZED
-                && DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_ALTTAB_TRANSITIONS_BUGFIX.isTrue();
+                && DesktopFlagsCompat.enableDesktopAppLaunchAlttabTransitionsBugfix();
     }
 
     private RemoteTransition createDesktopAppLaunchRemoteTransition(
             AppLaunchType appLaunchType, @Cuj.CujType int cujType) {
-        return new RemoteTransition(
-                new DesktopAppLaunchTransition(
-                        this,
-                        appLaunchType,
-                        cujType,
-                        getMainExecutor()
-                ),
-                "TaskbarDesktopAppLaunch");
+        DesktopAppLaunchTransition transition = new DesktopAppLaunchTransition(
+                this, appLaunchType, cujType, getMainExecutor());
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            return new RemoteTransition(transition, "TaskbarDesktopAppLaunch");
+        }
+        return new RemoteTransition(transition);
     }
 
     /**
@@ -1714,7 +1742,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     private void launchFromInAppTaskbar(@Nullable RecentsView recents,
             @Nullable View launchingIconView, List<? extends ItemInfo> itemInfos) {
         boolean launchedFromExternalDisplay =
-                DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()
+                DesktopFlagsCompat.enableTaskbarConnectedDisplays()
                         && !mIsPrimaryDisplay;
         if (recents == null && !launchedFromExternalDisplay) {
             return;
@@ -1753,48 +1781,61 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         recents.getSplitSelectController().findLastActiveTasksAndRunCallback(
                 componentKeys,
                 isLaunchingAppPair,
-                foundTasks -> {
-                    @Nullable Task foundTask = foundTasks[0];
-                    if (foundTask != null) {
-                        TaskView foundTaskView = recents.getTaskViewByTaskId(foundTask.key.id);
-                        if (foundTaskView != null
-                                && foundTaskView.isVisibleToUser()
-                                && !(foundTaskView instanceof DesktopTaskView)) {
-                            TestLogging.recordEvent(
-                                    TestProtocol.SEQUENCE_MAIN, "start: taskbarAppIcon");
-                            foundTaskView.launchWithAnimation();
-                            return;
-                        }
-                    }
-
-                    if (isLaunchingAppPair) {
-                        // Finish recents animation if it's running before launching to ensure
-                        // we get both leashes for the animation
-                        mControllers.uiController.setSkipNextRecentsAnimEnd();
-                        recents.switchToScreenshot(() ->
-                                recents.finishRecentsAnimation(true /*toRecents*/,
-                                        false /*shouldPip*/,
-                                        () -> recents
-                                                .getSplitSelectController()
-                                                .getAppPairsController()
-                                                .launchAppPair((AppPairIcon) launchingIconView,
-                                                        -1 /*cuj*/)));
-                    } else {
-                        if (isInDesktopMode()
-                                && mControllers.uiController.isInOverviewUi()) {
-                            RunnableList runnableList = recents.launchRunningDesktopTaskView();
-                            // Wrapping it in runnable so we post after DW is ready for the app
-                            // launch.
-                            if (runnableList != null) {
-                                runnableList.add(() -> UI_HELPER_EXECUTOR.execute(
-                                        () -> startItemInfoActivity(itemInfos.get(0), foundTask)));
-                            }
-                        } else {
-                            startItemInfoActivity(itemInfos.get(0), foundTask);
-                        }
-                    }
-                }
+                foundTasks -> handleOverviewTaskbarFoundTasks(
+                        recents, launchingIconView, itemInfos, isLaunchingAppPair, foundTasks)
         );
+    }
+
+    private void handleOverviewTaskbarFoundTasks(RecentsView recents,
+            @Nullable View launchingIconView, List<? extends ItemInfo> itemInfos,
+            boolean isLaunchingAppPair, Task[] foundTasks) {
+        @Nullable Task foundTask = foundTasks[0];
+        if (tryLaunchVisibleTaskView(recents, foundTask)) {
+            return;
+        }
+
+        if (isLaunchingAppPair) {
+            // Finish recents animation if it's running before launching to ensure
+            // we get both leashes for the animation
+            mControllers.uiController.setSkipNextRecentsAnimEnd();
+            recents.switchToScreenshot(() ->
+                    recents.finishRecentsAnimation(true /*toRecents*/,
+                            false /*shouldPip*/,
+                            () -> recents
+                                    .getSplitSelectController()
+                                    .getAppPairsController()
+                                    .launchAppPair((AppPairIcon) launchingIconView,
+                                            -1 /*cuj*/)));
+            return;
+        }
+
+        if (isInDesktopMode() && mControllers.uiController.isInOverviewUi()) {
+            RunnableList runnableList = recents.launchRunningDesktopTaskView();
+            // Wrapping it in runnable so we post after DW is ready for the app
+            // launch.
+            if (runnableList != null) {
+                runnableList.add(() -> UI_HELPER_EXECUTOR.execute(
+                        () -> startItemInfoActivity(itemInfos.get(0), foundTask)));
+            }
+        } else {
+            startItemInfoActivity(itemInfos.get(0), foundTask);
+        }
+    }
+
+    private boolean tryLaunchVisibleTaskView(RecentsView recents, @Nullable Task foundTask) {
+        if (foundTask == null) {
+            return false;
+        }
+        TaskView foundTaskView = recents.getTaskViewByTaskId(foundTask.key.id);
+        if (foundTaskView == null
+                || !foundTaskView.isVisibleToUser()
+                || foundTaskView instanceof DesktopTaskView) {
+            return false;
+        }
+        TestLogging.recordEvent(
+                TestProtocol.SEQUENCE_MAIN, "start: taskbarAppIcon");
+        foundTaskView.launchWithAnimation();
+        return true;
     }
 
     /**
@@ -1827,7 +1868,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 }
             }
             if (isInDesktopMode()
-                    && DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_TRANSITIONS_BUGFIX.isTrue()) {
+                    && DesktopFlagsCompat.enableDesktopAppLaunchTransitionsBugfix()) {
                 launchDesktopApp(intent, info, displayId);
             } else {
                 startActivity(intent, null);
@@ -1857,7 +1898,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         }
         // There is no task associated with this launch - launch a new task through an intent
         ActivityOptionsWrapper opts = getActivityLaunchDesktopOptions();
-        if (DesktopModeFlags.ENABLE_START_LAUNCH_TRANSITION_FROM_TASKBAR_BUGFIX.isTrue()) {
+        if (DesktopFlagsCompat.enableStartLaunchTransitionFromTaskbarBugfix()) {
             mSysUiProxy.startLaunchIntentTransition(intent, opts.options.toBundle(), displayId);
         } else {
             startActivity(intent, opts.options.toBundle());

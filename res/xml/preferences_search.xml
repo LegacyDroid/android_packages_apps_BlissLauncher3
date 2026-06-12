@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Migration04 §04: search screen — see Plans/Migration04/04-settings-ui-modularization.md §6 -->
+<androidx.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:launcher="http://schemas.android.com/apk/res-auto"
+    android:title="@string/search_category_title">
+
+    <ListPreference
+        android:key="pref_search_provider"
+        android:title="@string/search_provider_title"
+        android:summary="@string/search_provider_summary"
+        android:persistent="false" />
+
+    <androidx.preference.SeekBarPreference
+        android:key="pref_search_result_count"
+        android:title="@string/search_result_count_title"
+        android:defaultValue="5"
+        android:max="20"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_fuzzy_search"
+        android:title="@string/fuzzy_search_title"
+        android:summary="@string/fuzzy_search_summary"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_show_calculator"
+        android:title="@string/show_calculator_title"
+        android:summary="@string/show_calculator_summary"
+        android:defaultValue="true"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_search_people"
+        android:title="@string/search_people_title"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_search_files"
+        android:title="@string/search_files_title"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_search_audio"
+        android:title="@string/search_audio_title"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_search_visual_media"
+        android:title="@string/search_visual_media_title"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_search_settings"
+        android:title="@string/search_settings_title"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_search_startpage_suggestion"
+        android:title="@string/search_startpage_suggestion_title"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <ListPreference
+        android:key="pref_search_bar_color"
+        android:title="@string/search_bar_color_title"
+        android:summary="@string/search_bar_color_summary"
+        android:persistent="false" />
+
+    <androidx.preference.SeekBarPreference
+        android:key="pref_search_bar_radius"
+        android:title="@string/search_bar_radius_title"
+        android:defaultValue="100"
+        android:max="100"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_contact_search"
+        android:title="@string/contact_search_title"
+        android:summary="@string/contact_search_summary"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_shortcut_search"
+        android:title="@string/shortcut_search_title"
+        android:summary="@string/shortcut_search_summary"
+        android:defaultValue="false"
+        android:persistent="false" />
+
+    <EditTextPreference
+        android:key="pref_web_suggestion_url"
+        android:title="@string/web_suggestion_url_title"
+        android:summary="@string/web_suggestion_url_summary"
+        android:dialogMessage="@string/web_suggestion_url_dialog"
+        android:persistent="false" />
+
+    <EditTextPreference
+        android:key="pref_web_suggestion_name"
+        android:title="@string/web_suggestion_name_title"
+        android:persistent="false" />
+
+    <androidx.preference.SeekBarPreference
+        android:key="pref_web_suggestion_max_delay"
+        android:title="@string/web_suggestion_max_delay_title"
+        android:summary="@string/web_suggestion_max_delay_summary"
+        android:defaultValue="1000"
+        android:max="5000"
+        android:persistent="false" />
+
+    <androidx.preference.SeekBarPreference
+        android:key="pref_web_suggestion_max_count"
+        android:title="@string/web_suggestion_max_count_title"
+        android:defaultValue="5"
+        android:max="20"
+        android:persistent="false" />
+
+</androidx.preference.PreferenceScreen>

@@ -50,6 +50,7 @@ import com.android.launcher3.anim.AlphaUpdateListener
 import com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION
 import com.android.launcher3.config.FeatureFlags.enableTaskbarNoRecreate
 import com.android.launcher3.taskbar.TaskbarControllers.LoggableTaskbarController
+import com.android.launcher3.taskbar.bubbles.BubbleControllers
 import com.android.launcher3.testing.shared.ResourceUtils
 import com.android.launcher3.util.Executors
 import java.io.PrintWriter
@@ -136,27 +137,8 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
             bubbleControllers?.bubbleStashController?.getTouchableHeight() ?: 0
         // reset touch bounds
         defaultTouchableRegion.setEmpty()
-        if (bubbleControllers != null) {
-            val bubbleBarViewController = bubbleControllers.bubbleBarViewController
-            val isBubbleBarVisible = bubbleControllers.bubbleStashController.isBubbleBarVisible()
-            val isAnimatingNewBubble = bubbleBarViewController.isAnimatingNewBubble
-            // if bubble bar is visible or animating new bubble, add bar bounds to the touch region
-            if (isBubbleBarVisible || isAnimatingNewBubble) {
-                defaultTouchableRegion.addBoundsToRegion(bubbleBarViewController.bubbleBarBounds)
-                defaultTouchableRegion.addBoundsToRegion(bubbleBarViewController.flyoutBounds)
-            }
-        }
-        if (
-            taskbarStashController.isInApp ||
-                controllers.uiController.isInOverviewUi ||
-                context.showLockedTaskbarOnHome()
-        ) {
-            // only add the taskbar touch region if not on home
-            val bottom = windowLayoutParams.height
-            val top = bottom - taskbarTouchableHeight
-            val right = context.deviceProfile.widthPx
-            defaultTouchableRegion.addBoundsToRegion(Rect(/* left= */ 0, top, right, bottom))
-        }
+        addBubbleBarTouchRegionIfVisible(bubbleControllers)
+        addTaskbarTouchRegionIfNotOnHome(taskbarStashController, taskbarTouchableHeight)
 
         // Pre-calculate insets for different providers across different rotations for this gravity
         for (rotation in Surface.ROTATION_0..Surface.ROTATION_270) {
@@ -171,6 +153,35 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
             setProviderInsets(provider, windowLayoutParams.gravity, context.display.rotation)
         }
         context.notifyUpdateLayoutParams()
+    }
+
+    private fun addBubbleBarTouchRegionIfVisible(bubbleControllers: BubbleControllers?) {
+        if (bubbleControllers == null) return
+        val bubbleBarViewController = bubbleControllers.bubbleBarViewController
+        val isBubbleBarVisible = bubbleControllers.bubbleStashController.isBubbleBarVisible()
+        val isAnimatingNewBubble = bubbleBarViewController.isAnimatingNewBubble
+        // if bubble bar is visible or animating new bubble, add bar bounds to the touch region
+        if (isBubbleBarVisible || isAnimatingNewBubble) {
+            defaultTouchableRegion.addBoundsToRegion(bubbleBarViewController.bubbleBarBounds)
+            defaultTouchableRegion.addBoundsToRegion(bubbleBarViewController.flyoutBounds)
+        }
+    }
+
+    private fun addTaskbarTouchRegionIfNotOnHome(
+        taskbarStashController: TaskbarStashController,
+        taskbarTouchableHeight: Int,
+    ) {
+        if (
+            taskbarStashController.isInApp ||
+                controllers.uiController.isInOverviewUi ||
+                context.showLockedTaskbarOnHome()
+        ) {
+            // only add the taskbar touch region if not on home
+            val bottom = windowLayoutParams.height
+            val top = bottom - taskbarTouchableHeight
+            val right = context.deviceProfile.widthPx
+            defaultTouchableRegion.addBoundsToRegion(Rect(/* left= */ 0, top, right, bottom))
+        }
     }
 
     /**
@@ -218,41 +229,62 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
     }
 
     private fun setProviderInsets(provider: InsetsFrameProvider, gravity: Int, endRotation: Int) {
+        applyPrimaryInsetsSize(provider, gravity, endRotation)
+        applyInsetsSizeOverrides(provider, gravity)
+    }
+
+    private fun applyPrimaryInsetsSize(
+        provider: InsetsFrameProvider,
+        gravity: Int,
+        endRotation: Int,
+    ) {
         val contentHeight = controllers.taskbarStashController.contentHeightToReportToApps
         val tappableHeight = controllers.taskbarStashController.tappableHeightToReportToApps
-        val res = context.resources
-        if (provider.type == navigationBars()) {
-            provider.insetsSize = getInsetsForGravityWithCutout(contentHeight, gravity, endRotation)
-        } else if (provider.type == mandatorySystemGestures()) {
-            if (context.isThreeButtonNav) {
+        when (provider.type) {
+            navigationBars() ->
                 provider.insetsSize =
                     getInsetsForGravityWithCutout(contentHeight, gravity, endRotation)
-            } else {
-                val gestureHeight =
-                    ResourceUtils.getNavbarSize(
-                        ResourceUtils.NAVBAR_BOTTOM_GESTURE_SIZE,
-                        context.resources,
-                    )
-                val isPinnedTaskbar =
-                    context.deviceProfile.isTaskbarPresent && !context.isTransientTaskbar
-                val mandatoryGestureHeight = if (isPinnedTaskbar) contentHeight else gestureHeight
+            mandatorySystemGestures() ->
                 provider.insetsSize =
-                    getInsetsForGravityWithCutout(mandatoryGestureHeight, gravity, endRotation)
-            }
-        } else if (provider.type == tappableElement()) {
-            provider.insetsSize = getInsetsForGravity(tappableHeight, gravity)
-        } else if (provider.type == systemGestures() && provider.index == INDEX_LEFT) {
+                    getMandatoryGestureInsets(contentHeight, gravity, endRotation)
+            tappableElement() ->
+                provider.insetsSize = getInsetsForGravity(tappableHeight, gravity)
+            systemGestures() -> applySystemGesturesInsets(provider)
+        }
+    }
+
+    private fun getMandatoryGestureInsets(contentHeight: Int, gravity: Int, endRotation: Int): Insets {
+        if (context.isThreeButtonNav) {
+            return getInsetsForGravityWithCutout(contentHeight, gravity, endRotation)
+        }
+        val gestureHeight =
+            ResourceUtils.getNavbarSize(
+                ResourceUtils.NAVBAR_BOTTOM_GESTURE_SIZE,
+                context.resources,
+            )
+        val isPinnedTaskbar =
+            context.deviceProfile.isTaskbarPresent && !context.isTransientTaskbar
+        val mandatoryGestureHeight = if (isPinnedTaskbar) contentHeight else gestureHeight
+        return getInsetsForGravityWithCutout(mandatoryGestureHeight, gravity, endRotation)
+    }
+
+    private fun applySystemGesturesInsets(provider: InsetsFrameProvider) {
+        val res = context.resources
+        if (provider.index == INDEX_LEFT) {
             val leftIndexInset =
                 if (context.isThreeButtonNav) 0
                 else gestureNavSettingsObserver.getLeftSensitivityForCallingUser(res)
             provider.insetsSize = Insets.of(leftIndexInset, 0, 0, 0)
-        } else if (provider.type == systemGestures() && provider.index == INDEX_RIGHT) {
+        } else if (provider.index == INDEX_RIGHT) {
             val rightIndexInset =
                 if (context.isThreeButtonNav) 0
                 else gestureNavSettingsObserver.getRightSensitivityForCallingUser(res)
             provider.insetsSize = Insets.of(0, 0, rightIndexInset, 0)
         }
+    }
 
+    private fun applyInsetsSizeOverrides(provider: InsetsFrameProvider, gravity: Int) {
+        val tappableHeight = controllers.taskbarStashController.tappableHeightToReportToApps
         // When in gesture nav, report the stashed height to the IME, to allow hiding the
         // IME navigation bar.
         val imeInsetsSize =
@@ -307,7 +339,11 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
         val rotation = display.rotation
         val info = DisplayInfo()
         display.getDisplayInfo(info)
-        val rotatedCutout = cutout.getRotated(info.logicalWidth, info.logicalHeight, rotation, rot)
+        val rotatedCutout = if (android.os.Build.VERSION.SDK_INT >= 36) {
+            cutout.getRotated(info.logicalWidth, info.logicalHeight, rotation, rot)
+        } else {
+            cutout // use unrotated cutout as fallback on API < 36
+        }
 
         if ((gravity and Gravity.BOTTOM) == Gravity.BOTTOM) {
             return Insets.of(0, 0, 0, maxOf(inset, rotatedCutout.safeInsetBottom))
@@ -347,82 +383,7 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
         val bubbleBarVisible =
             controllers.bubbleControllers.isPresent &&
                 controllers.bubbleControllers.get().bubbleBarViewController.isBubbleBarVisible()
-        var insetsIsTouchableRegion = true
-        // Prevents the taskbar from taking touches and conflicting with setup wizard
-        if (
-            context.isPhoneButtonNavMode &&
-                context.isUserSetupComplete &&
-                (!controllers.navbarButtonsViewController.isImeVisible ||
-                    !controllers.navbarButtonsViewController.isImeRenderingNavButtons)
-        ) {
-            insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_FRAME)
-            insetsIsTouchableRegion = false
-            debugTouchableRegion.lastSetTouchableReason =
-                "Phone button nav mode: Fullscreen touchable, IME not affecting nav buttons"
-        } else if (context.dragLayer.alpha < AlphaUpdateListener.ALPHA_CUTOFF_THRESHOLD) {
-            // Let touches pass through us.
-            insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_REGION)
-            debugTouchableRegion.lastSetTouchableReason = "Taskbar is invisible"
-        } else if (
-            controllers.navbarButtonsViewController.isImeVisible &&
-                controllers.taskbarStashController.isStashed
-        ) {
-            // Let touches pass through us.
-            insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_REGION)
-            debugTouchableRegion.lastSetTouchableReason = "Stashed over IME"
-        } else if (!controllers.uiController.isTaskbarTouchable) {
-            // Let touches pass through us.
-            insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_REGION)
-            debugTouchableRegion.lastSetTouchableReason = "Taskbar is not touchable"
-        } else if (controllers.taskbarDragController.isSystemDragInProgress) {
-            // Let touches pass through us.
-            insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_REGION)
-            debugTouchableRegion.lastSetTouchableReason = "System drag is in progress"
-        } else if (context.isTaskbarWindowFullscreen) {
-            // Intercept entire fullscreen window.
-            insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_FRAME)
-            insetsIsTouchableRegion = false
-            debugTouchableRegion.lastSetTouchableReason = "Taskbar is fullscreen"
-            context.dragLayer.getBoundsInWindow(debugTouchableRegion.lastSetTouchableBounds, false)
-        } else if (
-            controllers.taskbarViewController.areIconsVisible() ||
-                context.isNavBarKidsModeActive ||
-                bubbleBarVisible
-        ) {
-            // Taskbar has some touchable elements, take over the full taskbar area
-            if (controllers.uiController.isInOverviewUi && context.isTransientTaskbar) {
-                val region =
-                    controllers.taskbarActivityContext.dragLayer.lastDrawnTransientRect.toRegion()
-                val bubbleBarBounds =
-                    controllers.bubbleControllers.getOrNull()?.let { bubbleControllers ->
-                        if (!bubbleControllers.bubbleStashController.isBubblesShowingOnOverview) {
-                            return@let null
-                        }
-                        if (!bubbleControllers.bubbleBarViewController.isBubbleBarVisible) {
-                            return@let null
-                        }
-                        bubbleControllers.bubbleBarViewController.bubbleBarBounds
-                    }
-
-                // Include the bounds of the bubble bar in the touchable region if they exist.
-                if (bubbleBarBounds != null) {
-                    region.addBoundsToRegion(bubbleBarBounds)
-                }
-                insetsInfo.touchableRegion.set(region)
-                debugTouchableRegion.lastSetTouchableReason = "Transient Taskbar is in Overview"
-                debugTouchableRegion.lastSetTouchableBounds.set(region.bounds)
-            } else {
-                insetsInfo.touchableRegion.set(defaultTouchableRegion)
-                debugTouchableRegion.lastSetTouchableReason = "Using default touchable region"
-                debugTouchableRegion.lastSetTouchableBounds.set(defaultTouchableRegion.bounds)
-            }
-            insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_REGION)
-            insetsIsTouchableRegion = false
-        } else {
-            insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_REGION)
-            debugTouchableRegion.lastSetTouchableReason =
-                "Icons are not visible, but other components such as 3 buttons might be"
-        }
+        val insetsIsTouchableRegion = applyTouchableInsetsBranch(insetsInfo, bubbleBarVisible)
         // Always have nav buttons be touchable
         controllers.navbarButtonsViewController.addVisibleButtonsRegion(
             context.dragLayer,
@@ -430,6 +391,109 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
         )
         debugTouchableRegion.lastSetTouchableBounds.set(insetsInfo.touchableRegion.bounds)
         context.excludeFromMagnificationRegion(insetsIsTouchableRegion)
+    }
+
+    private fun applyTouchableInsetsBranch(
+        insetsInfo: ViewTreeObserver.InternalInsetsInfo,
+        bubbleBarVisible: Boolean,
+    ): Boolean {
+        // Prevents the taskbar from taking touches and conflicting with setup wizard
+        if (isPhoneNavSetupCompleteFullscreen()) {
+            insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_FRAME)
+            debugTouchableRegion.lastSetTouchableReason =
+                "Phone button nav mode: Fullscreen touchable, IME not affecting nav buttons"
+            return false
+        }
+        if (context.dragLayer.alpha < AlphaUpdateListener.ALPHA_CUTOFF_THRESHOLD) {
+            // Let touches pass through us.
+            insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_REGION)
+            debugTouchableRegion.lastSetTouchableReason = "Taskbar is invisible"
+            return true
+        }
+        if (
+            controllers.navbarButtonsViewController.isImeVisible &&
+                controllers.taskbarStashController.isStashed
+        ) {
+            // Let touches pass through us.
+            insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_REGION)
+            debugTouchableRegion.lastSetTouchableReason = "Stashed over IME"
+            return true
+        }
+        if (!controllers.uiController.isTaskbarTouchable) {
+            // Let touches pass through us.
+            insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_REGION)
+            debugTouchableRegion.lastSetTouchableReason = "Taskbar is not touchable"
+            return true
+        }
+        if (controllers.taskbarDragController.isSystemDragInProgress) {
+            // Let touches pass through us.
+            insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_REGION)
+            debugTouchableRegion.lastSetTouchableReason = "System drag is in progress"
+            return true
+        }
+        if (context.isTaskbarWindowFullscreen) {
+            // Intercept entire fullscreen window.
+            insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_FRAME)
+            debugTouchableRegion.lastSetTouchableReason = "Taskbar is fullscreen"
+            context.dragLayer.getBoundsInWindow(debugTouchableRegion.lastSetTouchableBounds, false)
+            return false
+        }
+        if (
+            controllers.taskbarViewController.areIconsVisible() ||
+                context.isNavBarKidsModeActive ||
+                bubbleBarVisible
+        ) {
+            // Taskbar has some touchable elements, take over the full taskbar area
+            applyVisibleIconsTouchableRegion(insetsInfo)
+            insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_REGION)
+            return false
+        }
+        insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_REGION)
+        debugTouchableRegion.lastSetTouchableReason =
+            "Icons are not visible, but other components such as 3 buttons might be"
+        return true
+    }
+
+    private fun isPhoneNavSetupCompleteFullscreen(): Boolean {
+        if (!context.isPhoneButtonNavMode || !context.isUserSetupComplete) {
+            return false
+        }
+        val navbarButtonsViewController = controllers.navbarButtonsViewController
+        return !navbarButtonsViewController.isImeVisible ||
+            !navbarButtonsViewController.isImeRenderingNavButtons
+    }
+
+    private fun applyVisibleIconsTouchableRegion(
+        insetsInfo: ViewTreeObserver.InternalInsetsInfo,
+    ) {
+        if (controllers.uiController.isInOverviewUi && context.isTransientTaskbar) {
+            val region =
+                controllers.taskbarActivityContext.dragLayer.lastDrawnTransientRect.toRegion()
+            val bubbleBarBounds = overviewBubbleBarBounds()
+
+            // Include the bounds of the bubble bar in the touchable region if they exist.
+            if (bubbleBarBounds != null) {
+                region.addBoundsToRegion(bubbleBarBounds)
+            }
+            insetsInfo.touchableRegion.set(region)
+            debugTouchableRegion.lastSetTouchableReason = "Transient Taskbar is in Overview"
+            debugTouchableRegion.lastSetTouchableBounds.set(region.bounds)
+        } else {
+            insetsInfo.touchableRegion.set(defaultTouchableRegion)
+            debugTouchableRegion.lastSetTouchableReason = "Using default touchable region"
+            debugTouchableRegion.lastSetTouchableBounds.set(defaultTouchableRegion.bounds)
+        }
+    }
+
+    private fun overviewBubbleBarBounds(): Rect? {
+        val bubbleControllers = controllers.bubbleControllers.getOrNull() ?: return null
+        if (!bubbleControllers.bubbleStashController.isBubblesShowingOnOverview) {
+            return null
+        }
+        if (!bubbleControllers.bubbleBarViewController.isBubbleBarVisible) {
+            return null
+        }
+        return bubbleControllers.bubbleBarViewController.bubbleBarBounds
     }
 
     /** Draws the last set touchableRegion as a red rectangle onto the given Canvas. */

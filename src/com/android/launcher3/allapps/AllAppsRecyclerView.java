@@ -161,20 +161,29 @@ public class AllAppsRecyclerView extends FastScrollRecyclerView {
         super.onScrollStateChanged(state);
 
         StatsLogManager mgr = ActivityContext.lookupContext(getContext()).getStatsLogManager();
-        switch (state) {
-            case SCROLL_STATE_DRAGGING:
-                mCumulativeVerticalScroll = 0;
-                requestFocus();
-                mgr.logger().sendToInteractionJankMonitor(
-                        LAUNCHER_ALLAPPS_VERTICAL_SWIPE_BEGIN, this);
-                ActivityContext.lookupContext(getContext()).hideKeyboard();
-                break;
-            case SCROLL_STATE_IDLE:
-                mgr.logger().sendToInteractionJankMonitor(
-                        LAUNCHER_ALLAPPS_VERTICAL_SWIPE_END, this);
-                logCumulativeVerticalScroll();
-                break;
+        if (state == SCROLL_STATE_DRAGGING) {
+            mCumulativeVerticalScroll = 0;
+            requestFocus();
+            mgr.logger().sendToInteractionJankMonitor(
+                    LAUNCHER_ALLAPPS_VERTICAL_SWIPE_BEGIN, this);
+            ActivityContext.lookupContext(getContext()).hideKeyboard();
+            maybeHapticFeedback(android.view.HapticFeedbackConstants.GESTURE_START);
+        } else if (state == SCROLL_STATE_IDLE) {
+            mgr.logger().sendToInteractionJankMonitor(
+                    LAUNCHER_ALLAPPS_VERTICAL_SWIPE_END, this);
+            logCumulativeVerticalScroll();
+            maybeHapticFeedback(android.view.HapticFeedbackConstants.GESTURE_END);
         }
+    }
+
+    private void maybeHapticFeedback(int constant) {
+        try {
+            if (com.android.launcher3.LauncherPrefs.get(getContext())
+                    .get(com.android.launcher3.LauncherPrefs.DRAWER_HAPTIC)) {
+                performHapticFeedback(constant,
+                        android.view.HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
+            }
+        } catch (Throwable ignored) { /* pref not available */ }
     }
 
     @Override
@@ -280,7 +289,7 @@ public class AllAppsRecyclerView extends FastScrollRecyclerView {
                                 (float) (availableScrollBarHeight - scrollBarY));
                         thumbScrollY += Math.min(offset, diffScrollY);
                     }
-                    thumbScrollY = Math.max(0, Math.min(availableScrollBarHeight, thumbScrollY));
+                    thumbScrollY = Utilities.boundToRange(thumbScrollY, 0, availableScrollBarHeight);
                     mScrollbar.setThumbOffsetY(thumbScrollY);
                     if (scrollBarY == thumbScrollY) {
                         mScrollbar.reattachThumbToScroll();

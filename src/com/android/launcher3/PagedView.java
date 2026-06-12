@@ -80,7 +80,7 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
 
     public static final int ACTION_MOVE_ALLOW_EASY_FLING = MotionEvent.ACTION_MASK - 1;
     public static final int INVALID_PAGE = -1;
-    protected static final ComputePageScrollsLogic SIMPLE_SCROLL_LOGIC = (v) -> v.getVisibility() != GONE;
+    protected static final ComputePageScrollsLogic SIMPLE_SCROLL_LOGIC = v -> v.getVisibility() != GONE;
 
     private static final float RETURN_TO_ORIGINAL_PAGE_THRESHOLD = 0.33f;
     // The page is moved more than halfway, automatically move to the next page on touch up.
@@ -161,15 +161,15 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
     protected EdgeEffectCompat mEdgeGlowRight;
     protected NavigationMode navMode;
 
-    public PagedView(Context context) {
+    protected PagedView(Context context) {
         this(context, null);
     }
 
-    public PagedView(Context context, AttributeSet attrs) {
+    protected PagedView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public PagedView(Context context, AttributeSet attrs, int defStyle) {
+    protected PagedView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
         TypedArray a = context.obtainStyledAttributes(attrs,
@@ -543,16 +543,15 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
     }
 
     private void sendScrollAccessibilityEvent() {
-        if (isObservedEventType(getContext(), AccessibilityEvent.TYPE_VIEW_SCROLLED)) {
-            if (mCurrentPage != getNextPage()) {
-                AccessibilityEvent ev =
-                        AccessibilityEvent.obtain(AccessibilityEvent.TYPE_VIEW_SCROLLED);
-                ev.setScrollable(true);
-                ev.setScrollX(getScrollX());
-                ev.setScrollY(getScrollY());
-                mOrientationHandler.setMaxScroll(ev, mMaxScroll);
-                sendAccessibilityEventUnchecked(ev);
-            }
+        if (isObservedEventType(getContext(), AccessibilityEvent.TYPE_VIEW_SCROLLED)
+                && mCurrentPage != getNextPage()) {
+            AccessibilityEvent ev =
+                    AccessibilityEvent.obtain(AccessibilityEvent.TYPE_VIEW_SCROLLED);
+            ev.setScrollable(true);
+            ev.setScrollX(getScrollX());
+            ev.setScrollY(getScrollY());
+            mOrientationHandler.setMaxScroll(ev, mMaxScroll);
+            sendAccessibilityEventUnchecked(ev);
         }
     }
 
@@ -1232,8 +1231,7 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
                 break;
             }
 
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL:
                 resetTouchState();
                 break;
 
@@ -1376,10 +1374,8 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
 
         if (mFreeScroll) {
             setCurrentPage(getNextPage());
-        } else if (wasFreeScroll) {
-            if (getScrollForPage(getNextPage()) != getScrollX()) {
-                snapToPage(getNextPage());
-            }
+        } else if (wasFreeScroll && getScrollForPage(getNextPage()) != getScrollX()) {
+            snapToPage(getNextPage());
         }
     }
 
@@ -1474,7 +1470,7 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
                     mOrientationHandler.setPrimary(this, VIEW_SCROLL_BY, delta);
 
                     if (mAllowOverScroll) {
-                        final float pulledToX = oldScroll + delta;
+                        final float pulledToX = (float) oldScroll + delta;
 
                         if (pulledToX < mMinScroll) {
                             mEdgeGlowLeft.onPullDistance(-delta / size, 1.f - displacement, ev);
@@ -1550,6 +1546,8 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
                     // test for a large move if a fling has been registered. That is, a large
                     // move to the left and fling to the right will register as a fling to the right.
 
+                    boolean infiniteScroll = isInfiniteScrollingEnabled();
+
                     if (((isSignificantMove && !isDeltaLeft && !isFling) ||
                             (isFling && !isVelocityLeft)) && mCurrentPage > 0) {
                         finalPage = returnToOriginalPage
@@ -1561,6 +1559,17 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
                             mCurrentPage < getChildCount() - 1) {
                         finalPage = returnToOriginalPage
                                 ? mCurrentPage : mCurrentPage + getPanelCount();
+                        runOnPageScrollsInitialized(
+                                () -> snapToPageWithVelocity(finalPage, velocity));
+                    } else if (mCurrentPage == getChildCount() - 1 && infiniteScroll
+                            && isFling && isVelocityLeft) {
+                        finalPage = returnToOriginalPage ? mCurrentPage : 0;
+                        runOnPageScrollsInitialized(
+                                () -> snapToPageWithVelocity(finalPage, velocity));
+                    } else if (mCurrentPage == 0 && infiniteScroll
+                            && isFling && !isVelocityLeft) {
+                        finalPage = returnToOriginalPage
+                                ? mCurrentPage : getChildCount() - 1;
                         runOnPageScrollsInitialized(
                                 () -> snapToPageWithVelocity(finalPage, velocity));
                     } else {
@@ -1659,31 +1668,29 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
         if ((event.getSource() & InputDevice.SOURCE_CLASS_POINTER) != 0) {
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_SCROLL: {
-                    // Handle mouse (or ext. device) by shifting the page depending on the scroll
-                    final float vscroll;
-                    final float hscroll;
-                    if ((event.getMetaState() & KeyEvent.META_SHIFT_ON) != 0) {
-                        vscroll = 0;
-                        hscroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL);
+            if (event.getAction() == MotionEvent.ACTION_SCROLL) {
+                // Handle mouse (or ext. device) by shifting the page depending on the scroll
+                final float vscroll;
+                final float hscroll;
+                if ((event.getMetaState() & KeyEvent.META_SHIFT_ON) != 0) {
+                    vscroll = 0;
+                    hscroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL);
+                } else {
+                    vscroll = -event.getAxisValue(MotionEvent.AXIS_VSCROLL);
+                    hscroll = event.getAxisValue(MotionEvent.AXIS_HSCROLL);
+                }
+                if (!canScroll(Math.abs(vscroll), Math.abs(hscroll))) {
+                    return false;
+                }
+                if (hscroll != 0 || vscroll != 0) {
+                    boolean isForwardScroll = mIsRtl ? (hscroll < 0 || vscroll < 0)
+                                                     : (hscroll > 0 || vscroll > 0);
+                    if (isForwardScroll) {
+                        scrollRight();
                     } else {
-                        vscroll = -event.getAxisValue(MotionEvent.AXIS_VSCROLL);
-                        hscroll = event.getAxisValue(MotionEvent.AXIS_HSCROLL);
+                        scrollLeft();
                     }
-                    if (!canScroll(Math.abs(vscroll), Math.abs(hscroll))) {
-                        return false;
-                    }
-                    if (hscroll != 0 || vscroll != 0) {
-                        boolean isForwardScroll = mIsRtl ? (hscroll < 0 || vscroll < 0)
-                                                         : (hscroll > 0 || vscroll > 0);
-                        if (isForwardScroll) {
-                            scrollRight();
-                        } else {
-                            scrollLeft();
-                        }
-                        return true;
-                    }
+                    return true;
                 }
             }
         }
@@ -2040,6 +2047,9 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
                     return scrollRight();
                 }
             }
+            default:
+                // Unhandled accessibility action — fall through to super-class behavior.
+                break;
         }
         return false;
     }
@@ -2127,6 +2137,15 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
                 }
                 canvas.restoreToCount(restoreCount);
             }
+        }
+    }
+
+    private boolean isInfiniteScrollingEnabled() {
+        try {
+            return LauncherPrefs.get(getContext())
+                    .get(LauncherPrefs.INFINITE_SCROLLING);
+        } catch (Exception e) {
+            return false;
         }
     }
 }

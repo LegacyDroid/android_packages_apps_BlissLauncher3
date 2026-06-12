@@ -52,7 +52,9 @@ public class DiscoveryBounce extends AbstractFloatingView {
         }
 
         @Override
-        public void onStateTransitionComplete(LauncherState finalState) {}
+        public void onStateTransitionComplete(LauncherState finalState) {
+            // intentionally empty — only the start of the transition is relevant for the bounce
+        }
     };
 
     public DiscoveryBounce(Launcher launcher) {

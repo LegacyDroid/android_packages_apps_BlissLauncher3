@@ -13,5 +13,6 @@ interface SplitSelectionListener {
      * split screen or fullscreen), false if the user canceled/exited the selection process
      */
     fun onSplitSelectionExit(launchedSplit: Boolean) {
+        // no-op default; implementers can override to react to split-selection exit
     }
 }

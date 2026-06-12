@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/blur/OffsetParent.kt
+ * Module:  bliss root app source-set
+ * Role:    Interface and delegate for wallpaper offset change listeners and parent position tracking.
+ */
 package foundation.e.bliss.blur
 
 import java.util.concurrent.CopyOnWriteArrayList
@@ -30,7 +35,7 @@ interface OffsetParent {
 
     fun removeOnOffsetChangeListener(listener: OnOffsetChangeListener)
 
-    interface OnOffsetChangeListener {
+    fun interface OnOffsetChangeListener {
         fun onOffsetChange()
     }
 

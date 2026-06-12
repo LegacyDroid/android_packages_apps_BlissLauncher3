@@ -156,12 +156,10 @@ public abstract class BaseWindowInterface extends
             mRecentsWindowManager.getStateManager().setCurrentUserControlledAnimation(controller);
 
             // Since we are changing the start position of the UI, reapply the state, at the end
-            controller.setEndAction(() -> {
-                mRecentsWindowManager.getStateManager().goToState(
-                        controller.getInterpolatedProgress() > 0.5 ? mTargetState
-                                : mBackgroundState,
-                        /* animated= */ false);
-            });
+            controller.setEndAction(() -> mRecentsWindowManager.getStateManager().goToState(
+                    controller.getInterpolatedProgress() > 0.5 ? mTargetState
+                            : mBackgroundState,
+                    /* animated= */ false));
 
             RecentsView recentsView = mRecentsWindowManager.getOverviewPanel();
             AnimatorControllerWithResistance controllerWithResistance =

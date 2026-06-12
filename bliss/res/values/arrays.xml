@@ -16,4 +16,51 @@
     <string-array name="blacklisted_widget_options">
         <item>org.chromium.chrome.browser.quickactionsearchwidget.QuickActionSearchWidgetProvider$QuickActionSearchWidgetProviderDino</item>
     </string-array>
+
+    <string-array name="hidden_apps_in_search_entries">
+        <item>@string/hidden_apps_in_search_never</item>
+        <item>@string/hidden_apps_in_search_always</item>
+        <item>@string/hidden_apps_in_search_if_typed</item>
+    </string-array>
+    <string-array name="hidden_apps_in_search_values">
+        <item>never</item>
+        <item>always</item>
+        <item>if_name_typed</item>
+    </string-array>
+
+    <string-array name="dot_text_color_entries">
+        <item>@string/dot_text_color_auto</item>
+        <item>@string/dot_text_color_white</item>
+        <item>@string/dot_text_color_black</item>
+    </string-array>
+    <string-array name="dot_text_color_values">
+        <item>auto</item>
+        <item>white</item>
+        <item>black</item>
+    </string-array>
+
+    <string-array name="home_label_color_mode_entries">
+        <item>@string/home_label_color_mode_auto</item>
+        <item>@string/home_label_color_mode_light</item>
+        <item>@string/home_label_color_mode_dark</item>
+    </string-array>
+    <string-array name="home_label_color_mode_values">
+        <item>auto</item>
+        <item>light</item>
+        <item>dark</item>
+    </string-array>
+
+    <!-- Closing-app overlay modes (Migration02 / Phase 4). Values map 1:1 to
+         Lawnchair's CLOSING_APP_OVERLAY pref strings ("none" / "fade_in" /
+         "suck_in") and to CloseOverlayMode.prefValue. -->
+    <string-array name="closing_overlay_entries">
+        <item>@string/overlay_none</item>
+        <item>@string/overlay_fade_in</item>
+        <item>@string/overlay_suck_in</item>
+    </string-array>
+    <string-array name="closing_overlay_values">
+        <item>none</item>
+        <item>fade_in</item>
+        <item>suck_in</item>
+    </string-array>
 </resources>

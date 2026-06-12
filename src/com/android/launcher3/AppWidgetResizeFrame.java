@@ -115,9 +115,6 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
     private boolean mTopBorderActive;
     private boolean mBottomBorderActive;
 
-    private boolean mHorizontalResizeActive;
-    private boolean mVerticalResizeActive;
-
     private int mRunningHInc;
     private int mRunningVInc;
     private int mMinHSpan;
@@ -139,7 +136,8 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
             mCellChildViewPreLayoutListener;
     private final @NonNull OnLayoutChangeListener mWidgetViewLayoutListener;
 
-    private int mXDown, mYDown;
+    private int mXDown;
+    private int mYDown;
 
     public AppWidgetResizeFrame(Context context) {
         this(context, null);
@@ -675,12 +673,11 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
         int y = (int) ev.getY();
 
         getHitRect(hitRect);
-        if (hitRect.contains(x, y)) {
-            if (beginResizeIfPointInRegion(x - getLeft(), y - getTop())) {
-                mXDown = x;
-                mYDown = y;
-                return true;
-            }
+        if (hitRect.contains(x, y)
+                && beginResizeIfPointInRegion(x - getLeft(), y - getTop())) {
+            mXDown = x;
+            mYDown = y;
+            return true;
         }
         return false;
     }
@@ -704,11 +701,13 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
             case MotionEvent.ACTION_MOVE:
                 visualizeResizeForDelta(x - mXDown, y - mYDown);
                 break;
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP:
                 visualizeResizeForDelta(x - mXDown, y - mYDown);
                 onTouchUp();
                 mXDown = mYDown = 0;
+                break;
+            default:
+                // No-op for other action types.
                 break;
         }
         return true;
@@ -794,7 +793,8 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
      */
     private static class IntRange {
 
-        public int start, end;
+        int start;
+        int end;
 
         public int clamp(int value) {
             return Utilities.boundToRange(value, start, end);

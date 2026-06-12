@@ -24,7 +24,8 @@ public class WidgetItem extends ComponentKey {
     public BitmapInfo bitmap = BitmapInfo.LOW_RES_INFO;
     public final String label;
     public final CharSequence description;
-    public final int spanX, spanY;
+    public final int spanX;
+    public final int spanY;
 
     public WidgetItem(LauncherAppWidgetProviderInfo info,
             InvariantDeviceProfile idp, IconCache iconCache, Context context) {
@@ -59,10 +60,7 @@ public class WidgetItem extends ComponentKey {
         if (widgetInfo != null && otherItem.widgetInfo != null) {
             return true;
         }
-        if (activityInfo != null && otherItem.activityInfo != null) {
-            return true;
-        }
-        return false;
+        return activityInfo != null && otherItem.activityInfo != null;
     }
 
     /** Returns whether this {@link WidgetItem} is for a shortcut rather than an app widget. */

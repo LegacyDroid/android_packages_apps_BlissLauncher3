@@ -81,6 +81,7 @@ public final class WellbeingModel implements SafeCloseable {
     private static final String EXTRA_MAX_NUM_ACTIONS_SHOWN = "max_num_actions_shown";
     private static final String EXTRA_PACKAGES = "packages";
     private static final String EXTRA_SUCCESS = "success";
+    private static final String LOG_PREFIX_GET_SHORTCUT = "getShortcutForApp [";
 
     public static final DaggerSingletonObject<WellbeingModel> INSTANCE =
             new DaggerSingletonObject<>(QuickstepBaseAppComponent::getWellbeingModel);
@@ -169,7 +170,7 @@ public final class WellbeingModel implements SafeCloseable {
                     actionsUri, true /* notifyForDescendants */, mContentObserver);
         } catch (Exception e) {
             Log.e(TAG, "Failed to register content observer for " + actionsUri + ": " + e);
-            if (mIsInTest) throw new RuntimeException(e);
+            if (mIsInTest) throw new IllegalStateException(e);
         }
         updateAllPackages();
     }
@@ -181,7 +182,7 @@ public final class WellbeingModel implements SafeCloseable {
         // Work profile apps are not recognized by digital wellbeing.
         if (userId != UserHandle.myUserId()) {
             if (DEBUG || mIsInTest) {
-                Log.d(TAG, "getShortcutForApp [" + packageName + "]: not current user");
+                Log.d(TAG, LOG_PREFIX_GET_SHORTCUT + packageName + "]: not current user");
             }
             return null;
         }
@@ -191,13 +192,13 @@ public final class WellbeingModel implements SafeCloseable {
             final RemoteAction action = actionId != null ? mActionIdMap.get(actionId) : null;
             if (action == null) {
                 if (DEBUG || mIsInTest) {
-                    Log.d(TAG, "getShortcutForApp [" + packageName + "]: no action");
+                    Log.d(TAG, LOG_PREFIX_GET_SHORTCUT + packageName + "]: no action");
                 }
                 return null;
             }
             if (DEBUG || mIsInTest) {
                 Log.d(TAG,
-                        "getShortcutForApp [" + packageName + "]: action: '" + action.getTitle()
+                        LOG_PREFIX_GET_SHORTCUT + packageName + "]: action: '" + action.getTitle()
                                 + "'");
             }
             return new RemoteActionShortcut(action, context, info, originalView);
@@ -215,63 +216,72 @@ public final class WellbeingModel implements SafeCloseable {
         if (packageNames.length == 0) {
             return true;
         }
-        if (DEBUG || mIsInTest) {
-            Log.d(TAG, "retrieveActions() called with: packageNames = [" + String.join(", ",
-                    packageNames) + "]");
-        }
+        logRetrieveActionsCalled(packageNames);
         Preconditions.assertNonUiThread();
 
         Uri contentUri = apiBuilder().build();
-        final Bundle remoteActionBundle;
         try (ContentProviderClient client = mContext.getContentResolver()
                 .acquireUnstableContentProviderClient(contentUri)) {
             if (client == null) {
                 if (DEBUG || mIsInTest) Log.i(TAG, "retrieveActions(): null provider");
                 return false;
             }
-
-            // Prepare wellbeing call parameters.
-            final Bundle params = new Bundle();
-            params.putStringArray(EXTRA_PACKAGES, packageNames);
-            params.putInt(EXTRA_MAX_NUM_ACTIONS_SHOWN, 1);
-            // Perform wellbeing call .
-            remoteActionBundle = client.call(METHOD_GET_ACTIONS, null, params);
+            final Bundle remoteActionBundle = client.call(
+                    METHOD_GET_ACTIONS, null, buildActionParams(packageNames));
             if (!remoteActionBundle.getBoolean(EXTRA_SUCCESS, true)) return false;
-
-            synchronized (mModelLock) {
-                // Remove the entries for requested packages, and then update the fist with what we
-                // got from service
-                Arrays.stream(packageNames).forEach(mPackageToActionId::remove);
-
-                // The result consists of sub-bundles, each one is per a remote action. Each
-                // sub-bundle has a RemoteAction and a list of packages to which the action applies.
-                for (String actionId :
-                        remoteActionBundle.getStringArray(EXTRA_ACTIONS)) {
-                    final Bundle actionBundle = remoteActionBundle.getBundle(actionId);
-                    mActionIdMap.put(actionId,
-                            actionBundle.getParcelable(EXTRA_ACTION));
-
-                    final String[] packagesForAction =
-                            actionBundle.getStringArray(EXTRA_PACKAGES);
-                    if (DEBUG || mIsInTest) {
-                        Log.d(TAG, "....actionId: " + actionId + ", packages: " + String.join(", ",
-                                packagesForAction));
-                    }
-                    for (String packageName : packagesForAction) {
-                        mPackageToActionId.put(packageName, actionId);
-                    }
-                }
-            }
+            applyRemoteActionBundle(packageNames, remoteActionBundle);
         } catch (DeadObjectException e) {
             Log.i(TAG, "retrieveActions(): DeadObjectException");
             return false;
         } catch (Exception e) {
-            Log.e(TAG, "Failed to retrieve data from " + contentUri + ": " + e);
-            if (mIsInTest) throw new RuntimeException(e);
-            return true;
+            return handleRetrieveActionsFailure(contentUri, e);
         }
         if (DEBUG || mIsInTest) Log.i(TAG, "retrieveActions(): finished");
         return true;
+    }
+
+    private void logRetrieveActionsCalled(String[] packageNames) {
+        if (DEBUG || mIsInTest) {
+            Log.d(TAG, "retrieveActions() called with: packageNames = [" + String.join(", ",
+                    packageNames) + "]");
+        }
+    }
+
+    private boolean handleRetrieveActionsFailure(Uri contentUri, Exception e) {
+        Log.e(TAG, "Failed to retrieve data from " + contentUri + ": " + e);
+        if (mIsInTest) throw new IllegalStateException(e);
+        return true;
+    }
+
+    private Bundle buildActionParams(String[] packageNames) {
+        final Bundle params = new Bundle();
+        params.putStringArray(EXTRA_PACKAGES, packageNames);
+        params.putInt(EXTRA_MAX_NUM_ACTIONS_SHOWN, 1);
+        return params;
+    }
+
+    private void applyRemoteActionBundle(String[] packageNames, Bundle remoteActionBundle) {
+        synchronized (mModelLock) {
+            // Remove the entries for requested packages, and then update the fist with what we
+            // got from service
+            Arrays.stream(packageNames).forEach(mPackageToActionId::remove);
+
+            // The result consists of sub-bundles, each one is per a remote action. Each
+            // sub-bundle has a RemoteAction and a list of packages to which the action applies.
+            for (String actionId : remoteActionBundle.getStringArray(EXTRA_ACTIONS)) {
+                final Bundle actionBundle = remoteActionBundle.getBundle(actionId);
+                mActionIdMap.put(actionId, actionBundle.getParcelable(EXTRA_ACTION));
+
+                final String[] packagesForAction = actionBundle.getStringArray(EXTRA_PACKAGES);
+                if (DEBUG || mIsInTest) {
+                    Log.d(TAG, "....actionId: " + actionId + ", packages: " + String.join(", ",
+                            packagesForAction));
+                }
+                for (String packageName : packagesForAction) {
+                    mPackageToActionId.put(packageName, actionId);
+                }
+            }
+        }
     }
 
     @WorkerThread

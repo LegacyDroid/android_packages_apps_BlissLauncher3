@@ -372,7 +372,7 @@ public class AnimatorPlaybackController implements ValueAnimator.AnimatorUpdateL
 
         public final float globalEndProgress;
 
-        public ProgressMapper mapper;
+        private ProgressMapper mapper;
 
         Holder(Animator anim, float globalDuration, SpringProperty springProperty) {
             this.anim = (ValueAnimator) anim;
@@ -410,7 +410,7 @@ public class AnimatorPlaybackController implements ValueAnimator.AnimatorUpdateL
                 addAnimationHoldersRecur(child, globalDuration, springProperty, out);
             }
         } else {
-            throw new RuntimeException("Unknown animation type " + anim);
+            throw new IllegalArgumentException("Unknown animation type " + anim);
         }
     }
 }

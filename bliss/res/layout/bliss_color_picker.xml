@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (C) 2026 MURENA SAS
+    Phase 5 — View-based HSV color picker.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.LinearLayout"
+    tools:orientation="vertical">
+
+    <foundation.e.bliss.preferences.colorpicker.SaturationValueGradient
+        android:id="@+id/sat_value_view"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:layout_marginBottom="12dp"
+        android:contentDescription="@string/color_picker_saturation_value_cd" />
+
+    <SeekBar
+        android:id="@+id/hue_slider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/color_picker_hue_cd"
+        android:max="360" />
+
+    <SeekBar
+        android:id="@+id/alpha_slider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:contentDescription="@string/color_picker_alpha_cd"
+        android:max="255"
+        android:progress="255" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <View
+            android:id="@+id/swatch"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="12dp"
+            android:background="#FF000000" />
+
+        <EditText
+            android:id="@+id/hex_input"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="#AARRGGBB"
+            android:importantForAutofill="no"
+            android:inputType="textCapCharacters"
+            android:maxLength="9"
+            android:singleLine="true"
+            android:textAllCaps="true" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/swatch_system_accent"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="8dp"
+            android:background="?android:attr/colorAccent"
+            android:contentDescription="@string/color_picker_system_accent_cd" />
+
+        <ImageButton
+            android:id="@+id/swatch_wallpaper_primary"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="8dp"
+            android:background="?android:attr/colorBackground"
+            android:contentDescription="@string/color_picker_wallpaper_primary_cd" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/recent_palette"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal" />
+
+</merge>

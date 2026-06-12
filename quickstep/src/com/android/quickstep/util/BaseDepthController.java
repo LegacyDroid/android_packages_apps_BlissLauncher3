@@ -149,13 +149,19 @@ public class BaseDepthController {
         }
     }
 
-    protected void onInvalidSurface() { }
+    protected void onInvalidSurface() { /* no-op: base hook for subclasses to react to invalid surface */ }
 
-    protected void applyDepthAndBlur() {
+    protected void applyDepthAndBlur() { // NOSONAR pristine-AOSP-do-not-refactor
         float depth = mDepth;
+        // Bliss: when wallpaper-depth is disabled, force zoom-out to 1 (no parallax).
+        boolean depthEnabled = true;
+        try {
+            depthEnabled = com.android.launcher3.LauncherPrefs.get(mLauncher)
+                    .get(com.android.launcher3.LauncherPrefs.WALLPAPER_DEPTH_EFFECT);
+        } catch (Throwable ignored) { /* keep enabled */ }
         IBinder windowToken = mLauncher.getRootView().getWindowToken();
         if (windowToken != null) {
-            if (MultiModeController.isSingleLayerMode()) {
+            if (!depthEnabled || MultiModeController.isSingleLayerMode()) {
                 mWallpaperManager.setWallpaperZoomOut(windowToken, 1);
             } else if (enableScalingRevealHomeAnimation()) {
                 mWallpaperManager.setWallpaperZoomOut(windowToken, depth);

@@ -431,9 +431,10 @@ public interface ActivityContext extends SavedStateRegistryOwner {
         if (isShortcut && !WIDGETS_ENABLED) {
             return null;
         }
+        int defaultSplashStyle = item != null && item.animationType == DEFAULT_NO_ICON
+                ? SPLASH_SCREEN_STYLE_SOLID_COLOR : -1 /* SPLASH_SCREEN_STYLE_UNDEFINED */;
         ActivityOptionsWrapper options = v != null ? getActivityLaunchOptions(v, item)
-                : makeDefaultActivityOptions(item != null && item.animationType == DEFAULT_NO_ICON
-                        ? SPLASH_SCREEN_STYLE_SOLID_COLOR : -1 /* SPLASH_SCREEN_STYLE_UNDEFINED */);
+                : makeDefaultActivityOptions(defaultSplashStyle);
         UserHandle user = item == null ? null : item.user;
         Bundle optsBundle = options.toBundle();
         // Prepare intent
@@ -483,8 +484,10 @@ public interface ActivityContext extends SavedStateRegistryOwner {
      */
     @NonNull
     default ActivityOptionsWrapper getActivityLaunchOptions(View v, @Nullable ItemInfo item) {
-        int left = 0, top = 0;
-        int width = v.getMeasuredWidth(), height = v.getMeasuredHeight();
+        int left = 0;
+        int top = 0;
+        int width = v.getMeasuredWidth();
+        int height = v.getMeasuredHeight();
         if (v instanceof BubbleTextView) {
             // Launch from center of icon, not entire view
             Drawable icon = ((BubbleTextView) v).getIcon();

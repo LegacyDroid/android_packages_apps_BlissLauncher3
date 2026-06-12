@@ -17,6 +17,9 @@
 package com.android.launcher3;
 
 public final class BuildConfig {
+
+    private BuildConfig() {}
+
     public static final String APPLICATION_ID = "foundation.e.blisslauncher";
 
     public static final boolean IS_STUDIO_BUILD = false;

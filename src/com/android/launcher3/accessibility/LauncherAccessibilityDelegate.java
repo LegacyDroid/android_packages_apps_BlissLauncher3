@@ -134,10 +134,9 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
 
             if (item.container >= 0) {
                 out.add(mActions.get(MOVE_TO_WORKSPACE));
-            } else if (item instanceof LauncherAppWidgetInfo) {
-                if (!getSupportedResizeActions(host, (LauncherAppWidgetInfo) item).isEmpty()) {
-                    out.add(mActions.get(RESIZE));
-                }
+            } else if (item instanceof LauncherAppWidgetInfo
+                    && !getSupportedResizeActions(host, (LauncherAppWidgetInfo) item).isEmpty()) {
+                out.add(mActions.get(RESIZE));
             }
         }
 
@@ -218,9 +217,10 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
             });
             return true;
         } else if (action == DEEP_SHORTCUTS) {
+            BubbleTextView holderBtv = host instanceof BubbleTextHolder
+                    ? ((BubbleTextHolder) host).getBubbleText() : null;
             BubbleTextView btv = host instanceof BubbleTextView ? (BubbleTextView) host
-                    : (host instanceof BubbleTextHolder
-                            ? ((BubbleTextHolder) host).getBubbleText() : null);
+                    : holderBtv;
             return btv != null && PopupContainerWithArrow.showForIcon(btv) != null;
         } else if (action == CLOSE) {
             if (host instanceof AppWidgetResizeFrame) {
@@ -468,7 +468,7 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
                     });
                 });
             } else if (item instanceof WorkspaceItemInfo) {
-                WorkspaceItemInfo info = ((WorkspaceItemInfo) item).clone();
+                WorkspaceItemInfo info = ((WorkspaceItemInfo) item).makeShallowCopy();
                 mContext.getModelWriter().addItemToDatabase(info,
                         LauncherSettings.Favorites.CONTAINER_DESKTOP,
                         screenId, coordinates[0], coordinates[1]);
@@ -498,7 +498,7 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
             return;
         }
         AnimatorSet anim = new AnimatorSet();
-        anim.addListener(forEndCallback((success) -> {
+        anim.addListener(forEndCallback(success -> {
             if (focusForAccessibility) {
                 view.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
             }

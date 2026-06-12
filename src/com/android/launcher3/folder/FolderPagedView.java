@@ -421,8 +421,9 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
 
         // Set the gravity as LEFT or RIGHT instead of START, as START depends on the actual text.
         if(!MultiModeController.isSingleLayerMode()) {
+            int multiPageGravity = mIsRtl ? Gravity.RIGHT : Gravity.LEFT;
             int horizontalGravity = getPageCount() > 1
-                    ? (mIsRtl ? Gravity.RIGHT : Gravity.LEFT) : Gravity.CENTER_HORIZONTAL;
+                    ? multiPageGravity : Gravity.CENTER_HORIZONTAL;
             mFolder.getFolderName().setGravity(horizontalGravity | Gravity.CENTER_VERTICAL);
         }
 
@@ -626,8 +627,10 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
         int pagePosE = empty % maxItemsPerPage;
         int pageE = empty / maxItemsPerPage;
 
-        int startPos, endPos;
-        int moveStart, moveEnd;
+        int startPos;
+        int endPos;
+        int moveStart;
+        int moveEnd;
         int direction;
 
         if (target == empty) {
@@ -691,15 +694,11 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
                     final int newRank = moveStart;
                     final float oldTranslateX = v.getTranslationX();
 
-                    Runnable endAction = new Runnable() {
-
-                        @Override
-                        public void run() {
-                            mPendingAnimations.remove(v);
-                            v.setTranslationX(oldTranslateX);
-                            ((CellLayout) v.getParent().getParent()).removeView(v);
-                            addViewForRank(v, (WorkspaceItemInfo) v.getTag(), newRank);
-                        }
+                    Runnable endAction = () -> {
+                        mPendingAnimations.remove(v);
+                        v.setTranslationX(oldTranslateX);
+                        ((CellLayout) v.getParent().getParent()).removeView(v);
+                        addViewForRank(v, (WorkspaceItemInfo) v.getTag(), newRank);
                     };
                     v.animate()
                         .translationXBy((direction > 0 ^ mIsRtl) ? -v.getWidth() : v.getWidth())

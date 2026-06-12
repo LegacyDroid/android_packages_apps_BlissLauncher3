@@ -79,7 +79,12 @@ public class IntSet implements Iterable<Integer> {
         if (obj == this) {
             return true;
         }
-        return (obj instanceof IntSet) && ((IntSet) obj).mArray.equals(mArray);
+        return (obj instanceof IntSet other) && other.mArray.equals(mArray);
+    }
+
+    @Override
+    public int hashCode() {
+        return mArray.hashCode();
     }
 
     /**

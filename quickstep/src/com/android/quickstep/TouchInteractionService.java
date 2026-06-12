@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep;
 
 import static android.view.Display.DEFAULT_DISPLAY;
@@ -60,8 +68,6 @@ import android.view.Display;
 import android.view.InputDevice;
 import android.view.InputEvent;
 import android.view.MotionEvent;
-import android.window.DesktopModeFlags;
-
 import androidx.annotation.BinderThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -83,6 +89,7 @@ import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.ResourceUtils;
 import com.android.launcher3.testing.shared.TestProtocol;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.LockedUserState;
 import com.android.launcher3.util.MSDLPlayerWrapper;
@@ -140,15 +147,12 @@ import foundation.e.bliss.LauncherAppMonitor;
  */
 public class TouchInteractionService extends Service {
 
-    private static final String SUBSTRING_PREFIX = "; ";
-
     private static final String TAG = "TouchInteractionService";
+
+    private static final String LOG_INSTANCE_PREFIX = " instance=";
 
     private static final ConstantItem<Boolean> HAS_ENABLED_QUICKSTEP_ONCE = backedUpItem(
             "launcher.has_enabled_quickstep_once", false, EncryptionType.ENCRYPTED);
-
-    private static final DesktopModeFlags.DesktopModeFlag ENABLE_GESTURE_NAV_ON_CONNECTED_DISPLAYS =
-            new DesktopModeFlags.DesktopModeFlag(Flags::enableGestureNavOnConnectedDisplays, false);
 
     private final TISBinder mTISBinder = new TISBinder(this);
 
@@ -332,9 +336,8 @@ public class TouchInteractionService extends Service {
         @BinderThread
         @Override
         public void onDisplayRemoveSystemDecorations(int displayId) {
-            executeForTouchInteractionService(tis -> {
-                tis.mSystemDecorationChangeObserver.notifyDisplayRemoveSystemDecorations(displayId);
-            });
+            executeForTouchInteractionService(tis ->
+                    tis.mSystemDecorationChangeObserver.notifyDisplayRemoveSystemDecorations(displayId));
         }
 
         @BinderThread
@@ -587,8 +590,8 @@ public class TouchInteractionService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "onCreate: user=" + getUserId()
-                + " instance=" + System.identityHashCode(this));
+        Log.d(TAG, "onCreate: user=" + android.os.Process.myUserHandle().getIdentifier()
+                + LOG_INSTANCE_PREFIX + System.identityHashCode(this));
         // Initialize anything here that is needed in direct boot mode.
         // Everything else should be initialized in onUserUnlocked() below.
         mMainChoreographer = Choreographer.getInstance();
@@ -624,7 +627,7 @@ public class TouchInteractionService extends Service {
 
     @Nullable
     private InputEventReceiver getInputEventReceiver(int displayId) {
-        if (ENABLE_GESTURE_NAV_ON_CONNECTED_DISPLAYS.isTrue()) {
+        if (DesktopFlagsCompat.enableGestureNavOnConnectedDisplays()) {
             InputMonitorResource inputMonitorResource = mInputMonitorDisplayModel == null
                     ? null : mInputMonitorDisplayModel.getDisplayResource(displayId);
             return inputMonitorResource == null ? null : inputMonitorResource.inputEventReceiver;
@@ -634,7 +637,7 @@ public class TouchInteractionService extends Service {
 
     @Nullable
     private InputMonitorCompat getInputMonitorCompat(int displayId) {
-        if (ENABLE_GESTURE_NAV_ON_CONNECTED_DISPLAYS.isTrue()) {
+        if (DesktopFlagsCompat.enableGestureNavOnConnectedDisplays()) {
             InputMonitorResource inputMonitorResource = mInputMonitorDisplayModel == null
                     ? null : mInputMonitorDisplayModel.getDisplayResource(displayId);
             return inputMonitorResource == null ? null : inputMonitorResource.inputMonitorCompat;
@@ -644,8 +647,8 @@ public class TouchInteractionService extends Service {
 
     private void disposeEventHandlers(String reason) {
         Log.d(TAG, "disposeEventHandlers: Reason: " + reason
-                + " instance=" + System.identityHashCode(this));
-        if (ENABLE_GESTURE_NAV_ON_CONNECTED_DISPLAYS.isTrue()) {
+                + LOG_INSTANCE_PREFIX + System.identityHashCode(this));
+        if (DesktopFlagsCompat.enableGestureNavOnConnectedDisplays()) {
             if (mInputMonitorDisplayModel == null) return;
             mInputMonitorDisplayModel.destroy();
             return;
@@ -668,7 +671,7 @@ public class TouchInteractionService extends Service {
                 && (mTrackpadsConnected.isEmpty())) {
             return;
         }
-        if (ENABLE_GESTURE_NAV_ON_CONNECTED_DISPLAYS.isTrue()) {
+        if (DesktopFlagsCompat.enableGestureNavOnConnectedDisplays()) {
             mInputMonitorDisplayModel = new InputMonitorDisplayModel(this);
         } else {
             mInputMonitorCompat = new InputMonitorCompat("swipe-up", DEFAULT_DISPLAY);
@@ -689,8 +692,8 @@ public class TouchInteractionService extends Service {
 
     @UiThread
     public void onUserUnlocked() {
-        Log.d(TAG, "onUserUnlocked: userId=" + getUserId()
-                + " instance=" + System.identityHashCode(this));
+        Log.d(TAG, "onUserUnlocked: userId=" + android.os.Process.myUserHandle().getIdentifier()
+                + LOG_INSTANCE_PREFIX + System.identityHashCode(this));
         LauncherAppMonitor.getInstance(this);
         mOverviewComponentObserver = OverviewComponentObserver.INSTANCE.get(this);
         SystemUiProxy systemUiProxy = SystemUiProxy.INSTANCE.get(this);
@@ -797,8 +800,8 @@ public class TouchInteractionService extends Service {
 
     @Override
     public void onDestroy() {
-        Log.d(TAG, "onDestroy: user=" + getUserId()
-                + " instance=" + System.identityHashCode(this));
+        Log.d(TAG, "onDestroy: user=" + android.os.Process.myUserHandle().getIdentifier()
+                + LOG_INSTANCE_PREFIX + System.identityHashCode(this));
         if (LockedUserState.get(this).isUserUnlocked()) {
             mInputConsumer.unregisterInputConsumer();
             mOverviewComponentObserver.setHomeDisabled(false);
@@ -823,8 +826,8 @@ public class TouchInteractionService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d(TAG, "onBind: user=" + getUserId()
-                + " instance=" + System.identityHashCode(this));
+        Log.d(TAG, "onBind: user=" + android.os.Process.myUserHandle().getIdentifier()
+                + LOG_INSTANCE_PREFIX + System.identityHashCode(this));
         return mTISBinder;
     }
 
@@ -839,7 +842,7 @@ public class TouchInteractionService extends Service {
         cancelEvent.recycle();
     }
 
-    private void onInputEvent(InputEvent ev) {
+    private void onInputEvent(InputEvent ev) { // NOSONAR pristine-AOSP-do-not-refactor
         int displayId = ev.getDisplayId();
         if (!(ev instanceof MotionEvent)) {
             ActiveGestureProtoLogProxy.logUnknownInputEvent(displayId, ev.toString());

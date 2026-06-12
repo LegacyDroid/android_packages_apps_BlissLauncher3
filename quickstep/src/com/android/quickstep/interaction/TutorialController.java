@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.QuickStepContractCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.interaction;
 
 import static android.view.View.GONE;
@@ -63,7 +71,7 @@ import com.android.launcher3.util.SettingsCache;
 import com.android.launcher3.views.ClipIconView;
 import com.android.quickstep.interaction.EdgeBackGestureHandler.BackGestureAttemptCallback;
 import com.android.quickstep.interaction.NavBarGestureHandler.NavBarGestureAttemptCallback;
-import com.android.systemui.shared.system.QuickStepContract;
+import foundation.e.bliss.compat.quickstep.QuickStepContractCompat;
 import com.android.wm.shell.Flags;
 import com.android.wm.shell.shared.TypefaceUtils.FontFamily;
 
@@ -89,8 +97,6 @@ abstract class TutorialController implements BackGestureAttemptCallback,
     private static final String GLIF_EXPRESSIVE_LIGHT_THEME = "glif_expressive_light";
 
     private static final int FEEDBACK_ANIMATION_MS = 133;
-    private static final int SUBTITLE_ANNOUNCE_DELAY_MS = 3000;
-    private static final int DONE_BUTTON_ANNOUNCE_DELAY_MS = 4000;
     private static final int ADVANCE_TUTORIAL_TIMEOUT_MS = 3000;
     private static final long GESTURE_ANIMATION_PAUSE_DURATION_MILLIS = 1000;
     protected float mExitingAppEndingCornerRadius;
@@ -173,7 +179,7 @@ abstract class TutorialController implements BackGestureAttemptCallback,
         mScreenHeight = mTutorialFragment.getDeviceProfile().heightPx;
         mExitingAppMargin = mContext.getResources().getDimensionPixelSize(
                 R.dimen.gesture_tutorial_back_gesture_exiting_app_margin);
-        mExitingAppStartingCornerRadius = QuickStepContract.getWindowCornerRadius(mContext);
+        mExitingAppStartingCornerRadius = QuickStepContractCompat.getWindowCornerRadius(mContext);
         mExitingAppEndingCornerRadius = mContext.getResources().getDimensionPixelSize(
                 R.dimen.gesture_tutorial_back_gesture_end_corner_radius);
         mAnimatedGestureDemonstration.addLottieOnCompositionLoadedListener(
@@ -261,10 +267,11 @@ abstract class TutorialController implements BackGestureAttemptCallback,
 
     @LayoutRes
     protected int getMockHotseatResId() {
+        int largeScreenHotseatResId = mTutorialFragment.isFoldable()
+                ? R.layout.redesigned_gesture_tutorial_foldable_mock_hotseat
+                : R.layout.redesigned_gesture_tutorial_tablet_mock_hotseat;
         return mTutorialFragment.isLargeScreen()
-                ? mTutorialFragment.isFoldable()
-                    ? R.layout.redesigned_gesture_tutorial_foldable_mock_hotseat
-                    : R.layout.redesigned_gesture_tutorial_tablet_mock_hotseat
+                ? largeScreenHotseatResId
                 : R.layout.redesigned_gesture_tutorial_mock_hotseat;
     }
 
@@ -681,10 +688,11 @@ abstract class TutorialController implements BackGestureAttemptCallback,
         if (!mTutorialFragment.isLargeScreen()) {
             DeviceProfile dp = mTutorialFragment.getDeviceProfile();
 
+            int landscapeRule = dp.isSeascape()
+                    ? RelativeLayout.ALIGN_PARENT_START
+                    : RelativeLayout.ALIGN_PARENT_END;
             hotseatLayoutParams.addRule(dp.isLandscape
-                    ? (dp.isSeascape()
-                            ? RelativeLayout.ALIGN_PARENT_START
-                            : RelativeLayout.ALIGN_PARENT_END)
+                    ? landscapeRule
                     : RelativeLayout.ALIGN_PARENT_BOTTOM);
         } else {
             hotseatLayoutParams.width = RelativeLayout.LayoutParams.MATCH_PARENT;

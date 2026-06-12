@@ -218,8 +218,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
                 }
                 return cursor;
             }
-            case GET_ICON_THEMED:
-            case ICON_THEMED: {
+            case GET_ICON_THEMED, ICON_THEMED: {
                 MatrixCursor cursor = new MatrixCursor(new String[]{BOOLEAN_VALUE});
                 cursor.newRow().add(BOOLEAN_VALUE, mThemeManager.isMonoThemeEnabled() ? 1 : 0);
                 return cursor;
@@ -260,7 +259,10 @@ public class GridCustomizationsProxy implements ProxyProvider {
                     try {
                         // Wait for device profile to be fully reloaded and applied to the launcher
                         loadModelSync(mContext);
-                    } catch (ExecutionException | InterruptedException e) {
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        Log.e(TAG, "Fail to load model", e);
+                    } catch (ExecutionException e) {
                         Log.e(TAG, "Fail to load model", e);
                     }
                 }
@@ -273,8 +275,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
                             requireNonNullElse(values.getAsString(KEY_SHAPE_KEY), ""));
                 }
                 return 1;
-            case ICON_THEMED:
-            case SET_ICON_THEMED: {
+            case ICON_THEMED, SET_ICON_THEMED: {
                 mThemeManager.setMonoThemeEnabled(values.getAsBoolean(BOOLEAN_VALUE));
                 mContext.getContentResolver().notifyChange(uri, null);
                 return 1;
@@ -353,7 +354,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
 
         public final RunnableList lifeCycleTracker;
         public final PreviewSurfaceRenderer renderer;
-        public boolean destroyed = false;
+        private boolean destroyed = false;
 
         PreviewLifecycleObserver(
                 RunnableList lifeCycleTracker,
@@ -395,8 +396,8 @@ public class GridCustomizationsProxy implements ProxyProvider {
                     break;
                 case MESSAGE_ID_UPDATE_ICON_THEMED:
                     if (Flags.newCustomizationPickerUi()) {
-                        Boolean iconThemed = message.getData().getBoolean(BOOLEAN_VALUE);
-                        // TODO Update icon themed in the preview
+                        // TODO Update icon themed in the preview using
+                        // message.getData().getBoolean(BOOLEAN_VALUE)
                     }
                     break;
                 default:

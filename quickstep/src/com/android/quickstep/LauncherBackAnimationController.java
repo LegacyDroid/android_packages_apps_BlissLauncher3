@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.quickstep.QuickStepContractCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep;
 
 import static android.util.MathUtils.lerp;
@@ -25,8 +34,8 @@ import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
 import static com.android.launcher3.BaseActivity.INVISIBLE_ALL;
 import static com.android.launcher3.BaseActivity.INVISIBLE_BY_PENDING_FLAGS;
 import static com.android.launcher3.BaseActivity.PENDING_INVISIBLE_BY_WALLPAPER_ANIMATION;
-import static com.android.window.flags.Flags.predictiveBackThreeButtonNav;
-import static com.android.window.flags.Flags.removeDepartTargetFromMotion;
+import static foundation.e.bliss.compat.desktop.DesktopFlagsCompat.predictiveBackThreeButtonNav;
+import static foundation.e.bliss.compat.desktop.DesktopFlagsCompat.removeDepartTargetFromMotion;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -55,6 +64,8 @@ import android.window.IBackAnimationHandoffHandler;
 import android.window.BackProgressAnimator.ProgressCallback;
 import android.window.IOnBackInvokedCallback;
 
+import androidx.annotation.Nullable;
+
 import com.android.app.animation.Animations;
 import com.android.app.animation.Interpolators;
 import com.android.internal.policy.SystemBarUtils;
@@ -73,7 +84,7 @@ import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
 import com.android.quickstep.util.BackAnimState;
 import com.android.quickstep.util.ScalingWorkspaceRevealAnim;
-import com.android.systemui.shared.system.QuickStepContract;
+import foundation.e.bliss.compat.quickstep.QuickStepContractCompat;
 
 import java.lang.ref.WeakReference;
 
@@ -126,7 +137,21 @@ public class LauncherBackAnimationController {
     private boolean mWaitStartTransition = false;
     private OnBackInvokedCallbackStub mBackCallback;
     private IRemoteAnimationFinishedCallback mAnimationFinishedCallback;
-    private final BackProgressAnimator mProgressAnimator = new BackProgressAnimator();
+    private final @Nullable BackProgressAnimator mProgressAnimator =
+            createBackProgressAnimator();
+
+    private static @Nullable BackProgressAnimator createBackProgressAnimator() {
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            try {
+                return new BackProgressAnimator();
+            } catch (LinkageError e) {
+                // BackProgressAnimator's no-arg constructor is absent on a mismatched framework
+                // (e.g. a stock emulator image); predictive-back progress animation stays off.
+                return null;
+            }
+        }
+        return null;
+    }
     private SurfaceControl mScrimLayer;
     private ValueAnimator mScrimAlphaAnimator;
     private float mScrimAlpha;
@@ -140,7 +165,9 @@ public class LauncherBackAnimationController {
         }
 
         @Override
-        public void onLowMemory() {}
+        public void onLowMemory() {
+            // no-op: nothing to release on low memory for back-animation resources
+        }
     };
 
     public LauncherBackAnimationController(
@@ -158,6 +185,10 @@ public class LauncherBackAnimationController {
      * @param handler Handler to the thread to run the animations on.
      */
     public void registerBackCallbacks(Handler handler) {
+        if (mProgressAnimator == null) {
+            // Back progress animation not available pre-API 36
+            return;
+        }
         mBackCallback = new OnBackInvokedCallbackStub(handler, mProgressAnimator,
                 mProgressInterpolator, this);
         SystemUiProxy.INSTANCE.get(mLauncher).setBackToLauncherCallback(mBackCallback,
@@ -254,8 +285,9 @@ public class LauncherBackAnimationController {
 
         @Override
         public void setHandoffHandler(IBackAnimationHandoffHandler unused) {
-            // For now, Launcher handles this internally so it doesn't need to hand off the
-            // animation.
+            // No-op: Launcher handles back animations internally.
+            // On API 35, this method doesn't exist in the AIDL interface so it won't be called.
+            // ART resolves method parameter types lazily, so this won't cause NoClassDefFoundError.
         }
     }
 
@@ -306,7 +338,9 @@ public class LauncherBackAnimationController {
         }
 
         @Override
-        public void onAnimationCancelled() {}
+        public void onAnimationCancelled() {
+            // no-op: cancellation is handled elsewhere via gesture/back state machinery
+        }
     }
 
     private void onCancelFinished() {
@@ -323,7 +357,9 @@ public class LauncherBackAnimationController {
         if (mBackCallback != null) {
             SystemUiProxy.INSTANCE.get(mLauncher).clearBackToLauncherCallback(mBackCallback);
         }
-        mProgressAnimator.reset();
+        if (mProgressAnimator != null) {
+            mProgressAnimator.reset();
+        }
         mBackCallback = null;
     }
 
@@ -334,7 +370,9 @@ public class LauncherBackAnimationController {
         // Side note: initBackMotion is never called during the post-commit phase if the back
         // gesture was committed (not cancelled). BackAnimationController prevents that. Therefore
         // we don't have to handle that case.
-        mProgressAnimator.removeOnBackCancelledFinishCallback();
+        if (mProgressAnimator != null) {
+            mProgressAnimator.removeOnBackCancelledFinishCallback();
+        }
 
         if (!removeDepartTargetFromMotion()) {
             RemoteAnimationTarget appTarget = backEvent.getDepartingAnimationTarget();
@@ -624,13 +662,30 @@ public class LauncherBackAnimationController {
     }
 
     private void loadResources() {
-        mWindowScaleEndCornerRadius = QuickStepContract.supportsRoundedCornersOnWindows(
+        mWindowScaleEndCornerRadius = QuickStepContractCompat.supportsRoundedCornersOnWindows(
                 mLauncher.getResources())
                 ? mLauncher.getResources().getDimensionPixelSize(
                 R.dimen.swipe_back_window_corner_radius)
                 : 0;
-        mWindowScaleStartCornerRadius = QuickStepContract.getWindowCornerRadius(mLauncher);
-        mStatusBarHeight = SystemBarUtils.getStatusBarHeight(mLauncher);
+        mWindowScaleStartCornerRadius = QuickStepContractCompat.getWindowCornerRadius(mLauncher);
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            try {
+                mStatusBarHeight = SystemBarUtils.getStatusBarHeight(mLauncher);
+            } catch (LinkageError e) {
+                // com.android.internal SystemBarUtils is absent on a mismatched framework
+                // (e.g. a stock emulator image); fall back to the platform status_bar_height
+                // resource, same as the pre-API-36 path.
+                int resourceId = mLauncher.getResources().getIdentifier(
+                        "status_bar_height", "dimen", "android");
+                mStatusBarHeight = resourceId > 0
+                        ? mLauncher.getResources().getDimensionPixelSize(resourceId) : 0;
+            }
+        } else {
+            int resourceId = mLauncher.getResources().getIdentifier(
+                    "status_bar_height", "dimen", "android");
+            mStatusBarHeight = resourceId > 0
+                    ? mLauncher.getResources().getDimensionPixelSize(resourceId) : 0;
+        }
     }
 
     /**
@@ -662,8 +717,9 @@ public class LauncherBackAnimationController {
         final boolean isBackgroundDark =
                 (mLauncher.getWindow().getDecorView().getSystemUiVisibility()
                         & View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) == 0;
+        final int appearance = !isBackgroundDark ? APPEARANCE_LIGHT_STATUS_BARS : 0;
         final AppearanceRegion region = mOverridingStatusBarFlags
-                ? new AppearanceRegion(!isBackgroundDark ? APPEARANCE_LIGHT_STATUS_BARS : 0,
+                ? new AppearanceRegion(appearance,
                         mBackTarget.windowConfiguration.getBounds())
                 : null;
         SystemUiProxy.INSTANCE.get(mLauncher).customizeStatusBarAppearance(region);

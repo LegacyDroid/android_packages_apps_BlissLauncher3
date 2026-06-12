@@ -16,6 +16,6 @@
 
 package com.android.quickstep.recents.data
 
-interface RecentsRotationStateRepository {
+fun interface RecentsRotationStateRepository {
     fun getRecentsRotationState(): RecentsRotationState
 }

@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.util;
 
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
@@ -26,13 +34,13 @@ import androidx.annotation.VisibleForTesting;
 
 import com.android.quickstep.RemoteAnimationTargets;
 import com.android.quickstep.util.SurfaceTransaction.SurfaceProperties;
-import com.android.window.flags.Flags;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 
 import java.util.function.Supplier;
 
 public class TransformParams {
 
-    public static FloatProperty<TransformParams> PROGRESS =
+    public static final FloatProperty<TransformParams> PROGRESS =
             new FloatProperty<TransformParams>("progress") {
         @Override
         public void setValue(TransformParams params, float v) {
@@ -45,7 +53,7 @@ public class TransformParams {
         }
     };
 
-    public static FloatProperty<TransformParams> TARGET_ALPHA =
+    public static final FloatProperty<TransformParams> TARGET_ALPHA =
             new FloatProperty<TransformParams>("targetAlpha") {
         @Override
         public void setValue(TransformParams params, float v) {
@@ -168,10 +176,11 @@ public class TransformParams {
         for (int i = 0; i < targets.unfilteredApps.length; i++) {
             RemoteAnimationTarget app = targets.unfilteredApps[i];
             SurfaceProperties builder = transaction.forSurface(app.leash);
+            BuilderProxy nonHomeProxy = app.mode == targets.targetMode ? proxy : mBaseBuilderProxy;
             BuilderProxy targetProxy =
                     app.windowConfiguration.getActivityType() == ACTIVITY_TYPE_HOME
                             ? mHomeBuilderProxy
-                            : (app.mode == targets.targetMode ? proxy : mBaseBuilderProxy);
+                            : nonHomeProxy;
 
             if (app.mode == targets.targetMode) {
                 builder.setAlpha(getTargetAlpha());
@@ -198,7 +207,7 @@ public class TransformParams {
 
     private void overrideFreeformChangeLeashCornerRadiusToZero(
             RemoteAnimationTarget app, SurfaceControl.Transaction transaction) {
-        if (!Flags.enableDesktopRecentsTransitionsCornersBugfix()) {
+        if (!DesktopFlagsCompat.enableDesktopRecentsTransitionsCornersBugfix()) {
             return;
         }
         if (app.taskInfo == null || !app.taskInfo.isFreeform()) {

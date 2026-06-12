@@ -802,10 +802,10 @@ public class CellLayout extends ViewGroup {
             CellLayoutLayoutParams params, boolean markCells) {
         final CellLayoutLayoutParams lp = params;
 
-        // Hotseat icons - remove text
+        // Set text visibility based on container type and user preferences
         if (child instanceof BubbleTextView) {
             BubbleTextView bubbleChild = (BubbleTextView) child;
-            bubbleChild.setTextVisibility(mContainerType != HOTSEAT);
+            bubbleChild.setTextVisibility(bubbleChild.shouldTextBeVisible());
         }
 
         child.setScaleX(DEFAULT_SCALE);
@@ -1050,7 +1050,7 @@ public class CellLayout extends ViewGroup {
             newWidth = mFixedWidth;
             newHeight = mFixedHeight;
         } else if (widthSpecMode == MeasureSpec.UNSPECIFIED || heightSpecMode == MeasureSpec.UNSPECIFIED) {
-            throw new RuntimeException("CellLayout cannot have UNSPECIFIED dimensions");
+            throw new IllegalStateException("CellLayout cannot have UNSPECIFIED dimensions");
         }
 
         mShortcutsAndWidgets.measure(
@@ -1117,7 +1117,6 @@ public class CellLayout extends ViewGroup {
 
         if (clc.indexOfChild(child) != -1 && (child instanceof Reorderable)) {
             final CellLayoutLayoutParams lp = (CellLayoutLayoutParams) child.getLayoutParams();
-            final ItemInfo info = (ItemInfo) child.getTag();
             final Reorderable item = (Reorderable) child;
 
             // We cancel any existing animations
@@ -1157,8 +1156,8 @@ public class CellLayout extends ViewGroup {
             MultiTranslateDelegate mtd = item.getTranslateDelegate();
             float initPreviewOffsetX = mtd.getTranslationX(INDEX_REORDER_PREVIEW_OFFSET).getValue();
             float initPreviewOffsetY = mtd.getTranslationY(INDEX_REORDER_PREVIEW_OFFSET).getValue();
-            final float finalPreviewOffsetX = newX - oldX;
-            final float finalPreviewOffsetY = newY - oldY;
+            final float finalPreviewOffsetX = (float) newX - oldX;
+            final float finalPreviewOffsetY = (float) newY - oldY;
 
             // Exit early if we're not actually moving the view
             if (finalPreviewOffsetX == 0 && finalPreviewOffsetY == 0
@@ -1398,7 +1397,8 @@ public class CellLayout extends ViewGroup {
                     }
                 }
                 validRegions.push(currentRect);
-                double distance = Math.hypot(cellXY[0] - relativeXPos,  cellXY[1] - relativeYPos);
+                double distance = Math.hypot((double) cellXY[0] - relativeXPos,
+                        (double) cellXY[1] - relativeYPos);
 
                 if ((distance <= bestDistance && !contained) ||
                         currentRect.contains(bestRect)) {
@@ -1455,7 +1455,6 @@ public class CellLayout extends ViewGroup {
         int childCount = mShortcutsAndWidgets.getChildCount();
         for (int i = 0; i < childCount; i++) {
             View child = mShortcutsAndWidgets.getChildAt(i);
-            // if (child == dragView) continue;
             CellAndSpan c = solution.map.get(child);
             if (c != null) {
                 animateChildToPosition(child, c.cellX, c.cellY, REORDER_ANIMATION_DURATION, 0,
@@ -1912,8 +1911,16 @@ public class CellLayout extends ViewGroup {
     }
 
     public void markCellsAsOccupiedForView(View view) {
+        // Bliss: when ALLOW_WIDGET_OVERLAP is on, widgets are placed without
+        // claiming occupancy so other items can share the cells visually.
+        boolean overlapAllowed = false;
+        try {
+            overlapAllowed = LauncherPrefs.get(getContext())
+                    .get(LauncherPrefs.ALLOW_WIDGET_OVERLAP);
+        } catch (Throwable ignored) { /* keep strict */ }
         if (view instanceof LauncherAppWidgetHostView
                 && view.getTag() instanceof LauncherAppWidgetInfo) {
+            if (overlapAllowed) return;
             LauncherAppWidgetInfo info = (LauncherAppWidgetInfo) view.getTag();
             CellPos pos = mActivity.getCellPosMapper().mapModelToPresenter(info);
             mOccupied.markCells(pos.cellX, pos.cellY, info.spanX, info.spanY, true);
@@ -1954,7 +1961,7 @@ public class CellLayout extends ViewGroup {
             return mOccupied.cells[x][y];
         }
         if (BuildConfig.IS_STUDIO_BUILD) {
-            throw new RuntimeException("Position exceeds the bound of this CellLayout");
+            throw new IllegalArgumentException("Position exceeds the bound of this CellLayout");
         }
         return true;
     }

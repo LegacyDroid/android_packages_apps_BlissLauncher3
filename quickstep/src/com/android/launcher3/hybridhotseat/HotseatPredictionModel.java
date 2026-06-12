@@ -40,6 +40,9 @@ public class HotseatPredictionModel {
     private static final String BUNDLE_KEY_PIN_EVENTS = "pin_events";
     private static final String BUNDLE_KEY_CURRENT_ITEMS = "current_items";
 
+    private HotseatPredictionModel() {
+    }
+
     /**
      * Creates and returns bundle using workspace items
      */

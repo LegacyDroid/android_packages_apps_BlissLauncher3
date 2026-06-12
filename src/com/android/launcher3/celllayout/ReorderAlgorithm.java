@@ -13,6 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s):
+ *   - Delegates the preserve-gaps direction-vector override and in-place
+ *     solution preference to the Bliss-side ReorderPolicy strategy via
+ *     LauncherPolicy.reorder(ctx). The previous ~10-line inline pref gate
+ *     is collapsed to a 3-line policy delegation; default behaviour
+ *     (top-left compaction) lives in
+ *     foundation.e.bliss.policy.reorder.DefaultReorderPolicy and the
+ *     preserve-gaps behaviour lives in PreserveGapsReorderPolicy.
+ *   - Reorder policy remains app-owned until a stable data contract replaces
+ *     CellLayout, ItemConfiguration, and ReorderParameters imports.
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.celllayout;
 
 import android.graphics.Rect;
@@ -29,7 +44,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import foundation.e.bliss.multimode.MultiModeController;
+import foundation.e.bliss.policy.LauncherPolicy;
+import foundation.e.bliss.policy.ReorderPolicy;
 
 /**
  * Contains the logic of a reorder.
@@ -208,11 +224,10 @@ public class ReorderAlgorithm {
 
         int[] vacantCell = new int[2];
         mCellLayout.mTmpOccupied.findVacantCell(vacantCell, c.spanX, c.spanY);
-        if (vacantCell[0] >= 0 && vacantCell[1] >= 0) {
-            if (!mCellLayout.mTmpOccupied.cells[vacantCell[0]][vacantCell[1]]) {
-                tmpLocation[0] = vacantCell[0];
-                tmpLocation[1] = vacantCell[1];
-            }
+        if (vacantCell[0] >= 0 && vacantCell[1] >= 0
+                && !mCellLayout.mTmpOccupied.cells[vacantCell[0]][vacantCell[1]]) {
+            tmpLocation[0] = vacantCell[0];
+            tmpLocation[1] = vacantCell[1];
         }
 
         if (tmpLocation[0] >= 0 && tmpLocation[1] >= 0) {
@@ -309,27 +324,24 @@ public class ReorderAlgorithm {
                 // For each view that isn't in the cluster, we see if the leading edge of the
                 // cluster is contacting the edge of that view. If so, we add that view to the
                 // cluster.
-                if (!mCellLayout.isWidget()) {
-                    if (v instanceof LauncherAppWidgetHostView) {
-                        continue;
-                    }
+                if (!mCellLayout.isWidget() && v instanceof LauncherAppWidgetHostView) {
+                    continue;
                 }
-                if (!cluster.views.contains(v) && v != dragView) {
-                    if (cluster.isViewTouchingEdge(v, whichEdge)) {
-                        CellLayoutLayoutParams lp = (CellLayoutLayoutParams) v.getLayoutParams();
-                        if (!lp.canReorder) {
-                            // The push solution includes the all apps button, this is not viable.
-                            fail = true;
-                            break;
-                        }
-                        cluster.addView(v);
-                        CellAndSpan c = currentState.map.get(v);
+                if (!cluster.views.contains(v) && v != dragView
+                        && cluster.isViewTouchingEdge(v, whichEdge)) {
+                    CellLayoutLayoutParams lp = (CellLayoutLayoutParams) v.getLayoutParams();
+                    if (!lp.canReorder) {
+                        // The push solution includes the all apps button, this is not viable.
+                        fail = true;
+                        break;
+                    }
+                    cluster.addView(v);
+                    CellAndSpan c = currentState.map.get(v);
 
-                        // Adding view to cluster, mark it as not occupied.
-                        mCellLayout.mTmpOccupied.markCells(c, false);
-                        if (!mCellLayout.isWidget()) {
-                            mCellLayout.pushIconByRow(c, countX, countY, whichEdge);
-                        }
+                    // Adding view to cluster, mark it as not occupied.
+                    mCellLayout.mTmpOccupied.markCells(c, false);
+                    if (!mCellLayout.isWidget()) {
+                        mCellLayout.pushIconByRow(c, countX, countY, whichEdge);
                     }
                 }
             }
@@ -551,13 +563,12 @@ public class ReorderAlgorithm {
             return solution;
         }
 
-        if (MultiModeController.isSingleLayerMode() || !mCellLayout.isWidget()) {
-            mCellLayout.mDirectionVector[0] = -1;
-            mCellLayout.mDirectionVector[1] = 0;
-        }
-
-
         ItemConfiguration dropInPlaceSolution = dropInPlaceSolution(reorderParameters);
+
+        ReorderPolicy policy = LauncherPolicy.reorder(mCellLayout.getContext());
+        ItemConfiguration earlyOut = policy.overrideDirectionAndPreference(
+                mCellLayout, reorderParameters, dropInPlaceSolution);
+        if (earlyOut != null) return earlyOut;
 
         // Find a solution involving pushing / displacing any items in the way
         ItemConfiguration swapSolution = findReorderSolution(reorderParameters, true);
@@ -698,9 +709,9 @@ public class ReorderAlgorithm {
                     }
                 }
 
-                float distance = (float) Math.hypot(x - cellX, y - cellY);
+                float distance = (float) Math.hypot((double) x - cellX, (double) y - cellY);
                 int[] curDirection = new int[2];
-                computeDirectionVector(x - cellX, y - cellY, curDirection);
+                computeDirectionVector((float) x - cellX, (float) y - cellY, curDirection);
                 // The direction score is just the dot product of the two candidate direction
                 // and that passed in.
                 int curDirectionScore =

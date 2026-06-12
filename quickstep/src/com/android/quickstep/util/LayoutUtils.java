@@ -28,6 +28,8 @@ import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 
 public class LayoutUtils {
 
+    private LayoutUtils() {}
+
     private static final float SQUARE_ASPECT_RATIO_TOLERANCE = 0.05f;
 
     /**

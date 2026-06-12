@@ -155,30 +155,28 @@ public class DragLayer extends BaseDragLayer<Launcher> implements LauncherOverla
                 Folder currentFolder = (Folder) topView;
                 final int action = ev.getAction();
                 boolean isOverFolderOrSearchBar;
-                switch (action) {
-                    case MotionEvent.ACTION_HOVER_ENTER:
-                        isOverFolderOrSearchBar = isEventOverView(topView, ev) ||
-                                isEventOverAccessibleDropTargetBar(ev);
-                        if (!isOverFolderOrSearchBar) {
-                            sendTapOutsideFolderAccessibilityEvent(
-                                    currentFolder.getIsEditingName());
-                            mHoverPointClosesFolder = true;
-                            return true;
-                        }
-                        mHoverPointClosesFolder = false;
-                        break;
-                    case MotionEvent.ACTION_HOVER_MOVE:
-                        isOverFolderOrSearchBar = isEventOverView(topView, ev) ||
-                                isEventOverAccessibleDropTargetBar(ev);
-                        if (!isOverFolderOrSearchBar && !mHoverPointClosesFolder) {
-                            sendTapOutsideFolderAccessibilityEvent(
-                                    currentFolder.getIsEditingName());
-                            mHoverPointClosesFolder = true;
-                            return true;
-                        } else if (!isOverFolderOrSearchBar) {
-                            return true;
-                        }
-                        mHoverPointClosesFolder = false;
+                if (action == MotionEvent.ACTION_HOVER_ENTER) {
+                    isOverFolderOrSearchBar = isEventOverView(topView, ev) ||
+                            isEventOverAccessibleDropTargetBar(ev);
+                    if (!isOverFolderOrSearchBar) {
+                        sendTapOutsideFolderAccessibilityEvent(
+                                currentFolder.getIsEditingName());
+                        mHoverPointClosesFolder = true;
+                        return true;
+                    }
+                    mHoverPointClosesFolder = false;
+                } else if (action == MotionEvent.ACTION_HOVER_MOVE) {
+                    isOverFolderOrSearchBar = isEventOverView(topView, ev) ||
+                            isEventOverAccessibleDropTargetBar(ev);
+                    if (!isOverFolderOrSearchBar && !mHoverPointClosesFolder) {
+                        sendTapOutsideFolderAccessibilityEvent(
+                                currentFolder.getIsEditingName());
+                        mHoverPointClosesFolder = true;
+                        return true;
+                    } else if (!isOverFolderOrSearchBar) {
+                        return true;
+                    }
+                    mHoverPointClosesFolder = false;
                 }
             }
         }

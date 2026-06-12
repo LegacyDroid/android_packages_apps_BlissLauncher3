@@ -15,8 +15,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/utils/OnDataChangedListener.kt
+ * Module:  bliss root app source-set
+ * Role:    Functional interface for data change notifications.
+ */
 package foundation.e.bliss.utils
 
-interface OnDataChangedListener {
+fun interface OnDataChangedListener {
     fun onDataChanged()
 }

@@ -89,5 +89,12 @@ public interface TaskKeyCache<V> {
         public int hashCode() {
             return mKey.id;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Entry<?> other)) return false;
+            return mKey.id == other.mKey.id;
+        }
     }
 }

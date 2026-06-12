@@ -44,7 +44,7 @@ public class TISBindHelper implements ServiceConnection {
     private static final long BACKOFF_MILLIS = 1000;
 
     // Max backoff caps at 5 mins
-    private static final long MAX_BACKOFF_MILLIS = 10 * 60 * 1000;
+    private static final long MAX_BACKOFF_MILLIS = 10L * 60 * 1000;
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private final Runnable mConnectionRunnable = this::internalBindToTIS;

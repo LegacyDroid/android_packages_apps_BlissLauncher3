@@ -100,7 +100,6 @@ public class BubbleBarViewController {
     private BubbleBarController mBubbleBarController;
     private BubbleDragController mBubbleDragController;
     private TaskbarStashController mTaskbarStashController;
-    private TaskbarInsetsController mTaskbarInsetsController;
     private TaskbarViewPropertiesProvider mTaskbarViewPropertiesProvider;
     private View.OnClickListener mBubbleClickListener;
     private BubbleView.Controller mBubbleViewController;
@@ -193,7 +192,7 @@ public class BubbleBarViewController {
     // Whether the bar is hidden when stashed
     private boolean mHiddenForStashed;
     private boolean mShouldShowEducation;
-    public boolean mOverflowAdded;
+    private boolean mOverflowAdded;
     private boolean mWasStashedBeforeEnteringBubbleDragZone = false;
 
     /** This field is used solely to track the bubble bar location prior to the start of the drag */
@@ -246,7 +245,7 @@ public class BubbleBarViewController {
         mBubbleDragController = bubbleControllers.bubbleDragController;
         mBubbleBarPinController = bubbleControllers.bubbleBarPinController;
         mTaskbarStashController = controllers.taskbarStashController;
-        mTaskbarInsetsController = controllers.taskbarInsetsController;
+        TaskbarInsetsController mTaskbarInsetsController = controllers.taskbarInsetsController;
         mBubbleBarFlyoutController = new BubbleBarFlyoutController(
                 mBubbleBarContainer, createFlyoutPositioner(), createFlyoutCallbacks());
         mBubbleBarViewAnimator = new BubbleBarViewAnimator(
@@ -691,12 +690,10 @@ public class BubbleBarViewController {
                     /* fromLocation = */ mBubbleBarDragLocation,
                     /* toLocation = */ getBubbleBarLocation()
             );
-        } else if (hasBubbles()) {
-            if (isLocationUpdatedForDropTarget()) {
-                // bubble bar has bubbles and location was changed - return to the original
-                // location
-                animateBubbleBarLocation(getBubbleBarLocation());
-            }
+        } else if (hasBubbles() && isLocationUpdatedForDropTarget()) {
+            // bubble bar has bubbles and location was changed - return to the original
+            // location
+            animateBubbleBarLocation(getBubbleBarLocation());
         }
         onItemDragCompleted();
     }

@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep;
 
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_UNDEFINED;
@@ -50,7 +58,7 @@ import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_S
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_STATUS_BAR_KEYGUARD_SHOWING_OCCLUDED;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_TOUCHPAD_GESTURES_DISABLED;
 
-import android.app.ActivityTaskManager;
+import android.app.IActivityTaskManager;
 import android.content.Context;
 import android.graphics.Region;
 import android.inputmethodservice.InputMethodService;
@@ -76,6 +84,7 @@ import com.android.launcher3.util.DisplayController.Info;
 import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.SettingsCache;
 import com.android.quickstep.TopTaskTracker.CachedTaskInfo;
+import foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat;
 import com.android.quickstep.util.ActiveGestureLog;
 import com.android.quickstep.util.ContextualSearchStateManager;
 import com.android.quickstep.util.GestureExclusionManager;
@@ -86,7 +95,6 @@ import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.systemui.shared.system.TaskStackChangeListener;
-import com.android.systemui.shared.system.TaskStackChangeListeners;
 
 import java.io.PrintWriter;
 import java.util.Map;
@@ -107,7 +115,7 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
     private static final float QUICKSTEP_TOUCH_SLOP_RATIO_TWO_BUTTON = 3f;
     private static final float QUICKSTEP_TOUCH_SLOP_RATIO_GESTURAL = 1.414f;
 
-    public static DaggerSingletonObject<RecentsAnimationDeviceState> INSTANCE =
+    public static final DaggerSingletonObject<RecentsAnimationDeviceState> INSTANCE =
             new DaggerSingletonObject<>(LauncherAppComponent::getRecentsAnimationDeviceState);
 
     private final Context mContext;
@@ -119,8 +127,20 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
     private final RotationTouchHelper mRotationTouchHelper;
     private final TaskStackChangeListener mPipListener;
     // Cache for better performance since it doesn't change at runtime.
-    private final boolean mCanImeRenderGesturalNavButtons =
-            InputMethodService.canImeRenderGesturalNavButtons();
+    private final boolean mCanImeRenderGesturalNavButtons = canImeRenderGesturalNavButtonsSafe();
+
+    private static boolean canImeRenderGesturalNavButtonsSafe() {
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            try {
+                return InputMethodService.canImeRenderGesturalNavButtons();
+            } catch (LinkageError e) {
+                // Hidden static absent on a mismatched framework (e.g. a stock emulator image);
+                // assume the IME can't render the gestural nav buttons.
+                return false;
+            }
+        }
+        return false;
+    }
 
     private @SystemUiStateFlags long mSystemUiStateFlags = QuickStepContract.SYSUI_STATE_AWAKE;
     private final Map<Integer, Long> mSysUIStateFlagsPerDisplay = new ConcurrentHashMap<>();
@@ -195,11 +215,14 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
                     () -> settingsCache.unregister(setupCompleteUri, userSetupChangeListener));
         }
 
-        try {
-            mPipIsActive = ActivityTaskManager.getService().getRootTaskInfo(
-                    WINDOWING_MODE_PINNED, ACTIVITY_TYPE_UNDEFINED) != null;
-        } catch (RemoteException e) {
-            // Do nothing
+        IActivityTaskManager atm = ActivityTaskManagerCompat.getService();
+        if (atm != null) {
+            try {
+                mPipIsActive = atm.getRootTaskInfo(
+                        WINDOWING_MODE_PINNED, ACTIVITY_TYPE_UNDEFINED) != null;
+            } catch (RemoteException | SecurityException e) {
+                // SecurityException: MANAGE_ACTIVITY_TASKS permission denied for non-system apps
+            }
         }
         mPipListener = new TaskStackChangeListener() {
             @Override
@@ -212,9 +235,13 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
                 mPipIsActive = false;
             }
         };
-        TaskStackChangeListeners.getInstance().registerTaskStackListener(mPipListener);
-        lifeCycle.addCloseable(() ->
-                TaskStackChangeListeners.getInstance().unregisterTaskStackListener(mPipListener));
+        try {
+            ActivityTaskManagerCompat.registerTaskStackListener(mPipListener);
+            lifeCycle.addCloseable(() ->
+                    ActivityTaskManagerCompat.unregisterTaskStackListener(mPipListener));
+        } catch (SecurityException e) {
+            // MANAGE_ACTIVITY_TASKS permission denied for non-system apps
+        }
     }
 
     /**

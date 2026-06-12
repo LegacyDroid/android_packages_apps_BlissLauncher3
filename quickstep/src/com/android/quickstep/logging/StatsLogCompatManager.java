@@ -78,6 +78,7 @@ import com.android.launcher3.views.ActivityContext;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 import com.android.systemui.shared.system.SysUiStatsLog;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -97,12 +98,10 @@ public class StatsLogCompatManager extends StatsLogManager {
     private static final String TAG = "StatsLog";
     private static final String LATENCY_TAG = "StatsLatencyLog";
     private static final String IMPRESSION_TAG = "StatsImpressionLog";
+    private static final String LOG_INSTANCE_ID_PREFIX = "InstanceId:%s ";
     private static final boolean IS_VERBOSE = Utilities.isPropertyEnabled(LogConfig.STATSLOG);
     private static final boolean DEBUG = !Utilities.isRunningInTestHarness();
     private static final InstanceId DEFAULT_INSTANCE_ID = InstanceId.fakeInstanceId(0);
-    // LauncherAtom.ItemInfo.getDefaultInstance() should be used but until launcher proto migrates
-    // from nano to lite, bake constant to prevent robo test failure.
-    private static final int DEFAULT_PAGE_INDEX = -2;
     private static final int FOLDER_HIERARCHY_OFFSET = 100;
     private static final int SEARCH_RESULT_HIERARCHY_OFFSET = 200;
     private static final int EXTENDED_CONTAINERS_HIERARCHY_OFFSET = 300;
@@ -118,7 +117,7 @@ public class StatsLogCompatManager extends StatsLogManager {
     private static final int SEARCH_ATTRIBUTES_ENTRY_STATE_OVERVIEW = 1 << 4;
     private static final int SEARCH_ATTRIBUTES_ENTRY_STATE_TASKBAR = 1 << 5;
 
-    public static final CopyOnWriteArrayList<StatsLogConsumer> LOGS_CONSUMER =
+    public static final List<StatsLogConsumer> LOGS_CONSUMER =
             new CopyOnWriteArrayList<>();
 
     public StatsLogCompatManager(Context context) {
@@ -357,7 +356,7 @@ public class StatsLogCompatManager extends StatsLogManager {
         @Override
         public void log(EventEnum event) {
             if (DEBUG) {
-                String name = (event instanceof Enum) ? ((Enum) event).name() :
+                String name = (event instanceof Enum<?> eventEnum) ? eventEnum.name() :
                         event.getId() + "";
                 Log.d(TAG, name);
             }
@@ -472,11 +471,11 @@ public class StatsLogCompatManager extends StatsLogManager {
             int inputType = mInputType;
             String packageName = mPackageName.orElseGet(() -> getPackageName(atomInfo));
             if (IS_VERBOSE) {
-                String name = (event instanceof Enum) ? ((Enum) event).name() :
+                String name = (event instanceof Enum<?> eventEnum) ? eventEnum.name() :
                         event.getId() + "";
                 StringBuilder logStringBuilder = new StringBuilder("\n");
                 if (instanceId != DEFAULT_INSTANCE_ID) {
-                    logStringBuilder.append(String.format("InstanceId:%s ", instanceId));
+                    logStringBuilder.append(String.format(LOG_INSTANCE_ID_PREFIX, instanceId));
                 }
                 logStringBuilder.append(name);
                 if (srcState != LAUNCHER_STATE_UNSPECIFIED
@@ -489,7 +488,7 @@ public class StatsLogCompatManager extends StatsLogManager {
                     logStringBuilder.append("\n").append(atomInfo);
                 }
                 if (!TextUtils.isEmpty(packageName)) {
-                    logStringBuilder.append(String.format("\nPackage name: %s", packageName));
+                    logStringBuilder.append(String.format("%nPackage name: %s", packageName));
                 }
                 Log.d(TAG, logStringBuilder.toString());
             }
@@ -616,10 +615,10 @@ public class StatsLogCompatManager extends StatsLogManager {
         @Override
         public void log(EventEnum event) {
             if (IS_VERBOSE) {
-                String name = (event instanceof Enum) ? ((Enum) event).name() :
+                String name = (event instanceof Enum<?> eventEnum) ? eventEnum.name() :
                         event.getId() + "";
                 StringBuilder logStringBuilder = new StringBuilder("\n");
-                logStringBuilder.append(String.format("InstanceId:%s ", mInstanceId));
+                logStringBuilder.append(String.format(LOG_INSTANCE_ID_PREFIX, mInstanceId));
                 logStringBuilder.append(String.format("%s=%sms", name, mLatencyInMillis));
                 Log.d(LATENCY_TAG, logStringBuilder.toString());
             }
@@ -697,10 +696,10 @@ public class StatsLogCompatManager extends StatsLogManager {
         @Override
         public void log(EventEnum event) {
             if (IS_VERBOSE) {
-                String name = (event instanceof Enum) ? ((Enum) event).name() :
+                String name = (event instanceof Enum<?> eventEnum) ? eventEnum.name() :
                         event.getId() + "";
                 StringBuilder logStringBuilder = new StringBuilder("\n");
-                logStringBuilder.append(String.format("InstanceId:%s ", mInstanceId));
+                logStringBuilder.append(String.format(LOG_INSTANCE_ID_PREFIX, mInstanceId));
                 logStringBuilder.append(String.format("ImpressionEvent:%s ", name));
                 logStringBuilder.append(String.format("\n\tLauncherState = %s ", mLauncherState));
                 logStringBuilder.append(String.format("\tQueryLength = %s ", mQueryLength));
@@ -747,13 +746,18 @@ public class StatsLogCompatManager extends StatsLogManager {
                     return deviceSearchResultCont.hasQueryLength() ? deviceSearchResultCont
                             .getQueryLength() : -1;
                 }
+                return getCardinalityFromItemCase(info);
             default:
-                return switch (info.getItemCase()) {
-                    case FOLDER_ICON -> info.getFolderIcon().getCardinality();
-                    case TASK_VIEW -> info.getTaskView().getCardinality();
-                    default -> 0;
-                };
+                return getCardinalityFromItemCase(info);
         }
+    }
+
+    private static int getCardinalityFromItemCase(LauncherAtom.ItemInfo info) {
+        return switch (info.getItemCase()) {
+            case FOLDER_ICON -> info.getFolderIcon().getCardinality();
+            case TASK_VIEW -> info.getTaskView().getCardinality();
+            default -> 0;
+        };
     }
 
     private static String getPackageName(LauncherAtom.ItemInfo info) {

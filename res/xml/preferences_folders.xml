@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Migration04 §04: folders screen — see Plans/Migration04/04-settings-ui-modularization.md §6 -->
+<androidx.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:launcher="http://schemas.android.com/apk/res-auto"
+    android:title="@string/folder_category_title">
+
+    <SwitchPreference
+        android:key="pref_show_folder_labels"
+        android:title="@string/show_folder_labels_title"
+        android:summary="@string/show_folder_labels_summary"
+        android:defaultValue="true"
+        android:persistent="false" />
+
+    <ListPreference
+        android:key="pref_folder_columns"
+        android:title="@string/folder_columns_title"
+        android:summary="@string/folder_columns_summary"
+        android:persistent="false" />
+
+    <ListPreference
+        android:key="pref_folder_bg_color"
+        android:title="@string/folder_bg_color_title"
+        android:summary="@string/folder_bg_color_summary"
+        android:persistent="false" />
+
+    <androidx.preference.SeekBarPreference
+        android:key="pref_folder_bg_opacity"
+        android:title="@string/folder_bg_opacity_title"
+        android:defaultValue="100"
+        android:max="100"
+        android:persistent="false" />
+
+    <androidx.preference.SeekBarPreference
+        android:key="pref_folder_preview_bg_opacity"
+        android:title="@string/folder_preview_bg_opacity_title"
+        android:defaultValue="100"
+        android:max="100"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_folder_badges"
+        android:title="@string/folder_badges_title"
+        android:summary="@string/folder_badges_summary"
+        android:defaultValue="true"
+        android:persistent="false" />
+
+    <SwitchPreference
+        android:key="pref_folder_spring_anim"
+        android:title="@string/folder_spring_anim_title"
+        android:summary="@string/folder_spring_anim_summary"
+        android:defaultValue="true"
+        android:persistent="false" />
+
+</androidx.preference.PreferenceScreen>

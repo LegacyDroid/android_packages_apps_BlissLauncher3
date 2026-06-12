@@ -153,7 +153,11 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         findOnBackInvokedDispatcher()?.unregisterOnBackInvokedCallback(this)
-        Settings.Secure.putInt(mContext.contentResolver, LAUNCHER_TASKBAR_EDUCATION_SHOWING, 0)
+        try {
+            Settings.Secure.putInt(mContext.contentResolver, LAUNCHER_TASKBAR_EDUCATION_SHOWING, 0)
+        } catch (e: SecurityException) {
+            // WRITE_SECURE_SETTINGS not available for non-system apps
+        }
     }
 
     private fun closeComplete() {

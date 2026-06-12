@@ -28,7 +28,7 @@ import java.util.Objects;
  * option in the pop-up opened on long press of launcher workspace).
  */
 public class WidgetRecommendationCategory implements Comparable<WidgetRecommendationCategory> {
-    public static WidgetRecommendationCategory DEFAULT_WIDGET_RECOMMENDATION_CATEGORY =
+    public static final WidgetRecommendationCategory DEFAULT_WIDGET_RECOMMENDATION_CATEGORY =
             new WidgetRecommendationCategory(
                     R.string.others_widget_recommendation_category_label, /*order=*/0);
 

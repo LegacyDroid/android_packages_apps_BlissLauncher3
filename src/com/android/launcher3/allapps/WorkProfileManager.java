@@ -66,7 +66,7 @@ public class WorkProfileManager extends UserProfileManager
             StatsLogManager statsLogManager, UserCache userCache) {
         super(userManager, statsLogManager, userCache);
         mAllApps = allApps;
-        mWorkProfileMatcher = (user) -> userCache.getUserInfo(user).isWork();
+        mWorkProfileMatcher = user -> userCache.getUserInfo(user).isWork();
     }
 
     /**

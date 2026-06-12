@@ -167,22 +167,27 @@ public class WindowManagerProxy {
         boolean isGesture = isGestureNav(context);
         boolean isPortrait = config.screenHeightDp > config.screenWidthDp;
 
-        int bottomNav = isLargeScreen
-                ? 0
-                : (isPortrait
-                        ? getDimenByName(systemRes, NAVBAR_HEIGHT)
-                        : (isGesture
-                                ? getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE)
-                                : 0));
+        int bottomNav;
+        if (isLargeScreen) {
+            bottomNav = 0;
+        } else if (isPortrait) {
+            bottomNav = getDimenByName(systemRes, NAVBAR_HEIGHT);
+        } else if (isGesture) {
+            bottomNav = getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE);
+        } else {
+            bottomNav = 0;
+        }
         int leftNav = navInsets.left;
         int rightNav = navInsets.right;
         if (!isLargeScreen && !isGesture && !isPortrait) {
             // In 3-button landscape/seascape, Launcher should always have nav insets regardless if
             // it's initiated from fullscreen apps.
             int navBarWidth = getDimenByName(systemRes, NAVBAR_LANDSCAPE_LEFT_RIGHT_SIZE);
-            switch (getRotation(context)) {
-                case Surface.ROTATION_90 -> rightNav = navBarWidth;
-                case Surface.ROTATION_270 -> leftNav = navBarWidth;
+            int rotation = getRotation(context);
+            if (rotation == Surface.ROTATION_90) {
+                rightNav = navBarWidth;
+            } else if (rotation == Surface.ROTATION_270) {
+                leftNav = navBarWidth;
             }
         }
         Insets newNavInsets = Insets.of(leftNav, navInsets.top, rightNav, bottomNav);
@@ -323,18 +328,22 @@ public class WindowManagerProxy {
         int statusBarHeightLandscape = getDimenByName(systemRes,
                 STATUS_BAR_HEIGHT_LANDSCAPE, STATUS_BAR_HEIGHT);
 
-        int navBarHeightPortrait, navBarHeightLandscape, navbarWidthLandscape;
+        int navBarHeightPortrait;
+        int navBarHeightLandscape;
+        int navbarWidthLandscape;
 
-        navBarHeightPortrait = isTablet
-                ? (mTaskbarDrawnInProcess
-                        ? 0 : context.getResources().getDimensionPixelSize(com.android.internal.R.dimen.taskbar_frame_height))
-                : getDimenByName(systemRes, NAVBAR_HEIGHT);
-
-        navBarHeightLandscape = isTablet
-                ? (mTaskbarDrawnInProcess
-                        ? 0 : context.getResources().getDimensionPixelSize(com.android.internal.R.dimen.taskbar_frame_height))
-                : (isTabletOrGesture
-                        ? getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE) : 0);
+        if (isTablet) {
+            int taskbarHeight = mTaskbarDrawnInProcess
+                    ? 0
+                    : context.getResources().getDimensionPixelSize(
+                            com.android.internal.R.dimen.taskbar_frame_height);
+            navBarHeightPortrait = taskbarHeight;
+            navBarHeightLandscape = taskbarHeight;
+        } else {
+            navBarHeightPortrait = getDimenByName(systemRes, NAVBAR_HEIGHT);
+            navBarHeightLandscape = isTabletOrGesture
+                    ? getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE) : 0;
+        }
         navbarWidthLandscape = isTabletOrGesture
                 ? 0
                 : getDimenByName(systemRes, NAVBAR_LANDSCAPE_LEFT_RIGHT_SIZE);
@@ -347,7 +356,9 @@ public class WindowManagerProxy {
             rotateSize(tempSize, rotationChange);
             Rect bounds = new Rect(0, 0, tempSize.x, tempSize.y);
 
-            int navBarHeight, navbarWidth, statusBarHeight;
+            int navBarHeight;
+            int navbarWidth;
+            int statusBarHeight;
             if (tempSize.y > tempSize.x) {
                 navBarHeight = navBarHeightPortrait;
                 navbarWidth = 0;
@@ -495,10 +506,14 @@ public class WindowManagerProxy {
     }
 
     /** Registers a listener for Taskbar changes in Desktop Mode.  */
-    public void registerDesktopVisibilityListener(DesktopVisibilityListener listener) { }
+    public void registerDesktopVisibilityListener(DesktopVisibilityListener listener) {
+        // No-op default; overridden by subclasses that support desktop mode.
+    }
 
     /** Removes a previously registered listener for Taskbar changes in Desktop Mode.  */
-    public void unregisterDesktopVisibilityListener(DesktopVisibilityListener listener) { }
+    public void unregisterDesktopVisibilityListener(DesktopVisibilityListener listener) {
+        // No-op default; overridden by subclasses that support desktop mode.
+    }
 
     /** A listener for when the user enters/exits Desktop Mode.  */
     public interface DesktopVisibilityListener {

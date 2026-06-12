@@ -502,77 +502,74 @@ public class WidgetsTwoPaneSheet extends WidgetsFullSheet {
     }
 
     private HeaderChangeListener getHeaderChangeListener() {
-        return new HeaderChangeListener() {
-            @Override
-            public void onHeaderChanged(@NonNull PackageUserKey selectedHeader) {
-                final boolean isSameHeader = mSelectedHeader != null
-                        && mSelectedHeader.equals(selectedHeader);
-                // If the initial focus view is still focused or widget picker is still opening, it
-                // is likely a programmatic header click.
-                final boolean isUserClick = mSelectedHeader != null
-                        && !mOpenCloseAnimation.getAnimationPlayer().isRunning()
-                        && !getAccessibilityInitialFocusView().isAccessibilityFocused();
-                mSelectedHeader = selectedHeader;
+        return selectedHeader -> {
+            final boolean isSameHeader = mSelectedHeader != null
+                    && mSelectedHeader.equals(selectedHeader);
+            // If the initial focus view is still focused or widget picker is still opening, it
+            // is likely a programmatic header click.
+            final boolean isUserClick = mSelectedHeader != null
+                    && !mOpenCloseAnimation.getAnimationPlayer().isRunning()
+                    && !getAccessibilityInitialFocusView().isAccessibilityFocused();
+            mSelectedHeader = selectedHeader;
 
-                WidgetsListContentEntry contentEntry;
-                if (enableTieredWidgetsByDefaultInPicker()) {
-                    contentEntry = mAdapters.get(
-                            getCurrentAdapterHolderType()).mWidgetsListAdapter.getContentEntry(
-                            selectedHeader);
-                } else { // Can be deleted when inlining the "enableTieredWidgetsByDefaultInPicker"
-                    // flag
-                    final boolean showDefaultWidgets = mWidgetOptionsMenuState != null
-                            && !mWidgetOptionsMenuState.showAllWidgets;
-                    contentEntry = findContentEntryForPackageUser(
-                            mActivityContext.getWidgetPickerDataProvider().get(),
-                            selectedHeader, showDefaultWidgets);
-                }
+            WidgetsListContentEntry contentEntry;
+            if (enableTieredWidgetsByDefaultInPicker()) {
+                contentEntry = mAdapters.get(
+                        getCurrentAdapterHolderType()).mWidgetsListAdapter.getContentEntry(
+                        selectedHeader);
+            } else { // Can be deleted when inlining the "enableTieredWidgetsByDefaultInPicker"
+                // flag
+                final boolean showDefaultWidgets = mWidgetOptionsMenuState != null
+                        && !mWidgetOptionsMenuState.showAllWidgets;
+                contentEntry = findContentEntryForPackageUser(
+                        mActivityContext.getWidgetPickerDataProvider().get(),
+                        selectedHeader, showDefaultWidgets);
+            }
 
-                if (contentEntry == null || mRightPane == null) {
-                    return;
-                }
+            if (contentEntry == null || mRightPane == null) {
+                return;
+            }
 
-                if (mSuggestedWidgetsHeader != null) {
-                    mSuggestedWidgetsHeader.setExpanded(false);
-                }
+            if (mSuggestedWidgetsHeader != null) {
+                mSuggestedWidgetsHeader.setExpanded(false);
+            }
 
-                WidgetsListContentEntry contentEntryToBind;
-                // Setting max span size enables row to understand how to fit more than one item
-                // in a row.
-                contentEntryToBind = contentEntry.withMaxSpanSize(mMaxSpanPerRow);
+            WidgetsListContentEntry contentEntryToBind;
+            // Setting max span size enables row to understand how to fit more than one item
+            // in a row.
+            contentEntryToBind = contentEntry.withMaxSpanSize(mMaxSpanPerRow);
 
-                WidgetsRowViewHolder widgetsRowViewHolder =
-                        mWidgetsListTableViewHolderBinder.newViewHolder(mRightPane);
+            WidgetsRowViewHolder widgetsRowViewHolder =
+                    mWidgetsListTableViewHolderBinder.newViewHolder(mRightPane);
+            mWidgetsListTableViewHolderBinder.bindViewHolder(widgetsRowViewHolder,
+                    contentEntryToBind,
+                    ViewHolderBinder.POSITION_FIRST | ViewHolderBinder.POSITION_LAST,
+                    Collections.EMPTY_LIST);
+            if (isSameHeader) {
+                // Reselect the last selected widget if we are reloading the same header.
+                selectWidgetCell(widgetsRowViewHolder.tableContainer,
+                        getLastSelectedWidgetItem());
+            }
+            widgetsRowViewHolder.mDataCallback = data -> {
                 mWidgetsListTableViewHolderBinder.bindViewHolder(widgetsRowViewHolder,
                         contentEntryToBind,
                         ViewHolderBinder.POSITION_FIRST | ViewHolderBinder.POSITION_LAST,
-                        Collections.EMPTY_LIST);
+                        Collections.singletonList(data));
                 if (isSameHeader) {
-                    // Reselect the last selected widget if we are reloading the same header.
                     selectWidgetCell(widgetsRowViewHolder.tableContainer,
                             getLastSelectedWidgetItem());
                 }
-                widgetsRowViewHolder.mDataCallback = data -> {
-                    mWidgetsListTableViewHolderBinder.bindViewHolder(widgetsRowViewHolder,
-                            contentEntryToBind,
-                            ViewHolderBinder.POSITION_FIRST | ViewHolderBinder.POSITION_LAST,
-                            Collections.singletonList(data));
-                    if (isSameHeader) {
-                        selectWidgetCell(widgetsRowViewHolder.tableContainer,
-                                getLastSelectedWidgetItem());
-                    }
-                };
-                mRightPane.removeAllViews();
-                mRightPane.addView(widgetsRowViewHolder.itemView);
-                if (isUserClick) {
-                    mRightPaneScrollView.setAccessibilityPaneTitle(getContext().getString(
-                            R.string.widget_picker_right_pane_accessibility_title,
-                            contentEntry.mPkgItem.title));
-                    postDelayed(() -> focusOnFirstWidgetCell(widgetsRowViewHolder.tableContainer),
-                            WIDGET_LIST_ITEM_APPEARANCE_DELAY);
-                }
-                mRightPaneScrollView.setScrollY(0);
+            };
+            mRightPane.removeAllViews();
+            mRightPane.addView(widgetsRowViewHolder.itemView);
+            if (isUserClick) {
+                mRightPaneScrollView.setAccessibilityPaneTitle(getContext().getString(
+                        R.string.widget_picker_right_pane_accessibility_title,
+                        contentEntry.mPkgItem.title));
+                postDelayed(() -> focusOnFirstWidgetCell(widgetsRowViewHolder.tableContainer),
+                        WIDGET_LIST_ITEM_APPEARANCE_DELAY);
             }
+            mRightPaneScrollView.setScrollY(0);
         };
     }
 
@@ -590,7 +587,7 @@ public class WidgetsTwoPaneSheet extends WidgetsFullSheet {
      */
     private static void focusOnFirstWidgetCell(ViewGroup parent) {
         if (parent == null) return;
-        WidgetCell cell = Utilities.findViewByPredicate(parent, v -> v instanceof WidgetCell);
+        WidgetCell cell = Utilities.findViewByPredicate(parent, WidgetCell.class::isInstance);
         if (cell != null) {
             cell.performAccessibilityAction(
                     AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null);
@@ -665,7 +662,7 @@ public class WidgetsTwoPaneSheet extends WidgetsFullSheet {
          * UI state indicating whether to show default or all widgets.
          * <p>If true, shows all widgets; else shows the default widgets.</p>
          */
-        public boolean showAllWidgets = false;
+        private boolean showAllWidgets = false;
     }
 
     private static class HighresPackageItemInfo extends PackageItemInfo {

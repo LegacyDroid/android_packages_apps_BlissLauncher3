@@ -178,7 +178,7 @@ public class QsbContainerView extends FrameLayout {
 
         protected QsbWidgetHost createHost() {
             return new QsbWidgetHost(getContext(), QSB_WIDGET_HOST_ID,
-                    (c) -> new QsbWidgetHostView(c), this::rebindFragment);
+                    c -> new QsbWidgetHostView(c), this::rebindFragment);
         }
 
         private FrameLayout mWrapper;
@@ -236,11 +236,9 @@ public class QsbContainerView extends FrameLayout {
                         mWidgetInfo);
                 mQsb.setId(R.id.qsb_widget);
 
-                if (!isInPreviewMode()) {
-                    if (!containsAll(AppWidgetManager.getInstance(context)
-                            .getAppWidgetOptions(widgetId), opts)) {
-                        mQsb.updateAppWidgetOptions(opts);
-                    }
+                if (!isInPreviewMode() && !containsAll(AppWidgetManager.getInstance(context)
+                        .getAppWidgetOptions(widgetId), opts)) {
+                    mQsb.updateAppWidgetOptions(opts);
                 }
                 return mQsb;
             }
@@ -308,7 +306,7 @@ public class QsbContainerView extends FrameLayout {
             if (showSetupIcon) {
                 View setupButton = v.findViewById(R.id.btn_qsb_setup);
                 setupButton.setVisibility(View.VISIBLE);
-                setupButton.setOnClickListener((v2) -> startActivityForResult(
+                setupButton.setOnClickListener(v2 -> startActivityForResult(
                         new Intent(ACTION_APPWIDGET_BIND)
                                 .putExtra(EXTRA_APPWIDGET_ID, mQsbWidgetHost.allocateAppWidgetId())
                                 .putExtra(EXTRA_APPWIDGET_PROVIDER, mWidgetInfo.provider),

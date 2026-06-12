@@ -55,15 +55,11 @@ public class RecentsAnimationCallbacks implements
         com.android.systemui.shared.system.RecentsAnimationListener {
 
     private final Set<RecentsAnimationListener> mListeners = new ArraySet<>();
-    private final SystemUiProxy mSystemUiProxy;
-
-    // TODO(141886704): Remove these references when they are no longer needed
-    private RecentsAnimationController mController;
 
     private boolean mCancelled;
 
+
     public RecentsAnimationCallbacks(SystemUiProxy systemUiProxy) {
-        mSystemUiProxy = systemUiProxy;
     }
 
     @UiThread
@@ -91,7 +87,7 @@ public class RecentsAnimationCallbacks implements
 
     // Called only in Q platform
     @BinderThread
-    @Deprecated
+    @Deprecated(since = "a16")
     public final void onAnimationStart(RecentsAnimationControllerCompat controller,
             RemoteAnimationTarget[] appTargets, Rect homeContentInsets,
             Rect minimizedHomeBounds, Bundle extras) {
@@ -123,7 +119,7 @@ public class RecentsAnimationCallbacks implements
             return;
         }
 
-        mController = new RecentsAnimationController(animationController,
+        RecentsAnimationController mController = new RecentsAnimationController(animationController,
                 this::onAnimationFinished);
         if (mCancelled) {
             Utilities.postAsyncCallback(MAIN_EXECUTOR.getHandler(),

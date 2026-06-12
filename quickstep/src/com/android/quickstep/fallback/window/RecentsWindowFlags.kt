@@ -14,30 +14,34 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.fallback.window
 
-import android.window.DesktopModeFlags.DesktopModeFlag
-import com.android.launcher3.Flags
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat
 
 class RecentsWindowFlags {
     companion object {
-        @JvmField
-        val enableLauncherOverviewInWindow: DesktopModeFlag =
-            DesktopModeFlag(Flags::enableLauncherOverviewInWindow, false)
-
-        @JvmField
-        val enableFallbackOverviewInWindow: DesktopModeFlag =
-            DesktopModeFlag(Flags::enableFallbackOverviewInWindow, false)
-
-        @JvmField
-        val enableOverviewOnConnectedDisplays: DesktopModeFlag =
-            DesktopModeFlag(Flags::enableOverviewOnConnectedDisplays, false)
+        @JvmStatic
+        val enableLauncherOverviewInWindow: Boolean
+            get() = DesktopFlagsCompat.enableLauncherOverviewInWindow()
 
         @JvmStatic
-        val enableOverviewInWindow
-            get() =
-                enableLauncherOverviewInWindow.isTrue ||
-                    enableFallbackOverviewInWindow.isTrue ||
-                    enableOverviewOnConnectedDisplays.isTrue
+        val enableFallbackOverviewInWindow: Boolean
+            get() = DesktopFlagsCompat.enableFallbackOverviewInWindow()
+
+        @JvmStatic
+        val enableOverviewOnConnectedDisplays: Boolean
+            get() = DesktopFlagsCompat.enableOverviewOnConnectedDisplays()
+
+        @JvmStatic
+        val enableOverviewInWindow: Boolean
+            get() = DesktopFlagsCompat.enableOverviewInWindow()
     }
 }

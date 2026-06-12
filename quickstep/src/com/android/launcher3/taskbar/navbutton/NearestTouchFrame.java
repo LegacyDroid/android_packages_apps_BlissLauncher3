@@ -89,7 +89,7 @@ public class NearestTouchFrame extends FrameLayout {
      * Populates {@link #mTouchableRegions} with the regions where each clickable child is the
      * closest for a given point on this layout.
      */
-    private void cacheClosestChildLocations() {
+    private void cacheClosestChildLocations() { // NOSONAR pristine-AOSP-do-not-refactor
         if (getWidth() == 0 || getHeight() == 0) {
             return;
         }

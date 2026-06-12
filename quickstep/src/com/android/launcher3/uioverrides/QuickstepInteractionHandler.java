@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.uioverrides;
 
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_APP_LAUNCH_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_WIDGET_ATTEMPT;
 
 import android.app.ActivityOptions;
-import android.app.ActivityTaskManager;
+import android.app.IActivityTaskManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.RemoteException;
@@ -31,6 +39,7 @@ import android.window.SplashScreen;
 
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.data.ItemInfo;
+import foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat;
 import com.android.launcher3.util.ActivityOptionsWrapper;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
 
@@ -76,14 +85,16 @@ class QuickstepInteractionHandler implements RemoteViews.InteractionHandler,
         if (!pendingIntent.isActivity()) {
             // In the event this pending intent eventually launches an activity, i.e. a trampoline,
             // use the Quickstep transition animation.
-            try {
-                ActivityTaskManager.getService()
-                        .registerRemoteAnimationForNextActivityStart(
-                                pendingIntent.getCreatorPackage(),
-                                activityOptions.options.getRemoteAnimationAdapter(),
-                                activityOptions.options.getLaunchCookie());
-            } catch (RemoteException e) {
-                // Do nothing.
+            IActivityTaskManager atm = ActivityTaskManagerCompat.getService();
+            if (atm != null) {
+                try {
+                    atm.registerRemoteAnimationForNextActivityStart(
+                            pendingIntent.getCreatorPackage(),
+                            activityOptions.options.getRemoteAnimationAdapter(),
+                            activityOptions.options.getLaunchCookie());
+                } catch (RemoteException e) {
+                    // Do nothing.
+                }
             }
         }
         activityOptions.options.setPendingIntentLaunchFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

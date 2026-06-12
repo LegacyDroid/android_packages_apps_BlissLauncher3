@@ -197,7 +197,9 @@ class VoiceInteractionWindowController(val context: TaskbarActivityContext) :
                     pendingAttachedToWindowListener = null
                 }
 
-                override fun onViewDetachedFromWindow(v: View) {}
+                override fun onViewDetachedFromWindow(v: View) {
+                    // no-op: only attachment is observed, detachment is irrelevant here
+                }
             }
         addOnAttachStateChangeListener(pendingAttachedToWindowListener)
     }

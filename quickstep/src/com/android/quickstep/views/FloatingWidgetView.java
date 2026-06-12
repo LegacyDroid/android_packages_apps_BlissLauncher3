@@ -99,14 +99,17 @@ public class FloatingWidgetView extends FrameLayout implements AnimatorListener,
 
     @Override
     public void onAnimationStart(Animator animator) {
+        /* no-op: this view only reacts to animation end */
     }
 
     @Override
     public void onAnimationCancel(Animator animator) {
+        /* no-op: cancellation is handled via onAnimationEnd's end runnable */
     }
 
     @Override
     public void onAnimationRepeat(Animator animator) {
+        /* no-op: this view's animations do not repeat */
     }
 
     @Override

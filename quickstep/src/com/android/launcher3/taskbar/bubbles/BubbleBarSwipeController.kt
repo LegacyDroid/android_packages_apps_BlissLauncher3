@@ -172,7 +172,7 @@ class BubbleBarSwipeController {
                 .setEndValue(0f)
                 .setDampingRatio(SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY)
                 .setStiffness(SpringForce.STIFFNESS_LOW)
-                .build(animatedSwipeTranslation, AnimatedFloat.VALUE)
+                .build(animatedSwipeTranslation, AnimatedFloat.VALUE_PROPERTY)
                 .also { it.doOnEnd { reset() } }
         springAnimation?.start()
     }

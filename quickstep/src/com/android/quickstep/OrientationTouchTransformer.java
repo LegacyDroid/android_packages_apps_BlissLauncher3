@@ -330,7 +330,7 @@ class OrientationTouchTransformer {
         return mQuickStepStartingRotation;
     }
 
-    public void transform(MotionEvent event) {
+    public void transform(MotionEvent event) { // NOSONAR pristine-AOSP-do-not-refactor
         int eventAction = event.getActionMasked();
         switch (eventAction) {
             case ACTION_MOVE: {
@@ -351,8 +351,7 @@ class OrientationTouchTransformer {
                 }
                 break;
             }
-            case ACTION_CANCEL:
-            case ACTION_UP: {
+            case ACTION_CANCEL, ACTION_UP: {
                 if (mLastRectTouched == null) {
                     return;
                 }
@@ -371,8 +370,7 @@ class OrientationTouchTransformer {
                 mLastRectTouched = null;
                 break;
             }
-            case ACTION_POINTER_DOWN:
-            case ACTION_DOWN: {
+            case ACTION_POINTER_DOWN, ACTION_DOWN: {
                 if (enableLog()) {
                     Log.d(TAG, "ACTION_DOWN mLastRectTouched: " + mLastRectTouched);
                 }
@@ -406,6 +404,9 @@ class OrientationTouchTransformer {
                 }
                 break;
             }
+            default:
+                // Other motion actions are not handled here.
+                break;
         }
     }
 

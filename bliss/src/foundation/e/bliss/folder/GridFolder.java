@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/folder/GridFolder.java
+ * Module:  bliss root app source-set
+ * Role:    Folder view extended for grid layout with folder tabs and wobble animations.
+ */
 package foundation.e.bliss.folder;
 
 import static com.android.launcher3.LauncherState.NORMAL;
@@ -129,7 +134,8 @@ public class GridFolder extends Folder implements OnAlarmListener {
         return mGridFolderPage.getBackground();
     }
 
-    private int getContentAreaWidth() {
+    @Override
+    protected int getContentAreaWidth() {
         return Math.max(mContent.getDesiredWidth(), MIN_CONTENT_DIMEN);
     }
 
@@ -141,11 +147,13 @@ public class GridFolder extends Folder implements OnAlarmListener {
         return Math.max(height, MIN_CONTENT_DIMEN);
     }
 
-    private int getFolderWidth() {
+    @Override
+    protected int getFolderWidth() {
         return getPaddingLeft() + getPaddingRight() + mContent.getDesiredWidth();
     }
 
-    private int getFolderHeight() {
+    @Override
+    protected int getFolderHeight() {
         return mContent.getDesiredHeight() + mFooterHeight;
     }
 
@@ -274,43 +282,62 @@ public class GridFolder extends Folder implements OnAlarmListener {
             return;
 
         AnimatorSet set = new AnimatorSet();
-
         Workspace<?> workspace = launcher == null ? null : launcher.getWorkspace();
-        if (workspace != null) {
-            play(set, getAnimator(workspace, 1f, 0f, hide));
-            if (workspace.getPageAt(workspace.getCurrentPage()) != null) {
-                play(set, getAnimator(workspace.getPageAt(workspace.getCurrentPage()), 1f, 0f, hide));
-            }
-            if (workspace.getHotseat() != null) {
-                play(set, getAnimator(workspace.getHotseat(), 1f, 0f, hide));
-            }
-            if (workspace.getPageIndicator() != null) {
-                play(set, getAnimator(workspace.getPageIndicator(), 1f, 0f, hide), 0);
-                if (!hide && launcher.isInState(LauncherState.SPRING_LOADED)) {
-                    workspace.showPageIndicatorAtCurrentScroll();
-                }
-            }
-        }
+        addWorkspaceAnimators(set, launcher, workspace, hide);
 
         Hotseat hotseat = launcher == null ? null : launcher.getHotseat();
-        if (hotseat != null) {
-            play(set, getAnimator(hotseat, 1f, 0f, hide));
-            View qsb = hotseat.getQsb();
-            if (qsb != null) {
-                play(set, getAnimator(qsb, 1f, 0f, hide));
+        addHotseatAnimators(set, hotseat, hide);
+
+        addOverlayAnimators(set, launcher, hide, duration);
+
+        set.addListener(buildDesktopAnimatorListener(hotseat, hide));
+        set.start();
+    }
+
+    private void addWorkspaceAnimators(AnimatorSet set, Launcher launcher, Workspace<?> workspace, boolean hide) {
+        if (workspace == null) {
+            return;
+        }
+        play(set, getAnimator(workspace, 1f, 0f, hide));
+        View currentPage = workspace.getPageAt(workspace.getCurrentPage());
+        if (currentPage != null) {
+            play(set, getAnimator(currentPage, 1f, 0f, hide));
+        }
+        if (workspace.getHotseat() != null) {
+            play(set, getAnimator(workspace.getHotseat(), 1f, 0f, hide));
+        }
+        if (workspace.getPageIndicator() != null) {
+            play(set, getAnimator(workspace.getPageIndicator(), 1f, 0f, hide), 0);
+            if (!hide && launcher != null && launcher.isInState(LauncherState.SPRING_LOADED)) {
+                workspace.showPageIndicatorAtCurrentScroll();
             }
         }
+    }
 
+    private void addHotseatAnimators(AnimatorSet set, Hotseat hotseat, boolean hide) {
+        if (hotseat == null) {
+            return;
+        }
+        play(set, getAnimator(hotseat, 1f, 0f, hide));
+        View qsb = hotseat.getQsb();
+        if (qsb != null) {
+            play(set, getAnimator(qsb, 1f, 0f, hide));
+        }
+    }
+
+    private void addOverlayAnimators(AnimatorSet set, Launcher launcher, boolean hide, long duration) {
         ScrimView scrimView = launcher == null ? null : launcher.findViewById(R.id.scrim_view);
         if (scrimView != null) {
             play(set, getAnimator(scrimView, 1f, 0f, hide), duration);
         }
-
         BlurBackgroundView blur = launcher == null ? null : launcher.mBlurLayer;
         if (blur != null) {
             play(set, getAnimator(blur, 0f, 1f, hide), duration);
         }
-        set.addListener(new AnimatorListenerAdapter() {
+    }
+
+    private AnimatorListenerAdapter buildDesktopAnimatorListener(Hotseat hotseat, boolean hide) {
+        return new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
@@ -325,8 +352,7 @@ public class GridFolder extends Folder implements OnAlarmListener {
                 super.onAnimationStart(animation);
                 isAnimating = true;
             }
-        });
-        set.start();
+        };
     }
 
     @Override
@@ -353,40 +379,59 @@ public class GridFolder extends Folder implements OnAlarmListener {
 
     public void wobbleFolder(boolean wobble, boolean excludeDraggingView) {
         if (wobble) {
-            isFolderWobbling = true;
-            AtomicInteger index = new AtomicInteger();
-            ItemInfo draggingViewInfo = mLauncher.getWorkspace().getDragObjectInfo();
-            mapOverItems((info, view) -> {
-                view.setOnTouchListener(ItemLongClickListener.INSTANCE_WORKSPACE_WOBBLE);
-                if (excludeDraggingView && draggingViewInfo != null) {
-                    if (draggingViewInfo instanceof WorkspaceItemInfo && draggingViewInfo.equals(view.getTag())) {
-                        return false;
-                    }
-                }
-                index.getAndIncrement();
-                if (index.get() % 2 == 0) {
-                    view.startAnimation(mLauncher.getWorkspace().getWobbleAnimation());
-                } else {
-                    view.startAnimation(mLauncher.getWorkspace().getReverseWobbleAnimation());
-                }
-                if (view instanceof BubbleTextView) {
-                    ((BubbleTextView) view).applyUninstallIconState(true);
-                }
-                return false;
-            });
-            wobbleExpireAlarm.setAlarm(Workspace.WOBBLE_EXPIRATION_TIMEOUT);
+            startFolderWobble(excludeDraggingView);
         } else {
-            wobbleExpireAlarm.cancelAlarm();
-            mapOverItems((info, view) -> {
-                isFolderWobbling = false;
-                view.setOnTouchListener(null);
-                view.clearAnimation();
-                if (view instanceof BubbleTextView) {
-                    ((BubbleTextView) view).applyUninstallIconState(false);
-                }
-                return false;
-            });
+            stopFolderWobble();
         }
+    }
+
+    private void startFolderWobble(boolean excludeDraggingView) {
+        isFolderWobbling = true;
+        AtomicInteger index = new AtomicInteger();
+        ItemInfo draggingViewInfo = mLauncher.getWorkspace().getDragObjectInfo();
+        mapOverItems((info, view) -> {
+            applyWobbleToItem(view, index, excludeDraggingView, draggingViewInfo);
+            return false;
+        });
+        wobbleExpireAlarm.setAlarm(Workspace.WOBBLE_EXPIRATION_TIMEOUT);
+    }
+
+    private void applyWobbleToItem(View view, AtomicInteger index, boolean excludeDraggingView,
+            ItemInfo draggingViewInfo) {
+        view.setOnTouchListener(ItemLongClickListener.INSTANCE_WORKSPACE_WOBBLE);
+        if (shouldSkipDraggingView(view, excludeDraggingView, draggingViewInfo)) {
+            return;
+        }
+        index.getAndIncrement();
+        Workspace<?> workspace = mLauncher.getWorkspace();
+        if (index.get() % 2 == 0) {
+            view.startAnimation(workspace.getWobbleAnimation());
+        } else {
+            view.startAnimation(workspace.getReverseWobbleAnimation());
+        }
+        if (view instanceof BubbleTextView) {
+            ((BubbleTextView) view).applyUninstallIconState(true);
+        }
+    }
+
+    private boolean shouldSkipDraggingView(View view, boolean excludeDraggingView, ItemInfo draggingViewInfo) {
+        if (!excludeDraggingView || draggingViewInfo == null) {
+            return false;
+        }
+        return draggingViewInfo instanceof WorkspaceItemInfo && draggingViewInfo.equals(view.getTag());
+    }
+
+    private void stopFolderWobble() {
+        wobbleExpireAlarm.cancelAlarm();
+        mapOverItems((info, view) -> {
+            isFolderWobbling = false;
+            view.setOnTouchListener(null);
+            view.clearAnimation();
+            if (view instanceof BubbleTextView) {
+                ((BubbleTextView) view).applyUninstallIconState(false);
+            }
+            return false;
+        });
     }
 
     @Override

@@ -707,7 +707,7 @@ class PortraitPagedViewHandler : DefaultPagedViewHandler(), RecentsPagedOrientat
         splitConfig: SplitConfigurationOptions.SplitBounds,
         inSplitSelection: Boolean,
         oneIconHiddenDueToSmallWidth: Boolean,
-    ) {
+    ) { // NOSONAR pristine-AOSP-do-not-refactor
         val primaryIconParams = primaryIconView.layoutParams as FrameLayout.LayoutParams
         val secondaryIconParams =
             if (enableOverviewIconMenu()) secondaryIconView.layoutParams as FrameLayout.LayoutParams

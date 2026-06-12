@@ -13,10 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.secondarydisplay;
 
 import static com.android.launcher3.util.WallpaperThemeManager.setWallpaperDependentTheme;
-import static com.android.window.flags.Flags.enableTaskbarConnectedDisplays;
+import static foundation.e.bliss.compat.desktop.DesktopFlagsCompat.enableTaskbarConnectedDisplays;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -412,8 +420,12 @@ public class SecondaryDisplayLauncher extends BaseActivity
     }
 
     @Override
-    public void onDragStart(DropTarget.DragObject dragObject, DragOptions options) { }
+    public void onDragStart(DropTarget.DragObject dragObject, DragOptions options) {
+        // No-op: secondary display launcher does not need to react to drag start.
+    }
 
     @Override
-    public void onDragEnd() { }
+    public void onDragEnd() {
+        // No-op: secondary display launcher does not need to react to drag end.
+    }
 }

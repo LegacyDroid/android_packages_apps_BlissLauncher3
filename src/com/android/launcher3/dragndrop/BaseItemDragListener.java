@@ -60,9 +60,9 @@ public abstract class BaseItemDragListener implements View.OnDragListener, DragS
     private final String mId;
 
     protected Launcher mLauncher;
-    private DragController mDragController;
+    private DragController<?> mDragController;
 
-    public BaseItemDragListener(Rect previewRect, int previewBitmapWidth, int previewViewWidth) {
+    protected BaseItemDragListener(Rect previewRect, int previewBitmapWidth, int previewViewWidth) {
         mPreviewRect = previewRect;
         mPreviewBitmapWidth = previewBitmapWidth;
         mPreviewViewWidth = previewViewWidth;

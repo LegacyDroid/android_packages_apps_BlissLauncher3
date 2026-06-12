@@ -37,7 +37,7 @@ public abstract class DragDriver {
         void onDriverDragCancel();
     }
 
-    public DragDriver(EventListener eventListener, Consumer<MotionEvent> sec) {
+    protected DragDriver(EventListener eventListener, Consumer<MotionEvent> sec) {
         mEventListener = eventListener;
         mSecondaryEventConsumer = sec;
     }
@@ -191,6 +191,9 @@ public abstract class DragDriver {
                 case MotionEvent.ACTION_CANCEL:
                     mEventListener.onDriverDragCancel();
                     break;
+                default:
+                    // Other action types are ignored.
+                    break;
             }
 
             return true;
@@ -201,14 +204,11 @@ public abstract class DragDriver {
             mSecondaryEventConsumer.accept(ev);
             final int action = ev.getAction();
 
-            switch (action) {
-                case MotionEvent.ACTION_UP:
-                    mEventListener.onDriverDragEnd(mDragController.getX(ev),
-                            mDragController.getY(ev));
-                    break;
-                case MotionEvent.ACTION_CANCEL:
-                    mEventListener.onDriverDragCancel();
-                    break;
+            if (action == MotionEvent.ACTION_UP) {
+                mEventListener.onDriverDragEnd(mDragController.getX(ev),
+                        mDragController.getY(ev));
+            } else if (action == MotionEvent.ACTION_CANCEL) {
+                mEventListener.onDriverDragCancel();
             }
             return true;
         }

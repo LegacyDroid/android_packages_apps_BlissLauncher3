@@ -40,6 +40,10 @@ public final class PredictionHelper {
     private static final String APP_LOCATION_HOTSEAT = "hotseat";
     private static final String APP_LOCATION_WORKSPACE = "workspace";
 
+    private PredictionHelper() {
+        // Utility class, do not instantiate.
+    }
+
     /**
      * Creates and returns an {@link AppTarget} object for an {@link ItemInfo}. Returns null
      * if item type is not supported in predictions

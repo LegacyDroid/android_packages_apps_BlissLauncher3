@@ -36,6 +36,10 @@ public class TaskbarThresholdUtils {
     // as data points.
     private static final float SCREEN_UNITS = 1 / 80f;
 
+    private TaskbarThresholdUtils() {
+        // Utility class.
+    }
+
     private static int getThreshold(Resources r, DeviceProfile dp, int thresholdDimen,
             int multiplierDimen) {
         float landscapeScreenHeight = dp.isLandscape ? dp.heightPx : dp.widthPx;

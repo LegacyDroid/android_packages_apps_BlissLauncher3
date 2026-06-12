@@ -158,10 +158,8 @@ public class AllAppsSwipeController extends AbstractStateChangeTouchController {
             // Don't listen for the swipe gesture if we are already in some other state.
             return false;
         }
-        if (mLauncher.isInState(ALL_APPS) && !mLauncher.getAppsView().shouldContainerScroll(ev)) {
-            return false;
-        }
-        return true;
+        return !mLauncher.isInState(ALL_APPS)
+                || mLauncher.getAppsView().shouldContainerScroll(ev);
     }
 
     @Override

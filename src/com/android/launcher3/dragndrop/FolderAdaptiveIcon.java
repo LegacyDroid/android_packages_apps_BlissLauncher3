@@ -85,7 +85,7 @@ public class FolderAdaptiveIcon extends AdaptiveIconDrawable {
         // Only use the size actually needed for drawing the folder icon
         int drawingSize = activity.getDeviceProfile().folderIconSizePx;
         int foregroundSize = Math.max(requestedSize, drawingSize);
-        float shift = foregroundSize - requestedSize;
+        float shift = (float) foregroundSize - requestedSize;
 
         Picture background = new Picture();
         Picture foreground = new Picture();
@@ -211,10 +211,14 @@ public class FolderAdaptiveIcon extends AdaptiveIconDrawable {
         }
 
         @Override
-        public void setAlpha(int i) { }
+        public void setAlpha(int i) {
+            // No-op: alpha is not supported for this drawable.
+        }
 
         @Override
-        public void setColorFilter(ColorFilter colorFilter) {  }
+        public void setColorFilter(ColorFilter colorFilter) {
+            // No-op: color filtering is not supported for this drawable.
+        }
 
         @Override
         public int getOpacity() {

@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.widget;
 
 import static com.android.app.animation.Interpolators.EMPHASIZED;
 import static com.android.launcher3.LauncherState.NORMAL;
 import static com.android.launcher3.anim.AnimatorListeners.forSuccessCallback;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_WIDGET_ADD_BUTTON_TAP;
-import static com.android.window.flags.Flags.predictiveBackThreeButtonNav;
+import static foundation.e.bliss.compat.desktop.DesktopFlagsCompat.predictiveBackThreeButtonNav;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -81,7 +89,7 @@ public abstract class BaseWidgetSheet extends AbstractSlideInView<BaseActivity>
     @Nullable private WidgetCell mWidgetCellWithAddButton = null;
     @Nullable private WidgetItem mLastSelectedWidgetItem = null;
 
-    public BaseWidgetSheet(Context context, AttributeSet attrs, int defStyleAttr) {
+    protected BaseWidgetSheet(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mContentHorizontalMargin = getWidgetListHorizontalMargin();
         mWidgetCellHorizontalPadding = getResources().getDimensionPixelSize(
@@ -169,9 +177,9 @@ public abstract class BaseWidgetSheet extends AbstractSlideInView<BaseActivity>
             // If click is on a cell not showing an add button, show it now.
             final PendingAddItemInfo info = (PendingAddItemInfo) wc.getTag();
             if (mActivityContext instanceof Launcher) {
-                wc.showAddButton((view) -> addWidget(info));
+                wc.showAddButton(view -> addWidget(info));
             } else {
-                wc.showAddButton((view) -> mActivityContext.getItemOnClickListener()
+                wc.showAddButton(view -> mActivityContext.getItemOnClickListener()
                         .onClick(wc));
             }
         }
@@ -206,16 +214,13 @@ public abstract class BaseWidgetSheet extends AbstractSlideInView<BaseActivity>
 
             // Going to NORMAL state will also dismiss the All Apps view if it is showing.
             Launcher launcher = Launcher.getLauncher(mActivityContext);
-            launcher.getStateManager().goToState(NORMAL, forSuccessCallback(() -> {
-                launcher.getAccessibilityDelegate().addToWorkspace(info,
-                        /*accessibility=*/ false,
-                        /*finishCallback=*/ (success) -> {
-                            mActivityContext.getStatsLogManager()
+            launcher.getStateManager().goToState(NORMAL, forSuccessCallback(() ->
+                    launcher.getAccessibilityDelegate().addToWorkspace(info,
+                            /*accessibility=*/ false,
+                            /*finishCallback=*/ success -> mActivityContext.getStatsLogManager()
                                     .logger()
                                     .withItemInfo(info)
-                                    .log(LAUNCHER_WIDGET_ADD_BUTTON_TAP);
-                        });
-            }));
+                                    .log(LAUNCHER_WIDGET_ADD_BUTTON_TAP))));
         });
         close(/* animate= */ true);
     }

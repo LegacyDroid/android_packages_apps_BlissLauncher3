@@ -77,6 +77,8 @@ public class PackageUpdatedTask implements ModelUpdateTask {
     // TODO(b/290090023): Set to false after root causing is done.
     private static final String TAG = "PackageUpdatedTask";
     private static final boolean DEBUG = true;
+    private static final String LOG_PACKAGE = " package=";
+    private static final String LOG_IS_ARCHIVED = ", isArchived=";
 
     public static final int OP_NONE = 0;
     public static final int OP_ADD = 1;
@@ -171,8 +173,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                 }
                 flagOp = FlagOp.NO_OP.addFlag(WorkspaceItemInfo.FLAG_DISABLED_NOT_AVAILABLE);
                 break;
-            case OP_SUSPEND:
-            case OP_UNSUSPEND:
+            case OP_SUSPEND, OP_UNSUSPEND:
                 flagOp = FlagOp.NO_OP.setFlag(
                         WorkspaceItemInfo.FLAG_DISABLED_SUSPENDED, mOp == OP_SUSPEND);
                 appsList.updateDisabledFlags(matcher, flagOp);
@@ -216,7 +217,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
 
             // For system apps, package manager send OP_UPDATE when an app is enabled.
             final boolean isNewApkAvailable = mOp == OP_ADD || mOp == OP_UPDATE;
-            synchronized (dataModel) {
+            synchronized (dataModel.mLock) {
                 dataModel.forAllWorkspaceItemInfos(mUser, itemInfo -> {
 
                     boolean infoUpdated = false;
@@ -253,15 +254,15 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                                     isTargetValid = false;
                                     if (DEBUG) {
                                         Log.d(TAG, "Shortcut not found for updated"
-                                                + " package=" + itemInfo.getTargetPackage()
-                                                + ", isArchived=" + itemInfo.isArchived());
+                                                + LOG_PACKAGE + itemInfo.getTargetPackage()
+                                                + LOG_IS_ARCHIVED + itemInfo.isArchived());
                                     }
                                 } else {
                                     if (DEBUG) {
                                         Log.d(TAG, "Found shortcut for updated"
-                                                + " package=" + itemInfo.getTargetPackage()
+                                                + LOG_PACKAGE + itemInfo.getTargetPackage()
                                                 + ", isTargetValid=" + isTargetValid
-                                                + ", isArchived=" + itemInfo.isArchived());
+                                                + LOG_IS_ARCHIVED + itemInfo.isArchived());
                                     }
                                     itemInfo.updateFromDeepShortcutInfo(shortcut.get(0), context);
                                     infoUpdated = true;
@@ -284,7 +285,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                                                 + " id=" + itemInfo.id
                                                 + ", package=" + itemInfo.getTargetPackage()
                                                 + ", status=" + itemInfo.status
-                                                + ", isArchived=" + itemInfo.isArchived());
+                                                + LOG_IS_ARCHIVED + itemInfo.isArchived());
                                     }
                                     return;
                                 }
@@ -294,7 +295,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                                     FileLog.w(TAG, "Removing shortcut that no longer points to"
                                             + " valid component."
                                             + " id=" + itemInfo.id
-                                            + " package=" + itemInfo.getTargetPackage()
+                                            + LOG_PACKAGE + itemInfo.getTargetPackage()
                                             + " status=" + itemInfo.status);
                                 }
                                 return;
@@ -302,10 +303,9 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                                 itemInfo.status = WorkspaceItemInfo.DEFAULT;
                                 infoUpdated = true;
                             }
-                        } else if (isNewApkAvailable && removedComponents.contains(cn)) {
-                            if (updateWorkspaceItemIntent(context, itemInfo, packageName)) {
-                                infoUpdated = true;
-                            }
+                        } else if (isNewApkAvailable && removedComponents.contains(cn)
+                                && updateWorkspaceItemIntent(context, itemInfo, packageName)) {
+                            infoUpdated = true;
                         }
 
                         if (isNewApkAvailable) {
@@ -358,7 +358,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                 dataModel.itemsIdMap.stream()
                         .filter(WIDGET_FILTER)
                         .filter(item -> mUser.equals(item.user))
-                        .map(item -> (LauncherAppWidgetInfo) item)
+                        .map(LauncherAppWidgetInfo.class::cast)
                         .filter(widget -> widget.hasRestoreFlag(FLAG_PROVIDER_NOT_READY)
                                 && packageSet.contains(widget.providerName.getPackageName()))
                         .forEach(widgetInfo -> {

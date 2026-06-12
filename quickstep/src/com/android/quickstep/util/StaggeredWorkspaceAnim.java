@@ -79,7 +79,7 @@ public class StaggeredWorkspaceAnim {
         this(launcher, velocity, animateOverviewScrim, ignoredView, false);
     }
 
-    public StaggeredWorkspaceAnim(QuickstepLauncher launcher, float velocity,
+    public StaggeredWorkspaceAnim(QuickstepLauncher launcher, float velocity, // NOSONAR pristine-AOSP-do-not-refactor
             boolean animateOverviewScrim, @Nullable View ignoredView, boolean staggerWorkspace) {
         boolean isPinnedTaskbarAndNotInDesktopMode = DisplayController.isPinnedTaskbar(launcher)
                 && !DisplayController.isInDesktopMode(launcher);
@@ -131,7 +131,8 @@ public class StaggeredWorkspaceAnim {
                             totalRows, duration);
                 }
             } else {
-                final int hotseatRow, qsbRow;
+                final int hotseatRow;
+                final int qsbRow;
                 if (grid.isTaskbarPresent) {
                     if (grid.isQsbInline) {
                         qsbRow = grid.inv.numRows + 1;

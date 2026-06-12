@@ -402,10 +402,10 @@ public class TestInformationHandler implements ResourceBasedOverride {
                         model.getModelDbController().createEmptyDB();
                         MAIN_EXECUTOR.execute(model::forceReload);
                     });
-                    return response;
                 } finally {
                     Binder.restoreCallingIdentity(identity);
                 }
+                return response;
             }
 
             case TestProtocol.REQUEST_CLEAR_DATA: {
@@ -417,10 +417,10 @@ public class TestInformationHandler implements ResourceBasedOverride {
                         model.getModelDbController().clearEmptyDbFlag();
                         MAIN_EXECUTOR.execute(model::forceReload);
                     });
-                    return response;
                 } finally {
                     Binder.restoreCallingIdentity(identity);
                 }
+                return response;
             }
 
             case TestProtocol.REQUEST_HOTSEAT_ICON_NAMES: {
@@ -518,8 +518,11 @@ public class TestInformationHandler implements ResourceBasedOverride {
     protected static <T> T getFromExecutorSync(ExecutorService executor, Callable<T> callback) {
         try {
             return executor.submit(callback).get();
-        } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException(e);
         }
     }
 
@@ -549,7 +552,8 @@ public class TestInformationHandler implements ResourceBasedOverride {
                 Runtime.getRuntime().runFinalization();
             } while (!fence.await(100, TimeUnit.MILLISECONDS));
         } catch (InterruptedException ex) {
-            throw new RuntimeException(ex);
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(ex);
         }
     }
 

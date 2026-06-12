@@ -94,71 +94,89 @@ public class BubbleBarInputConsumer implements InputConsumer {
         final int action = ev.getAction();
         switch (action) {
             case MotionEvent.ACTION_DOWN:
-                mDownTime = System.currentTimeMillis();
-                mActivePointerId = ev.getPointerId(0);
-                mDownPos.set(ev.getX(), ev.getY());
-                mLastPos.set(mDownPos);
-                mStashedOrCollapsedOnDown = mBubbleStashController.isStashed() || isCollapsed();
-                Log.d(TAG,
-                        "ACTION_DOWN stashedOrCollapsed=" + mStashedOrCollapsedOnDown + " downPos="
-                                + mDownPos);
-                if (mBubbleBarSwipeController != null) {
-                    mBubbleBarSwipeController.start();
-                }
+                handleActionDown(ev);
                 break;
             case MotionEvent.ACTION_MOVE:
-                int pointerIndex = ev.findPointerIndex(mActivePointerId);
-                if (pointerIndex == INVALID_POINTER_ID) {
-                    Log.d(TAG, "ACTION_MOVE skip, invalid pointer id");
-                    break;
-                }
-                mLastPos.set(ev.getX(pointerIndex), ev.getY(pointerIndex));
-
-                float dX = mLastPos.x - mDownPos.x;
-                float dY = mLastPos.y - mDownPos.y;
-                if (!mPassedTouchSlop) {
-                    mPassedTouchSlop = Math.abs(dY) > mTouchSlop || Math.abs(dX) > mTouchSlop;
-                    if (mPassedTouchSlop) {
-                        Log.d(TAG, "ACTION_MOVE passed touch slop pos=" + mLastPos);
-                    }
-                }
-                if (mBubbleBarSwipeController != null) {
-                    mBubbleBarSwipeController.swipeTo(dY);
-                    if (!mPilfered && mBubbleBarSwipeController.isSwipeGesture()) {
-                        Log.d(TAG, "ACTION_MOVE swipe gesture, pilfering");
-                        mPilfered = true;
-                        // Bubbles is handling the swipe so make sure no one else gets it.
-                        TestLogging.recordEvent(TestProtocol.SEQUENCE_PILFER, "pilferPointers");
-                        mInputMonitorCompat.pilferPointers();
-                    }
-                }
+                handleActionMove(ev);
                 break;
             case MotionEvent.ACTION_UP:
-                long tapTime = System.currentTimeMillis() - mDownTime;
-                boolean swipeUpOnBubbleHandle = mBubbleBarSwipeController != null
-                        && mBubbleBarSwipeController.isSwipeGesture();
-                // Anything less than a long-press is a tap
-                boolean isWithinTapTime = tapTime <= mTimeForLongPress;
-                Log.d(TAG, "ACTION_UP swipeUp=" + swipeUpOnBubbleHandle + " isInTapTime="
-                        + isWithinTapTime + " tapTime=" + tapTime + " passedTouchSlop="
-                        + mPassedTouchSlop + " stashedOrCollapsedOnDown="
-                        + mStashedOrCollapsedOnDown);
-                if (isWithinTapTime && !swipeUpOnBubbleHandle && !mPassedTouchSlop
-                        && mStashedOrCollapsedOnDown) {
-                    Log.d(TAG, "ACTION_UP showing bubble bar");
-                    // Taps on the handle / collapsed state should open the bar
-                    mBubbleStashController.showBubbleBar(
-                            /* expandBubbles= */ true, /* bubbleBarGesture= */ true);
-                } else {
-                    Log.d(TAG, "ACTION_UP nothing to do");
-                }
+                handleActionUp();
                 break;
             case MotionEvent.ACTION_CANCEL:
                 Log.d(TAG, "ACTION_CANCEL");
                 break;
+            default:
+                // Other MotionEvent actions (e.g. POINTER_DOWN/UP, HOVER_*) are intentionally
+                // ignored by this consumer; only the primary DOWN/MOVE/UP/CANCEL stream is used
+                // to drive bubble-bar gestures.
+                break;
         }
         if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
             cleanupAfterMotionEvent();
+        }
+    }
+
+    private void handleActionDown(MotionEvent ev) {
+        mDownTime = System.currentTimeMillis();
+        mActivePointerId = ev.getPointerId(0);
+        mDownPos.set(ev.getX(), ev.getY());
+        mLastPos.set(mDownPos);
+        mStashedOrCollapsedOnDown = mBubbleStashController.isStashed() || isCollapsed();
+        Log.d(TAG,
+                "ACTION_DOWN stashedOrCollapsed=" + mStashedOrCollapsedOnDown + " downPos="
+                        + mDownPos);
+        if (mBubbleBarSwipeController != null) {
+            mBubbleBarSwipeController.start();
+        }
+    }
+
+    private void handleActionMove(MotionEvent ev) {
+        int pointerIndex = ev.findPointerIndex(mActivePointerId);
+        if (pointerIndex == INVALID_POINTER_ID) {
+            Log.d(TAG, "ACTION_MOVE skip, invalid pointer id");
+            return;
+        }
+        mLastPos.set(ev.getX(pointerIndex), ev.getY(pointerIndex));
+
+        float dX = mLastPos.x - mDownPos.x;
+        float dY = mLastPos.y - mDownPos.y;
+        if (!mPassedTouchSlop) {
+            mPassedTouchSlop = Math.abs(dY) > mTouchSlop || Math.abs(dX) > mTouchSlop;
+            if (mPassedTouchSlop) {
+                Log.d(TAG, "ACTION_MOVE passed touch slop pos=" + mLastPos);
+            }
+        }
+        if (mBubbleBarSwipeController == null) {
+            return;
+        }
+        mBubbleBarSwipeController.swipeTo(dY);
+        if (!mPilfered && mBubbleBarSwipeController.isSwipeGesture()) {
+            Log.d(TAG, "ACTION_MOVE swipe gesture, pilfering");
+            mPilfered = true;
+            // Bubbles is handling the swipe so make sure no one else gets it.
+            TestLogging.recordEvent(TestProtocol.SEQUENCE_PILFER, "pilferPointers");
+            mInputMonitorCompat.pilferPointers();
+        }
+    }
+
+    private void handleActionUp() {
+        long tapTime = System.currentTimeMillis() - mDownTime;
+        boolean swipeUpOnBubbleHandle = mBubbleBarSwipeController != null
+                && mBubbleBarSwipeController.isSwipeGesture();
+        // Anything less than a long-press is a tap
+        boolean isWithinTapTime = tapTime <= mTimeForLongPress;
+        Log.d(TAG, "ACTION_UP swipeUp=" + swipeUpOnBubbleHandle + " isInTapTime="
+                + isWithinTapTime + " tapTime=" + tapTime + " passedTouchSlop="
+                + mPassedTouchSlop + " stashedOrCollapsedOnDown="
+                + mStashedOrCollapsedOnDown);
+        if (isWithinTapTime && !swipeUpOnBubbleHandle && !mPassedTouchSlop
+                && mStashedOrCollapsedOnDown) {
+            Log.d(TAG, "ACTION_UP showing bubble bar");
+            // Taps on the handle / collapsed state should open the bar
+            mBubbleStashController.showBubbleBar(
+                    /* expandBubbles= */ true, /* bubbleBarGesture= */ true);
+        } else {
+            Log.d(TAG, "ACTION_UP nothing to do");
         }
     }
 

@@ -49,7 +49,9 @@ public class SectionDecorationInfo {
     }
 
     public SectionDecorationInfo(Context context, @NonNull Bundle target,
-            String targetLayoutType, @NonNull Bundle prevTarget, @NonNull Bundle nextTarget) {}
+            String targetLayoutType, @NonNull Bundle prevTarget, @NonNull Bundle nextTarget) {
+        // intentionally empty — alternate constructor reserved for future targets-based decoration
+    }
 
     public SectionDecorationHandler getDecorationHandler() {
         return mDecorationHandler;

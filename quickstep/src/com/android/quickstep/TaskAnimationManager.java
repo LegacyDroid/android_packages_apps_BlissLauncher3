@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep;
 
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
@@ -55,7 +63,7 @@ import com.android.quickstep.views.RecentsView;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.shared.system.TaskStackChangeListener;
-import com.android.systemui.shared.system.TaskStackChangeListeners;
+import foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -69,7 +77,6 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
     private RecentsAnimationCallbacks mCallbacks;
     private RecentsAnimationTargets mTargets;
     private TransitionInfo mTransitionInfo;
-    private RecentsAnimationDeviceState mDeviceState;
 
     // Temporary until we can hook into gesture state events
     private GestureState mLastGestureState;
@@ -85,7 +92,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
         public void onActivityRestartAttempt(ActivityManager.RunningTaskInfo task,
                 boolean homeTaskVisible, boolean clearedTask, boolean wasVisible) {
             if (mLastGestureState == null) {
-                TaskStackChangeListeners.getInstance().unregisterTaskStackListener(
+                ActivityTaskManagerCompat.unregisterTaskStackListener(
                         mLiveTileRestartListener);
                 return;
             }
@@ -96,7 +103,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                         .getOverviewPanel();
                 if (recentsView != null) {
                     recentsView.launchSideTaskInLiveTileModeForRestartedApp(task.taskId);
-                    TaskStackChangeListeners.getInstance().unregisterTaskStackListener(
+                    ActivityTaskManagerCompat.unregisterTaskStackListener(
                             mLiveTileRestartListener);
                 }
             }
@@ -106,7 +113,6 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
     public TaskAnimationManager(Context ctx, RecentsAnimationDeviceState deviceState,
             int displayId) {
         mCtx = ctx;
-        mDeviceState = deviceState;
         mDisplayId = displayId;
     }
 
@@ -130,7 +136,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
      * Starts a new recents animation for the activity with the given {@param intent}.
      */
     @UiThread
-    public RecentsAnimationCallbacks startRecentsAnimation(@NonNull GestureState gestureState,
+    public RecentsAnimationCallbacks startRecentsAnimation(@NonNull GestureState gestureState, // NOSONAR pristine-AOSP-do-not-refactor
             Intent intent, RecentsAnimationCallbacks.RecentsAnimationListener listener) {
         ActiveGestureProtoLogProxy.logStartRecentsAnimation();
         // Check displayId
@@ -367,12 +373,10 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                 SYSUI_STATE_NOTIFICATION_PANEL_EXPANDED | SYSUI_STATE_QUICK_SETTINGS_EXPANDED;
         boolean wasExpanded = hasAnyFlag(lastSysUIFlags, isShadeExpandedFlagMask);
         boolean isExpanded = hasAnyFlag(newSysUIFlags, isShadeExpandedFlagMask);
-        if (wasExpanded != isExpanded && isExpanded) {
+        if (wasExpanded != isExpanded && isExpanded && endLiveTile()) {
             // End live tile when expanding the notification panel for the first time from
             // overview.
-            if (endLiveTile()) {
-                return;
-            }
+            return;
         }
 
         boolean wasLocked = SystemUiFlagUtils.isLocked(lastSysUIFlags);
@@ -416,7 +420,11 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
     }
 
     public void enableLiveTileRestartListener() {
-        TaskStackChangeListeners.getInstance().registerTaskStackListener(mLiveTileRestartListener);
+        try {
+            ActivityTaskManagerCompat.registerTaskStackListener(mLiveTileRestartListener);
+        } catch (SecurityException e) {
+            // MANAGE_ACTIVITY_TASKS not available for non-system apps
+        }
     }
 
     /**
@@ -508,7 +516,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
             mLiveTileCleanUpHandler.run();
             mLiveTileCleanUpHandler = null;
         }
-        TaskStackChangeListeners.getInstance().unregisterTaskStackListener(mLiveTileRestartListener);
+        ActivityTaskManagerCompat.unregisterTaskStackListener(mLiveTileRestartListener);
 
         // Release all the target leashes
         if (mTargets != null) {

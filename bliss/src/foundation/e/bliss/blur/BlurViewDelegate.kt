@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/blur/BlurViewDelegate.kt
+ * Module:  bliss root app source-set
+ * Role:    Delegate handling blur rendering, wallpaper scrolling, and offset management for views.
+ */
 package foundation.e.bliss.blur
 
 import android.graphics.BlendMode
@@ -22,7 +27,6 @@ import android.graphics.Canvas
 import android.graphics.Outline
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewOutlineProvider
@@ -47,13 +51,17 @@ class BlurViewDelegate(
 
     private val blurDrawableCallback by lazy {
         object : Drawable.Callback {
-            override fun unscheduleDrawable(who: Drawable, what: Runnable) {}
+            override fun unscheduleDrawable(who: Drawable, what: Runnable) {
+                // no-op: blur drawable has no animation timing to cancel
+            }
 
             override fun invalidateDrawable(who: Drawable) {
                 view.post(view::invalidate)
             }
 
-            override fun scheduleDrawable(who: Drawable, what: Runnable, `when`: Long) {}
+            override fun scheduleDrawable(who: Drawable, what: Runnable, `when`: Long) {
+                // no-op: blur drawable has no animation timing to schedule
+            }
         }
     }
 
@@ -104,9 +112,8 @@ class BlurViewDelegate(
 
     private val overlayPaint =
         Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG).apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                blendMode = BlendMode.MULTIPLY
-            }
+            // Audit01 #10: minSdk 35 — Q (29) gate is always true; removed.
+            blendMode = BlendMode.MULTIPLY
         }
 
     init {

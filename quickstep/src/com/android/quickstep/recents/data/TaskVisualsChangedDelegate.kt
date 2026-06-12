@@ -48,7 +48,7 @@ interface TaskVisualsChangedDelegate :
     fun unregisterTaskThumbnailChangedCallback(taskKey: Task.TaskKey)
 
     /** A callback for task icon changes */
-    interface TaskIconChangedCallback {
+    fun interface TaskIconChangedCallback {
         /** Informs the listener that the task icon has changed */
         fun onTaskIconChanged()
     }

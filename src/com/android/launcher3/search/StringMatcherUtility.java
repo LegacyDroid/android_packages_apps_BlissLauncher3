@@ -30,6 +30,8 @@ import java.util.stream.IntStream;
  */
 public class StringMatcherUtility {
 
+    private StringMatcherUtility() {}
+
     private static final Character SPACE = ' ';
 
     /**
@@ -158,11 +160,12 @@ public class StringMatcherUtility {
          */
         protected boolean isBreak(int thisType, int prevType, int nextType) {
             switch (prevType) {
-                case Character.UNASSIGNED:
-                case Character.SPACE_SEPARATOR:
-                case Character.LINE_SEPARATOR:
-                case Character.PARAGRAPH_SEPARATOR:
+                case Character.UNASSIGNED, Character.SPACE_SEPARATOR,
+                        Character.LINE_SEPARATOR, Character.PARAGRAPH_SEPARATOR:
                     return true;
+                default:
+                    // Fall through to the next switch on thisType.
+                    break;
             }
             switch (thisType) {
                 case Character.UPPERCASE_LETTER:
@@ -173,24 +176,21 @@ public class StringMatcherUtility {
                             && nextType != Character.UNASSIGNED) {
                         return true;
                     }
-                    // Follow through
+                    // Break point if previous was not a upper case
+                    return prevType != Character.UPPERCASE_LETTER;
                 case Character.TITLECASE_LETTER:
                     // Break point if previous was not a upper case
                     return prevType != Character.UPPERCASE_LETTER;
                 case Character.LOWERCASE_LETTER:
                     // Break point if previous was not a letter.
                     return prevType > Character.OTHER_LETTER || prevType <= Character.UNASSIGNED;
-                case Character.DECIMAL_DIGIT_NUMBER:
-                case Character.LETTER_NUMBER:
-                case Character.OTHER_NUMBER:
+                case Character.DECIMAL_DIGIT_NUMBER, Character.LETTER_NUMBER, Character.OTHER_NUMBER:
                     // Break point if previous was not a number
                     return !(prevType == Character.DECIMAL_DIGIT_NUMBER
                             || prevType == Character.LETTER_NUMBER
                             || prevType == Character.OTHER_NUMBER);
-                case Character.MATH_SYMBOL:
-                case Character.CURRENCY_SYMBOL:
-                case Character.OTHER_PUNCTUATION:
-                case Character.DASH_PUNCTUATION:
+                case Character.MATH_SYMBOL, Character.CURRENCY_SYMBOL,
+                        Character.OTHER_PUNCTUATION, Character.DASH_PUNCTUATION:
                     // Always a break point for a symbol
                     return true;
                 default:
@@ -226,10 +226,9 @@ public class StringMatcherUtility {
         for (int i = 0; i < s.length(); ) {
             int codepoint = s.codePointAt(i);
             i += Character.charCount(codepoint);
-            switch (Character.UnicodeScript.of(codepoint)) {
-                case HAN:
-                    //Character.UnicodeScript.HAN: use String.contains to match
-                    return true;
+            if (Character.UnicodeScript.of(codepoint) == Character.UnicodeScript.HAN) {
+                //Character.UnicodeScript.HAN: use String.contains to match
+                return true;
             }
         }
         return false;

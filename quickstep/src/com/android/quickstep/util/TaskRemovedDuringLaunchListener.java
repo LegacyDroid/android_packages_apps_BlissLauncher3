@@ -96,12 +96,12 @@ public class TaskRemovedDuringLaunchListener {
         if (mLaunchedTaskId != INVALID_TASK_ID) {
             final int launchedTaskId = mLaunchedTaskId;
             final Runnable taskLaunchFailedCallback = mTaskLaunchFailedCallback;
-            RecentsModel.INSTANCE.get(mContext).isTaskRemoved(mLaunchedTaskId, (taskRemoved) -> {
+            RecentsModel.INSTANCE.get(mContext).isTaskRemoved(mLaunchedTaskId, taskRemoved -> {
                 if (taskRemoved) {
                     ActiveGestureProtoLogProxy.logTaskLaunchFailed(launchedTaskId);
                     taskLaunchFailedCallback.run();
                 }
-            }, (task) -> true /* filter */);
+            }, task -> true /* filter */);
             unregister();
         }
     }

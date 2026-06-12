@@ -15,6 +15,15 @@
  */
 
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.util;
 
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
@@ -58,6 +67,7 @@ import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.ComponentKey;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.PackageManagerHelper;
 import com.android.launcher3.util.SplitConfigurationOptions.StagePosition;
 import com.android.launcher3.views.ActivityContext;
@@ -69,7 +79,7 @@ import com.android.quickstep.views.TaskContainer;
 import com.android.quickstep.views.TaskView;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat;
 import com.android.wm.shell.shared.split.SplitScreenConstants.PersistentSnapPosition;
 
 import java.util.Arrays;
@@ -145,13 +155,9 @@ public class AppPairsController {
             return false;
         }
 
-        if (PackageManagerHelper.isSameAppForMultiInstance(leftTopAppInfo, rightBottomAppInfo)) {
-            if (!leftTopAppInfo.supportsMultiInstance()
-                    || !rightBottomAppInfo.supportsMultiInstance()) {
-                return false;
-            }
-        }
-        return true;
+        return !PackageManagerHelper.isSameAppForMultiInstance(leftTopAppInfo, rightBottomAppInfo)
+                || (leftTopAppInfo.supportsMultiInstance()
+                        && rightBottomAppInfo.supportsMultiInstance());
     }
 
     /**
@@ -218,7 +224,7 @@ public class AppPairsController {
                 LauncherAccessibilityDelegate delegate = QuickstepLauncher.getLauncher(
                         mContext.asContext()).getAccessibilityDelegate();
                 if (delegate != null) {
-                    delegate.addToWorkspace(newAppPair, true, (success) -> {
+                    delegate.addToWorkspace(newAppPair, true, success -> {
                         if (success) {
                             InteractionJankMonitorWrapper.end(Cuj.CUJ_LAUNCHER_SAVE_APP_PAIR);
                         } else {
@@ -347,7 +353,7 @@ public class AppPairsController {
      *
      * For each case, we call the appropriate animation and split launch type.
      */
-    public void handleAppPairLaunchInApp(AppPairIcon launchingIconView,
+    public void handleAppPairLaunchInApp(AppPairIcon launchingIconView, // NOSONAR pristine-AOSP-do-not-refactor
             List<? extends ItemInfo> itemInfos) {
         TaskbarActivityContext context = (TaskbarActivityContext) launchingIconView.getContext();
         List<ComponentKey> componentKeys =
@@ -417,7 +423,7 @@ public class AppPairsController {
         } else {
             // Tapped an app pair while in a single app
             final TopTaskTracker.CachedTaskInfo runningTask = topTaskTracker
-                    .getCachedTopTask(false /* filterOnlyVisibleRecents */, context.getDisplayId());
+                    .getCachedTopTask(false /* filterOnlyVisibleRecents */, DisplayIdCompat.getDisplayId(context));
 
             mSplitSelectStateController.findLastActiveTasksAndRunCallback(
                     componentKeys,
@@ -426,7 +432,7 @@ public class AppPairsController {
                         Task foundTask1 = foundTasks[0];
                         Task foundTask2 = foundTasks[1];
 
-                        if (DesktopModeStatus.canEnterDesktopMode(context) && (isFreeformTask(
+                        if (DesktopModeStatusCompat.canEnterDesktopMode(context) && (isFreeformTask(
                                 foundTask1) || isFreeformTask(foundTask2))) {
                             launchAppPair(launchingIconView,
                                     CUJ_LAUNCHER_LAUNCH_APP_PAIR_FROM_TASKBAR);

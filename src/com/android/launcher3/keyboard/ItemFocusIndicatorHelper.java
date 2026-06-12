@@ -41,30 +41,30 @@ public abstract class ItemFocusIndicatorHelper<T> implements AnimatorUpdateListe
     private static final float MIN_VISIBLE_ALPHA = 0.2f;
     private static final long ANIM_DURATION = 150;
 
-    public static final FloatProperty<ItemFocusIndicatorHelper> ALPHA =
-            new FloatProperty<ItemFocusIndicatorHelper>("alpha") {
+    public static final FloatProperty<ItemFocusIndicatorHelper<?>> ALPHA =
+            new FloatProperty<ItemFocusIndicatorHelper<?>>("alpha") {
 
                 @Override
-                public void setValue(ItemFocusIndicatorHelper object, float value) {
+                public void setValue(ItemFocusIndicatorHelper<?> object, float value) {
                     object.setAlpha(value);
                 }
 
                 @Override
-                public Float get(ItemFocusIndicatorHelper object) {
+                public Float get(ItemFocusIndicatorHelper<?> object) {
                     return object.mAlpha;
                 }
             };
 
-    public static final FloatProperty<ItemFocusIndicatorHelper> SHIFT =
-            new FloatProperty<ItemFocusIndicatorHelper>("shift") {
+    public static final FloatProperty<ItemFocusIndicatorHelper<?>> SHIFT =
+            new FloatProperty<ItemFocusIndicatorHelper<?>>("shift") {
 
                 @Override
-                public void setValue(ItemFocusIndicatorHelper object, float value) {
+                public void setValue(ItemFocusIndicatorHelper<?> object, float value) {
                     object.mShift = value;
                 }
 
                 @Override
-                public Float get(ItemFocusIndicatorHelper object) {
+                public Float get(ItemFocusIndicatorHelper<?> object) {
                     return object.mShift;
                 }
             };
@@ -96,7 +96,7 @@ public abstract class ItemFocusIndicatorHelper<T> implements AnimatorUpdateListe
     private float mRadius;
     private float mInnerRadius;
 
-    public ItemFocusIndicatorHelper(View container, int... colors) {
+    protected ItemFocusIndicatorHelper(View container, int... colors) {
         mContainer = container;
 
         mPaint.setColor(0xFF000000 | colors[0]);

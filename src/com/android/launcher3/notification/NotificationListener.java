@@ -320,11 +320,10 @@ public class NotificationListener extends NotificationListenerService {
         if (!mTempRanking.canShowBadge()) {
             return false;
         }
-        if (mTempRanking.getChannel().getId().equals(NotificationChannel.DEFAULT_CHANNEL_ID)) {
+        if (mTempRanking.getChannel().getId().equals(NotificationChannel.DEFAULT_CHANNEL_ID)
+                && (notification.flags & Notification.FLAG_ONGOING_EVENT) != 0) {
             // Special filtering for the default, legacy "Miscellaneous" channel.
-            if ((notification.flags & Notification.FLAG_ONGOING_EVENT) != 0) {
-                return false;
-            }
+            return false;
         }
 
         CharSequence title = notification.extras.getCharSequence(Notification.EXTRA_TITLE);

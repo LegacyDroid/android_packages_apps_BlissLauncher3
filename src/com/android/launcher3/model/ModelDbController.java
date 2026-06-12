@@ -68,6 +68,7 @@ import com.android.launcher3.util.IntArray;
 import com.android.launcher3.widget.LauncherWidgetHolder;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -83,6 +84,8 @@ import foundation.e.bliss.utils.BlissDbUtils;
 @LauncherAppSingleton
 public class ModelDbController {
     private static final String TAG = "ModelDbController";
+    private static final String PRINT_DBS_TAG = "b/353505773";
+    private static final String SQL_FROM = " FROM ";
 
     private static final String EMPTY_DATABASE_CREATED = getEmptyDatabaseCreated();
     private static final String E_EMPTY_DATABASE_CREATED = "EMPTY_DATABASE_CREATED";
@@ -122,13 +125,13 @@ public class ModelDbController {
             File directory = new File(mContext.getDatabasePath(mIdp.dbFile).getParent());
             if (directory.exists()) {
                 for (File file : directory.listFiles()) {
-                    Log.d("b/353505773", prefix + "Database file: " + file.getName());
+                    Log.d(PRINT_DBS_TAG, prefix + "Database file: " + file.getName());
                 }
             } else {
-                Log.d("b/353505773", prefix + "No files found in the database directory");
+                Log.d(PRINT_DBS_TAG, prefix + "No files found in the database directory");
             }
         } catch (Exception e) {
-            Log.e("b/353505773", prefix + e.getMessage());
+            Log.e(PRINT_DBS_TAG, prefix + e.getMessage());
         }
     }
 
@@ -325,10 +328,7 @@ public class ModelDbController {
         if (!isGridMigrationNecessary()) {
             return false;
         }
-        if (isCurrentDbSameAsTarget()) {
-            return true;
-        }
-        return false;
+        return isCurrentDbSameAsTarget();
     }
 
     private boolean isThereExistingDb() {
@@ -391,7 +391,7 @@ public class ModelDbController {
                     mOpenHelper, oldHelper.getWritableDatabase(), isDestNewDb, modelDelegate);
         } catch (Exception e) {
             resetLauncherDb(restoreEventLogger);
-            throw new Exception("attemptMigrateDb: Failed to migrate grid", e);
+            throw new IOException("attemptMigrateDb: Failed to migrate grid", e);
         } finally {
             if (mOpenHelper != oldHelper) {
                 oldHelper.close();
@@ -527,7 +527,7 @@ public class ModelDbController {
             String selection = LauncherSettings.Favorites.ITEM_TYPE + " = "
                     + LauncherSettings.Favorites.ITEM_TYPE_FOLDER + " AND "
                     + LauncherSettings.Favorites._ID +  " NOT IN (SELECT "
-                    + LauncherSettings.Favorites.CONTAINER + " FROM "
+                    + LauncherSettings.Favorites.CONTAINER + SQL_FROM
                     + Favorites.TABLE_NAME + ")";
 
             IntArray folderIds = LauncherDbUtils.queryIntArray(false, db, Favorites.TABLE_NAME,
@@ -559,7 +559,7 @@ public class ModelDbController {
             String selection =
                     ITEM_TYPE + " = " + ITEM_TYPE_APP_PAIR
                             + " AND " + _ID +  " NOT IN"
-                            + " (SELECT " + CONTAINER + " FROM " + TABLE_NAME
+                            + " (SELECT " + CONTAINER + SQL_FROM + TABLE_NAME
                             + " GROUP BY " + CONTAINER + " HAVING COUNT(*) = 2)";
 
             IntArray appPairIds = LauncherDbUtils.queryIntArray(false, db, TABLE_NAME,
@@ -590,7 +590,7 @@ public class ModelDbController {
             String selection =
                     CONTAINER + " >= 0"
                             + " AND " + CONTAINER + " NOT IN"
-                            + " (SELECT " + _ID + " FROM " + TABLE_NAME + ")";
+                            + " (SELECT " + _ID + SQL_FROM + TABLE_NAME + ")";
 
             IntArray appIds = LauncherDbUtils.queryIntArray(false, db, TABLE_NAME,
                     _ID, selection, null, null);

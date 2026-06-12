@@ -36,29 +36,38 @@ class GestureExclusionManager(private val windowManager: IWindowManager) {
     private var lastUnrestrictedOrNull: Region? = null
 
     @VisibleForTesting
-    val exclusionListener =
-        object : ISystemGestureExclusionListener.Stub() {
-            @BinderThread
-            override fun onSystemGestureExclusionChanged(
-                displayId: Int,
-                exclusionRegion: Region?,
-                unrestrictedOrNull: Region?
-            ) {
-                if (displayId != DEFAULT_DISPLAY) {
-                    return
-                }
-                Executors.MAIN_EXECUTOR.execute {
-                    lastExclusionRegion = exclusionRegion
-                    lastUnrestrictedOrNull = unrestrictedOrNull
-                    listeners.forEach {
-                        it.onGestureExclusionChanged(exclusionRegion, unrestrictedOrNull)
+    val exclusionListener: ISystemGestureExclusionListener? = createExclusionListener()
+
+    private fun createExclusionListener(): ISystemGestureExclusionListener? {
+        return try {
+            object : ISystemGestureExclusionListener.Stub() {
+                @BinderThread
+                override fun onSystemGestureExclusionChanged(
+                    displayId: Int,
+                    exclusionRegion: Region?,
+                    unrestrictedOrNull: Region?
+                ) {
+                    if (displayId != DEFAULT_DISPLAY) {
+                        return
+                    }
+                    Executors.MAIN_EXECUTOR.execute {
+                        lastExclusionRegion = exclusionRegion
+                        lastUnrestrictedOrNull = unrestrictedOrNull
+                        listeners.forEach {
+                            it.onGestureExclusionChanged(exclusionRegion, unrestrictedOrNull)
+                        }
                     }
                 }
             }
+        } catch (e: NoSuchMethodError) {
+            Log.i(TAG, "ISystemGestureExclusionListener.Stub not available on this framework")
+            null
         }
+    }
 
     /** Adds a listener for receiving gesture exclusion regions */
     fun addListener(listener: ExclusionListener) {
+        if (exclusionListener == null) return
         val wasEmpty = listeners.isEmpty()
         listeners.add(listener)
         if (wasEmpty) {
@@ -81,6 +90,7 @@ class GestureExclusionManager(private val windowManager: IWindowManager) {
 
     /** Removes a previously added exclusion listener */
     fun removeListener(listener: ExclusionListener) {
+        if (exclusionListener == null) return
         if (listeners.remove(listener) && listeners.isEmpty()) {
             Executors.UI_HELPER_EXECUTOR.execute {
                 try {
@@ -95,7 +105,7 @@ class GestureExclusionManager(private val windowManager: IWindowManager) {
         }
     }
 
-    interface ExclusionListener {
+    fun interface ExclusionListener {
         fun onGestureExclusionChanged(exclusionRegion: Region?, unrestrictedOrNull: Region?)
     }
 

@@ -26,6 +26,9 @@ import java.util.Locale;
 /** A helper class to format common ICU plural strings. */
 public class PluralMessageFormat {
 
+    private PluralMessageFormat() {
+    }
+
     /**
      * Returns a plural string from a ICU format message template, which takes "count" as an
      * argument.
@@ -38,7 +41,7 @@ public class PluralMessageFormat {
         MessageFormat icuCountFormat = new MessageFormat(
                 context.getResources().getString(stringId),
                 Locale.getDefault());
-        HashMap<String, Object> args = new HashMap();
+        HashMap<String, Object> args = new HashMap<>();
         args.put("count", count);
         return icuCountFormat.format(args);
     }

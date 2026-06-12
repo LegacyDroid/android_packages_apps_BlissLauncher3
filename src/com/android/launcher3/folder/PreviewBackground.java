@@ -47,12 +47,15 @@ import androidx.core.content.ContextCompat;
 
 import com.android.launcher3.CellLayout;
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.celllayout.DelegatedCellDrawing;
 import com.android.launcher3.graphics.ShapeDelegate;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
+
+import androidx.core.graphics.ColorUtils;
 
 import foundation.e.bliss.multimode.MultiModeController;
 
@@ -103,7 +106,6 @@ public class PreviewBackground extends DelegatedCellDrawing {
     @VisibleForTesting protected static final float ACCEPT_SCALE_FACTOR = 1.20f;
 
     // Expressed on a scale from 0 to 255.
-    private static final int BG_OPACITY = 255;
     private static final int MAX_BG_OPACITY = 255;
     private static final int SHADOW_OPACITY = 40;
 
@@ -182,6 +184,8 @@ public class PreviewBackground extends DelegatedCellDrawing {
             mBgColor = ContextCompat.getColor(context, R.color.gridFolderPreview);
         }
 
+        applyFolderBgPrefs(context);
+
         DeviceProfile grid = activity.getDeviceProfile();
         previewSize = grid.folderIconSizePx;
 
@@ -202,6 +206,81 @@ public class PreviewBackground extends DelegatedCellDrawing {
         }
 
         invalidate();
+    }
+
+    /** Folder ID for per-folder color overrides. -1 = no owner / use global. */
+    private long mOwnerFolderId = -1;
+    /**
+     * True when this preview belongs to a drawer folder (Migration02 / Phase 1). Drawer-folder
+     * ids share a numeric space with workspace folder ids, so the override JSON uses a
+     * {@code dr-<id>} key prefix to disambiguate (XC-5).
+     */
+    private boolean mIsDrawerFolder = false;
+
+    public void setOwnerFolderId(long id) {
+        mOwnerFolderId = id;
+    }
+
+    /** Mark this preview as belonging to a drawer folder; see XC-5 in 11-cross-cutting.md. */
+    public void setIsDrawerFolder(boolean isDrawerFolder) {
+        mIsDrawerFolder = isDrawerFolder;
+    }
+
+    private void applyFolderBgPrefs(Context context) {
+        try {
+            LauncherPrefs prefs = LauncherPrefs.get(context);
+            String bgColor = prefs.get(LauncherPrefs.FOLDER_BG_COLOR);
+            int opacity = prefs.get(LauncherPrefs.FOLDER_PREVIEW_BG_OPACITY);
+
+            // Per-folder color override takes precedence over the global enum.
+            Integer perFolderColor = lookupPerFolderColor(prefs);
+            if (perFolderColor != null) {
+                mBgColor = perFolderColor;
+            } else if ("default".equals(bgColor)) {
+                // M3 system-neutral token; auto-resolves light vs night.
+                mBgColor = ContextCompat.getColor(context,
+                        R.color.folder_preview_color_m3);
+            } else {
+                switch (bgColor) {
+                    case "black": mBgColor = Color.BLACK; break;
+                    case "white": mBgColor = Color.WHITE; break;
+                    case "dark_gray": mBgColor = 0xFF303030; break;
+                    default: break;
+                }
+            }
+
+            if (opacity < 100) {
+                float alphaFactor = opacity / 100f;
+                mBgColor = ColorUtils.setAlphaComponent(mBgColor, (int) (alphaFactor * 255));
+            }
+        } catch (Exception e) {
+            // Use defaults
+        }
+    }
+
+    /**
+     * Looks up an override color for {@link #mOwnerFolderId} from the
+     * {@code FOLDER_COLOR_OVERRIDES} JSON map (`{"folderId":"#RRGGBB", ...}`).
+     * Returns null if no owner is set, the JSON is empty/malformed, or the
+     * folder has no override.
+     */
+    @androidx.annotation.Nullable
+    private Integer lookupPerFolderColor(LauncherPrefs prefs) {
+        if (mOwnerFolderId < 0) return null;
+        try {
+            String json = prefs.get(LauncherPrefs.FOLDER_COLOR_OVERRIDES);
+            if (json == null || json.isEmpty() || "{}".equals(json)) return null;
+            org.json.JSONObject obj = new org.json.JSONObject(json);
+            // XC-5: drawer folders are keyed by "dr-<id>" to avoid collisions with workspace ids.
+            String key = mIsDrawerFolder
+                    ? ("dr-" + mOwnerFolderId)
+                    : String.valueOf(mOwnerFolderId);
+            String hex = obj.optString(key, null);
+            if (hex == null || hex.isEmpty()) return null;
+            return Color.parseColor(hex);
+        } catch (Throwable ignored) {
+            return null;
+        }
     }
 
     void getBounds(Rect outBounds) {
@@ -421,7 +500,14 @@ public class PreviewBackground extends DelegatedCellDrawing {
         }
 
         final float startScale = mScale;
-        final float endScale = isAccepting ? ACCEPT_SCALE_FACTOR : (isHovered ? HOVER_SCALE : 1f);
+        final float endScale;
+        if (isAccepting) {
+            endScale = ACCEPT_SCALE_FACTOR;
+        } else if (isHovered) {
+            endScale = HOVER_SCALE;
+        } else {
+            endScale = 1f;
+        }
         Interpolator interpolator =
                 isAccepting != mIsAccepting ? ACCELERATE_DECELERATE : EMPHASIZED_DECELERATE;
         int duration = isAccepting != mIsAccepting ? CONSUMPTION_ANIMATION_DURATION

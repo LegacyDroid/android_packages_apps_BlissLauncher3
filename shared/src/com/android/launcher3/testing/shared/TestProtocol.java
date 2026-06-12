@@ -22,6 +22,11 @@ import android.util.Log;
  * Protocol for custom accessibility events for communication with UI Automation tests.
  */
 public final class TestProtocol {
+
+    private TestProtocol() {
+        // Utility class.
+    }
+
     public static final String STATE_FIELD = "state";
     public static final String SWITCHED_TO_STATE_MESSAGE = "TAPL_SWITCHED_TO_STATE";
     public static final String SCROLL_FINISHED_MESSAGE = "TAPL_SCROLL_FINISHED";

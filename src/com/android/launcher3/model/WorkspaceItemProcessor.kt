@@ -148,6 +148,10 @@ class WorkspaceItemProcessor(
             c.markDeleted("Null intent from db for item id=${c.id}", RestoreError.APP_NO_DB_INTENT)
             return
         }
+        // Capture restored-icon state up-front: markRestored() further down clears
+        // c.restoreFlag, so we can't read FLAG_RESTORED_ICON in the deep-shortcut
+        // fallback below. Used by the Lawnchair-import PWA recovery path.
+        val hadRestoredIcon = c.hasRestoreFlag(WorkspaceItemInfo.FLAG_RESTORED_ICON)
         var disabledState =
             if (userManagerState.isUserQuiet(c.serialNumber))
                 WorkspaceItemInfo.FLAG_DISABLED_QUIET_USER
@@ -301,7 +305,32 @@ class WorkspaceItemProcessor(
                     val pinnedShortcut =
                         shortcutKeyToPinnedShortcuts[key] ?: retryDeepShortcutById(key)
                     if (pinnedShortcut == null) {
-                        // The shortcut is no longer valid.
+                        // The publisher (e.g. Brave/Chrome) has GC'd this
+                        // shortcut id — common for Lawnchair-imported PWAs after
+                        // a browser update. If the row carries FLAG_RESTORED_ICON
+                        // (set by LawnchairImportHelper) we have a saved icon
+                        // BLOB and saved title; render with those instead of
+                        // dropping the row. Click resolution falls back to the
+                        // intent's component (browser main activity).
+                        if (hadRestoredIcon) {
+                            FileLog.d(
+                                TAG,
+                                "deep-shortcut publisher dropped id; using restored icon for " +
+                                    "package=${key.packageName} id=${key.id}",
+                            )
+                            // Re-set the flag because markRestored() above wiped it,
+                            // and getRestoredItemInfo asserts the flag is set.
+                            c.restoreFlag = WorkspaceItemInfo.FLAG_RESTORED_ICON
+                            val restored = c.getRestoredItemInfo(intent, false)
+                            c.applyCommonProperties(restored)
+                            restored.intent = intent
+                            restored.rank = c.rank
+                            restored.spanX = 1
+                            restored.spanY = 1
+                            c.checkAndAddItem(restored, bgDataModel, memoryLogger)
+                            return
+                        }
+                        // Otherwise: no saved icon, give up and remove the row.
                         c.markDeleted(
                             "Pinned shortcut not found from request. package=${key.packageName}, user=${c.user}",
                             RestoreError.SHORTCUT_NOT_FOUND,

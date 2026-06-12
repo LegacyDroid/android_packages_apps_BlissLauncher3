@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/widgets/SwipeSearchContainer.kt
+ * Module:  bliss root app source-set
+ * Role:    FrameLayout implementing OffsetParent for tracking swipe search container position.
+ */
 package foundation.e.bliss.widgets
 
 import android.content.Context

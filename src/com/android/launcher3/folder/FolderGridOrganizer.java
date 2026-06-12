@@ -187,7 +187,7 @@ public class FolderGridOrganizer {
     /**
      * Returns the preview items for the provided pageNo using the full list of contents
      */
-    public <T, R extends T> ArrayList<R> previewItemsForPage(int page, List<T> contents) {
+    public <T, R extends T> List<R> previewItemsForPage(int page, List<T> contents) {
         ArrayList<R> result = new ArrayList<>();
         int itemsPerPage = mCountX * mCountY;
         int start = itemsPerPage * page;

@@ -57,6 +57,7 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
     public static final String TAG = "StateManager";
     // b/279059025, b/325463989
     private static final boolean DEBUG = true;
+    private static final String PARTIAL_TRACE_PREFIX = ", partial trace:\n";
 
     private final AnimationState<S> mConfig = new AnimationState<>();
     private final Handler mUiHandler;
@@ -248,7 +249,7 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
                     mState, state, getTrimmedStackTrace("StateManager.goToState"));
         } else if (DEBUG) {
             Log.d(TAG, "goToState - fromState: " + mState + ", toState: " + state
-                    + ", partial trace:\n" + getTrimmedStackTrace("StateManager.goToState"));
+                    + PARTIAL_TRACE_PREFIX + getTrimmedStackTrace("StateManager.goToState"));
         }
 
         animated &= areAnimatorsEnabled();
@@ -339,7 +340,7 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
                     mState, toState, getTrimmedStackTrace("StateManager.createAtomicAnimation"));
         } else if (DEBUG) {
             Log.d(TAG, "createAtomicAnimation - fromState: " + fromState + ", toState: " + toState
-                    + ", partial trace:\n" + getTrimmedStackTrace(
+                    + PARTIAL_TRACE_PREFIX + getTrimmedStackTrace(
                             "StateManager.createAtomicAnimation"));
         }
 
@@ -484,7 +485,7 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
                     getTrimmedStackTrace("StateManager.cancelAnimation"));
         } else if (DEBUG && mConfig.currentAnimation != null) {
             Log.d(TAG, "cancelAnimation - with ongoing animation"
-                    + ", partial trace:\n" + getTrimmedStackTrace("StateManager.cancelAnimation"));
+                    + PARTIAL_TRACE_PREFIX + getTrimmedStackTrace("StateManager.cancelAnimation"));
         }
         mConfig.reset();
         // It could happen that a new animation is set as a result of an endListener on the
@@ -613,12 +614,12 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
 
         private static final StateAnimationConfig DEFAULT = new StateAnimationConfig();
 
-        public AnimatorPlaybackController playbackController;
-        public AnimatorSet currentAnimation;
-        public STATE_TYPE targetState;
+        private AnimatorPlaybackController playbackController;
+        private AnimatorSet currentAnimation;
+        private STATE_TYPE targetState;
 
         // Id to keep track of config changes, to tie an animation with the corresponding request
-        public int changeId = 0;
+        private int changeId = 0;
 
         /**
          * Cancels the current animation and resets config variables.
@@ -733,7 +734,7 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
          *
          */
         public Animator createStateElementAnimation(int index, float... values) {
-            throw new RuntimeException("Unknown gesture animation " + index);
+            throw new UnsupportedOperationException("Unknown gesture animation " + index);
         }
 
         /**
@@ -743,6 +744,8 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
          * - Setting some start values (e.g. scale) for views that are hidden but about to be shown.
          */
         public void prepareForAtomicAnimation(
-                STATE_TYPE fromState, STATE_TYPE toState, StateAnimationConfig config) { }
+                STATE_TYPE fromState, STATE_TYPE toState, StateAnimationConfig config) {
+            // intentionally empty — base hook; subclasses override to set up start values.
+        }
     }
 }

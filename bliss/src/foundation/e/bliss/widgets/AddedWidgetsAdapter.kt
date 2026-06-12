@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/widgets/AddedWidgetsAdapter.kt
+ * Module:  bliss root app source-set
+ * Role:    RecyclerView adapter for displaying added widgets with remove actions.
+ */
 package foundation.e.bliss.widgets
 
 import android.annotation.SuppressLint
@@ -85,7 +90,7 @@ class AddedWidgetsAdapter(private val mContext: Context, private val mDensity: I
         }
     }
 
-    internal interface OnActionClickListener {
+    internal fun interface OnActionClickListener {
         fun removeWidget(id: Int)
     }
 }

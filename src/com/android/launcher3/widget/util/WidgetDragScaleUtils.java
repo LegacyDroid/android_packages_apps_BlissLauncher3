@@ -29,6 +29,9 @@ import com.android.launcher3.model.data.ItemInfo;
 
 /** Utility classes to evaluate widget scale during drag and drops. **/
 public final class WidgetDragScaleUtils {
+
+    private WidgetDragScaleUtils() {}
+
     // Widgets are 5% scaled down relative to their size to have shadow display well inside the
     // drop target frame (if its possible to scale it down within visible area under the finger).
     private static final float WIDGET_SCALE_DOWN = 0.05f;

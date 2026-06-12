@@ -41,6 +41,8 @@ import com.android.launcher3.views.ActivityContext;
 @SuppressWarnings("NewApi")
 public class Themes {
 
+    private Themes() {}
+
     /** Gets the WallpaperColorHints and then uses those to get the correct activity theme res. */
     public static int getActivityThemeRes(Context context) {
         return getActivityThemeRes(context, WallpaperColorHints.get(context).getHints());
@@ -51,11 +53,13 @@ public class Themes {
         boolean isMainColorDark = (wallpaperColorHints & HINT_SUPPORTS_DARK_THEME) != 0;
 
         if (Utilities.isDarkTheme(context)) {
-            return supportsDarkText ? R.style.AppTheme_Dark_DarkText
-                    : isMainColorDark ? R.style.AppTheme_Dark_DarkMainColor : R.style.AppTheme_Dark;
+            int nonDarkTextTheme = isMainColorDark
+                    ? R.style.AppTheme_Dark_DarkMainColor : R.style.AppTheme_Dark;
+            return supportsDarkText ? R.style.AppTheme_Dark_DarkText : nonDarkTextTheme;
         } else {
-            return supportsDarkText ? R.style.AppTheme_DarkText
-                    : isMainColorDark ? R.style.AppTheme_DarkMainColor : R.style.AppTheme;
+            int nonDarkTextTheme = isMainColorDark
+                    ? R.style.AppTheme_DarkMainColor : R.style.AppTheme;
+            return supportsDarkText ? R.style.AppTheme_DarkText : nonDarkTextTheme;
         }
     }
 

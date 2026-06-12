@@ -1,6 +1,28 @@
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - The 2×2 preview-grid switch is now driven by
+ *     foundation.e.bliss.policy.LauncherPolicy.folderPreview(ctx) rather than
+ *     a Bliss-injected `sUseGridLayout` static + `updateGridLayoutFromPref`
+ *     method. The single instance field `mUseTwoByTwo` is initialised in the
+ *     `(Context)` constructor from the policy OR'd with the upstream
+ *     `Flags.enableLauncherIconShapes()` aconfig flag, keeping AOSP semantics
+ *     intact while the pref-driven path lives in Bliss code.
+ *     — Plan ref: Plans/Migration04/05-launcher-policy-strategies.md §5.2
+ *
+ * Bliss touchpoint(s) (Audit03):
+ *   - FolderPreviewPolicy and folder/ implementations move to :bliss-policy-core.
+ *     Import path unchanged; module boundary enforced by Gradle.
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.folder;
 
+import android.content.Context;
+
 import com.android.launcher3.Flags;
+
+import foundation.e.bliss.policy.LauncherPolicy;
 
 public class ClippedFolderIconLayoutRule {
 
@@ -20,6 +42,8 @@ public class ClippedFolderIconLayoutRule {
     public static final int EXIT_INDEX = -2;
     public static final int ENTER_INDEX = -3;
 
+    private final boolean mUseTwoByTwo;
+
     private float[] mTmpPoint = new float[2];
 
     public float mAvailableSpace;
@@ -27,6 +51,16 @@ public class ClippedFolderIconLayoutRule {
     private float mIconSize;
     public boolean mIsRtl;
     public float mBaselineIconScale;
+
+    public ClippedFolderIconLayoutRule() {
+        // No-Context fallback (matches the pre-Bliss AOSP default).
+        mUseTwoByTwo = Flags.enableLauncherIconShapes();
+    }
+
+    public ClippedFolderIconLayoutRule(Context ctx) {
+        mUseTwoByTwo = Flags.enableLauncherIconShapes()
+                || LauncherPolicy.folderPreview(ctx).getGridCountX() == 2;
+    }
 
     public void init(int availableSpace, float intrinsicIconSize, boolean rtl) {
         mAvailableSpace = availableSpace;
@@ -53,7 +87,7 @@ public class ClippedFolderIconLayoutRule {
         } else if (index >= MAX_NUM_ITEMS_IN_PREVIEW) {
             // Items beyond those displayed in the preview are animated to the center
             mTmpPoint[0] = mTmpPoint[1] = mAvailableSpace / 2 - (mIconSize * totalScale) / 2;
-        } else if (Flags.enableLauncherIconShapes()) {
+        } else if (mUseTwoByTwo) {
             if (index == 0) {
                 // top left
                 getGridPosition(0, 0, mTmpPoint);
@@ -133,7 +167,7 @@ public class ClippedFolderIconLayoutRule {
         }
 
         // We bump the radius up between 0 and MAX_RADIUS_DILATION % as the number of items increase
-        float radiusDilation = Flags.enableLauncherIconShapes() ? MAX_RADIUS_DILATION_SHAPES
+        float radiusDilation = mUseTwoByTwo ? MAX_RADIUS_DILATION_SHAPES
                 : MAX_RADIUS_DILATION;
         float radius = mRadius * (1 + radiusDilation * (curNumItems - MIN_NUM_ITEMS_IN_PREVIEW)
                 / (MAX_NUM_ITEMS_IN_PREVIEW - MIN_NUM_ITEMS_IN_PREVIEW));
@@ -152,7 +186,7 @@ public class ClippedFolderIconLayoutRule {
     public float scaleForItem(int numItems) {
         // Scale is determined by the number of items in the preview.
         final float scale;
-        if (numItems <= 3 && !Flags.enableLauncherIconShapes()) {
+        if (numItems <= 3 && !mUseTwoByTwo) {
             scale = MAX_SCALE;
         } else {
             scale = MIN_SCALE;
@@ -160,12 +194,53 @@ public class ClippedFolderIconLayoutRule {
         return scale * mBaselineIconScale;
     }
 
+    /**
+     * Spring-animation variant: page-aware scale lookup. When animating later pages we always
+     * shrink to MIN_SCALE so the second-page tiles match the first-page MIN_SCALE preview tile
+     * size. Mirrors Lawnchair upstream (scaleForItem(int, int)).
+     * <p>Used exclusively from {@code FolderSpringAnimatorSet} et al. — the legacy 1-arg
+     * {@link #scaleForItem(int)} is preserved for AOSP call sites.
+     */
+    public float scaleForItem(int numItems, int page) {
+        if (page > 0) {
+            return MIN_SCALE * mBaselineIconScale;
+        }
+        return scaleForItem(numItems);
+    }
+
+    /**
+     * Computes positions for icons in folder as part of the spring animation. Both preview and
+     * non-preview icons are animated along the same grid. Mirrors Lawnchair upstream.
+     */
+    public PreviewItemDrawingParams computeSpringAnimationItemParams(int index, int numItemsInPage,
+            int page, PreviewItemDrawingParams params) {
+        float totalScale = scaleForItem(numItemsInPage, page);
+        if (numItemsInPage <= MAX_NUM_ITEMS_IN_PREVIEW) {
+            getPosition(index, numItemsInPage, mTmpPoint);
+        } else {
+            // Two-column grid for >4 items, like Lawnchair upstream.
+            getGridPosition(index / 2, index % 2, mTmpPoint);
+        }
+        float transX = mTmpPoint[0];
+        float transY = mTmpPoint[1];
+        if (params == null) {
+            params = new PreviewItemDrawingParams(transX, transY, totalScale);
+        } else {
+            params.update(transX, transY, totalScale);
+        }
+        return params;
+    }
+
     public float getIconSize() {
         return mIconSize;
     }
 
     /**
-     * Gets correct constant for icon overlap.
+     * Gets correct constant for icon overlap. Static path: only consults the
+     * upstream aconfig flag — pref-driven 2×2 overlap-factor adjustments
+     * happen via the per-instance `mUseTwoByTwo` path on the layout-rule
+     * itself; the static callers (DeviceProfile etc.) are AOSP code that
+     * never knew about the Bliss pref.
      */
     public static float getIconOverlapFactor() {
         if (Flags.enableLauncherIconShapes()) {

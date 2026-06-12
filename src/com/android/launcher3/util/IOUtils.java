@@ -34,8 +34,11 @@ import java.io.OutputStream;
  */
 public class IOUtils {
 
-    private static final int BUF_SIZE = 0x1000; // 4K
     private static final String TAG = "IOUtils";
+
+    private IOUtils() {
+        // Utility class, do not instantiate.
+    }
 
     public static byte[] toByteArray(File file) throws IOException {
         try (InputStream in = new FileInputStream(file)) {

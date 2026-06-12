@@ -220,9 +220,10 @@ public class AutoInstallsLayout {
         UserCache cache = UserCache.getInstance(context);
         for (UserHandle user : cache.getUserProfiles()) {
             UserIconInfo uii = cache.getUserInfo(user);
-            switch (uii.type) {
-                case TYPE_WORK -> mUserTypeToSerial.put(USER_TYPE_WORK, uii.userSerial);
-                case TYPE_CLONED -> mUserTypeToSerial.put(USER_TYPE_CLONED, uii.userSerial);
+            if (uii.type == TYPE_WORK) {
+                mUserTypeToSerial.put(USER_TYPE_WORK, uii.userSerial);
+            } else if (uii.type == TYPE_CLONED) {
+                mUserTypeToSerial.put(USER_TYPE_CLONED, uii.userSerial);
             }
         }
     }
@@ -522,10 +523,11 @@ public class AutoInstallsLayout {
                     if (key != null && value != null) {
                         extras.putString(key, value);
                     } else {
-                        throw new RuntimeException("Widget extras must have a key and value");
+                        throw new IllegalArgumentException(
+                                "Widget extras must have a key and value");
                     }
                 } else {
-                    throw new RuntimeException("Widgets can contain only extras");
+                    throw new IllegalArgumentException("Widgets can contain only extras");
                 }
             }
             return verifyAndInsert(cn, extras);
@@ -625,7 +627,8 @@ public class AutoInstallsLayout {
                         rank++;
                     }
                 } else {
-                    throw new RuntimeException("Invalid folder item " + parser.getName());
+                    throw new IllegalArgumentException(
+                            "Invalid folder item " + parser.getName());
                 }
             }
 

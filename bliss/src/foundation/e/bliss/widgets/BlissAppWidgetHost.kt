@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/widgets/BlissAppWidgetHost.kt
+ * Module:  bliss root app source-set
+ * Role:    AppWidget host managing widget lifecycle with custom rounded widget view creation.
+ */
 package foundation.e.bliss.widgets
 
 import android.annotation.SuppressLint
@@ -23,6 +28,7 @@ import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import com.android.launcher3.R
+import foundation.e.bliss.widgets.data.DefaultWidgets
 
 class BlissAppWidgetHost(val context: Context) : AppWidgetHost(context, WIDGET_HOST_ID) {
     fun createView(widgetId: Int, widgetInfo: AppWidgetProviderInfo): AppWidgetHostView {

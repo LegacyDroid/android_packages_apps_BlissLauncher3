@@ -46,7 +46,7 @@ interface BubbleStashController {
     }
 
     /** Execute passed action only after controllers are initiated. */
-    interface ControllersAfterInitAction {
+    fun interface ControllersAfterInitAction {
         /** Execute action after controllers are initiated. */
         fun runAfterInit(action: Runnable)
     }
@@ -135,7 +135,9 @@ interface BubbleStashController {
      * Animates the bubble bar to the handle at provided location. Does not update bubble bar
      * location.
      */
-    fun stashBubbleBarToLocation(fromLocation: BubbleBarLocation, toLocation: BubbleBarLocation) {}
+    fun stashBubbleBarToLocation(fromLocation: BubbleBarLocation, toLocation: BubbleBarLocation) {
+        // no-op: default implementation; controllers that animate stash-to-location override
+    }
 
     /** Shows the bubble bar, and expands bubbles depending on [expandBubbles]. */
     fun showBubbleBar(expandBubbles: Boolean) {
@@ -151,7 +153,9 @@ interface BubbleStashController {
     fun showBubbleBar(expandBubbles: Boolean, bubbleBarGesture: Boolean)
 
     /** Animates the bubble bar at the provided location. Does not update bubble bar location. */
-    fun showBubbleBarAtLocation(fromLocation: BubbleBarLocation, toLocation: BubbleBarLocation) {}
+    fun showBubbleBarAtLocation(fromLocation: BubbleBarLocation, toLocation: BubbleBarLocation) {
+        // no-op: default implementation; controllers that animate show-at-location override
+    }
 
     // TODO(b/354218264): Move to BubbleBarViewAnimator
     /**

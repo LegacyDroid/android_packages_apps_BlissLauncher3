@@ -73,7 +73,14 @@ public class SurfaceTransactionApplier extends ReleaseCheck {
 
     private void initialize(View view) {
         mTargetViewRootImpl = view.getViewRootImpl();
-        mBarrierSurfaceControl = mTargetViewRootImpl.getSurfaceControl();
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            try {
+                mBarrierSurfaceControl = mTargetViewRootImpl.getSurfaceControl();
+            } catch (LinkageError e) {
+                // ViewRootImpl#getSurfaceControl is a hidden API absent on a mismatched framework
+                // (e.g. a stock emulator image); proceed without a barrier surface, as pre-API-36.
+            }
+        }
         mInitialized = true;
     }
 

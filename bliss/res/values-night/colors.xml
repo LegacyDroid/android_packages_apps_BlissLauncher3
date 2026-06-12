@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="folder_preview_color_m3">@android:color/system_neutral1_800</color>
+
+    <!-- Closing-app overlay night override (Migration02 / Phase 4). -->
+    <color name="bliss_close_overlay_color">@android:color/system_neutral1_50</color>
+</resources>

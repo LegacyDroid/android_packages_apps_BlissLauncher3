@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.util
 
 import android.app.TaskInfo
 import android.content.ComponentName
 import android.content.res.Resources
-import android.window.DesktopExperienceFlags
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat
 import com.android.systemui.shared.recents.model.Task
 
 class DesksUtils {
@@ -29,8 +37,8 @@ class DesksUtils {
 
         @JvmStatic
         fun areMultiDesksFlagsEnabled() =
-            DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue &&
-                DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_FRONTEND.isTrue
+            DesktopFlagsCompat.enableMultipleDesktopsBackend() &&
+                DesktopFlagsCompat.enableMultipleDesktopsFrontend()
 
         /** Returns true if this [task] contains the [DesktopWallpaperActivity]. */
         @JvmStatic

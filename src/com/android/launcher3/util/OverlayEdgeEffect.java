@@ -50,7 +50,7 @@ public class OverlayEdgeEffect extends EdgeEffectCompat {
     public float onPullDistance(float deltaDistance, float displacement) {
         // Fallback implementation, will never actually get called
         if (BuildConfig.IS_DEBUG_DEVICE) {
-            throw new RuntimeException("Wrong method called");
+            throw new UnsupportedOperationException("Wrong method called");
         }
         MotionEvent mv = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
                 MotionEvent.ACTION_MOVE, displacement, 0, 0);
@@ -76,7 +76,9 @@ public class OverlayEdgeEffect extends EdgeEffectCompat {
     }
 
     @Override
-    public void onAbsorb(int velocity) { }
+    public void onAbsorb(int velocity) {
+        // intentionally empty — overlay edge effect ignores absorbed velocity
+    }
 
     @Override
     public boolean isFinished() {
@@ -87,7 +89,7 @@ public class OverlayEdgeEffect extends EdgeEffectCompat {
     public void onRelease() {
         // Fallback implementation, will never actually get called
         if (BuildConfig.IS_DEBUG_DEVICE) {
-            throw new RuntimeException("Wrong method called");
+            throw new UnsupportedOperationException("Wrong method called");
         }
         MotionEvent mv = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
                 MotionEvent.ACTION_UP, mDistance, 0, 0);

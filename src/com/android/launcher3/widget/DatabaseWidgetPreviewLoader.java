@@ -264,6 +264,7 @@ public class DatabaseWidgetPreviewLoader {
                         icon.draw(c);
                     }
                 } catch (Resources.NotFoundException e) {
+                    // Widget preview resources may be unavailable; ignore and continue.
                 }
             }
         });
@@ -277,7 +278,7 @@ public class DatabaseWidgetPreviewLoader {
 
         int size = iconSize + 2 * padding;
         if (maxHeight < size || maxWidth < size) {
-            throw new RuntimeException("Max size is too small for preview");
+            throw new IllegalArgumentException("Max size is too small for preview");
         }
         return BitmapRenderer.createHardwareBitmap(size, size, c -> {
             LauncherIcons li = LauncherIcons.obtain(mContext);
@@ -297,9 +298,9 @@ public class DatabaseWidgetPreviewLoader {
             return MAIN_EXECUTOR.submit(drawable::mutate).get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         } catch (ExecutionException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -308,9 +309,9 @@ public class DatabaseWidgetPreviewLoader {
      */
     public static class WidgetPreviewInfo {
 
-        public AppWidgetProviderInfo providerInfo;
-        public RemoteViews remoteViews;
+        AppWidgetProviderInfo providerInfo;
+        RemoteViews remoteViews;
 
-        public Bitmap previewBitmap;
+        Bitmap previewBitmap;
     }
 }

@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/blur/BlurWallpaperFilter.kt
+ * Module:  bliss root app source-set
+ * Role:    Filter applying blur effects at different scales to wallpaper for various UI contexts.
+ */
 package foundation.e.bliss.blur
 
 import android.content.Context
@@ -23,6 +28,8 @@ import com.hoko.blur.HokoBlur
 
 class BlurWallpaperFilter(private val context: Context) :
     WallpaperFilter<BlurWallpaperProvider.BlurSizes> {
+
+    @Volatile var provider: BlurWallpaperProvider? = null
 
     override fun apply(
         wallpaper: Bitmap
@@ -33,10 +40,23 @@ class BlurWallpaperFilter(private val context: Context) :
             var blurAppGroup: Bitmap? = null
             var blurWidget: Bitmap? = null
             try {
-                blurBackground = blur(wallpaper, BlurWallpaperProvider.blurConfigBackground)
-                blurDock = blur(wallpaper, BlurWallpaperProvider.blurConfigDock)
-                blurAppGroup = blur(wallpaper, BlurWallpaperProvider.blurConfigAppGroup)
-                blurWidget = blur(wallpaper, BlurWallpaperProvider.blurConfigWidget)
+                val p = provider
+                val bgConfig =
+                    p?.scaledConfig(BlurWallpaperProvider.blurConfigBackground)
+                        ?: BlurWallpaperProvider.blurConfigBackground
+                val dockConfig =
+                    p?.scaledConfig(BlurWallpaperProvider.blurConfigDock)
+                        ?: BlurWallpaperProvider.blurConfigDock
+                val appGroupConfig =
+                    p?.scaledConfig(BlurWallpaperProvider.blurConfigAppGroup)
+                        ?: BlurWallpaperProvider.blurConfigAppGroup
+                val widgetConfig =
+                    p?.scaledConfig(BlurWallpaperProvider.blurConfigWidget)
+                        ?: BlurWallpaperProvider.blurConfigWidget
+                blurBackground = blur(wallpaper, bgConfig)
+                blurDock = blur(wallpaper, dockConfig)
+                blurAppGroup = blur(wallpaper, appGroupConfig)
+                blurWidget = blur(wallpaper, widgetConfig)
                 emitter.onSuccess(
                     BlurWallpaperProvider.BlurSizes(
                         blurBackground,

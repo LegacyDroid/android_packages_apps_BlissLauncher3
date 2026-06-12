@@ -185,7 +185,7 @@ public class PreviewItemManager {
         return params;
     }
 
-    public void drawParams(Canvas canvas, ArrayList<PreviewItemDrawingParams> params,
+    public void drawParams(Canvas canvas, List<PreviewItemDrawingParams> params,
             PointF offset, boolean shouldClipPath, Path clipPath) {
         // The first item should be drawn last (ie. on top of later items)
         for (int i = params.size() - 1; i >= 0; i--) {
@@ -193,7 +193,7 @@ public class PreviewItemManager {
             if (!p.hidden) {
                 // Exiting param should always be clipped.
                 boolean isExiting = p.index == EXIT_INDEX;
-                drawPreviewItem(canvas, p, offset, isExiting | shouldClipPath, clipPath);
+                drawPreviewItem(canvas, p, offset, isExiting || shouldClipPath, clipPath);
             }
         }
     }

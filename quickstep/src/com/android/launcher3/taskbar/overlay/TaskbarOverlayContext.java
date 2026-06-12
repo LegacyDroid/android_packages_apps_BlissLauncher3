@@ -178,7 +178,7 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
     }
 
     @Override
-    public void onDragStart() {}
+    public void onDragStart() { /* no-op: overlay context doesn't react to drag start */ }
 
     @Override
     public void onDragEnd() {
@@ -186,9 +186,10 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
     }
 
     @Override
-    public void onPopupVisibilityChanged(boolean isVisible) {}
+    public void onPopupVisibilityChanged(boolean isVisible) { /* no-op: overlay context doesn't react to popup visibility */ }
 
     @Override
     public void onSplitScreenMenuButtonClicked() {
+        /* no-op: overlay context doesn't handle split-screen menu clicks */
     }
 }

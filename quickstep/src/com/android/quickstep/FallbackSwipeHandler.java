@@ -77,6 +77,7 @@ import com.android.systemui.shared.system.InputConsumerController;
 import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 /**
@@ -92,7 +93,8 @@ public class FallbackSwipeHandler extends
      * avoid leaking too make binders in case the receiving launcher does not handle the contract
      * properly.
      */
-    private static StaticMessageReceiver sMessageReceiver = null;
+    private static final AtomicReference<StaticMessageReceiver> sMessageReceiver =
+            new AtomicReference<>();
 
     private FallbackHomeAnimationFactory mActiveAnimationFactory;
     private final boolean mRunningOverHome;
@@ -303,7 +305,7 @@ public class FallbackSwipeHandler extends
         @Override
         public AnimatorPlaybackController createActivityAnimationToHome() {
             PendingAnimation pa = new PendingAnimation(mDuration);
-            pa.setFloat(mRecentsAlpha, AnimatedFloat.VALUE, 0, ACCELERATE);
+            pa.setFloat(mRecentsAlpha, AnimatedFloat.VALUE_PROPERTY, 0, ACCELERATE);
             return pa.createPlaybackController();
         }
 
@@ -343,7 +345,7 @@ public class FallbackSwipeHandler extends
                         .setMinimumVisibleChange(1f / mDp.heightPx)
                         .setDampingRatio(0.6f)
                         .setStiffness(800)
-                        .build(mVerticalShiftForScale, AnimatedFloat.VALUE)
+                        .build(mVerticalShiftForScale, AnimatedFloat.VALUE_PROPERTY)
                         .start();
             }
         }
@@ -409,15 +411,20 @@ public class FallbackSwipeHandler extends
 
             TaskKey key = new TaskKey(runningTaskInfo);
             if (key.getComponent() != null) {
-                if (sMessageReceiver == null) {
-                    sMessageReceiver = new StaticMessageReceiver();
+                StaticMessageReceiver receiver = sMessageReceiver.get();
+                if (receiver == null) {
+                    StaticMessageReceiver candidate = new StaticMessageReceiver();
+                    receiver = sMessageReceiver.compareAndExchange(null, candidate);
+                    if (receiver == null) {
+                        receiver = candidate;
+                    }
                 }
 
                 Bundle gestureNavContract = new Bundle();
                 gestureNavContract.putParcelable(EXTRA_COMPONENT_NAME, key.getComponent());
                 gestureNavContract.putParcelable(EXTRA_USER, UserHandle.of(key.userId));
                 gestureNavContract.putParcelable(
-                        EXTRA_REMOTE_CALLBACK, sMessageReceiver.newCallback(this));
+                        EXTRA_REMOTE_CALLBACK, receiver.newCallback(this));
                 intent.putExtra(EXTRA_GESTURE_CONTRACT, gestureNavContract);
             }
         }

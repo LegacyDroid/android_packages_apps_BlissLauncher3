@@ -67,7 +67,7 @@ class HomeVisibilityState {
         }
     }
 
-    interface VisibilityChangeListener {
+    fun interface VisibilityChangeListener {
         fun onHomeVisibilityChanged(isVisible: Boolean)
     }
 

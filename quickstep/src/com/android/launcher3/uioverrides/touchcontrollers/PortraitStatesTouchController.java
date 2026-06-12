@@ -59,15 +59,12 @@ public class PortraitStatesTouchController extends AbstractStateChangeTouchContr
         // If we are swiping to all apps instead of overview, allow it from anywhere.
         boolean interceptAnywhere = mLauncher.isInState(NORMAL);
         if (mCurrentAnimation != null) {
-            AllAppsTransitionController allAppsController = mLauncher.getAllAppsController();
-            if (ev.getY() >= allAppsController.getShiftRange() * allAppsController.getProgress()
-                    || interceptAnywhere) {
-                // If we are already animating from a previous state, we can intercept as long as
-                // the touch is below the current all apps progress (to allow for double swipe).
-                return true;
-            }
+            // If we are already animating from a previous state, we can intercept as long as
+            // the touch is below the current all apps progress (to allow for double swipe).
             // Otherwise, don't intercept so they can scroll recents, dismiss a task, etc.
-            return false;
+            AllAppsTransitionController allAppsController = mLauncher.getAllAppsController();
+            return ev.getY() >= allAppsController.getShiftRange() * allAppsController.getProgress()
+                    || interceptAnywhere;
         }
         if (mLauncher.isInState(ALL_APPS)) {
             // In all-apps only listen if the container cannot scroll itself
@@ -84,10 +81,7 @@ public class PortraitStatesTouchController extends AbstractStateChangeTouchContr
                 return false;
             }
         }
-        if (getTopOpenViewWithType(mLauncher, TYPE_TOUCH_CONTROLLER_NO_INTERCEPT) != null) {
-            return false;
-        }
-        return true;
+        return getTopOpenViewWithType(mLauncher, TYPE_TOUCH_CONTROLLER_NO_INTERCEPT) == null;
     }
 
     @Override
@@ -197,14 +191,20 @@ public class PortraitStatesTouchController extends AbstractStateChangeTouchContr
     public boolean onControllerInterceptTouchEvent(MotionEvent ev) {
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                InteractionJankMonitorWrapper.begin(
-                        mLauncher.getRootView(), Cuj.CUJ_LAUNCHER_OPEN_ALL_APPS, /*tag=*/ "swipe");
-                InteractionJankMonitorWrapper.begin(
-                        mLauncher.getRootView(), Cuj.CUJ_LAUNCHER_CLOSE_ALL_APPS_SWIPE);
+                try {
+                    InteractionJankMonitorWrapper.begin(mLauncher.getRootView(),
+                            Cuj.CUJ_LAUNCHER_OPEN_ALL_APPS, /*tag=*/ "swipe");
+                    InteractionJankMonitorWrapper.begin(mLauncher.getRootView(),
+                            Cuj.CUJ_LAUNCHER_CLOSE_ALL_APPS_SWIPE);
+                } catch (LinkageError e) {
+                    // InteractionJankMonitorWrapper is a prebuilt SystemUI shared lib whose
+                    // internal InteractionJankMonitor API signatures don't match a stock framework
+                    // (e.g. an emulator image). Jank telemetry is non-essential; skip it so touch
+                    // handling isn't broken.
+                }
                 break;
 
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP:
                 InteractionJankMonitorWrapper.cancel(Cuj.CUJ_LAUNCHER_OPEN_ALL_APPS);
                 InteractionJankMonitorWrapper.cancel(Cuj.CUJ_LAUNCHER_CLOSE_ALL_APPS_SWIPE);
                 break;

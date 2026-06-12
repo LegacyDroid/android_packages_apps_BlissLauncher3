@@ -1,0 +1,17 @@
+/*
+ * Audit02: :bliss-backup-parser owns archive and primitive format parsing
+ * for backup flows. It must stay independent from launcher runtime classes:
+ * no com.android.launcher3.*, no SharedPreferences, no database writes, and
+ * no model mutation. App source owns orchestration and persistence.
+ */
+plugins {
+    id 'foundation.e.bliss.android-library'
+}
+
+android {
+    namespace = "foundation.e.bliss.backup.parser"
+
+    sourceSets {
+        main.java.srcDirs = ['src/main/java']
+    }
+}

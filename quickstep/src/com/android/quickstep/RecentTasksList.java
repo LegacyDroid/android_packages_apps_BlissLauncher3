@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep;
 
 import static android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
@@ -32,7 +41,7 @@ import android.content.Context;
 import android.os.Process;
 import android.os.RemoteException;
 import android.util.SparseBooleanArray;
-import android.window.DesktopExperienceFlags;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
@@ -51,7 +60,7 @@ import com.android.systemui.shared.recents.model.Task;
 import com.android.wm.shell.Flags;
 import com.android.wm.shell.recents.IRecentTasksListener;
 import com.android.wm.shell.shared.GroupedTaskInfo;
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat;
 
 import kotlin.collections.ArraysKt;
 import kotlin.collections.CollectionsKt;
@@ -118,31 +127,23 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
 
             @Override
             public void onRunningTaskAppeared(RunningTaskInfo taskInfo) {
-                mMainThreadExecutor.execute(() -> {
-                    RecentTasksList.this.onRunningTaskAppeared(taskInfo);
-                });
+                mMainThreadExecutor.execute(() -> RecentTasksList.this.onRunningTaskAppeared(taskInfo));
             }
 
             @Override
             public void onRunningTaskVanished(RunningTaskInfo taskInfo) {
-                mMainThreadExecutor.execute(() -> {
-                    RecentTasksList.this.onRunningTaskVanished(taskInfo);
-                });
+                mMainThreadExecutor.execute(() -> RecentTasksList.this.onRunningTaskVanished(taskInfo));
             }
 
             @Override
             public void onRunningTaskChanged(RunningTaskInfo taskInfo) {
-                mMainThreadExecutor.execute(() -> {
-                    RecentTasksList.this.onRunningTaskChanged(taskInfo);
-                });
+                mMainThreadExecutor.execute(() -> RecentTasksList.this.onRunningTaskChanged(taskInfo));
             }
 
             @Override
             public void onTaskMovedToFront(GroupedTaskInfo taskToFront) {
-                mMainThreadExecutor.execute(() -> {
-                    topTaskTracker.handleTaskMovedToFront(
-                            taskToFront.getBaseGroupedTask().getTaskInfo1());
-                });
+                mMainThreadExecutor.execute(() -> topTaskTracker.handleTaskMovedToFront(
+                        taskToFront.getBaseGroupedTask().getTaskInfo1()));
             }
 
             @Override
@@ -152,9 +153,7 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
 
             @Override
             public void onVisibleTasksChanged(GroupedTaskInfo[] visibleTasks) {
-                mMainThreadExecutor.execute(() -> {
-                    topTaskTracker.onVisibleTasksChanged(visibleTasks);
-                });
+                mMainThreadExecutor.execute(() -> topTaskTracker.onVisibleTasksChanged(visibleTasks));
             }
         };
 
@@ -162,7 +161,7 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
         tracker.addCloseable(
                 () -> mSysUiProxy.unregisterRecentTasksListener(recentTasksListener));
 
-        if (DesktopModeStatus.enableMultipleDesktops(mContext)) {
+        if (DesktopModeStatusCompat.enableMultipleDesktops(mContext)) {
             mDesktopVisibilityController.registerDesktopVisibilityListener(
                     this);
             tracker.addCloseable(
@@ -213,9 +212,7 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
                         .map(GroupTask::copy)
                         .collect(Collectors.toCollection(ArrayList<GroupTask>::new));
 
-                mMainThreadExecutor.post(() -> {
-                    callback.accept(result);
-                });
+                mMainThreadExecutor.post(() -> callback.accept(result));
             }
 
             return requestLoadId;
@@ -372,7 +369,7 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
      * Loads and creates a list of all the recent tasks.
      */
     @VisibleForTesting
-    TaskLoadResult loadTasksInBackground(int numTasks, int requestId, boolean loadKeysOnly) {
+    TaskLoadResult loadTasksInBackground(int numTasks, int requestId, boolean loadKeysOnly) { // NOSONAR pristine-AOSP-do-not-refactor
         int currentUserId = Process.myUserHandle().getIdentifier();
         ArrayList<GroupedTaskInfo> rawTasks;
         try {
@@ -401,7 +398,7 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
             if (rawTask.isBaseType(TYPE_DESK)) {
                 // TYPE_DESK tasks is only created when desktop mode can be entered,
                 // leftover TYPE_DESK tasks created when flag was on should be ignored.
-                if (DesktopModeStatus.canEnterDesktopMode(mContext)) {
+                if (DesktopModeStatusCompat.canEnterDesktopMode(mContext)) {
                     List<DesktopTask> desktopTasks = createDesktopTasks(
                             rawTask.getBaseGroupedTask());
                     allTasks.addAll(desktopTasks);
@@ -496,7 +493,7 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
                 ? CollectionsKt.toSet(ArraysKt.asIterable(minimizedTaskIdArray))
                 : Collections.emptySet();
         if (enableSeparateExternalDisplayTasks()
-                && !DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue()) {
+                && !DesktopFlagsCompat.enableMultipleDesktopsBackend()) {
             // This code is not needed when the multiple desktop feature is enabled, since Shell
             // will send a single `GroupedTaskInfo` for each desk with a unique `deskId` across
             // all displays.

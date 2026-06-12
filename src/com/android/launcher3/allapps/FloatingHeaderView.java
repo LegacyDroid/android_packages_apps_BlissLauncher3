@@ -57,7 +57,9 @@ public class FloatingHeaderView extends LinearLayout implements
     private final RecyclerView.OnScrollListener mOnScrollListener =
             new RecyclerView.OnScrollListener() {
                 @Override
-                public void onScrollStateChanged(@NonNull RecyclerView rv, int newState) {}
+                public void onScrollStateChanged(@NonNull RecyclerView rv, int newState) {
+                    // No-op: only onScrolled is observed.
+                }
 
                 @Override
                 public void onScrolled(@NonNull RecyclerView rv, int dx, int dy) {
@@ -261,9 +263,13 @@ public class FloatingHeaderView extends LinearLayout implements
         if (mCurrentRV != null) {
             mCurrentRV.removeOnScrollListener(mOnScrollListener);
         }
-        mCurrentRV =
-                rvType == AdapterHolder.MAIN ? mMainRV
-                : rvType == AdapterHolder.WORK ? mWorkRV : mSearchRV;
+        if (rvType == AdapterHolder.MAIN) {
+            mCurrentRV = mMainRV;
+        } else if (rvType == AdapterHolder.WORK) {
+            mCurrentRV = mWorkRV;
+        } else {
+            mCurrentRV = mSearchRV;
+        }
         mCurrentRV.addOnScrollListener(mOnScrollListener);
         maybeSetTabVisibility(rvType == AdapterHolder.SEARCH ? GONE : VISIBLE);
 

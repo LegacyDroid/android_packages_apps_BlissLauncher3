@@ -376,10 +376,10 @@ public class ClipIconView extends View implements ClipPathView {
         public final float taskViewMinSize;
         public final boolean drawForPortraitLayout;
 
-        public int taskViewDrawAlpha;
-        public float taskViewDrawScale;
-        public int taskViewDrawWidth;
-        public int taskViewDrawHeight;
+        private int taskViewDrawAlpha;
+        private float taskViewDrawScale;
+        private int taskViewDrawWidth;
+        private int taskViewDrawHeight;
 
         public TaskViewArtist(
                 Consumer<Canvas> taskViewDrawCallback,

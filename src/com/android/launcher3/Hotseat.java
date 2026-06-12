@@ -13,6 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s):
+ *   - Consumes app-root blur runtime via BlurViewDelegate,
+ *     BlurWallpaperProvider, and OffsetParent.
+ *   - Blur UI/provider code remains app-owned because it depends on
+ *     Launcher lifecycle, wallpaper state, display state, and preferences.
+ */
 
 package com.android.launcher3;
 
@@ -119,6 +126,11 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
         drawBlur = true;
         setWillNotDraw(false);
         addView(mQsb);
+        try {
+            if (!LauncherPrefs.get(context).get(LauncherPrefs.DOCK_SEARCH_BAR)) {
+                mQsb.setVisibility(View.GONE);
+            }
+        } catch (Throwable ignored) { /* default visible */ }
         mIconsAlphaChannels = new MultiValueAlpha(getShortcutsAndWidgets(),
                 ALPHA_CHANNEL_CHANNELS_COUNT);
         if (mQsb instanceof Reorderable qsbReorderable) {
@@ -316,11 +328,9 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
     public boolean onTouchEvent(MotionEvent event) {
         // See comment in #onInterceptTouchEvent
         if (mSendTouchToWorkspace) {
-            final int action = event.getAction();
-            switch (action & MotionEvent.ACTION_MASK) {
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_CANCEL:
-                    mSendTouchToWorkspace = false;
+            final int action = event.getAction() & MotionEvent.ACTION_MASK;
+            if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                mSendTouchToWorkspace = false;
             }
             return mWorkspace.onTouchEvent(event);
         }
@@ -366,11 +376,15 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
 
         // Setting name is hardcoded here to prevent recompilation of
         // framework jar for studio build
-        Settings.Secure.putInt(getContext().getContentResolver(),
-                "bliss_launcher_dock_width",
-                dp.isVerticalBarLayout()
-                        ? getWidth() - dp.getExtraStatusBarPadding()
-                        : 0);
+        try {
+            Settings.Secure.putInt(getContext().getContentResolver(),
+                    "bliss_launcher_dock_width",
+                    dp.isVerticalBarLayout()
+                            ? getWidth() - dp.getExtraStatusBarPadding()
+                            : 0);
+        } catch (SecurityException e) {
+            // WRITE_SECURE_SETTINGS not available for non-system apps
+        }
     }
 
     /**
@@ -426,6 +440,63 @@ public class Hotseat extends CellLayout implements Insettable, OffsetParent {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        // Custom dock background color
+        try {
+            LauncherPrefs prefs = com.android.launcher3.dagger.LauncherComponentProvider
+                    .get(getContext()).getLauncherPrefs();
+            String bgColor = prefs.get(LauncherPrefs.DOCK_BG_COLOR);
+            if (!"default".equals(bgColor)) {
+                int color;
+                switch (bgColor) {
+                    case "black": color = 0xFF000000; break;
+                    case "white": color = 0xFFFFFFFF; break;
+                    case "dark_gray": color = 0xFF303030; break;
+                    case "transparent": color = 0x00000000; break;
+                    default:
+                        // Bliss: support arbitrary hex (#RRGGBB or #AARRGGBB)
+                        if (bgColor != null && bgColor.startsWith("#")) {
+                            try {
+                                color = android.graphics.Color.parseColor(bgColor);
+                            } catch (Exception ignored) { color = -1; }
+                        } else {
+                            color = -1;
+                        }
+                        break;
+                }
+                if (color != -1) {
+                    int opacity = prefs.get(LauncherPrefs.DOCK_BG_OPACITY);
+                    int alpha = (int) (opacity / 100f * 255);
+                    color = (color & 0x00FFFFFF) | (alpha << 24);
+                    int cornerRadius = prefs.get(LauncherPrefs.DOCK_CORNER_RADIUS);
+                    int insL = Math.max(0, prefs.get(LauncherPrefs.HOTSEAT_INSET_LEFT));
+                    int insR = Math.max(0, prefs.get(LauncherPrefs.HOTSEAT_INSET_RIGHT));
+                    int insT = Math.max(0, prefs.get(LauncherPrefs.HOTSEAT_INSET_TOP));
+                    int insB = Math.max(0, prefs.get(LauncherPrefs.HOTSEAT_INSET_BOTTOM));
+                    int left = insL;
+                    int top = insT;
+                    int right = Math.max(left, getWidth() - insR);
+                    int bottom = Math.max(top, getHeight() - insB);
+                    if (cornerRadius > 0) {
+                        float radiusPx = cornerRadius
+                                * getResources().getDisplayMetrics().density;
+                        android.graphics.Paint paint = new android.graphics.Paint();
+                        paint.setColor(color);
+                        paint.setAntiAlias(true);
+                        canvas.drawRoundRect(left, top, right, bottom,
+                                radiusPx, radiusPx, paint);
+                    } else if (insL == 0 && insR == 0 && insT == 0 && insB == 0) {
+                        canvas.drawColor(color);
+                    } else {
+                        android.graphics.Paint paint = new android.graphics.Paint();
+                        paint.setColor(color);
+                        canvas.drawRect(left, top, right, bottom, paint);
+                    }
+                    super.onDraw(canvas);
+                    return;
+                }
+            }
+        } catch (Exception e) { /* fall through to default blur */ }
+
         if (mBlurDelegate != null && drawBlur) {
             mBlurDelegate.draw(canvas);
         }

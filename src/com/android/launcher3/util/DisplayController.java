@@ -180,6 +180,8 @@ public class DisplayController implements DesktopVisibilityListener {
 
                         @Override
                         public void onDisplayChanged(int displayId) {
+                            // intentionally empty — display change handled via PerDisplayInfo
+                            // ComponentCallbacks.onConfigurationChanged.
                         }
 
                         @Override
@@ -188,12 +190,10 @@ public class DisplayController implements DesktopVisibilityListener {
                         }
                     };
             displayManager.registerDisplayListener(displayListener, MAIN_EXECUTOR.getHandler());
-            lifecycle.addCloseable(() -> {
-                displayManager.unregisterDisplayListener(displayListener);
-            });
+            lifecycle.addCloseable(() -> displayManager.unregisterDisplayListener(displayListener));
             // Add any PerDisplayInfos for already-connected displays.
             Arrays.stream(displayManager.getDisplays())
-                    .forEach((it) ->
+                    .forEach(it ->
                             getOrCreatePerDisplayInfo(
                                     displayManager.getDisplay(it.getDisplayId())));
         }
@@ -735,7 +735,8 @@ public class DisplayController implements DesktopVisibilityListener {
      * Utility class to hold a size information in an orientation independent way
      */
     public static class PortraitSize {
-        public final int width, height;
+        public final int width;
+        public final int height;
 
         public PortraitSize(int w, int h) {
             width = Math.min(w, h);
@@ -791,7 +792,9 @@ public class DisplayController implements DesktopVisibilityListener {
         }
 
         @Override
-        public void onLowMemory() {}
+        public void onLowMemory() {
+            // intentionally empty — ComponentCallbacks contract; no per-display reaction needed.
+        }
 
         void cleanup() {
             mWindowContext.unregisterComponentCallbacks(this);

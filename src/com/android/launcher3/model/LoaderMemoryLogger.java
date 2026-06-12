@@ -40,12 +40,7 @@ public class LoaderMemoryLogger {
     protected void addLog(
             int logLevel, String tag, String log, Exception stackTrace) {
         switch (logLevel) {
-            case Log.ASSERT:
-            case Log.ERROR:
-            case Log.DEBUG:
-            case Log.INFO:
-            case Log.VERBOSE:
-            case Log.WARN:
+            case Log.ASSERT, Log.ERROR, Log.DEBUG, Log.INFO, Log.VERBOSE, Log.WARN:
                 mLogEntries.add(new LogEntry(logLevel, tag, log, stackTrace));
                 break;
             default:

@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep;
 
 import static com.android.app.animation.Interpolators.LINEAR;
@@ -45,6 +53,7 @@ import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.taskbar.LauncherTaskbarUIController;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.NavigationMode;
 import com.android.quickstep.GestureState.GestureEndTarget;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
@@ -263,7 +272,7 @@ public final class LauncherActivityInterface extends
                 && launcher.getStateManager().getState() == OVERVIEW
                 && launcher.isStarted()
                 && TopTaskTracker.INSTANCE.get(launcher).getCachedTopTask(false,
-                launcher.getDisplayId()).isHomeTask();
+                DisplayIdCompat.getDisplayId(launcher)).isHomeTask();
     }
 
     private boolean isInMinusOne() {
@@ -273,7 +282,7 @@ public final class LauncherActivityInterface extends
                 && launcher.getStateManager().getState() == NORMAL
                 && !launcher.isStarted()
                 && TopTaskTracker.INSTANCE.get(launcher).getCachedTopTask(false,
-                launcher.getDisplayId()).isHomeTask();
+                DisplayIdCompat.getDisplayId(launcher)).isHomeTask();
     }
 
     @Override
@@ -352,8 +361,7 @@ public final class LauncherActivityInterface extends
         switch (endTarget) {
             case RECENTS:
                 return OVERVIEW;
-            case NEW_TASK:
-            case LAST_TASK:
+            case NEW_TASK, LAST_TASK:
                 return BACKGROUND_APP;
             case ALL_APPS:
                 return ALL_APPS;

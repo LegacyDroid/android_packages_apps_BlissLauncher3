@@ -654,28 +654,28 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
         var launchFullscreenAppIndex = -1
         for (change in transitionInfo.changes) {
             val taskInfo: RunningTaskInfo = change.taskInfo ?: continue
-            if (
-                TransitionUtil.isOpeningType(change.mode) &&
-                    taskInfo.windowingMode == WINDOWING_MODE_FULLSCREEN
-            ) {
-                val baseIntent = taskInfo.baseIntent.component?.packageName
-                if (baseIntent == intent1) {
-                    if (launchFullscreenAppIndex > -1) {
-                        launchFullscreenAppIndex = -1
-                        break
-                    }
-                    launchFullscreenAppIndex = 0
-                } else if (baseIntent == intent2) {
-                    if (launchFullscreenAppIndex > -1) {
-                        launchFullscreenAppIndex = -1
-                        break
-                    }
-                    launchFullscreenAppIndex = 1
-                }
+            if (!isOpeningFullscreenChange(change, taskInfo)) {
+                continue
             }
+            val baseIntent = taskInfo.baseIntent.component?.packageName
+            val matchedIndex =
+                when (baseIntent) {
+                    intent1 -> 0
+                    intent2 -> 1
+                    else -> null
+                } ?: continue
+            if (launchFullscreenAppIndex > -1) {
+                launchFullscreenAppIndex = -1
+                break
+            }
+            launchFullscreenAppIndex = matchedIndex
         }
         return launchFullscreenAppIndex
     }
+
+    private fun isOpeningFullscreenChange(change: Change, taskInfo: RunningTaskInfo): Boolean =
+        TransitionUtil.isOpeningType(change.mode) &&
+            taskInfo.windowingMode == WINDOWING_MODE_FULLSCREEN
 
     /**
      * When the user taps an app pair icon to launch split, this will play the tasks' launch
@@ -1062,7 +1062,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
         t: Transaction,
         finishCallback: Runnable,
         cornerRadius: Float,
-    ) {
+    ) { // NOSONAR pristine-AOSP-do-not-refactor
         var splitRoot1: Change? = null
         var splitRoot2: Change? = null
         val openingTargets = ArrayList<SurfaceControl>()

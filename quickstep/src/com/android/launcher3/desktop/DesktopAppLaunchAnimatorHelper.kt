@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.quickstep.QuickStepContractCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.desktop
 
 import android.animation.Animator
@@ -27,7 +36,7 @@ import android.view.SurfaceControl.Transaction
 import android.view.WindowManager.TRANSIT_CLOSE
 import android.view.WindowManager.TRANSIT_OPEN
 import android.view.WindowManager.TRANSIT_TO_BACK
-import android.window.DesktopModeFlags
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat
 import android.window.TransitionInfo
 import android.window.TransitionInfo.Change
 import androidx.core.animation.addListener
@@ -35,7 +44,7 @@ import androidx.core.util.Supplier
 import com.android.app.animation.Interpolators
 import com.android.internal.jank.Cuj
 import com.android.internal.jank.InteractionJankMonitor
-import com.android.internal.policy.ScreenDecorationsUtils
+import foundation.e.bliss.compat.quickstep.QuickStepContractCompat
 import com.android.launcher3.desktop.DesktopAppLaunchTransition.AppLaunchType
 import com.android.launcher3.desktop.DesktopAppLaunchTransition.Companion.LAUNCH_CHANGE_MODES
 import com.android.wm.shell.shared.animation.MinimizeAnimator
@@ -112,7 +121,7 @@ class DesktopAppLaunchAnimatorHelper(
     private fun getTrampolineCloseChange(info: TransitionInfo): Change? {
         if (
             info.changes.size < 2 ||
-            !DesktopModeFlags.ENABLE_DESKTOP_TRAMPOLINE_CLOSE_ANIMATION_BUGFIX.isTrue
+            !DesktopFlagsCompat.enableDesktopTrampolineCloseAnimationBugfix()
         ) {
             return null
         }
@@ -161,7 +170,7 @@ class DesktopAppLaunchAnimatorHelper(
         transaction.setCrop(change.leash, clipRect)
         transaction.setCornerRadius(
             change.leash,
-            ScreenDecorationsUtils.getWindowCornerRadius(context),
+            QuickStepContractCompat.getWindowCornerRadius(context),
         )
         return AnimatorSet().apply {
             interactionJankMonitor.begin(change.leash, context, context.mainThreadHandler, cujType)

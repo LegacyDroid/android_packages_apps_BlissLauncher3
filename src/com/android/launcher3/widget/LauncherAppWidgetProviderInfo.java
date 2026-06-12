@@ -19,6 +19,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.icons.cache.BaseIconCache;
 import com.android.launcher3.icons.cache.CachedObject;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
@@ -72,12 +73,13 @@ public class LauncherAppWidgetProviderInfo extends AppWidgetProviderInfo impleme
     protected boolean mIsMinSizeFulfilled;
 
     private PackageManager mPM;
+    private Context mContext;
 
     public static LauncherAppWidgetProviderInfo fromProviderInfo(Context context,
             AppWidgetProviderInfo info) {
         final LauncherAppWidgetProviderInfo launcherInfo;
-        if (info instanceof LauncherAppWidgetProviderInfo) {
-            launcherInfo = (LauncherAppWidgetProviderInfo) info;
+        if (info instanceof LauncherAppWidgetProviderInfo lapwInfo) {
+            launcherInfo = lapwInfo;
         } else {
 
             // In lieu of a public super copy constructor, we first write the AppWidgetProviderInfo
@@ -101,13 +103,14 @@ public class LauncherAppWidgetProviderInfo extends AppWidgetProviderInfo impleme
     }
 
     public void initSpans(Context context, InvariantDeviceProfile idp) {
-        mPM = context.getApplicationContext().getPackageManager();
-        int minSpanX = 0;
-        int minSpanY = 0;
-        int maxSpanX = idp.numColumns;
-        int maxSpanY = idp.numRows;
-        int spanX = 0;
-        int spanY = 0;
+        mContext = context.getApplicationContext();
+        mPM = mContext.getPackageManager();
+        int localMinSpanX = 0;
+        int localMinSpanY = 0;
+        int localMaxSpanX = idp.numColumns;
+        int localMaxSpanY = idp.numRows;
+        int localSpanX = 0;
+        int localSpanY = 0;
 
         Point cellSize = new Point();
         for (DeviceProfile dp : idp.supportedProfiles) {
@@ -121,54 +124,72 @@ public class LauncherAppWidgetProviderInfo extends AppWidgetProviderInfo impleme
             dp.getCellSize(cellSize);
             Rect widgetPadding = dp.widgetPadding;
 
-            minSpanX = Math.max(minSpanX,
+            localMinSpanX = Math.max(localMinSpanX,
                     getSpanX(widgetPadding, minResizeWidth, dp.cellLayoutBorderSpacePx.x,
                             cellSize.x));
-            minSpanY = Math.max(minSpanY,
+            localMinSpanY = Math.max(localMinSpanY,
                     getSpanY(widgetPadding, minResizeHeight, dp.cellLayoutBorderSpacePx.y,
                             cellSize.y));
 
             if (maxResizeWidth > 0) {
-                maxSpanX = Math.min(maxSpanX, getSpanX(widgetPadding, maxResizeWidth,
+                localMaxSpanX = Math.min(localMaxSpanX, getSpanX(widgetPadding, maxResizeWidth,
                         dp.cellLayoutBorderSpacePx.x, cellSize.x));
             }
             if (maxResizeHeight > 0) {
-                maxSpanY = Math.min(maxSpanY, getSpanY(widgetPadding, maxResizeHeight,
+                localMaxSpanY = Math.min(localMaxSpanY, getSpanY(widgetPadding, maxResizeHeight,
                         dp.cellLayoutBorderSpacePx.y, cellSize.y));
             }
 
-            spanX = Math.max(spanX,
+            localSpanX = Math.max(localSpanX,
                     getSpanX(widgetPadding, minWidth, dp.cellLayoutBorderSpacePx.x,
                             cellSize.x));
-            spanY = Math.max(spanY,
+            localSpanY = Math.max(localSpanY,
                     getSpanY(widgetPadding, minHeight, dp.cellLayoutBorderSpacePx.y,
                             cellSize.y));
         }
 
         // Ensures maxSpan >= minSpan
-        maxSpanX = Math.max(maxSpanX, minSpanX);
-        maxSpanY = Math.max(maxSpanY, minSpanY);
+        localMaxSpanX = Math.max(localMaxSpanX, localMinSpanX);
+        localMaxSpanY = Math.max(localMaxSpanY, localMinSpanY);
 
         // Use targetCellWidth/Height if it is within the min/max ranges.
         // Otherwise, use the span of minWidth/Height.
-        if (targetCellWidth >= minSpanX && targetCellWidth <= maxSpanX
-                && targetCellHeight >= minSpanY && targetCellHeight <= maxSpanY) {
-            spanX = targetCellWidth;
-            spanY = targetCellHeight;
+        if (targetCellWidth >= localMinSpanX && targetCellWidth <= localMaxSpanX
+                && targetCellHeight >= localMinSpanY && targetCellHeight <= localMaxSpanY) {
+            localSpanX = targetCellWidth;
+            localSpanY = targetCellHeight;
         }
 
         // If minSpanX/Y > spanX/Y, ignore the minSpanX/Y to match the behavior described in
         // minResizeWidth & minResizeHeight Android documentation. See
         // https://developer.android.com/reference/android/appwidget/AppWidgetProviderInfo
-        this.minSpanX = Math.min(spanX, minSpanX);
-        this.minSpanY = Math.min(spanY, minSpanY);
-        this.maxSpanX = maxSpanX;
-        this.maxSpanY = maxSpanY;
-        this.mIsMinSizeFulfilled = Math.min(spanX, minSpanX) <= idp.numColumns
-            && Math.min(spanY, minSpanY) <= idp.numRows;
+        this.minSpanX = Math.min(localSpanX, localMinSpanX);
+        this.minSpanY = Math.min(localSpanY, localMinSpanY);
+        this.maxSpanX = localMaxSpanX;
+        this.maxSpanY = localMaxSpanY;
+        this.mIsMinSizeFulfilled = Math.min(localSpanX, localMinSpanX) <= idp.numColumns
+            && Math.min(localSpanY, localMinSpanY) <= idp.numRows;
         // Ensures the default span X and span Y will not exceed the current grid size.
-        this.spanX = Math.min(spanX, idp.numColumns);
-        this.spanY = Math.min(spanY, idp.numRows);
+        this.spanX = Math.min(localSpanX, idp.numColumns);
+        this.spanY = Math.min(localSpanY, idp.numRows);
+
+        applyUnlimitedSizeOverride(idp);
+    }
+
+    private void applyUnlimitedSizeOverride(InvariantDeviceProfile idp) {
+        try {
+            if (mContext == null) return;
+            boolean unlimited = LauncherPrefs.get(mContext)
+                    .get(LauncherPrefs.WIDGET_UNLIMITED_SIZE);
+            if (unlimited) {
+                this.minSpanX = 1;
+                this.minSpanY = 1;
+                this.maxSpanX = idp.numColumns;
+                this.maxSpanY = idp.numRows;
+            }
+        } catch (Exception e) {
+            // Use defaults
+        }
     }
 
     /**
@@ -205,8 +226,20 @@ public class LauncherAppWidgetProviderInfo extends AppWidgetProviderInfo impleme
     }
 
     public Point getMinSpans() {
+        if (isForceResizeEnabled()) {
+            return new Point(minSpanX, minSpanY);
+        }
         return new Point((resizeMode & RESIZE_HORIZONTAL) != 0 ? minSpanX : -1,
                 (resizeMode & RESIZE_VERTICAL) != 0 ? minSpanY : -1);
+    }
+
+    private boolean isForceResizeEnabled() {
+        try {
+            if (mContext == null) return false;
+            return LauncherPrefs.get(mContext).get(LauncherPrefs.FORCE_WIDGET_RESIZE);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean isCustomWidget() {

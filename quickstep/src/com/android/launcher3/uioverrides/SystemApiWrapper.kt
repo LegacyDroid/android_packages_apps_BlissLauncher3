@@ -59,11 +59,28 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
     override fun getPersons(si: ShortcutInfo) = si.persons ?: Utilities.EMPTY_PERSON_ARRAY
 
     override fun getActivityOverrides(): Map<String, LauncherActivityInfo> =
-        mContext.getSystemService(LauncherApps::class.java)!!.activityOverrides
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            try {
+                mContext.getSystemService(LauncherApps::class.java)!!.activityOverrides
+            } catch (e: LinkageError) {
+                // LauncherApps#getActivityOverrides is a hidden API absent on a mismatched
+                // framework (e.g. a stock emulator image); no overrides.
+                emptyMap()
+            }
+        } else {
+            emptyMap()
+        }
 
     override fun createFadeOutAnimOptions(): ActivityOptions =
         ActivityOptions.makeBasic().apply {
-            remoteTransition = RemoteTransition(FadeOutRemoteTransition(), "FadeOut")
+            if (android.os.Build.VERSION.SDK_INT >= 36) {
+                try {
+                    remoteTransition = RemoteTransition(FadeOutRemoteTransition(), "FadeOut")
+                } catch (e: LinkageError) {
+                    // RemoteTransition / RemoteTransitionStub system APIs absent on a mismatched
+                    // framework; use the default options without a custom fade-out transition.
+                }
+            }
         }
 
     override fun queryAllUsers(): Map<UserHandle, UserIconInfo> {
@@ -122,7 +139,11 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
 
     /** Returns an intent which can be used to open Private Space Settings. */
     override fun getPrivateSpaceSettingsIntent(): Intent? =
-        if (allowPrivateProfile() && enablePrivateSpace())
+        if (
+            android.os.Build.VERSION.SDK_INT >= 36 &&
+            allowPrivateProfile() &&
+            enablePrivateSpace()
+        )
             ProxyActivityStarter.getLaunchIntent(
                 mContext,
                 StartActivityParams(null as PendingIntent?, 0).apply {
@@ -145,9 +166,14 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
         lai.activityInfo.resizeMode == ActivityInfo.RESIZE_MODE_UNRESIZEABLE
 
     override fun supportsMultiInstance(lai: LauncherActivityInfo): Boolean {
+        if (android.os.Build.VERSION.SDK_INT < 36) {
+            return super.supportsMultiInstance(lai)
+        }
         return try {
             super.supportsMultiInstance(lai) || lai.supportsMultiInstance()
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            // LauncherActivityInfo#supportsMultiInstance is a hidden API; on a mismatched framework
+            // it throws NoSuchMethodError (an Error, not an Exception), so catch Throwable here.
             false
         }
     }
@@ -199,10 +225,25 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
     }
 
     override fun getApplicationInfoHash(appInfo: ApplicationInfo): String =
-        (appInfo.sourceDir?.hashCode() ?: 0).toString() + " " + appInfo.longVersionCode
+        try {
+            (appInfo.sourceDir?.hashCode() ?: 0).toString() + " " + appInfo.longVersionCode
+        } catch (e: NoSuchFieldError) {
+            super.getApplicationInfoHash(appInfo)
+        }
 
-    override fun getRoundIconRes(appInfo: ApplicationInfo) = appInfo.roundIconRes
+    override fun getRoundIconRes(appInfo: ApplicationInfo): Int =
+        try {
+            appInfo.roundIconRes
+        } catch (e: NoSuchFieldError) {
+            super.getRoundIconRes(appInfo)
+        }
 
     override fun isFileDrawable(shortcutInfo: ShortcutInfo) =
-        shortcutInfo.hasIconFile() || shortcutInfo.hasIconUri()
+        try {
+            shortcutInfo.hasIconFile() || shortcutInfo.hasIconUri()
+        } catch (e: LinkageError) {
+            // ShortcutInfo#hasIconFile / #hasIconUri are hidden APIs absent on a mismatched
+            // framework (e.g. a stock emulator image); treat as not a file-backed drawable.
+            false
+        }
 }

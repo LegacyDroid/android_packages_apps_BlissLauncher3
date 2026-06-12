@@ -10,6 +10,9 @@ WallpaperPicker/.project.properties
 bin/
 .idea/
 .gradle/
+.kotlin/
+.scannerwork/
+.sonar/
 local.properties
 build/
 .DS_Store

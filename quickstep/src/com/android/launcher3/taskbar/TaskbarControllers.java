@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
 
 import android.animation.AnimatorSet;
@@ -23,6 +31,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.anim.AnimatedFloat;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.taskbar.allapps.TaskbarAllAppsController;
 import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.taskbar.growth.NudgeController;
@@ -204,7 +213,7 @@ public class TaskbarControllers {
         // TODO(b/401061748): get primary status from
         //  TaskbarDesktopModeController/DesktopVisibilityController.
         if (taskbarDesktopModeController.isInDesktopModeAndNotInOverview(
-                taskbarActivityContext.getDisplayId())
+                DisplayIdCompat.getDisplayId(taskbarActivityContext))
                 || !taskbarActivityContext.isPrimaryDisplay()) {
             mCornerRoundness.value = taskbarDesktopModeController.getTaskbarCornerRoundness(
                     mSharedState.showCornerRadiusInDesktopMode);
@@ -233,11 +242,11 @@ public class TaskbarControllers {
         uiController.init(this);
         uiController.updateStateForSysuiFlags(mSharedState.sysuiStateFlags);
         // if bubble controllers are present configure the UI controller
-        bubbleControllers.ifPresentOrElse(bubbleControllers -> {
+        bubbleControllers.ifPresentOrElse(controllers -> {
             BubbleBarLocation location =
-                    bubbleControllers.bubbleBarViewController.getBubbleBarLocation();
+                    controllers.bubbleBarViewController.getBubbleBarLocation();
             boolean hiddenForBubbles =
-                    bubbleControllers.bubbleBarViewController.isHiddenForNoBubbles();
+                    controllers.bubbleBarViewController.isHiddenForNoBubbles();
             if (!hiddenForBubbles) {
                 uiController.adjustHotseatForBubbleBar(/* isBubbleBarVisible= */ true);
             }

@@ -48,6 +48,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.DeviceProfile.OnDeviceProfileChangeListener;
 import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatedFloat;
@@ -83,8 +84,6 @@ public class AllAppsTransitionController
     public static final int REVERT_SWIPE_ALL_APPS_TO_HOME_ANIMATION_DURATION_MS = 200;
 
     private static final float NAV_BAR_COLOR_FORCE_UPDATE_THRESHOLD = 0.1f;
-    private static final float SWIPE_DRAG_COMMIT_THRESHOLD =
-            1 - AllAppsSwipeController.ALL_APPS_STATE_TRANSITION_MANUAL;
 
     public static final FloatProperty<AllAppsTransitionController> ALL_APPS_PROGRESS =
             new FloatProperty<AllAppsTransitionController>("allAppsProgress") {
@@ -234,7 +233,23 @@ public class AllAppsTransitionController
                 mLauncher.getStateManager().getCurrentStableState() == BACKGROUND_APP;
         // Allow apps panel to shift the full screen if coming from another app.
         float shiftRange = fromBackground ? mLauncher.getDeviceProfile().heightPx : mShiftRange;
-        getAppsViewProgressTranslationY().setValue(mProgress * shiftRange);
+
+        // Custom drawer animation
+        String drawerAnim = "default";
+        try {
+            drawerAnim = com.android.launcher3.dagger.LauncherComponentProvider
+                    .get(mLauncher).getLauncherPrefs()
+                    .get(LauncherPrefs.DRAWER_ANIMATION);
+        } catch (Exception e) { /* use default */ }
+        if ("fade".equals(drawerAnim)) {
+            getAppsViewProgressTranslationY().setValue(0);
+            mLauncher.getAppsView().setAlpha(1 - progress);
+        } else if ("none".equals(drawerAnim)) {
+            getAppsViewProgressTranslationY().setValue(
+                    progress > 0.5f ? shiftRange : 0);
+        } else {
+            getAppsViewProgressTranslationY().setValue(mProgress * shiftRange);
+        }
         mLauncher.onAllAppsTransition(1 - progress);
 
         boolean hasScrim = progress < NAV_BAR_COLOR_FORCE_UPDATE_THRESHOLD

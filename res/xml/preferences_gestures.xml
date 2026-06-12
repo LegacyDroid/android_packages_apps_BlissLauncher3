@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Migration04 §04: gestures screen — see Plans/Migration04/04-settings-ui-modularization.md §6 -->
+<androidx.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:launcher="http://schemas.android.com/apk/res-auto"
+    android:title="@string/gestures_category_title">
+
+    <ListPreference
+        android:key="pref_gesture_double_tap"
+        android:title="@string/gesture_double_tap_title"
+        android:summary="@string/gesture_double_tap_summary"
+        android:persistent="false" />
+
+    <ListPreference
+        android:key="pref_gesture_swipe_down"
+        android:title="@string/gesture_swipe_down_title"
+        android:summary="@string/gesture_swipe_down_summary"
+        android:persistent="false" />
+
+    <ListPreference
+        android:key="pref_gesture_edge_left"
+        android:title="@string/gesture_edge_left_title"
+        android:summary="@string/gesture_edge_left_summary"
+        android:persistent="false" />
+
+    <ListPreference
+        android:key="pref_gesture_edge_right"
+        android:title="@string/gesture_edge_right_title"
+        android:summary="@string/gesture_edge_right_summary"
+        android:persistent="false" />
+
+</androidx.preference.PreferenceScreen>

@@ -13,6 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - buildOpenCloseAnimator(): the bespoke try { spring … } catch (Throwable)
+ *     block introduced in Migration02 §2.4 is replaced with
+ *     AnimatorFallback.tryBuild(...). Same fallback policy (spring → AOSP
+ *     FolderAnimationManager); the wrapper just centralises the try/log so
+ *     every animator port shares one policy.
+ *     — Plan ref: Plans/Migration04/06-animation-safety.md §5.2
+ *
+ * Bliss touchpoint(s) (Audit03):
+ *   - AnimatorFallback and FloatGuard move to :bliss-animation-safety.
+ *     Import paths unchanged; FloatGuard switches from BuildConfig to DebugFlags.
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 
 package com.android.launcher3.folder;
 
@@ -77,6 +93,7 @@ import com.android.launcher3.DragSource;
 import com.android.launcher3.DropTarget;
 import com.android.launcher3.ExtendedEditText;
 import com.android.launcher3.Launcher;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.OnAlarmListener;
 import com.android.launcher3.R;
 import com.android.launcher3.ShortcutAndWidgetContainer;
@@ -89,6 +106,9 @@ import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dragndrop.DragController;
 import com.android.launcher3.dragndrop.DragController.DragListener;
 import com.android.launcher3.dragndrop.DragOptions;
+// PLAN-DRIFT-M02: Phase 2.4 wire — spring animator path for animateOpen/animateClose.
+import com.android.launcher3.graphics.ShapeDelegate;
+import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.logger.LauncherAtom.FromState;
 import com.android.launcher3.logger.LauncherAtom.ToState;
 import com.android.launcher3.logging.StatsLogManager;
@@ -117,6 +137,7 @@ import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import foundation.e.bliss.animations.safety.AnimatorFallback;
 import foundation.e.bliss.folder.GridFolder;
 import foundation.e.bliss.multimode.MultiModeController;
 
@@ -128,6 +149,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         View.OnFocusChangeListener, DragListener, ExtendedEditText.OnBackKeyListener,
         LauncherBindableItemsContainer {
     private static final String TAG = "Launcher.Folder";
+    private static final String DEBUG_TAG_BUG_383526431 = "b/383526431";
     private static final boolean DEBUG = false;
 
     /**
@@ -167,7 +189,6 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     private static final float ICON_OVERSCROLL_WIDTH_FACTOR = 0.45f;
 
     private static final int FOLDER_NAME_ANIMATION_DURATION = 633;
-    private static final int FOLDER_COLOR_ANIMATION_DURATION = 200;
 
     private static final int REORDER_DELAY = 250;
     static final int ON_EXIT_CLOSE_DELAY = 400;
@@ -215,7 +236,11 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
 
     // Cell ranks used for drag and drop
     @Thunk
-    int mTargetRank, mPrevTargetRank, mEmptyCellRank;
+    int mTargetRank;
+    @Thunk
+    int mPrevTargetRank;
+    @Thunk
+    int mEmptyCellRank;
 
     private Path mClipPath;
 
@@ -285,6 +310,16 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
                 ResourcesCompat.getDrawable(getResources(),
                         R.drawable.round_rect_folder, getContext().getTheme()));
         mBackground.setCallback(this);
+        applyOpenBgOpacity();
+    }
+
+    private void applyOpenBgOpacity() {
+        try {
+            int opacity = LauncherPrefs.get(getContext()).get(LauncherPrefs.FOLDER_BG_OPACITY);
+            mBackground.setAlpha((int) (opacity / 100f * 255));
+        } catch (Exception ignored) {
+            // keep drawable's default alpha
+        }
     }
 
     @Override
@@ -575,12 +610,11 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         }
         if (mInfo.suggestedFolderNames.hasSuggestions()) {
             // update the primary suggestion if the folder name is empty.
-            if (isEmpty(mFolderName.getText())) {
-                if (mInfo.suggestedFolderNames.hasPrimary()) {
-                    mFolderName.setHint("");
-                    mFolderName.setText(mInfo.suggestedFolderNames.getLabels()[0]);
-                    mFolderName.selectAll();
-                }
+            if (isEmpty(mFolderName.getText())
+                    && mInfo.suggestedFolderNames.hasPrimary()) {
+                mFolderName.setHint("");
+                mFolderName.setText(mInfo.suggestedFolderNames.getLabels()[0]);
+                mFolderName.selectAll();
             }
             mFolderName.showKeyboard();
             mFolderName.displayCompletions(
@@ -694,6 +728,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         if (!shouldAnimateOpen(items)) {
             return;
         }
+        applyOpenBgOpacity();
         Folder openFolder = getOpen(mActivityContext);
         closeOpenFolder(openFolder);
 
@@ -719,13 +754,13 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             }
         }
 
-        Log.d("b/383526431", "animateOpen: content child count before: "
+        Log.d(DEBUG_TAG_BUG_383526431, "animateOpen: content child count before: "
                 + mContent.getTotalChildCount());
 
         mContent.completePendingPageChanges();
         mContent.setCurrentPage(pageNo);
 
-        Log.d("b/383526431", "animateOpen: content child count after pending page"
+        Log.d(DEBUG_TAG_BUG_383526431, "animateOpen: content child count after pending page"
                 + " changes: " + mContent.getTotalChildCount());
 
         // This is set to true in close(), but isn't reset to false until onDropCompleted(). This
@@ -734,10 +769,11 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         mDeleteFolderOnDropCompleted = false;
 
         cancelRunningAnimations();
-        Log.d("b/383526431", "animateOpen: content child count after cancelling"
+        Log.d(DEBUG_TAG_BUG_383526431, "animateOpen: content child count after cancelling"
                 + " animation: " + mContent.getTotalChildCount());
-        FolderAnimationManager fam = new FolderAnimationManager(this, true /* isOpening */);
-        AnimatorSet anim = fam.getAnimator();
+        // PLAN-DRIFT-M02 Phase 2.4: dispatch via FOLDER_SPRING_ANIM pref. Silent fallback to
+        // the AOSP FolderAnimationManager on any throw, per plan hard rules.
+        AnimatorSet anim = buildOpenCloseAnimator(true /* isOpening */);
         anim.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
@@ -876,6 +912,35 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         }
     }
 
+    /**
+     * Returns the open/close animator. When {@link LauncherPrefs#FOLDER_SPRING_ANIM} is enabled,
+     * returns the spring-physics-based AnimatorSet ported from Lawnchair; otherwise (or on any
+     * throw) falls back silently to the AOSP {@link FolderAnimationManager}.
+     */
+    private AnimatorSet buildOpenCloseAnimator(boolean isOpening) {
+        boolean useSpring = false;
+        try {
+            useSpring = LauncherPrefs.get(getContext()).get(LauncherPrefs.FOLDER_SPRING_ANIM);
+        } catch (Throwable ignored) {
+            // pref read shouldn't fail, but be defensive — fall back to AOSP path.
+        }
+        if (!useSpring) {
+            return new FolderAnimationManager(this, isOpening).getAnimator();
+        }
+        // AnimatorFallback centralises the spring-to-AOSP fallback policy: any throw from the
+        // spring builder is logged at WARN and falls through to FolderAnimationManager.
+        return AnimatorFallback.tryBuild(
+                "Folder.buildOpenCloseAnimator",
+                () -> {
+                    ShapeDelegate shapeDelegate = ThemeManager.INSTANCE.get(getContext())
+                            .getFolderShape();
+                    FolderAnimationCreator creator = new FolderAnimationSpringBuilderManager(
+                            this, shapeDelegate, mLauncherDelegate);
+                    return creator.createAnimatorSet(isOpening);
+                },
+                () -> new FolderAnimationManager(this, isOpening).getAnimator());
+    }
+
     private void animateClosed() {
         if (mIsAnimatingClosed) {
             return;
@@ -893,7 +958,9 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         mContent.snapToPageImmediately(mContent.getDestinationPage());
 
         cancelRunningAnimations();
-        AnimatorSet a = new FolderAnimationManager(this, false /* isOpening */).getAnimator();
+        // PLAN-DRIFT-M02 Phase 2.4: dispatch via FOLDER_SPRING_ANIM pref. Silent fallback to
+        // the AOSP FolderAnimationManager on any throw, per plan hard rules.
+        AnimatorSet a = buildOpenCloseAnimator(false /* isOpening */);
         a.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
@@ -1142,15 +1209,13 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             }
         }
 
-        if (target != this) {
-            if (mOnExitAlarm.alarmPending()) {
-                mOnExitAlarm.cancelAlarm();
-                if (!success) {
-                    mSuppressFolderDeletion = true;
-                }
-                mScrollPauseAlarm.cancelAlarm();
-                completeDragExit();
+        if (target != this && mOnExitAlarm.alarmPending()) {
+            mOnExitAlarm.cancelAlarm();
+            if (!success) {
+                mSuppressFolderDeletion = true;
             }
+            mScrollPauseAlarm.cancelAlarm();
+            completeDragExit();
         }
 
         mDeleteFolderOnDropCompleted = false;
@@ -1253,17 +1318,17 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     }
 
     @VisibleForTesting
-    int getContentAreaWidth() {
+    protected int getContentAreaWidth() {
         return Math.max(mContent.getDesiredWidth(), MIN_CONTENT_DIMEN);
     }
 
     @VisibleForTesting
-    int getFolderWidth() {
+    protected int getFolderWidth() {
         return getPaddingLeft() + getPaddingRight() + mContent.getDesiredWidth();
     }
 
     @VisibleForTesting
-    int getFolderHeight() {
+    protected int getFolderHeight() {
         return getFolderHeight(getContentAreaHeight());
     }
 
@@ -1503,7 +1568,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     /** Add an app or shortcut for a specified rank */
     public void addFolderContent(ItemInfo item, int rank, boolean animate) {
         if (!willAcceptItemType(item.itemType)) {
-            throw new RuntimeException("tried to add an illegal type into a folder");
+            throw new IllegalArgumentException("tried to add an illegal type into a folder");
         }
 
         rank = Utilities.boundToRange(rank, 0, mInfo.getContents().size());
@@ -1701,17 +1766,13 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     }
 
     // Compares item position based on rank and position giving priority to the rank.
-    public static final Comparator<ItemInfo> ITEM_POS_COMPARATOR = new Comparator<ItemInfo>() {
-
-        @Override
-        public int compare(ItemInfo lhs, ItemInfo rhs) {
-            if (lhs.rank != rhs.rank) {
-                return lhs.rank - rhs.rank;
-            } else if (lhs.cellY != rhs.cellY) {
-                return lhs.cellY - rhs.cellY;
-            } else {
-                return lhs.cellX - rhs.cellX;
-            }
+    public static final Comparator<ItemInfo> ITEM_POS_COMPARATOR = (lhs, rhs) -> {
+        if (lhs.rank != rhs.rank) {
+            return lhs.rank - rhs.rank;
+        } else if (lhs.cellY != rhs.cellY) {
+            return lhs.cellY - rhs.cellY;
+        } else {
+            return lhs.cellX - rhs.cellX;
         }
     };
 
@@ -2006,11 +2067,17 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         void onFolderStateChanged(@FolderState int newState);
     }
 
-    protected void onFolderOpenStart() { }
+    protected void onFolderOpenStart() {
+        // intentionally empty — subclasses may override to react to folder open start.
+    }
 
-    protected void onFolderCloseComplete() { }
+    protected void onFolderCloseComplete() {
+        // intentionally empty — subclasses may override to react to folder close completion.
+    }
 
-    public void updateFolderOnAnimate(boolean isOpening) { }
+    public void updateFolderOnAnimate(boolean isOpening) {
+        // intentionally empty — subclasses may override to update the folder during animation.
+    }
 
     public int getUnusedOffsetYOnAnimate(boolean isOpening) {
         return 0;

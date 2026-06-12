@@ -18,7 +18,9 @@ package com.android.launcher3.graphics
 
 import android.content.Context
 import android.content.res.Resources
+import androidx.core.graphics.PathParser
 import com.android.launcher3.EncryptionType
+import foundation.e.bliss.icons.CustomAdaptiveIconDrawable
 import com.android.launcher3.Item
 import com.android.launcher3.LauncherPrefChangeListener
 import com.android.launcher3.LauncherPrefs
@@ -100,13 +102,37 @@ constructor(
 
     fun removeChangeListener(listener: ThemeChangeListener) = listeners.remove(listener)
 
+    /**
+     * Build a 100x100 rounded-rect SVG path for a given corner radius percent
+     * (0..50). 0 = square, 50 = circle. Called by [parseIconState] when the
+     * user selects the "custom" icon shape.
+     */
+    private fun buildRoundRectPath(radiusPercent: Int): String {
+        val r = radiusPercent.toFloat()
+        // Path drawn clockwise from top-left after the corner, using arcs for corners.
+        return "M$r 0 H${100f - r} A$r $r 0 0 1 100 $r V${100f - r}" +
+                " A$r $r 0 0 1 ${100f - r} 100 H$r" +
+                " A$r $r 0 0 1 0 ${100f - r} V$r" +
+                " A$r $r 0 0 1 $r 0 Z"
+    }
+
     private fun parseIconState(oldState: IconState?): IconState {
+        val shapeOverrideKey = prefs.get(PREF_ICON_SHAPE)
         val shapeModel =
-            prefs.get(PREF_ICON_SHAPE).let { shapeOverride ->
-                ShapesProvider.iconShapes.firstOrNull { it.key == shapeOverride }
-            }
+            ShapesProvider.iconShapes.firstOrNull { it.key == shapeOverrideKey }
+        val customRoundRectPath: String? =
+            if (shapeOverrideKey == "custom") {
+                try {
+                    val radius = prefs.get(LauncherPrefs.CUSTOM_ICON_SHAPE_RADIUS)
+                        .coerceIn(0, 50)
+                    buildRoundRectPath(radius)
+                } catch (_: Throwable) {
+                    null
+                }
+            } else null
         val iconMask =
             when {
+                customRoundRectPath != null -> customRoundRectPath
                 shapeModel != null -> shapeModel.pathString
                 CONFIG_ICON_MASK_RES_ID == Resources.ID_NULL -> ""
                 else -> context.resources.getString(CONFIG_ICON_MASK_RES_ID)
@@ -115,6 +141,18 @@ constructor(
         val iconShape =
             if (oldState != null && oldState.iconMask == iconMask) oldState.iconShape
             else pickBestShape(iconMask)
+
+        // Publish the active mask to CustomAdaptiveIconDrawable so wrapped
+        // icons render with the user-selected shape.
+        try {
+            if (iconMask.isNotEmpty()) {
+                CustomAdaptiveIconDrawable.sMask = PathParser.createPathFromPathData(iconMask)
+                CustomAdaptiveIconDrawable.sMaskId = iconMask.hashCode().toString()
+                CustomAdaptiveIconDrawable.sInitialized = true
+            }
+        } catch (_: Throwable) {
+            // Fall back to the built-in circle if the mask string is unparseable.
+        }
 
         val folderShapeMask = shapeModel?.folderPathString ?: iconMask
         val folderShape =
@@ -154,10 +192,15 @@ constructor(
 
     open class IconControllerFactory @Inject constructor(protected val prefs: LauncherPrefs) {
 
-        open val prefKeys: List<Item> = listOf(THEMED_ICONS)
+        // Migration02 Phase 3.1: gate the themeController on (THEMED_ICONS || DRAWER_THEMED_ICONS)
+        // so the mono `BitmapInfo.themedBitmap` is generated whenever any flavour of theming is
+        // on. The drawer-only split (BubbleTextView::shouldUseThemedDrawable) relies on the mono
+        // bitmap being available even when the global toggle is off.
+        open val prefKeys: List<Item> = listOf(THEMED_ICONS, LauncherPrefs.DRAWER_THEMED_ICONS)
 
         open fun createThemeController(): IconThemeController? {
-            return if (prefs.get(THEMED_ICONS)) MONO_THEME_CONTROLLER else null
+            val anyThemed = prefs.get(THEMED_ICONS) || prefs.get(LauncherPrefs.DRAWER_THEMED_ICONS)
+            return if (anyThemed) MONO_THEME_CONTROLLER else null
         }
     }
 

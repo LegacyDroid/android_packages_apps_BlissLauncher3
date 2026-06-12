@@ -1,0 +1,7 @@
+pref_first_run_layout_choice_done=true
+pref_gesture_double_tap=app_drawer
+pref_hidden_apps=[com.example.app1,com.example.app2]
+pref_icon_size_factor=100
+pref_show_home_labels=true
+pref_single_layer=false
+pref_workspace_lock=false

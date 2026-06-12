@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.uioverrides.touchcontrollers;
 
 import static android.view.MotionEvent.ACTION_DOWN;
@@ -64,8 +73,6 @@ import android.animation.ValueAnimator;
 import android.graphics.PointF;
 import android.view.MotionEvent;
 import android.view.animation.Interpolator;
-import android.window.DesktopModeFlags;
-
 import com.android.internal.jank.Cuj;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.R;
@@ -77,6 +84,7 @@ import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.touch.BaseSwipeDetector;
 import com.android.launcher3.touch.BothAxesSwipeDetector;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.TouchController;
 import com.android.launcher3.util.VibratorWrapper;
@@ -87,7 +95,7 @@ import com.android.quickstep.util.MotionPauseDetector;
 import com.android.quickstep.util.WorkspaceRevealAnim;
 import com.android.quickstep.views.RecentsView;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat;
 
 /**
  * Handles quick switching to a recent task from the home screen. To give as much flexibility to
@@ -186,13 +194,10 @@ public class NoButtonQuickSwitchTouchController implements TouchController,
             mIsTrackpadSwipe = isTrackpadFourFingerSwipe(ev);
             return mIsTrackpadSwipe;
         }
-        if (DesktopModeStatus.canEnterDesktopMode(mLauncher)
+        return !DesktopModeStatusCompat.canEnterDesktopMode(mLauncher)
                 //TODO(b/345296916): replace with dev option once in teamfood
-                && DesktopModeFlags.ENABLE_QUICKSWITCH_DESKTOP_SPLIT_BUGFIX.isTrue()
-                && mRecentsView.getNonDesktopTaskViewCount() < 1) {
-            return false;
-        }
-        return true;
+                || !DesktopFlagsCompat.enableQuickswitchDesktopSplitBugfix()
+                || mRecentsView.getNonDesktopTaskViewCount() >= 1;
     }
 
     @Override
@@ -331,7 +336,7 @@ public class NoButtonQuickSwitchTouchController implements TouchController,
     }
 
     @Override
-    public void onDragEnd(PointF velocity) {
+    public void onDragEnd(PointF velocity) { // NOSONAR pristine-AOSP-do-not-refactor
         boolean horizontalFling = mSwipeDetector.isFling(velocity.x);
         boolean verticalFling = mSwipeDetector.isFling(velocity.y);
         boolean noFling = !horizontalFling && !verticalFling;
@@ -469,15 +474,19 @@ public class NoButtonQuickSwitchTouchController implements TouchController,
     }
 
     private void onAnimationToStateCompleted(LauncherState targetState) {
+        com.android.launcher3.logging.StatsLogManager.LauncherEvent eventId;
+        if (targetState == QUICK_SWITCH_FROM_HOME) {
+            eventId = LAUNCHER_QUICKSWITCH_RIGHT;
+        } else if (targetState.ordinal > mStartState.ordinal) {
+            eventId = LAUNCHER_UNKNOWN_SWIPEUP;
+        } else {
+            eventId = LAUNCHER_UNKNOWN_SWIPEDOWN;
+        }
         mLauncher.getStatsLogManager().logger()
                 .withSrcState(LAUNCHER_STATE_HOME)
                 .withDstState(targetState.statsLogOrdinal)
                 .log(getLauncherAtomEvent(mStartState.statsLogOrdinal, targetState.statsLogOrdinal,
-                        targetState == QUICK_SWITCH_FROM_HOME
-                                ? LAUNCHER_QUICKSWITCH_RIGHT
-                                : targetState.ordinal > mStartState.ordinal
-                                        ? LAUNCHER_UNKNOWN_SWIPEUP
-                                        : LAUNCHER_UNKNOWN_SWIPEDOWN));
+                        eventId));
 
         if (targetState == QUICK_SWITCH_FROM_HOME) {
             InteractionJankMonitorWrapper.end(Cuj.CUJ_LAUNCHER_QUICK_SWITCH);

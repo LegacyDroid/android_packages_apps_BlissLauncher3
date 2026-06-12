@@ -1,0 +1,28 @@
+// Migration05 §F3: :lint-rules — see Plans/Migration05/03-custom-lint-rules.md §6
+//
+// Kotlin-JVM plugin version is left unspecified here because it is already on
+// the build classpath via the included `build-logic` (which uses `kotlin-dsl`,
+// embedding the Kotlin Gradle plugin). Re-declaring the version triggers
+// "plugin already on the classpath with an unknown version". The catalog
+// alias would do the same; we apply by id and inherit the embedded version.
+plugins {
+    id 'java-library'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+// Lint detectors run inside Lint's own process; junit is the standard test
+// runner for TestLintTask-based fixtures.
+dependencies {
+    compileOnly libs.lint.api
+    compileOnly libs.lint.checks
+
+    testImplementation libs.lint.api
+    testImplementation libs.lint.checks
+    testImplementation libs.lint.tests
+    testImplementation 'junit:junit:4.13.2'
+}

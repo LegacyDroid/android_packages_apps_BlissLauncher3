@@ -43,7 +43,10 @@ import com.android.launcher3.BubbleTextView;
 import com.android.launcher3.R;
 import com.android.launcher3.allapps.search.SearchAdapterProvider;
 import com.android.launcher3.model.data.AppInfo;
+import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.views.ActivityContext;
+
+import foundation.e.bliss.folders.views.DrawerFolderItemView;
 
 /**
  * Adapter for all the apps.
@@ -67,11 +70,16 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
     public static final int VIEW_TYPE_PRIVATE_SPACE_HEADER = 1 << 6;
     public static final int VIEW_TYPE_PRIVATE_SPACE_SYS_APPS_DIVIDER = 1 << 7;
     public static final int VIEW_TYPE_BOTTOM_VIEW_TO_SCROLL_TO = 1 << 8;
-    public static final int NEXT_ID = 9;
+    // Drawer-folder card (Migration02 / Phase 1)
+    public static final int VIEW_TYPE_FOLDER = 1 << 9;
+    // Suggested-apps header row (Migration02 / Phase 7.3) — top-of-drawer most-used apps.
+    public static final int VIEW_TYPE_SUGGESTIONS = 1 << 10;
+    public static final int NEXT_ID = 11;
 
     // Common view type masks
     public static final int VIEW_TYPE_MASK_DIVIDER = VIEW_TYPE_ALL_APPS_DIVIDER;
     public static final int VIEW_TYPE_MASK_ICON = VIEW_TYPE_ICON;
+    public static final int VIEW_TYPE_MASK_FOLDER = VIEW_TYPE_FOLDER;
 
     public static final int VIEW_TYPE_MASK_PRIVATE_SPACE_HEADER =
             VIEW_TYPE_PRIVATE_SPACE_HEADER;
@@ -102,13 +110,19 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
         public final int viewType;
 
         // The row that this item shows up on
-        public int rowIndex;
+        int rowIndex;
         // The index of this app in the row
-        public int rowAppIndex;
+        int rowAppIndex;
         // The associated ItemInfoWithIcon for the item
         public AppInfo itemInfo = null;
         // Private App Decorator
-        public SectionDecorationInfo decorationInfo = null;
+        SectionDecorationInfo decorationInfo = null;
+        // Drawer-folder backing model (Migration02 / Phase 1). Non-null only for
+        // VIEW_TYPE_FOLDER items.
+        private FolderInfo folderInfo = null;
+        // Suggested-apps payload (Migration02 / Phase 7.3). Non-null only for
+        // VIEW_TYPE_SUGGESTIONS items.
+        private java.util.List<AppInfo> suggestions = null;
         public AdapterItem(int viewType) {
             this.viewType = viewType;
         }
@@ -129,8 +143,26 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
             return item;
         }
 
+        /** Factory for a drawer-folder card (Migration02 Phase 1). */
+        public static AdapterItem asFolder(FolderInfo folderInfo) {
+            AdapterItem item = new AdapterItem(VIEW_TYPE_FOLDER);
+            item.folderInfo = folderInfo;
+            return item;
+        }
+
+        /** Factory for the always-visible "Suggestions" header row (Migration02 Phase 7.3). */
+        public static AdapterItem asSuggestions(java.util.List<AppInfo> suggestions) {
+            AdapterItem item = new AdapterItem(VIEW_TYPE_SUGGESTIONS);
+            item.suggestions = suggestions;
+            return item;
+        }
+
+        public boolean isFolder() {
+            return viewType == VIEW_TYPE_FOLDER;
+        }
+
         protected boolean isCountedForAccessibility() {
-            return viewType == VIEW_TYPE_ICON;
+            return viewType == VIEW_TYPE_ICON || viewType == VIEW_TYPE_FOLDER;
         }
 
         /**
@@ -172,7 +204,7 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
     protected final OnLongClickListener mOnIconLongClickListener;
     protected OnFocusChangeListener mIconFocusListener;
 
-    public BaseAllAppsAdapter(T activityContext, LayoutInflater inflater,
+    protected BaseAllAppsAdapter(T activityContext, LayoutInflater inflater,
             AlphabeticalAppsList<T> apps, SearchAdapterProvider<?> adapterProvider) {
         mActivityContext = activityContext;
         mApps = apps;
@@ -246,11 +278,24 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
                         R.layout.private_space_header, parent, false));
             case VIEW_TYPE_BOTTOM_VIEW_TO_SCROLL_TO:
                 return new ViewHolder(new View(mActivityContext));
+            case VIEW_TYPE_FOLDER: {
+                View v = mLayoutInflater.inflate(R.layout.drawer_folder_item, parent, false);
+                // Folder cards take a regular all-apps cell so they fit the same column rhythm.
+                v.getLayoutParams().height =
+                        mActivityContext.getDeviceProfile().allAppsCellHeightPx;
+                return new ViewHolder(v);
+            }
+            case VIEW_TYPE_SUGGESTIONS: {
+                // Migration02 / Phase 7.3 — top-of-drawer most-used apps row.
+                View v = mLayoutInflater.inflate(
+                        R.layout.all_apps_suggestions_header, parent, false);
+                return new ViewHolder(v);
+            }
             default:
                 if (mAdapterProvider.isViewSupported(viewType)) {
                     return mAdapterProvider.onCreateViewHolder(mLayoutInflater, parent, viewType);
                 }
-                throw new RuntimeException("Unexpected view type" + viewType);
+                throw new IllegalStateException("Unexpected view type" + viewType);
         }
     }
 
@@ -264,6 +309,13 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
                 icon.reset();
                 icon.applyFromApplicationInfo(adapterItem.itemInfo);
                 icon.setOnFocusChangeListener(mIconFocusListener);
+                // Apply list view layout if enabled
+                try {
+                    boolean listMode = com.android.launcher3.dagger.LauncherComponentProvider
+                            .get(mActivityContext).getLauncherPrefs()
+                            .get(com.android.launcher3.LauncherPrefs.DRAWER_LIST_VIEW);
+                    icon.setLayoutHorizontal(listMode);
+                } catch (Exception e) { /* pref not available */ }
                 PrivateProfileManager privateProfileManager = mApps.getPrivateProfileManager();
                 if (privateProfileManager != null) {
                     // Set the alpha of the private space icon to 0 upon expanding the header so the
@@ -323,11 +375,26 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
                         == STATE_DISABLED ? null : new SectionDecorationInfo(mActivityContext,
                         ROUND_NOTHING, true /* decorateTogether */);
                 break;
-            case VIEW_TYPE_BOTTOM_VIEW_TO_SCROLL_TO:
-            case VIEW_TYPE_ALL_APPS_DIVIDER:
-            case VIEW_TYPE_WORK_DISABLED_CARD:
+            case VIEW_TYPE_BOTTOM_VIEW_TO_SCROLL_TO, VIEW_TYPE_ALL_APPS_DIVIDER, VIEW_TYPE_WORK_DISABLED_CARD:
                 // nothing to do
                 break;
+            case VIEW_TYPE_FOLDER: {
+                AdapterItem fi = mApps.getAdapterItems().get(position);
+                if (holder.itemView instanceof DrawerFolderItemView fv && fi.folderInfo != null) {
+                    fv.applyFromFolderInfo(fi.folderInfo, mActivityContext);
+                }
+                break;
+            }
+            case VIEW_TYPE_SUGGESTIONS: {
+                AdapterItem si = mApps.getAdapterItems().get(position);
+                if (holder.itemView instanceof
+                        foundation.e.bliss.allapps.SuggestionsHeaderView sv
+                        && si.suggestions != null) {
+                    sv.bindSuggestions(si.suggestions, mOnIconClickListener,
+                            mOnIconLongClickListener);
+                }
+                break;
+            }
             case VIEW_TYPE_WORK_EDU_CARD:
                 ((WorkEduCard) holder.itemView).setPosition(position);
                 break;

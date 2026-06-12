@@ -79,8 +79,8 @@ public class KeyboardInsetAnimationCallback extends WindowInsetsAnimation.Callba
         // Reset the translation in case the view is drawn before onProgress gets called.
         mView.setTranslationY(mInitialTranslation);
         mKeyboardTranslationState = KeyboardTranslationState.MANUAL_ONGOING;
-        if (mView instanceof KeyboardInsetListener) {
-            ((KeyboardInsetListener) mView).onTranslationStart();
+        if (mView instanceof KeyboardInsetListener listener) {
+            listener.onTranslationStart();
         }
         return super.onStart(animation, bounds);
     }
@@ -107,8 +107,8 @@ public class KeyboardInsetAnimationCallback extends WindowInsetsAnimation.Callba
             mView.setTranslationY(translationY);
         }
 
-        if (mView instanceof KeyboardInsetListener) {
-            ((KeyboardInsetListener) mView).onKeyboardAlphaChanged(animation.getAlpha());
+        if (mView instanceof KeyboardInsetListener listener) {
+            listener.onKeyboardAlphaChanged(animation.getAlpha());
         }
 
         return windowInsets;
@@ -116,8 +116,8 @@ public class KeyboardInsetAnimationCallback extends WindowInsetsAnimation.Callba
 
     @Override
     public void onEnd(WindowInsetsAnimation animation) {
-        if (mView instanceof KeyboardInsetListener) {
-            ((KeyboardInsetListener) mView).onTranslationEnd();
+        if (mView instanceof KeyboardInsetListener listener) {
+            listener.onTranslationEnd();
         }
         mKeyboardTranslationState = KeyboardTranslationState.SYSTEM;
     }

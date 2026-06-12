@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/utils/BlissUtils.kt
+ * Module:  bliss root app source-set
+ * Role:    Utility functions for uninstall targets, component disabling, and main thread execution.
+ */
 package foundation.e.bliss.utils
 
 import android.content.ComponentName

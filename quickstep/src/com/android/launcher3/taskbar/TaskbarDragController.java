@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.taskbar;
 
 import static com.android.app.animation.Interpolators.FAST_OUT_SLOW_IN;
@@ -80,6 +88,7 @@ import com.android.launcher3.shortcuts.ShortcutDragPreviewProvider;
 import com.android.launcher3.taskbar.bubbles.BubbleBarViewController;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.ItemInfoMatcher;
 import com.android.launcher3.views.BubbleTextHolder;
@@ -359,14 +368,14 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
         // Pre-drag has ended, start the global system drag.
         if (mDisallowGlobalDrag
                 || mControllers.taskbarDesktopModeController
-                    .isInDesktopModeAndNotInOverview(mActivity.getDisplayId())) {
+                    .isInDesktopModeAndNotInOverview(DisplayIdCompat.getDisplayId(mActivity))) {
             AbstractFloatingView.closeAllOpenViewsExcept(mActivity, TYPE_TASKBAR_ALL_APPS);
             return;
         }
         startSystemDrag((BubbleTextView) mDragObject.originalView);
     }
 
-    private void startSystemDrag(BubbleTextView btv) {
+    private void startSystemDrag(BubbleTextView btv) { // NOSONAR pristine-AOSP-do-not-refactor
         View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(btv) {
 
             @Override
@@ -499,23 +508,23 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
     private void onSystemDragStarted(BubbleTextView btv) {
         mIsSystemDragInProgress = true;
         mActivity.getDragLayer().setOnDragListener((view, dragEvent) -> {
-            switch (dragEvent.getAction()) {
-                case DragEvent.ACTION_DRAG_STARTED:
-                    // Return true to tell system we are interested in events, so we get DRAG_ENDED.
-                    return true;
-                case DragEvent.ACTION_DRAG_ENDED:
-                    mIsSystemDragInProgress = false;
-                    if (dragEvent.getResult()) {
-                        maybeOnDragEnd();
-                    } else {
-                        // This will take care of calling maybeOnDragEnd() after the animation
-                        animateGlobalDragViewToOriginalPosition(btv, dragEvent);
-                        //TODO(b/399678274): hide drop target in shell
-                        notifyBubbleBarItemDragCanceled();
-                    }
-                    mActivity.getDragLayer().setOnDragListener(null);
+            int action = dragEvent.getAction();
+            if (action == DragEvent.ACTION_DRAG_STARTED) {
+                // Return true to tell system we are interested in events, so we get DRAG_ENDED.
+                return true;
+            } else if (action == DragEvent.ACTION_DRAG_ENDED) {
+                mIsSystemDragInProgress = false;
+                if (dragEvent.getResult()) {
+                    maybeOnDragEnd();
+                } else {
+                    // This will take care of calling maybeOnDragEnd() after the animation
+                    animateGlobalDragViewToOriginalPosition(btv, dragEvent);
+                    //TODO(b/399678274): hide drop target in shell
+                    notifyBubbleBarItemDragCanceled();
+                }
+                mActivity.getDragLayer().setOnDragListener(null);
 
-                    return true;
+                return true;
             }
             return false;
         });

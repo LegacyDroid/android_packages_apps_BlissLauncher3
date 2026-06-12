@@ -37,6 +37,9 @@ import com.android.launcher3.icons.GraphicsUtils;
  */
 public class BitmapCreationCheck {
 
+    private BitmapCreationCheck() {
+    }
+
     private static final String TAG = "BitmapCreationCheck";
 
     public static final boolean ENABLED = false;
@@ -104,12 +107,12 @@ public class BitmapCreationCheck {
 
             @Override
             public void run() {
-                mCurrentThreadDrawing.set(false);
+                mCurrentThreadDrawing.remove();
             }
         }
 
         private void onBitmapCreated() {
-            if (mCurrentThreadDrawing.get()) {
+            if (Boolean.TRUE.equals(mCurrentThreadDrawing.get())) {
                 Log.e(TAG, "Bitmap created during draw pass", new Exception());
             }
         }

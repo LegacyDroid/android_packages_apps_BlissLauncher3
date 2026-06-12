@@ -1,3 +1,4 @@
+// Migration04 §09: settings.gradle — see Plans/Migration04/09-build-and-rollout.md §2.2
 pluginManagement {
     includeBuild("build-logic")
 
@@ -28,5 +29,56 @@ project(':msdllib').projectDir = new File("$rootDir/libs_systemui", 'msdllib')
 
 include ':contextualeducationlib'
 project(':contextualeducationlib').projectDir = new File("$rootDir/libs_systemui", 'contextualeducationlib')
+
+// Migration04 §09 — leaf-only Bliss modules (Plans/Migration04/09-build-and-rollout.md §2.1)
+include ':bliss-compat'
+project(':bliss-compat').projectDir = new File(rootDir, 'bliss-compat')
+
+include ':bliss-prefs'
+project(':bliss-prefs').projectDir = new File(rootDir, 'bliss-prefs')
+
+// Audit02 — small cross-module contracts used to keep extracted Bliss modules
+// independent from root app runtime classes.
+include ':bliss-core-contracts'
+project(':bliss-core-contracts').projectDir = new File(rootDir, 'bliss-core-contracts')
+
+// Audit02 — Room-backed persistence for drawer folders. Runtime adaptation
+// from stored rows to launcher model classes remains in the app source-set.
+include ':bliss-folders-data'
+project(':bliss-folders-data').projectDir = new File(rootDir, 'bliss-folders-data')
+
+// Audit02 — raw backup archive/XML/proto parsing. App source keeps restore
+// orchestration and launcher model writes.
+include ':bliss-backup-parser'
+project(':bliss-backup-parser').projectDir = new File(rootDir, 'bliss-backup-parser')
+
+// Audit02 — built-in web suggestion providers. App source keeps search UI,
+// provider preference selection, and custom URL preference reads.
+include ':bliss-search-providers'
+project(':bliss-search-providers').projectDir = new File(rootDir, 'bliss-search-providers')
+
+// Audit03 — pure folder-preview and idle-app policy contracts.
+include ':bliss-policy-core'
+project(':bliss-policy-core').projectDir = new File(rootDir, 'bliss-policy-core')
+
+// Audit03 — tested animation guard/fallback helpers used by root animation code.
+include ':bliss-animation-safety'
+project(':bliss-animation-safety').projectDir = new File(rootDir, 'bliss-animation-safety')
+
+// Audit03 — widget persistence and default widget catalog.
+include ':bliss-widgets-data'
+project(':bliss-widgets-data').projectDir = new File(rootDir, 'bliss-widgets-data')
+
+/*
+ * Bliss touchpoint(s) (Migration05):
+ *   - include ':lint-rules' — pure-JVM module hosting custom Android Lint
+ *     detectors (ReflectionGateOnlyDetector, PrefXmlKeyRegistryDetector).
+ *     Wired into the root project via `lintChecks project(':lint-rules')`.
+ *     — Plan ref: Plans/Migration05/03-custom-lint-rules.md §6
+ *
+ * The body of this file otherwise tracks the Migration04 §09 module list.
+ */
+include ':lint-rules'
+project(':lint-rules').projectDir = new File(rootDir, 'lint-rules')
 
 rootProject.name = "BlissLauncher3"

@@ -19,16 +19,17 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <style name="HomeSettings.Theme" parent="@android:style/Theme.DeviceDefault.Settings">
+    <style name="HomeSettings.Theme" parent="@style/Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:listPreferredItemPaddingEnd">16dp</item>
         <item name="android:listPreferredItemPaddingStart">24dp</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/materialColorSurface</item>
+        <item name="android:colorBackground">@color/materialColorSurface</item>
+        <item name="android:textColorPrimary">@color/materialColorOnSurface</item>
+        <item name="android:textColorSecondary">@color/materialColorOnSurfaceVariant</item>
         <item name="android:textAppearanceListItem">@style/HomeSettings.PreferenceTitle</item>
-        <item name="android:windowActionBar">false</item>
-        <item name="android:windowNoTitle">true</item>
         <item name="preferenceTheme">@style/HomeSettings.PreferenceTheme</item>
-        <item name="android:fontFamily" android:featureFlag="com.android.launcher3.gsf_res">google-sans-flex</item>
     </style>
 
     <style name="HomeSettings.PreferenceTheme" parent="@style/PreferenceThemeOverlay">
@@ -45,6 +46,7 @@
         <item name="allowDividerAbove">@bool/home_settings_allow_divider</item>
         <item name="allowDividerBelow">@bool/home_settings_allow_divider</item>
         <item name="iconSpaceReserved">@bool/home_settings_icon_space_reserved</item>
+        <item name="android:layout">@layout/preference_category_material3</item>
     </style>
 
     <style name="HomeSettings.PreferenceStyle" parent="@style/Preference.Material">
@@ -64,17 +66,20 @@
     <style name="HomeSettings.PreferenceTitle"
             parent="@android:style/TextAppearance.Material.Subhead">
         <item name="android:fontFamily">google-sans</item>
-        <item name="android:textSize">20sp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/materialColorOnSurface</item>
     </style>
 
     <style name="HomeSettings.CategoryTitle" parent="@android:style/TextAppearance.Material.Body2">
         <item name="android:fontFamily">google-sans-text-medium</item>
+        <item name="android:textColor">@color/materialColorPrimary</item>
+        <item name="android:textSize">14sp</item>
     </style>
 
-    <style name="HomeSettings.CollapsingToolbar" parent="@style/Theme.MaterialComponents.DayNight">
-        <item name="colorAccent">@color/e_accent</item>
-        <item name="colorPrimary">@color/e_background</item>
-        <item name="elevationOverlayColor">@color/e_background</item>
+    <style name="HomeSettings.CollapsingToolbar" parent="@style/Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorAccent">@color/materialColorPrimary</item>
+        <item name="colorPrimary">@color/materialColorSurface</item>
+        <item name="elevationOverlayColor">@color/materialColorSurface</item>
         <item name="elevationOverlayEnabled">false</item>
     </style>
 

@@ -41,8 +41,6 @@ import com.android.systemui.shared.system.InputMonitorCompat;
  */
 public class AccessibilityInputConsumer extends DelegateInputConsumer {
 
-    private static final String TAG = "A11yInputConsumer";
-
     private final Context mContext;
     private final VelocityTracker mVelocityTracker;
     private final MotionPauseDetector mMotionPauseDetector;
@@ -80,7 +78,7 @@ public class AccessibilityInputConsumer extends DelegateInputConsumer {
     }
 
     @Override
-    public void onMotionEvent(MotionEvent ev) {
+    public void onMotionEvent(MotionEvent ev) { // NOSONAR pristine-AOSP-do-not-refactor
         if (mState != STATE_DELEGATE_ACTIVE) {
             mVelocityTracker.addMovement(ev);
         }
@@ -144,10 +142,10 @@ public class AccessibilityInputConsumer extends DelegateInputConsumer {
                         }
                     }
                 }
-                // Follow through
+                resetGestureTracking();
+                break;
             case ACTION_CANCEL: {
-                mVelocityTracker.recycle();
-                mMotionPauseDetector.clear();
+                resetGestureTracking();
                 break;
             }
         }
@@ -160,5 +158,10 @@ public class AccessibilityInputConsumer extends DelegateInputConsumer {
     @Override
     protected String getDelegatorName() {
         return "AccessibilityInputConsumer";
+    }
+
+    private void resetGestureTracking() {
+        mVelocityTracker.recycle();
+        mMotionPauseDetector.clear();
     }
 }

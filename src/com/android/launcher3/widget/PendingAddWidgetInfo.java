@@ -36,8 +36,8 @@ import com.android.launcher3.widget.util.WidgetSizes;
  * @see {@link PendingAddItemInfo}
  */
 public class PendingAddWidgetInfo extends PendingAddItemInfo {
-    public int previewImage;
-    public int icon;
+    private int previewImage;
+    private int icon;
     public LauncherAppWidgetProviderInfo info;
     public AppWidgetHostView boundWidget;
     public Bundle bindOptions = null;
@@ -84,8 +84,8 @@ public class PendingAddWidgetInfo extends PendingAddItemInfo {
     @Override
     public LauncherAtom.ItemInfo buildProto(
             @Nullable CollectionInfo collectionInfo, Context context) {
-        LauncherAtom.ItemInfo info = super.buildProto(collectionInfo, context);
-        return info.toBuilder()
+        LauncherAtom.ItemInfo proto = super.buildProto(collectionInfo, context);
+        return proto.toBuilder()
                 .addItemAttributes(LauncherAppWidgetInfo.getAttribute(sourceContainer))
                 .build();
     }

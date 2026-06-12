@@ -1,0 +1,35 @@
+// Audit02: :bliss-core-contracts
+//
+// Role:
+//   Tiny shared contract module for extracted Bliss modules that need logging,
+//   debug-state, or preference access without importing root app runtime
+//   classes.
+//
+// Public API:
+//   foundation.e.bliss.core.logging.BlissLogger
+//   foundation.e.bliss.core.logging.BlissLoggerFactory
+//   foundation.e.bliss.core.runtime.DebugFlags
+//   foundation.e.bliss.core.prefs.StringPreferenceReader
+//   foundation.e.bliss.core.prefs.StringPreferenceWriter
+//
+// Dependency rules:
+//   - May depend on Kotlin/JDK types only.
+//   - Must not depend on com.android.launcher3.*, Android UI classes, Room,
+//     OkHttp, or feature modules.
+//
+// Migration note:
+//   New Audit02 module. Keep this intentionally small; add a contract only
+//   when a concrete module extraction needs it.
+plugins {
+    id 'foundation.e.bliss.android-library'
+}
+
+android {
+    namespace 'foundation.e.bliss.core.contracts'
+
+    sourceSets {
+        named("main") {
+            java.srcDirs("src/main/kotlin")
+        }
+    }
+}

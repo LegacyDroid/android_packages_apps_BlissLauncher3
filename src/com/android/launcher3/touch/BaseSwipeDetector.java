@@ -192,8 +192,7 @@ public abstract class BaseSwipeDetector {
                 }
                 mLastPos.set(ev.getX(pointerIndex), ev.getY(pointerIndex));
                 break;
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP:
                 // These are synthetic events and there is no need to update internal values.
                 if (mState == ScrollState.DRAGGING) {
                     setState(ScrollState.SETTLING);

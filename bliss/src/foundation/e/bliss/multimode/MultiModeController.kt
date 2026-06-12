@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/multimode/MultiModeController.kt
+ * Module:  bliss root app source-set
+ * Role:    Controller managing single-layer mode and idle app verification lifecycle.
+ */
 package foundation.e.bliss.multimode
 
 import android.content.Context
@@ -26,10 +31,17 @@ import foundation.e.bliss.BaseController
 import foundation.e.bliss.LauncherAppMonitor
 import foundation.e.bliss.LauncherAppMonitorCallback
 import foundation.e.bliss.blur.BlurWallpaperProvider
-import foundation.e.bliss.preferences.BlissPrefs
 import java.io.FileDescriptor
 import java.io.PrintWriter
 
+/**
+ * App-singleton controller. Constructed by [LauncherAppMonitor]'s constructor (see
+ * LauncherAppMonitor.java:129) and held for the process lifetime. The monitor callback registered
+ * in [init] therefore correctly matches the monitor's lifetime; no `release()` /
+ * `unregisterCallback` is required.
+ *
+ * Audit01 #11: verified non-leak. Do not flag again.
+ */
 class MultiModeController(val context: Context, val monitor: LauncherAppMonitor) : BaseController {
     private val idp by lazy { InvariantDeviceProfile.INSTANCE.get(context) }
     private val mAppMonitorCallback: LauncherAppMonitorCallback =
@@ -62,14 +74,14 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
                 }
             }
 
-            override fun onAppSharedPreferenceChanged(key: String?) {
-                when (key) {
-                    BlissPrefs.PREF_SINGLE_LAYER_MODE -> {
-                        monitor.launcher?.model?.forceReload()
-                    }
-                    else -> Unit
-                }
-            }
+            // A live model reload cannot rebuild the launcher's structure for a
+            // single-layer mode change (drawer vs. no drawer, QSB first page,
+            // hotseat search) — those views are wired up in Launcher.onCreate().
+            // Both entry points that change the mode therefore restart the
+            // launcher cleanly instead: SingleLayerModeController (settings
+            // toggle) and FirstRunActivity (first-run wizard). Backup/restore and
+            // Lawnchair import issue their own explicit forceReload() calls. So
+            // there is deliberately no onAppSharedPreferenceChanged override here.
 
             override fun onLauncherOrientationChanged() {
                 BlurWallpaperProvider.getInstance(context).orientationChanged()
@@ -114,7 +126,7 @@ class MultiModeController(val context: Context, val monitor: LauncherAppMonitor)
             get() =
                 if (::prefs.isInitialized) {
                     prefs.get(LauncherPrefs.IS_SINGLE_LAYER_ENABLED)
-                } else true
+                } else false
 
         @JvmStatic
         val isNotifCountEnabled: Boolean

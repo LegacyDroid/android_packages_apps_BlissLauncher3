@@ -208,8 +208,8 @@ public class StickyHeaderLayout extends LinearLayout implements
         int childCount = mCurrentRecyclerView.getChildCount();
         for (int i = 0; i < childCount; i++) {
             View view = mCurrentRecyclerView.getChildAt(i);
-            if (view instanceof EmptySpaceView) {
-                mCurrentEmptySpaceView = (EmptySpaceView) view;
+            if (view instanceof EmptySpaceView emptySpaceView) {
+                mCurrentEmptySpaceView = emptySpaceView;
                 mCurrentEmptySpaceView.setFixedHeight(getHeaderHeight());
                 mCurrentEmptySpaceView.setOnYChangeCallback(this::updateHeaderScroll);
                 return;

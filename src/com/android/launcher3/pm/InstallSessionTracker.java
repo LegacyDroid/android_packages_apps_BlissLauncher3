@@ -45,6 +45,8 @@ public class InstallSessionTracker extends PackageInstaller.SessionCallback impl
         SafeCloseable {
 
     public static final String TAG = "InstallSessionTracker";
+    private static final String LOG_FIELD_APP_PACKAGE_NAME = " appPackageName=";
+    private static final String LOG_FIELD_SESSION_ID = ", sessionId=";
 
     // Lazily initialized
     private SparseArray<PackageUserKey> mActiveSessions = null;
@@ -81,8 +83,8 @@ public class InstallSessionTracker extends PackageInstaller.SessionCallback impl
         SessionInfo sessionInfo = pushSessionDisplayToLauncher(sessionId, helper, callback);
         if (sessionInfo != null) {
             Log.d(TAG, "onCreated: Install session created for"
-                    + " appPackageName=" + sessionInfo.getAppPackageName()
-                    + ", sessionId=" + sessionInfo.getSessionId()
+                    + LOG_FIELD_APP_PACKAGE_NAME + sessionInfo.getAppPackageName()
+                    + LOG_FIELD_SESSION_ID + sessionInfo.getSessionId()
                     + ", appIcon=" + sessionInfo.getAppIcon()
                     + ", appLabel=" + sessionInfo.getAppLabel());
             callback.onInstallSessionCreated(PackageInstallInfo.fromInstallingState(sessionInfo));
@@ -113,8 +115,8 @@ public class InstallSessionTracker extends PackageInstaller.SessionCallback impl
 
         if (key != null && key.mPackageName != null) {
             Log.d(TAG, "onFinished: active install session finished for"
-                    + " appPackageName=" + key.mPackageName
-                    + ", sessionId=" + sessionId
+                    + LOG_FIELD_APP_PACKAGE_NAME + key.mPackageName
+                    + LOG_FIELD_SESSION_ID + sessionId
                     + ", success=" + success);
             String packageName = key.mPackageName;
             PackageInstallInfo info = PackageInstallInfo.fromState(
@@ -144,7 +146,9 @@ public class InstallSessionTracker extends PackageInstaller.SessionCallback impl
     }
 
     @Override
-    public void onActiveChanged(final int sessionId, final boolean active) { }
+    public void onActiveChanged(final int sessionId, final boolean active) {
+        // intentionally empty — active-state transitions are not tracked by the launcher
+    }
 
     @Override
     public void onBadgingChanged(final int sessionId) {
@@ -156,8 +160,8 @@ public class InstallSessionTracker extends PackageInstaller.SessionCallback impl
         SessionInfo sessionInfo = pushSessionDisplayToLauncher(sessionId, helper, callback);
         if (sessionInfo != null) {
             Log.d(TAG, "onBadgingChanged: badging info changed for"
-                    + " appPackageName=" + sessionInfo.getAppPackageName()
-                    + ", sessionId=" + sessionInfo.getSessionId()
+                    + LOG_FIELD_APP_PACKAGE_NAME + sessionInfo.getAppPackageName()
+                    + LOG_FIELD_SESSION_ID + sessionInfo.getSessionId()
                     + ", appIcon=" + sessionInfo.getAppIcon()
                     + ", appLabel=" + sessionInfo.getAppLabel());
             helper.tryQueuePromiseAppIcon(sessionInfo);

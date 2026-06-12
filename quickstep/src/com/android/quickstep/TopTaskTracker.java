@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep;
 
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
@@ -26,12 +35,11 @@ import static android.view.Display.INVALID_DISPLAY;
 import static com.android.launcher3.Flags.enableOverviewOnConnectedDisplays;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_TYPE_A;
-import static com.android.quickstep.fallback.window.RecentsWindowFlags.enableOverviewOnConnectedDisplays;
 import static com.android.wm.shell.Flags.enableShellTopTaskTracking;
 import static com.android.wm.shell.Flags.enableFlexibleSplit;
 import static com.android.wm.shell.shared.GroupedTaskInfo.TYPE_SPLIT;
 import static com.android.launcher3.statehandlers.DesktopVisibilityController.INACTIVE_DESK_ID;
-import static com.android.wm.shell.shared.desktopmode.DesktopModeStatus.canEnterDesktopMode;
+import static foundation.e.bliss.compat.desktop.DesktopModeStatusCompat.canEnterDesktopMode;
 
 import android.app.ActivityManager.RunningTaskInfo;
 import android.app.TaskInfo;
@@ -54,11 +62,11 @@ import com.android.launcher3.util.SplitConfigurationOptions.StagePosition;
 import com.android.launcher3.util.SplitConfigurationOptions.StageType;
 import com.android.launcher3.util.TraceHelper;
 import com.android.quickstep.dagger.QuickstepBaseAppComponent;
+import foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat;
 import com.android.quickstep.util.DesksUtils;
 import com.android.quickstep.util.ExternalDisplaysKt;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.TaskStackChangeListener;
-import com.android.systemui.shared.system.TaskStackChangeListeners;
 import com.android.wm.shell.shared.GroupedTaskInfo;
 import com.android.wm.shell.splitscreen.ISplitScreenListener;
 
@@ -79,7 +87,7 @@ import javax.inject.Inject;
 @LauncherAppSingleton
 public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskStackChangeListener {
     private static final String TAG = "TopTaskTracker";
-    public static DaggerSingletonObject<TopTaskTracker> INSTANCE =
+    public static final DaggerSingletonObject<TopTaskTracker> INSTANCE =
             new DaggerSingletonObject<>(QuickstepBaseAppComponent::getTopTaskTracker);
 
     private static final int HISTORY_SIZE = 5;
@@ -105,7 +113,11 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
             mMainStagePosition.stageType = SplitConfigurationOptions.STAGE_TYPE_MAIN;
             mSideStagePosition.stageType = SplitConfigurationOptions.STAGE_TYPE_SIDE;
 
-            TaskStackChangeListeners.getInstance().registerTaskStackListener(this);
+            try {
+                ActivityTaskManagerCompat.registerTaskStackListener(this);
+            } catch (SecurityException e) {
+                // MANAGE_ACTIVITY_TASKS not available for non-system apps
+            }
             systemUiProxy.registerSplitScreenListener(this);
         }
 
@@ -114,7 +126,11 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
                 return;
             }
 
-            TaskStackChangeListeners.getInstance().unregisterTaskStackListener(this);
+            try {
+                ActivityTaskManagerCompat.unregisterTaskStackListener(this);
+            } catch (SecurityException e) {
+                // Already not registered
+            }
             systemUiProxy.unregisterSplitScreenListener(this);
         });
 
@@ -146,42 +162,54 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
         // Workaround for b/372067617, if the home task is being brought to front, then it will
         // occlude all other tasks, so mark them as not-visible
         if (taskInfo.getActivityType() == ACTIVITY_TYPE_HOME) {
-            // We've moved the task to the front of the list above, so only iterate the tasks after
-            for (int i = 1; i < mOrderedTaskList.size(); i++) {
-                final TaskInfo info = mOrderedTaskList.get(i);
-                if (info.displayId != taskInfo.displayId) {
-                    // Only fall through to reset visibility for tasks on the same display as the
-                    // home task being brought forward
-                    continue;
-                }
-                info.isVisible = false;
-                info.isVisibleRequested = false;
-            }
+            markOtherTasksOnDisplayNotVisible(taskInfo.displayId);
         }
 
         // Keep the home display's top running task in the first while adding a non-home
         // display's task to the list, to avoid showing non-home display's task upon going to
         // Recents animation.
         if (taskInfo.displayId != DEFAULT_DISPLAY) {
-            final TaskInfo topTaskOnHomeDisplay = mOrderedTaskList.stream()
-                    .filter(rto -> rto.displayId == DEFAULT_DISPLAY).findFirst().orElse(null);
-            if (topTaskOnHomeDisplay != null) {
-                mOrderedTaskList.removeIf(rto -> rto.taskId == topTaskOnHomeDisplay.taskId);
-                mOrderedTaskList.addFirst(topTaskOnHomeDisplay);
-            }
+            promoteTopHomeDisplayTaskToFront();
         }
 
         if (mOrderedTaskList.size() >= HISTORY_SIZE) {
             // If we grow in size, remove the last taskInfo which is not part of the split task.
-            Iterator<TaskInfo> itr = mOrderedTaskList.descendingIterator();
-            while (itr.hasNext()) {
-                TaskInfo info = itr.next();
-                if (info.taskId != taskInfo.taskId
-                        && info.taskId != mMainStagePosition.taskId
-                        && info.taskId != mSideStagePosition.taskId) {
-                    itr.remove();
-                    return;
-                }
+            trimOldestNonStageTask(taskInfo);
+        }
+    }
+
+    private void markOtherTasksOnDisplayNotVisible(int displayId) {
+        // We've moved the task to the front of the list above, so only iterate the tasks after
+        for (int i = 1; i < mOrderedTaskList.size(); i++) {
+            final TaskInfo info = mOrderedTaskList.get(i);
+            if (info.displayId != displayId) {
+                // Only fall through to reset visibility for tasks on the same display as the
+                // home task being brought forward
+                continue;
+            }
+            info.isVisible = false;
+            info.isVisibleRequested = false;
+        }
+    }
+
+    private void promoteTopHomeDisplayTaskToFront() {
+        final TaskInfo topTaskOnHomeDisplay = mOrderedTaskList.stream()
+                .filter(rto -> rto.displayId == DEFAULT_DISPLAY).findFirst().orElse(null);
+        if (topTaskOnHomeDisplay != null) {
+            mOrderedTaskList.removeIf(rto -> rto.taskId == topTaskOnHomeDisplay.taskId);
+            mOrderedTaskList.addFirst(topTaskOnHomeDisplay);
+        }
+    }
+
+    private void trimOldestNonStageTask(TaskInfo taskInfo) {
+        Iterator<TaskInfo> itr = mOrderedTaskList.descendingIterator();
+        while (itr.hasNext()) {
+            TaskInfo info = itr.next();
+            if (info.taskId != taskInfo.taskId
+                    && info.taskId != mMainStagePosition.taskId
+                    && info.taskId != mSideStagePosition.taskId) {
+                itr.remove();
+                return;
             }
         }
     }

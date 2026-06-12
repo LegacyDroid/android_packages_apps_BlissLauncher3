@@ -27,10 +27,10 @@ public class PreviewItemDrawingParams {
     float transX;
     float transY;
     float scale;
-    public FolderPreviewItemAnim anim;
-    public boolean hidden;
-    public Drawable drawable;
-    public ItemInfo item;
+    FolderPreviewItemAnim anim;
+    boolean hidden;
+    Drawable drawable;
+    ItemInfo item;
 
     public PreviewItemDrawingParams(float transX, float transY, float scale) {
         this.transX = transX;

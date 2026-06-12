@@ -21,6 +21,10 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 
 public class ResourceUtils {
+    private ResourceUtils() {}
+
+    private static final String ANDROID_PACKAGE_NAME = "android";
+
     private static final float EPSILON = 0.0001f;
     public static final int DEFAULT_NAVBAR_VALUE = 48;
     public static final int INVALID_RESOURCE_HANDLE = -1;
@@ -46,7 +50,7 @@ public class ResourceUtils {
 
     public static int getDimenByName(String resName, Resources res, int defaultValue) {
         final int frameSize;
-        final int frameSizeResID = res.getIdentifier(resName, "dimen", "android");
+        final int frameSizeResID = res.getIdentifier(resName, "dimen", ANDROID_PACKAGE_NAME);
         if (frameSizeResID != 0) {
             frameSize = res.getDimensionPixelSize(frameSizeResID);
         } else {
@@ -57,7 +61,7 @@ public class ResourceUtils {
 
     public static boolean getBoolByName(String resName, Resources res, boolean defaultValue) {
         final boolean val;
-        final int resId = res.getIdentifier(resName, "bool", "android");
+        final int resId = res.getIdentifier(resName, "bool", ANDROID_PACKAGE_NAME);
         if (resId != 0) {
             val = res.getBoolean(resId);
         } else {
@@ -67,7 +71,7 @@ public class ResourceUtils {
     }
 
     public static int getIntegerByName(String resName, Resources res, int defaultValue) {
-        int resId = res.getIdentifier(resName, "integer", "android");
+        int resId = res.getIdentifier(resName, "integer", ANDROID_PACKAGE_NAME);
         return resId != 0 ? res.getInteger(resId) : defaultValue;
     }
 

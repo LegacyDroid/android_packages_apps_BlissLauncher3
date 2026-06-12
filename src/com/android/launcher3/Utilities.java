@@ -114,7 +114,7 @@ public final class Utilities {
 
     private static final String TAG = "Launcher.Utilities";
 
-    private static final String TRIM_PATTERN = "(^\\h+|\\h+$)";
+    private static final String TRIM_PATTERN = "(?:^\\h+)|(?:\\h+$)";
 
     private static final Matrix sMatrix = new Matrix();
     private static final Matrix sInverseMatrix = new Matrix();
@@ -142,7 +142,7 @@ public final class Utilities {
      * add extra logging and not for changing the app behavior.
      * @deprecated Use {@link BuildConfig#IS_DEBUG_DEVICE} directly
      */
-    @Deprecated
+    @Deprecated(since = "1.0", forRemoval = false)
     public static final boolean IS_DEBUG_DEVICE = BuildConfig.IS_DEBUG_DEVICE;
 
     public static final int TRANSLATE_UP = 0;
@@ -249,7 +249,7 @@ public final class Utilities {
      * @param ignoreTransform If true, view transform is ignored
      * @param outRect The out rect where we return the bounds of {@param view} in drag layer coords.
      */
-    public static void getBoundsForViewInDragLayer(BaseDragLayer dragLayer, View view,
+    public static void getBoundsForViewInDragLayer(BaseDragLayer<?> dragLayer, View view,
             Rect viewBounds, boolean ignoreTransform, float[] recycle, RectF outRect) {
         float[] points = recycle == null ? new float[4] : recycle;
         points[0] = viewBounds.left;
@@ -524,7 +524,7 @@ public final class Utilities {
 
     public static String getSystemProperty(String property, String defaultValue) {
         try {
-            Class clazz = Class.forName("android.os.SystemProperties");
+            Class<?> clazz = Class.forName("android.os.SystemProperties");
             Method getter = clazz.getDeclaredMethod("get", String.class);
             String value = (String) getter.invoke(null, property);
             if (!TextUtils.isEmpty(value)) {
@@ -542,6 +542,9 @@ public final class Utilities {
      * return upperBound; else return value unchanged.
      */
     public static int boundToRange(int value, int lowerBound, int upperBound) {
+        // NOTE: Math.clamp() throws if lowerBound > upperBound, but callers (e.g. the
+        // fast-scroller during layout) legitimately pass inverted ranges. Use the tolerant
+        // max/min form so an inverted range clamps to lowerBound instead of crashing.
         return Math.max(lowerBound, Math.min(value, upperBound));
     }
 
@@ -819,6 +822,9 @@ public final class Utilities {
                 inOutBounds.right = parentHeight - inOutBounds.top;
                 inOutBounds.top = origLeft;
                 return;
+            default:
+                // rdelta is in [0, 3] by construction; nothing to do.
+                break;
         }
     }
 

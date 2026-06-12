@@ -50,7 +50,7 @@ class WeakCleanupSet(owner: LifecycleOwner) {
     }
 
     /** Callback when the owner is destroyed */
-    interface OnOwnerDestroyedCallback {
+    fun interface OnOwnerDestroyedCallback {
         fun onOwnerDestroyed()
     }
 }

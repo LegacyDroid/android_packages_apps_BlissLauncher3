@@ -34,7 +34,7 @@ public abstract class PopupLiveUpdateHandler<T extends Context & ActivityContext
     protected final T mContext;
     protected final PopupContainerWithArrow<T> mPopupContainerWithArrow;
 
-    public PopupLiveUpdateHandler(
+    protected PopupLiveUpdateHandler(
             T context, PopupContainerWithArrow<T> popupContainerWithArrow) {
         mContext = context;
         mPopupContainerWithArrow = popupContainerWithArrow;

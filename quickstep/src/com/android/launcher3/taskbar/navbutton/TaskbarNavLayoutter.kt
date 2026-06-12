@@ -50,6 +50,35 @@ class TaskbarNavLayoutter(
     ) {
 
     override fun layoutButtons(context: TaskbarActivityContext, isA11yButtonPersistent: Boolean) {
+        val navMarginEnd = computeNavMarginEnd(context, isA11yButtonPersistent)
+
+        val navButtonParams =
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        navButtonParams.apply {
+            gravity = Gravity.END or Gravity.CENTER_VERTICAL
+            marginEnd = navMarginEnd
+        }
+        navButtonContainer.orientation = LinearLayout.HORIZONTAL
+        navButtonContainer.layoutParams = navButtonParams
+
+        addNavButtonsInOrder(context)
+        applyNavButtonSpacing()
+
+        endContextualContainer.removeAllViews()
+        startContextualContainer.removeAllViews()
+
+        if (!context.deviceProfile.isGestureMode) {
+            layoutContextualButtons()
+        }
+    }
+
+    private fun computeNavMarginEnd(
+        context: TaskbarActivityContext,
+        isA11yButtonPersistent: Boolean
+    ): Int {
         // Add spacing after the end of the last nav button
         var navMarginEnd =
             resources.getDimension(context.deviceProfile.inv.inlineNavButtonsEndSpacing).toInt()
@@ -67,33 +96,25 @@ class TaskbarNavLayoutter(
             // Additional spacing, eat up half of space between last icon and nav button
             navMarginEnd += resources.getDimensionPixelSize(R.dimen.taskbar_hotseat_nav_spacing) / 2
         }
+        return navMarginEnd
+    }
 
-        val navButtonParams =
-            FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-        navButtonParams.apply {
-            gravity = Gravity.END or Gravity.CENTER_VERTICAL
-            marginEnd = navMarginEnd
+    private fun addNavButtonsInOrder(context: TaskbarActivityContext) {
+        if (backButton == null || homeButton == null || recentsButton == null) return
+        navButtonContainer.removeAllViews()
+
+        if (SettingsCache.INSTANCE.get(context).getValue(NAV_BAR_INVERSE, 0)) {
+            navButtonContainer.addView(recentsButton)
+            navButtonContainer.addView(homeButton)
+            navButtonContainer.addView(backButton)
+        } else {
+            navButtonContainer.addView(backButton)
+            navButtonContainer.addView(homeButton)
+            navButtonContainer.addView(recentsButton)
         }
-        navButtonContainer.orientation = LinearLayout.HORIZONTAL
-        navButtonContainer.layoutParams = navButtonParams
+    }
 
-        if (backButton != null && homeButton != null && recentsButton != null) {
-            navButtonContainer.removeAllViews()
-
-            if (SettingsCache.INSTANCE.get(context).getValue(NAV_BAR_INVERSE, 0)) {
-                navButtonContainer.addView(recentsButton)
-                navButtonContainer.addView(homeButton)
-                navButtonContainer.addView(backButton)
-            } else {
-                navButtonContainer.addView(backButton)
-                navButtonContainer.addView(homeButton)
-                navButtonContainer.addView(recentsButton)
-            }
-        }
-
+    private fun applyNavButtonSpacing() {
         // Add the spaces in between the nav buttons
         val spaceInBetween = resources.getDimensionPixelSize(R.dimen.taskbar_button_space_inbetween)
         for (i in 0 until navButtonContainer.childCount) {
@@ -113,43 +134,40 @@ class TaskbarNavLayoutter(
                 }
             }
         }
+    }
 
-        endContextualContainer.removeAllViews()
-        startContextualContainer.removeAllViews()
+    private fun layoutContextualButtons() {
+        val contextualMargin =
+            resources.getDimensionPixelSize(R.dimen.taskbar_contextual_button_padding)
+        repositionContextualContainer(endContextualContainer, WRAP_CONTENT, 0, 0, Gravity.END)
+        repositionContextualContainer(
+            startContextualContainer,
+            WRAP_CONTENT,
+            contextualMargin,
+            contextualMargin,
+            Gravity.START
+        )
 
-        if (!context.deviceProfile.isGestureMode) {
-            val contextualMargin =
-                resources.getDimensionPixelSize(R.dimen.taskbar_contextual_button_padding)
-            repositionContextualContainer(endContextualContainer, WRAP_CONTENT, 0, 0, Gravity.END)
-            repositionContextualContainer(
-                startContextualContainer,
-                WRAP_CONTENT,
-                contextualMargin,
-                contextualMargin,
-                Gravity.START
-            )
-
-            if (imeSwitcher != null) {
-                val imeStartMargin =
-                    resources.getDimensionPixelSize(
-                        R.dimen.taskbar_ime_switcher_button_margin_start
-                    )
-                startContextualContainer.addView(imeSwitcher)
-                val imeSwitcherButtonParams =
-                    FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                imeSwitcherButtonParams.apply {
-                    marginStart = imeStartMargin
-                    gravity = Gravity.CENTER_VERTICAL
-                }
-                imeSwitcher.layoutParams = imeSwitcherButtonParams
+        if (imeSwitcher != null) {
+            val imeStartMargin =
+                resources.getDimensionPixelSize(
+                    R.dimen.taskbar_ime_switcher_button_margin_start
+                )
+            startContextualContainer.addView(imeSwitcher)
+            val imeSwitcherButtonParams =
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+            imeSwitcherButtonParams.apply {
+                marginStart = imeStartMargin
+                gravity = Gravity.CENTER_VERTICAL
             }
-            if (a11yButton != null) {
-                endContextualContainer.addView(a11yButton)
-                a11yButton.layoutParams = getParamsToCenterView()
-            }
+            imeSwitcher.layoutParams = imeSwitcherButtonParams
+        }
+        if (a11yButton != null) {
+            endContextualContainer.addView(a11yButton)
+            a11yButton.layoutParams = getParamsToCenterView()
         }
     }
 }

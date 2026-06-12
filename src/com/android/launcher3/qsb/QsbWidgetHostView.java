@@ -79,7 +79,7 @@ public class QsbWidgetHostView extends NavigableAppWidgetHostView {
     @Override
     protected View getDefaultView() {
         View v = super.getDefaultView();
-        v.setOnClickListener((v2) ->
+        v.setOnClickListener(v2 ->
                 Launcher.getLauncher(getContext()).startSearch("", false, null, true));
         return v;
     }
@@ -87,7 +87,7 @@ public class QsbWidgetHostView extends NavigableAppWidgetHostView {
     public static View getDefaultView(ViewGroup parent) {
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.qsb_default_view, parent, false);
-        v.findViewById(R.id.btn_qsb_search).setOnClickListener((v2) ->
+        v.findViewById(R.id.btn_qsb_search).setOnClickListener(v2 ->
                 Launcher.getLauncher(v2.getContext()).startSearch("", false, null, true));
         return v;
     }

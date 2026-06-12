@@ -29,6 +29,9 @@ public interface ResourceBasedOverride {
 
     class Overrides {
 
+        private Overrides() {
+        }
+
         private static final String TAG = "Overrides";
 
         public static <T extends ResourceBasedOverride> T getObject(
@@ -49,9 +52,10 @@ public interface ResourceBasedOverride {
 
             // Load the base class with no parameter
             try {
-                return clazz.newInstance();
-            } catch (InstantiationException|IllegalAccessException e) {
-                throw new RuntimeException(e);
+                return clazz.getDeclaredConstructor().newInstance();
+            } catch (InstantiationException | IllegalAccessException
+                    | NoSuchMethodException | InvocationTargetException e) {
+                throw new IllegalStateException(e);
             }
         }
     }

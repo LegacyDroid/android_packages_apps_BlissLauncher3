@@ -40,6 +40,11 @@ import java.util.Map;
 
 /** A helper class to parse widget sections (categories) resource overlay. */
 public final class WidgetSections {
+
+    private WidgetSections() {
+        // Utility class, do not instantiate.
+    }
+
     /** The package is not categorized in the widget tray. */
     public static final int NO_CATEGORY = -1;
 
@@ -112,7 +117,7 @@ public final class WidgetSections {
             sWidgetSections = widgetSections;
             sWidgetsToCategories = widgetsToCategories;
         } catch (IOException | XmlPullParserException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 

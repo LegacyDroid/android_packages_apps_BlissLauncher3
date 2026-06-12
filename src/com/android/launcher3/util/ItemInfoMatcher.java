@@ -36,6 +36,10 @@ import java.util.function.Predicate;
  */
 public abstract class ItemInfoMatcher {
 
+    private ItemInfoMatcher() {
+        // Utility class.
+    }
+
     /**
      * Empty component used for match testing
      */
@@ -46,7 +50,7 @@ public abstract class ItemInfoMatcher {
     }
 
     public static Predicate<ItemInfo> ofComponents(
-            HashSet<ComponentName> components, UserHandle user) {
+            Set<ComponentName> components, UserHandle user) {
         return info -> info != null && info.user.equals(user)
                 && components.contains(getNonNullComponent(info));
     }

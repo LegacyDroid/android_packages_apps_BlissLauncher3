@@ -13,10 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.views;
 
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
-import static android.window.DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY;
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat;
 
 import static com.android.launcher3.Flags.enableGridOnlyOverview;
 import static com.android.launcher3.LauncherState.CLEAR_ALL_BUTTON;
@@ -45,6 +54,7 @@ import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.statemanager.StateManager.StateListener;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.util.PendingSplitSelectInfo;
 import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitSelectSource;
@@ -178,10 +188,9 @@ public class LauncherRecentsView extends RecentsView<QuickstepLauncher, Launcher
     @Override
     public void onStateTransitionComplete(LauncherState finalState) {
         DesktopVisibilityController.INSTANCE.get(mContainer).onLauncherStateChanged(finalState);
-        if (enableGridOnlyOverview()) {
-            if (!finalState.displayOverviewTasksAsGrid(mContainer.getDeviceProfile())) {
-                setOverviewGridEnabled(false);
-            }
+        if (enableGridOnlyOverview()
+                && !finalState.displayOverviewTasksAsGrid(mContainer.getDeviceProfile())) {
+            setOverviewGridEnabled(false);
         }
 
         if (!finalState.isRecentsViewVisible) {
@@ -277,7 +286,7 @@ public class LauncherRecentsView extends RecentsView<QuickstepLauncher, Launcher
     @Override
     public void onGestureAnimationStart(GroupedTaskInfo groupedTaskInfo) {
         super.onGestureAnimationStart(groupedTaskInfo);
-        if (!ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue()) {
+        if (!DesktopFlagsCompat.enableDesktopWindowingWallpaperActivity()) {
             // TODO: b/333533253 - Remove after flag rollout
             DesktopVisibilityController.INSTANCE.get(mContainer).setRecentsGestureStart();
         }
@@ -291,18 +300,18 @@ public class LauncherRecentsView extends RecentsView<QuickstepLauncher, Launcher
         GestureState.GestureEndTarget endTarget = mCurrentGestureEndTarget;
         if (endTarget == GestureState.GestureEndTarget.LAST_TASK
                 && desktopVisibilityController.isInDesktopModeAndNotInOverview(
-                mContainer.getDisplayId())) {
+                DisplayIdCompat.getDisplayId(mContainer))) {
             // Recents gesture was cancelled and we are returning to the previous task.
             // After super class has handled clean up, show desktop apps on top again
             showDesktopApps = true;
         }
         super.onGestureAnimationEnd();
-        if (!ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue()) {
+        if (!DesktopFlagsCompat.enableDesktopWindowingWallpaperActivity()) {
             // TODO: b/333533253 - Remove after flag rollout
             desktopVisibilityController.setRecentsGestureEnd(endTarget);
         }
         if (showDesktopApps) {
-            SystemUiProxy.INSTANCE.get(mContainer).showDesktopApps(mContainer.getDisplayId(),
+            SystemUiProxy.INSTANCE.get(mContainer).showDesktopApps(DisplayIdCompat.getDisplayId(mContainer),
                     null /* transition */);
         }
     }

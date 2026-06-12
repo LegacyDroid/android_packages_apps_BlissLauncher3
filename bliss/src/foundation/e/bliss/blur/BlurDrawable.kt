@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/blur/BlurDrawable.kt
+ * Module:  bliss root app source-set
+ * Role:    Drawable rendering a blurred wallpaper bitmap with scaling and offset support.
+ */
 package foundation.e.bliss.blur
 
 import android.graphics.Bitmap
@@ -120,7 +125,9 @@ internal constructor(
         invalidateSelf()
     }
 
-    override fun setColorFilter(colorFilter: ColorFilter?) {}
+    override fun setColorFilter(colorFilter: ColorFilter?) {
+        // no-op: blur drawable does not support custom color filters; tinting handled via overlay
+    }
 
     fun startListening() = blurWallpaperProvider.addListener(this)
 

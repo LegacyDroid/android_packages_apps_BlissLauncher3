@@ -53,9 +53,10 @@ import java.util.function.Function
 object InputConsumerUtils {
     private const val SUBSTRING_PREFIX = "; "
     private const val NEWLINE_PREFIX = "\n\t\t\t-> "
+    private const val LOG_OVERVIEW_INPUT_CONSUMER_ATTEMPT = "trying to use overview input consumer"
 
     @JvmStatic
-    fun <S : BaseState<S>, T> newConsumer(
+    fun <S : BaseState<S>, T> newConsumer( // NOSONAR pristine-AOSP-do-not-refactor
         context: Context,
         userUnlocked: Boolean,
         overviewComponentObserver: OverviewComponentObserver,
@@ -238,26 +239,24 @@ object InputConsumerUtils {
                         )
                 }
             }
-            if (Flags.enableBubblesLongPressNavHandle()) {
-                // Create bubbles input consumer before NavHandleLongPressInputConsumer.
-                // This allows for nav handle to fall back to bubbles.
-                if (deviceState.isBubblesExpanded) {
-                    reasonString =
-                        newCompoundString(reasonPrefix)
-                            .append(
-                                "%sbubbles expanded, trying to use default input consumer",
-                                SUBSTRING_PREFIX,
-                            )
-                    // Bubbles can handle home gesture itself.
-                    base =
-                        getDefaultInputConsumer(
-                            gestureState.displayId,
-                            userUnlocked,
-                            taskAnimationManager,
-                            taskbarManager,
-                            reasonString,
+            // Create bubbles input consumer before NavHandleLongPressInputConsumer.
+            // This allows for nav handle to fall back to bubbles.
+            if (Flags.enableBubblesLongPressNavHandle() && deviceState.isBubblesExpanded) {
+                reasonString =
+                    newCompoundString(reasonPrefix)
+                        .append(
+                            "%sbubbles expanded, trying to use default input consumer",
+                            SUBSTRING_PREFIX,
                         )
-                }
+                // Bubbles can handle home gesture itself.
+                base =
+                    getDefaultInputConsumer(
+                        gestureState.displayId,
+                        userUnlocked,
+                        taskAnimationManager,
+                        taskbarManager,
+                        reasonString,
+                    )
             }
 
             val navHandle = tac?.navHandle ?: SystemUiProxy.INSTANCE[context]
@@ -288,25 +287,23 @@ object InputConsumerUtils {
                     )
             }
 
-            if (!Flags.enableBubblesLongPressNavHandle()) {
-                // Continue overriding nav handle input consumer with bubbles
-                if (deviceState.isBubblesExpanded) {
-                    reasonString =
-                        newCompoundString(reasonPrefix)
-                            .append(
-                                "%sbubbles expanded, trying to use default input consumer",
-                                SUBSTRING_PREFIX,
-                            )
-                    // Bubbles can handle home gesture itself.
-                    base =
-                        getDefaultInputConsumer(
-                            gestureState.displayId,
-                            userUnlocked,
-                            taskAnimationManager,
-                            taskbarManager,
-                            reasonString,
+            // Continue overriding nav handle input consumer with bubbles
+            if (!Flags.enableBubblesLongPressNavHandle() && deviceState.isBubblesExpanded) {
+                reasonString =
+                    newCompoundString(reasonPrefix)
+                        .append(
+                            "%sbubbles expanded, trying to use default input consumer",
+                            SUBSTRING_PREFIX,
                         )
-                }
+                // Bubbles can handle home gesture itself.
+                base =
+                    getDefaultInputConsumer(
+                        gestureState.displayId,
+                        userUnlocked,
+                        taskAnimationManager,
+                        taskbarManager,
+                        reasonString,
+                    )
             }
 
             if (deviceState.isSystemUiDialogShowing) {
@@ -524,18 +521,7 @@ object InputConsumerUtils {
                 runningTask != null &&
                 runningTask.isRootChooseActivity
 
-        if (!Flags.enableShellTopTaskTracking()) {
-            // In the case where we are in an excluded, translucent overlay, ignore it and treat the
-            // running activity as the task behind the overlay.
-            val otherVisibleTask = runningTask?.visibleNonExcludedTask
-            if (otherVisibleTask != null) {
-                ActiveGestureProtoLogProxy.logUpdateGestureStateRunningTask(
-                    otherVisibleTask.packageName ?: "MISSING",
-                    runningTask.packageName ?: "MISSING",
-                )
-                gestureState.updateRunningTask(otherVisibleTask)
-            }
-        }
+        maybeReplaceRunningTaskWithVisibleNonExcluded(gestureState, runningTask)
 
         val previousGestureAnimatedToLauncher =
             (previousGestureState.isRunningAnimationToLauncher ||
@@ -554,8 +540,8 @@ object InputConsumerUtils {
                 !launcherResumedThroughShellTransition &&
                 !previousGestureState.isRecentsAnimationRunning)
 
-        return if (gestureState.getContainerInterface<S, T>().isInLiveTileMode()) {
-            createOverviewInputConsumer<S, T>(
+        if (gestureState.getContainerInterface<S, T>().isInLiveTileMode()) {
+            return createOverviewInputConsumer<S, T>(
                 userUnlocked,
                 taskAnimationManager,
                 taskbarManager,
@@ -569,20 +555,21 @@ object InputConsumerUtils {
                     SUBSTRING_PREFIX,
                 ),
             )
-        } else if (runningTask == null) {
-            getDefaultInputConsumer(
+        }
+        if (runningTask == null) {
+            return getDefaultInputConsumer(
                 gestureState.displayId,
                 userUnlocked,
                 taskAnimationManager,
                 taskbarManager,
                 reasonString.append("%srunning task == null", SUBSTRING_PREFIX),
             )
-        } else if (
-            previousGestureAnimatedToLauncher ||
+        }
+        if (previousGestureAnimatedToLauncher ||
                 launcherResumedThroughShellTransition ||
                 forceOverviewInputConsumer
         ) {
-            createOverviewInputConsumer<S, T>(
+            return createOverviewInputConsumer<S, T>(
                 userUnlocked,
                 taskAnimationManager,
                 taskbarManager,
@@ -592,21 +579,16 @@ object InputConsumerUtils {
                 gestureState,
                 event,
                 reasonString.append(
-                    if (previousGestureAnimatedToLauncher)
-                        ("%sprevious gesture animated to launcher, " +
-                            "trying to use overview input consumer")
-                    else
-                        (if (launcherResumedThroughShellTransition)
-                            ("%slauncher resumed through a shell transition, " +
-                                "trying to use overview input consumer")
-                        else
-                            ("%sforceOverviewInputConsumer == true, " +
-                                "trying to use overview input consumer")),
+                    overviewConsumerReason(
+                        previousGestureAnimatedToLauncher,
+                        launcherResumedThroughShellTransition,
+                    ),
                     SUBSTRING_PREFIX,
                 ),
             )
-        } else if (deviceState.isGestureBlockedTask(runningTask) || launcherChildActivityResumed) {
-            getDefaultInputConsumer(
+        }
+        if (deviceState.isGestureBlockedTask(runningTask) || launcherChildActivityResumed) {
+            return getDefaultInputConsumer(
                 gestureState.displayId,
                 userUnlocked,
                 taskAnimationManager,
@@ -618,21 +600,50 @@ object InputConsumerUtils {
                     SUBSTRING_PREFIX,
                 ),
             )
-        } else {
-            reasonString.append("%susing OtherActivityInputConsumer", SUBSTRING_PREFIX)
-            createOtherActivityInputConsumer<S, T>(
-                context,
-                swipeUpHandlerFactory,
-                overviewComponentObserver,
-                deviceState,
-                taskAnimationManager,
-                inputMonitorCompat,
-                onCompleteCallback,
-                inputEventReceiver,
-                gestureState,
-                event,
-            )
         }
+        reasonString.append("%susing OtherActivityInputConsumer", SUBSTRING_PREFIX)
+        return createOtherActivityInputConsumer<S, T>(
+            context,
+            swipeUpHandlerFactory,
+            overviewComponentObserver,
+            deviceState,
+            taskAnimationManager,
+            inputMonitorCompat,
+            onCompleteCallback,
+            inputEventReceiver,
+            gestureState,
+            event,
+        )
+    }
+
+    private fun overviewConsumerReason(
+        previousGestureAnimatedToLauncher: Boolean,
+        launcherResumedThroughShellTransition: Boolean,
+    ): String {
+        if (previousGestureAnimatedToLauncher) {
+            return "%sprevious gesture animated to launcher, " +
+                LOG_OVERVIEW_INPUT_CONSUMER_ATTEMPT
+        }
+        if (launcherResumedThroughShellTransition) {
+            return "%slauncher resumed through a shell transition, " +
+                LOG_OVERVIEW_INPUT_CONSUMER_ATTEMPT
+        }
+        return "%sforceOverviewInputConsumer == true, " + LOG_OVERVIEW_INPUT_CONSUMER_ATTEMPT
+    }
+
+    private fun maybeReplaceRunningTaskWithVisibleNonExcluded(
+        gestureState: GestureState,
+        runningTask: TopTaskTracker.CachedTaskInfo?,
+    ) {
+        if (Flags.enableShellTopTaskTracking()) return
+        // In the case where we are in an excluded, translucent overlay, ignore it and treat the
+        // running activity as the task behind the overlay.
+        val otherVisibleTask = runningTask?.visibleNonExcludedTask ?: return
+        ActiveGestureProtoLogProxy.logUpdateGestureStateRunningTask(
+            otherVisibleTask.packageName ?: "MISSING",
+            runningTask.packageName ?: "MISSING",
+        )
+        gestureState.updateRunningTask(otherVisibleTask)
     }
 
     private fun createDeviceLockedInputConsumer(

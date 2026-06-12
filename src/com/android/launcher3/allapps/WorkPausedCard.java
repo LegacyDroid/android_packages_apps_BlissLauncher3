@@ -37,7 +37,6 @@ public class WorkPausedCard extends LinearLayout implements View.OnClickListener
 
     private static final String TAG = "WorkPausedCard";
     private final ActivityContext mActivityContext;
-    private Button mBtn;
 
     public WorkPausedCard(Context context) {
         this(context, null, 0);
@@ -55,8 +54,8 @@ public class WorkPausedCard extends LinearLayout implements View.OnClickListener
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        mBtn = findViewById(R.id.enable_work_apps);
-        mBtn.setOnClickListener(this);
+        Button btn = findViewById(R.id.enable_work_apps);
+        btn.setOnClickListener(this);
 
         updateStringFromCache();
     }

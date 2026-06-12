@@ -80,9 +80,6 @@ public class RecyclerViewFastScroller extends View {
     private static final int FASTSCROLL_THRESHOLD_MILLIS = 40;
     private static final int SCROLL_DELTA_THRESHOLD_DP = 4;
 
-    // Track is very narrow to target and correctly. This is especially the case if a user is
-    // using a hardware case. Even if x is offset by following amount, we consider it to be valid.
-    private static final int SCROLLBAR_LEFT_OFFSET_TOUCH_DELEGATE_DP = 5;
     private static final Rect sTempRect = new Rect();
 
     private static final Property<RecyclerViewFastScroller, Integer> TRACK_WIDTH =
@@ -99,8 +96,8 @@ public class RecyclerViewFastScroller extends View {
                 }
             };
 
-    private final static int MAX_TRACK_ALPHA = 30;
-    private final static int SCROLL_BAR_VIS_DURATION = 150;
+    private static final int MAX_TRACK_ALPHA = 30;
+    private static final int SCROLL_BAR_VIS_DURATION = 150;
 
     private static final List<Rect> SYSTEM_GESTURE_EXCLUSION_RECT =
             Collections.singletonList(new Rect());
@@ -112,7 +109,6 @@ public class RecyclerViewFastScroller extends View {
     /** Keeps the last known scrolling delta/velocity along y-axis. */
     private int mDy = 0;
     private final float mDeltaThreshold;
-    private final float mScrollbarLeftOffsetTouchDelegate;
 
     private final ViewConfiguration mConfig;
 
@@ -195,8 +191,6 @@ public class RecyclerViewFastScroller extends View {
 
         mConfig = ViewConfiguration.get(context);
         mDeltaThreshold = res.getDisplayMetrics().density * SCROLL_DELTA_THRESHOLD_DP;
-        mScrollbarLeftOffsetTouchDelegate = res.getDisplayMetrics().density
-                * SCROLLBAR_LEFT_OFFSET_TOUCH_DELEGATE_DP;
         mActivityContext = ActivityContext.lookupContext(context);
         TypedArray ta =
                 context.obtainStyledAttributes(attrs, R.styleable.RecyclerViewFastScroller, defStyleAttr, 0);
@@ -298,17 +292,15 @@ public class RecyclerViewFastScroller extends View {
                 boolean isScrollingDown = y > mLastY;
                 mLastY = y;
                 int absDeltaY = Math.abs(y - mDownY);
-                int absDeltaX = Math.abs(x - mDownX);
 
                 // Check if we should start scrolling, but ignore this fastscroll gesture if we have
                 // exceeded some fixed movement
                 mIgnoreDragGesture |= absDeltaY > mConfig.getScaledPagingTouchSlop();
 
-                if (!mIsDragging && !mIgnoreDragGesture && mRv.supportsFastScrolling()) {
-                    if ((isNearThumb(mDownX, mLastY) && ev.getEventTime() - mDownTimeStampMillis
-                                    > FASTSCROLL_THRESHOLD_MILLIS)) {
-                        calcTouchOffsetAndPrepToFastScroll(mDownY, mLastY);
-                    }
+                if (!mIsDragging && !mIgnoreDragGesture && mRv.supportsFastScrolling()
+                        && isNearThumb(mDownX, mLastY)
+                        && ev.getEventTime() - mDownTimeStampMillis > FASTSCROLL_THRESHOLD_MILLIS) {
+                    calcTouchOffsetAndPrepToFastScroll(mDownY, mLastY);
                 }
                 if (mIsDragging) {
                     if (isScrollingDown) {
@@ -322,8 +314,7 @@ public class RecyclerViewFastScroller extends View {
                     updateFastScrollSectionNameAndThumbOffset(y);
                 }
                 break;
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL:
                 endFastScrolling();
                 break;
         }
@@ -350,7 +341,7 @@ public class RecyclerViewFastScroller extends View {
     private void updateFastScrollSectionNameAndThumbOffset(int y) {
         // Update the fastscroller section name at this touch position
         int bottom = mRv.getScrollbarTrackHeight() - mThumbHeight;
-        float boundedY = (float) Math.max(0, Math.min(bottom, y - mTouchOffsetY));
+        float boundedY = (float) Utilities.boundToRange((long) y - mTouchOffsetY, 0L, (long) bottom);
         CharSequence sectionName = mRv.scrollToPositionAtProgress(boundedY / bottom);
         if (!sectionName.equals(mPopupSectionName)) {
             mPopupSectionName = sectionName;
@@ -399,7 +390,7 @@ public class RecyclerViewFastScroller extends View {
         canvas.translate(getWidth() / 2, mRv.getScrollBarTop());
         mThumbDrawOffset.set(getWidth() / 2, mRv.getScrollBarTop());
         // Draw the track
-        float halfW = mWidth / 2;
+        float halfW = mWidth / 2f;
         boolean useLetterFastScroller = shouldUseLetterFastScroller();
         if (useLetterFastScroller) {
             float translateX;
@@ -453,7 +444,7 @@ public class RecyclerViewFastScroller extends View {
     }
 
     private float getScrollThumbRadius() {
-        return mWidth + mThumbPadding + mThumbPadding;
+        return (float) mWidth + mThumbPadding + mThumbPadding;
     }
 
     /**

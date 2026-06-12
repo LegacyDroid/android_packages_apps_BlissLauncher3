@@ -164,7 +164,7 @@ public abstract class LauncherState implements BaseState<LauncherState> {
 
     private final int mFlags;
 
-    public LauncherState(int id, int statsLogOrdinal, int flags) {
+    protected LauncherState(int id, int statsLogOrdinal, int flags) {
         this.statsLogOrdinal = statsLogOrdinal;
         this.mFlags = flags;
         this.isRecentsViewVisible = (flags & FLAG_RECENTS_VIEW_VISIBLE) != 0;
@@ -483,11 +483,11 @@ public abstract class LauncherState implements BaseState<LauncherState> {
         lsm.onBackCancelled(toState);
     }
 
-    public static abstract class PageAlphaProvider {
+    public abstract static class PageAlphaProvider {
 
         public final Interpolator interpolator;
 
-        public PageAlphaProvider(Interpolator interpolator) {
+        protected PageAlphaProvider(Interpolator interpolator) {
             this.interpolator = interpolator;
         }
 
@@ -501,7 +501,7 @@ public abstract class LauncherState implements BaseState<LauncherState> {
 
         public final Interpolator interpolator;
 
-        public PageTranslationProvider(Interpolator interpolator) {
+        protected PageTranslationProvider(Interpolator interpolator) {
             this.interpolator = interpolator;
         }
 

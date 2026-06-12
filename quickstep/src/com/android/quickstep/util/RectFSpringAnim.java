@@ -173,7 +173,7 @@ public class RectFSpringAnim extends ReleaseCheck {
         }
     }
 
-    public void onTargetPositionChanged() {
+    public void onTargetPositionChanged() { // NOSONAR pristine-AOSP-do-not-refactor
         if (enableScalingRevealHomeAnimation()) {
             if (isEnded()) {
                 return;
@@ -194,6 +194,9 @@ public class RectFSpringAnim extends ReleaseCheck {
                         break;
                     case TRACKING_CENTER:
                         mRectYSpring.animateToFinalPosition(mTargetRect.centerY());
+                        break;
+                    default:
+                        // @Tracking is an exhaustive IntDef; ignore unknown values defensively.
                         break;
                 }
                 mRectYAnimEnded = false;
@@ -219,6 +222,9 @@ public class RectFSpringAnim extends ReleaseCheck {
                         if (mRectYAnim.getTargetPosition() != mTargetRect.centerY()) {
                             mRectYAnim.updatePosition(mCurrentY, mTargetRect.centerY());
                         }
+                        break;
+                    default:
+                        // @Tracking is an exhaustive IntDef; ignore unknown values defensively.
                         break;
                 }
             }
@@ -441,6 +447,10 @@ public class RectFSpringAnim extends ReleaseCheck {
                             mCurrentY - currentHeight / 2,
                             mCurrentCenterX + currentWidth / 2,
                             mCurrentY + currentHeight / 2);
+                    break;
+                default:
+                    // @Tracking is an exhaustive IntDef; ignore unknown values defensively
+                    // and leave mCurrentRect at its prior value.
                     break;
             }
             for (OnUpdateListener onUpdateListener : mOnUpdateListeners) {

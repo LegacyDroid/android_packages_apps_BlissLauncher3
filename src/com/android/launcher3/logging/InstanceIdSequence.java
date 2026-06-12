@@ -16,8 +16,7 @@
 
 package com.android.launcher3.logging;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
+import static java.lang.Math.clamp;
 
 import androidx.annotation.VisibleForTesting;
 
@@ -41,7 +40,7 @@ public class InstanceIdSequence {
      *                      an all-1 sequence.
      */
     public InstanceIdSequence(int instanceIdMax) {
-        mInstanceIdMax = min(max(1, instanceIdMax), InstanceId.INSTANCE_ID_MAX);
+        mInstanceIdMax = clamp(instanceIdMax, 1, InstanceId.INSTANCE_ID_MAX);
     }
 
     /**

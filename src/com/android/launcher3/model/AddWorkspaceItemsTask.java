@@ -104,7 +104,7 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
         final IntArray addedWorkspaceScreensFinal = new IntArray();
         final Context context = taskController.getContext();
 
-        synchronized (dataModel) {
+        synchronized (dataModel.mLock) {
             IntArray workspaceScreens = dataModel.collectWorkspaceScreens();
 
             List<ItemInfo> filteredItems = new ArrayList<>();
@@ -136,10 +136,9 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
                     }
                 }
 
-                if (item.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPLICATION) {
-                    if (item instanceof WorkspaceItemFactory) {
-                        item = ((WorkspaceItemFactory) item).makeWorkspaceItem(context);
-                    }
+                if (item.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
+                        && item instanceof WorkspaceItemFactory) {
+                    item = ((WorkspaceItemFactory) item).makeWorkspaceItem(context);
                 }
                 if (item != null) {
                     filteredItems.add(item);
@@ -163,7 +162,7 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
                 } else if (item instanceof WorkspaceItemFactory) {
                     itemInfo = ((WorkspaceItemFactory) item).makeWorkspaceItem(context);
                 } else {
-                    throw new RuntimeException("Unexpected info type");
+                    throw new IllegalArgumentException("Unexpected info type");
                 }
 
                 if (item instanceof WorkspaceItemInfo && ((WorkspaceItemInfo) item).isPromise()) {
@@ -262,7 +261,9 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
      */
     protected boolean shortcutExists(@NonNull final BgDataModel dataModel,
             @Nullable final Intent intent, @NonNull final UserHandle user) {
-        final String compPkgName, intentWithPkg, intentWithoutPkg;
+        final String compPkgName;
+        final String intentWithPkg;
+        final String intentWithoutPkg;
         if (intent == null) {
             // Skip items with null intents
             return true;
@@ -291,7 +292,7 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
                 && targetPackage != null
                 && (component == null || component.getClassName().isEmpty());
 
-        synchronized (dataModel) {
+        synchronized (dataModel.mLock) {
             for (ItemInfo item : dataModel.itemsIdMap) {
                 if (item instanceof WorkspaceItemInfo) {
                     WorkspaceItemInfo info = (WorkspaceItemInfo) item;

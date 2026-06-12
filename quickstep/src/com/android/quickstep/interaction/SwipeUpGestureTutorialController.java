@@ -159,49 +159,17 @@ abstract class SwipeUpGestureTutorialController extends TutorialController {
         PendingAnimation anim = new PendingAnimation(300);
         if (toOverviewFirst) {
             anim.setFloat(mTaskViewSwipeUpAnimation
-                    .getCurrentShift(), AnimatedFloat.VALUE, 1, ACCELERATE);
+                    .getCurrentShift(), AnimatedFloat.VALUE_PROPERTY, 1, ACCELERATE);
             anim.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation, boolean isReverse) {
-                    PendingAnimation fadeAnim =
-                            new PendingAnimation(TASK_VIEW_END_ANIMATION_DURATION_MILLIS);
-                    fadeAnim.setFloat(mTaskViewSwipeUpAnimation
-                            .getCurrentShift(), AnimatedFloat.VALUE, 0, ACCELERATE);
-                    if (resetViews) {
-                        fadeAnim.addListener(mResetTaskView);
-                    }
-                    if (onEndRunnable != null) {
-                        fadeAnim.addListener(AnimatorListeners.forSuccessCallback(onEndRunnable));
-                    }
-                    if (updateListener != null) {
-                        fadeAnim.addOnFrameListener(updateListener);
-                    }
-                    AnimatorSet animset = fadeAnim.buildAnim();
-
-                    if (animatePreviousTask && mTutorialFragment.isLargeScreen()) {
-                        animset.addListener(new AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationStart(Animator animation) {
-                                super.onAnimationStart(animation);
-                                Animator multiRowAnimation =
-                                        mFakePreviousTaskView.createAnimationToMultiRowLayout();
-
-                                if (multiRowAnimation != null) {
-                                    multiRowAnimation.setDuration(
-                                            TASK_VIEW_END_ANIMATION_DURATION_MILLIS).start();
-                                }
-                            }
-                        });
-                    }
-
-                    animset.setStartDelay(100);
-                    animset.start();
-                    mRunningWindowAnim = RunningWindowAnim.wrap(animset);
+                    startFadeAnimAfterOverview(animatePreviousTask, resetViews, updateListener,
+                            onEndRunnable);
                 }
             });
         } else {
             anim.setFloat(mTaskViewSwipeUpAnimation
-                    .getCurrentShift(), AnimatedFloat.VALUE, 0, ACCELERATE);
+                    .getCurrentShift(), AnimatedFloat.VALUE_PROPERTY, 0, ACCELERATE);
             if (resetViews) {
                 anim.addListener(mResetTaskView);
             }
@@ -213,6 +181,47 @@ abstract class SwipeUpGestureTutorialController extends TutorialController {
         hideFakeTaskbar(/* animateToHotseat= */ false);
         animset.start();
         mRunningWindowAnim = RunningWindowAnim.wrap(animset);
+    }
+
+    private void startFadeAnimAfterOverview(boolean animatePreviousTask,
+            boolean resetViews,
+            @Nullable ValueAnimator.AnimatorUpdateListener updateListener,
+            @Nullable Runnable onEndRunnable) {
+        PendingAnimation fadeAnim =
+                new PendingAnimation(TASK_VIEW_END_ANIMATION_DURATION_MILLIS);
+        fadeAnim.setFloat(mTaskViewSwipeUpAnimation
+                .getCurrentShift(), AnimatedFloat.VALUE_PROPERTY, 0, ACCELERATE);
+        if (resetViews) {
+            fadeAnim.addListener(mResetTaskView);
+        }
+        if (onEndRunnable != null) {
+            fadeAnim.addListener(AnimatorListeners.forSuccessCallback(onEndRunnable));
+        }
+        if (updateListener != null) {
+            fadeAnim.addOnFrameListener(updateListener);
+        }
+        AnimatorSet animset = fadeAnim.buildAnim();
+
+        if (animatePreviousTask && mTutorialFragment.isLargeScreen()) {
+            animset.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    super.onAnimationStart(animation);
+                    startMultiRowAnimationIfPresent();
+                }
+            });
+        }
+
+        animset.setStartDelay(100);
+        animset.start();
+        mRunningWindowAnim = RunningWindowAnim.wrap(animset);
+    }
+
+    private void startMultiRowAnimationIfPresent() {
+        Animator multiRowAnimation = mFakePreviousTaskView.createAnimationToMultiRowLayout();
+        if (multiRowAnimation != null) {
+            multiRowAnimation.setDuration(TASK_VIEW_END_ANIMATION_DURATION_MILLIS).start();
+        }
     }
 
     void resetFakeTaskViewFromOverview() {
@@ -227,7 +236,7 @@ abstract class SwipeUpGestureTutorialController extends TutorialController {
         mFakeTaskView.setVisibility(View.VISIBLE);
         PendingAnimation anim = new PendingAnimation(300);
         anim.setFloat(mTaskViewSwipeUpAnimation
-                .getCurrentShift(), AnimatedFloat.VALUE, 0, ACCELERATE);
+                .getCurrentShift(), AnimatedFloat.VALUE_PROPERTY, 0, ACCELERATE);
         anim.setViewAlpha(mFakeTaskView, 1, ACCELERATE);
         anim.addListener(mResetTaskView);
         AnimatorSet animset = anim.buildAnim();

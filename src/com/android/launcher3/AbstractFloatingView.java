@@ -144,11 +144,11 @@ public abstract class AbstractFloatingView extends LinearLayout implements Touch
 
     protected boolean mIsOpen;
 
-    public AbstractFloatingView(Context context, AttributeSet attrs) {
+    protected AbstractFloatingView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public AbstractFloatingView(Context context, AttributeSet attrs, int defStyleAttr) {
+    protected AbstractFloatingView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
@@ -258,11 +258,9 @@ public abstract class AbstractFloatingView extends LinearLayout implements Touch
         // and will be one of the last views.
         for (int i = dragLayer.getChildCount() - 1; i >= 0; i--) {
             View child = dragLayer.getChildAt(i);
-            if (child instanceof AbstractFloatingView) {
-                AbstractFloatingView view = (AbstractFloatingView) child;
-                if (view.isOfType(type) && (!mustBeOpen || view.isOpen())) {
-                    return (T) view;
-                }
+            if (child instanceof AbstractFloatingView view
+                    && view.isOfType(type) && (!mustBeOpen || view.isOpen())) {
+                return (T) view;
             }
         }
         return null;

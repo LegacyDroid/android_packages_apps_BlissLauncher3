@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep;
 
 import static android.os.Trace.TRACE_TAG_APP;
@@ -91,7 +99,7 @@ import com.android.quickstep.views.OverviewActionsView;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.views.TaskView;
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -149,7 +157,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
         mFallbackRecentsView = rootView.findViewById(R.id.overview_panel);
         mActionsView = rootView.findViewById(R.id.overview_actions_view);
 
-        if (DesktopModeStatus.canEnterDesktopMode(this)) {
+        if (DesktopModeStatusCompat.canEnterDesktopMode(this)) {
             mDesktopRecentsTransitionController = new DesktopRecentsTransitionController(
                     getStateManager(), systemUiProxy, getIApplicationThread(),
                     null /* depthController */
@@ -298,12 +306,18 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
 
         final LauncherAnimationRunner wrapper = new LauncherAnimationRunner(
                 mUiHandler, mActivityLaunchAnimationRunner, true /* startAtFrontOfQueue */);
+        RemoteTransition launchRecentsTransition;
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            launchRecentsTransition = new RemoteTransition(wrapper.toRemoteTransition(),
+                    getIApplicationThread(), "LaunchFromRecents");
+        } else {
+            launchRecentsTransition = new RemoteTransition(wrapper.toRemoteTransition());
+        }
         final ActivityOptions options = ActivityOptions.makeRemoteAnimation(
                 new RemoteAnimationAdapter(wrapper, RECENTS_LAUNCH_DURATION,
                         RECENTS_LAUNCH_DURATION - STATUS_BAR_TRANSITION_DURATION
                                 - STATUS_BAR_TRANSITION_PRE_DELAY),
-                new RemoteTransition(wrapper.toRemoteTransition(), getIApplicationThread(),
-                        "LaunchFromRecents"));
+                launchRecentsTransition);
         final ActivityOptionsWrapper activityOptions = new ActivityOptionsWrapper(options,
                 onEndCallback);
         activityOptions.options.setSplashScreenStyle(SplashScreen.SPLASH_SCREEN_STYLE_ICON);
@@ -480,10 +494,16 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
     private void startHomeInternal() {
         LauncherAnimationRunner runner = new LauncherAnimationRunner(
                 getMainThreadHandler(), mAnimationToHomeFactory, true);
+        RemoteTransition startHomeTransition;
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            startHomeTransition = new RemoteTransition(runner.toRemoteTransition(),
+                    getIApplicationThread(), "StartHomeFromRecents");
+        } else {
+            startHomeTransition = new RemoteTransition(runner.toRemoteTransition());
+        }
         ActivityOptions options = ActivityOptions.makeRemoteAnimation(
                 new RemoteAnimationAdapter(runner, HOME_APPEAR_DURATION, 0),
-                new RemoteTransition(runner.toRemoteTransition(), getIApplicationThread(),
-                        "StartHomeFromRecents"));
+                startHomeTransition);
         startHomeIntentSafely(this, options.toBundle(), TAG);
     }
 

@@ -1,0 +1,66 @@
+// Audit02: :bliss-compat
+//
+// Role:
+//   Leaf module owning platform/runtime compatibility shims and the single
+//   ReflectionGate entry point for speculative framework API access.
+//
+// Public API:
+//   foundation.e.bliss.compat.BuildCompat
+//   foundation.e.bliss.compat.ReflectionGate
+//   foundation.e.bliss.compat.platform.*
+//   foundation.e.bliss.compat.desktop.*
+//
+// Dependency rules:
+//   - May use compileOnly framework/aconfig prebuilts from libs/.
+//   - May depend on AndroidX Annotation.
+//   - Must not depend on root app UI/runtime classes.
+//
+// Migration note:
+//   Created in Migration04 §09; converted to the Audit02 shared Android
+//   library convention.
+plugins {
+    id 'foundation.e.bliss.android-library'
+}
+
+android {
+    namespace 'foundation.e.bliss.compat'
+
+    defaultConfig {
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    sourceSets {
+        named("main") {
+            java.srcDirs("src/main/kotlin")
+        }
+    }
+}
+
+// Migration04 §09 — bliss-compat references hidden-API surfaces from the
+// stub framework.jar (android.window.DesktopModeFlags / DesktopExperienceFlags,
+// lineageos.providers.LineageSettings) and aconfig flag classes that ship as
+// pre-built jars under libs/. Pull them in via the same `addFrameworkJar`
+// helper the root project uses (declared in `allprojects { ext.… }`).
+addFrameworkJar('framework.jar')
+
+dependencies {
+    implementation 'androidx.annotation:annotation:1.9.0'
+
+    // com.android.window.flags.Flags (aconfig-generated platform flags)
+    compileOnly files("$rootDir/libs/com.android.window.flags.window-aconfig-java.jar")
+    // com.android.launcher3.Flags (project-internal aconfig)
+    compileOnly files("$rootDir/libs/com_android_launcher3_flags_lib.jar")
+    // com.android.wm.shell.shared.desktopmode.DesktopModeStatus (and
+    // lineageos.providers.LineageSettings) ship inside Launcher3QuickStepLib.jar.
+    compileOnly files("$rootDir/libs/Launcher3QuickStepLib.jar")
+}
+
+// Launcher3QuickStepLib.jar is .gitignored and produced by the root project's
+// makeReleaseJar task (out of libs/classes.jar). Local builds typically already
+// have the jar from a prior build, but a fresh CI checkout doesn't, so wire
+// the dependency explicitly.
+afterEvaluate {
+    tasks.named('preBuild').configure {
+        dependsOn rootProject.tasks.named('makeReleaseJar')
+    }
+}

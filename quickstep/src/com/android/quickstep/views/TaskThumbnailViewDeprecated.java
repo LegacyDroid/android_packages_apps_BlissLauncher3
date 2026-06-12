@@ -63,7 +63,7 @@ import java.util.Objects;
  *
  * @deprecated This class will be replaced by the new [TaskThumbnailView].
  */
-@Deprecated
+@Deprecated(since = "1.0", forRemoval = true)
 public class TaskThumbnailViewDeprecated extends View implements ViewPool.Reusable {
 
     public static final Property<TaskThumbnailViewDeprecated, Float> DIM_ALPHA =

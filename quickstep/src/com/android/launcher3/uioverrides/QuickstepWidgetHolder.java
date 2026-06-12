@@ -147,10 +147,20 @@ public final class QuickstepWidgetHolder extends LauncherWidgetHolder {
             return;
         }
 
-        getWidgetHolderExecutor().execute(() -> {
-            mWidgetHost.setAppWidgetHidden();
-            setListeningFlag(false);
-        });
+        if (android.os.Build.VERSION.SDK_INT >= 36) {
+            getWidgetHolderExecutor().execute(() -> {
+                try {
+                    mWidgetHost.setAppWidgetHidden();
+                    setListeningFlag(false);
+                } catch (LinkageError e) {
+                    // AppWidgetHost#setAppWidgetHidden is a hidden API absent on a mismatched
+                    // framework (e.g. a stock emulator image); fall back to the public path.
+                    super.stopListening();
+                }
+            });
+        } else {
+            super.stopListening();
+        }
     }
 
     @Override
@@ -289,7 +299,7 @@ public final class QuickstepWidgetHolder extends LauncherWidgetHolder {
 
     private static class PendingUpdate {
         public final IntSet changedViews = new IntSet();
-        public AppWidgetProviderInfo providerInfo;
-        public RemoteViews remoteViews;
+        private AppWidgetProviderInfo providerInfo;
+        private RemoteViews remoteViews;
     }
 }

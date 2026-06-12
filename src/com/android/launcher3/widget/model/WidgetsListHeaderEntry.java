@@ -125,6 +125,12 @@ public final class WidgetsListHeaderEntry extends WidgetsListBaseEntry {
                 && mIsSearchEntry == otherEntry.mIsSearchEntry;
     }
 
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(mWidgets, mPkgItem, mTitleSectionName,
+                mIsWidgetListShown, mVisibleWidgetsCount, mIsSearchEntry);
+    }
+
     /** Returns a copy of this {@link WidgetsListHeaderEntry} with the widget list shown. */
     public WidgetsListHeaderEntry withWidgetListShown() {
         if (mIsWidgetListShown) return this;

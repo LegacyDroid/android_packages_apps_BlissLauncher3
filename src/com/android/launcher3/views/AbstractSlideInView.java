@@ -153,7 +153,7 @@ public abstract class AbstractSlideInView<T extends Context & ActivityContext>
         }
     };
 
-    public AbstractSlideInView(Context context, AttributeSet attrs, int defStyleAttr) {
+    protected AbstractSlideInView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mActivityContext = ActivityContext.lookupContext(context);
 
@@ -277,12 +277,10 @@ public abstract class AbstractSlideInView<T extends Context & ActivityContext>
     @Override
     public boolean onControllerTouchEvent(MotionEvent ev) {
         mSwipeDetector.onTouchEvent(ev);
+        // If we got ACTION_UP without ever starting swipe, close the panel.
         if (ev.getAction() == MotionEvent.ACTION_UP && mSwipeDetector.isIdleState()
-                && !isOpeningAnimationRunning()) {
-            // If we got ACTION_UP without ever starting swipe, close the panel.
-            if (!isEventOverContent(ev)) {
-                close(true);
-            }
+                && !isOpeningAnimationRunning() && !isEventOverContent(ev)) {
+            close(true);
         }
         return true;
     }
@@ -351,10 +349,14 @@ public abstract class AbstractSlideInView<T extends Context & ActivityContext>
                 }
 
                 @Override
-                public void onAnimationRepeat(Animator animator) {}
+                public void onAnimationRepeat(Animator animator) {
+                    // No-op: this swipe-to-dismiss animation does not repeat.
+                }
 
                 @Override
-                public void onAnimationStart(Animator animator) {}
+                public void onAnimationStart(Animator animator) {
+                    // No-op: handled implicitly by ObjectAnimator.start().
+                }
             });
         }
 

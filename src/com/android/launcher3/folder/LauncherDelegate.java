@@ -82,57 +82,54 @@ public class LauncherDelegate {
 
     boolean replaceFolderWithFinalItem(Folder folder) {
         // Add the last remaining child to the workspace in place of the folder
-        Runnable onCompleteRunnable = new Runnable() {
-            @Override
-            public void run() {
-                int itemCount = folder.getItemCount();
-                FolderInfo info = folder.mInfo;
-                if (itemCount <= 1) {
-                    View newIcon = null;
-                    ItemInfo finalItem = null;
+        Runnable onCompleteRunnable = () -> {
+            int itemCount = folder.getItemCount();
+            FolderInfo info = folder.mInfo;
+            if (itemCount <= 1) {
+                View newIcon = null;
+                ItemInfo finalItem = null;
 
-                    if (itemCount == 1) {
-                        // Move the item from the folder to the workspace, in the position of the
-                        // folder
-                        CellLayout cellLayout = mLauncher.getCellLayout(info.container,
-                                mLauncher.getCellPosMapper().mapModelToPresenter(info).screenId);
-                        finalItem =  info.getContents().remove(0);
-                        newIcon = mLauncher.getItemInflater().inflateItem(
-                                finalItem, mLauncher.getModelWriter(), cellLayout);
-                        mLauncher.getModelWriter().addOrMoveItemInDatabase(finalItem,
-                                info.container, info.screenId, info.cellX, info.cellY);
+                if (itemCount == 1) {
+                    // Move the item from the folder to the workspace, in the position of the
+                    // folder
+                    CellLayout cellLayout = mLauncher.getCellLayout(info.container,
+                            mLauncher.getCellPosMapper().mapModelToPresenter(info).screenId);
+                    finalItem =  info.getContents().remove(0);
+                    newIcon = mLauncher.getItemInflater().inflateItem(
+                            finalItem, mLauncher.getModelWriter(), cellLayout);
+                    mLauncher.getModelWriter().addOrMoveItemInDatabase(finalItem,
+                            info.container, info.screenId, info.cellX, info.cellY);
+                }
+
+                // Remove the folder
+                folder.mFolderIcon.clearAnimation();
+
+                mLauncher.removeItem(folder.mFolderIcon, info, true /* deleteFromDb */,
+                        "folder removed because there's only 1 item in it");
+                if (folder.mFolderIcon instanceof DropTarget) {
+                    folder.mDragController.removeDropTarget((DropTarget) folder.mFolderIcon);
+                }
+
+                if (newIcon != null) {
+                    // We add the child after removing the folder to prevent both from existing
+                    // at the same time in the CellLayout.  We need to add the new item with
+                    // addInScreenFromBind() to ensure that hotseat items are placed correctly.
+                    mLauncher.getWorkspace().addInScreenFromBind(newIcon, info);
+
+                    // Focus the newly created child
+                    newIcon.requestFocus();
+
+                    if (mLauncher.getWorkspace().isWobbling()) {
+                        mLauncher.getWorkspace().wobbleLayouts(true);
                     }
-
-                    // Remove the folder
-                    folder.mFolderIcon.clearAnimation();
-
-                    mLauncher.removeItem(folder.mFolderIcon, info, true /* deleteFromDb */,
-                            "folder removed because there's only 1 item in it");
-                    if (folder.mFolderIcon instanceof DropTarget) {
-                        folder.mDragController.removeDropTarget((DropTarget) folder.mFolderIcon);
-                    }
-
-                    if (newIcon != null) {
-                        // We add the child after removing the folder to prevent both from existing
-                        // at the same time in the CellLayout.  We need to add the new item with
-                        // addInScreenFromBind() to ensure that hotseat items are placed correctly.
-                        mLauncher.getWorkspace().addInScreenFromBind(newIcon, info);
-
-                        // Focus the newly created child
-                        newIcon.requestFocus();
-
-                        if (mLauncher.getWorkspace().isWobbling()) {
-                            mLauncher.getWorkspace().wobbleLayouts(true);
-                        }
-                    }
-                    if (finalItem != null) {
-                        StatsLogger logger = mLauncher.getStatsLogManager().logger()
-                                .withItemInfo(finalItem);
-                        ((Optional<InstanceId>) folder.mDragController.getLogInstanceId())
-                                .map(logger::withInstanceId)
-                                .orElse(logger)
-                                .log(LAUNCHER_FOLDER_CONVERTED_TO_ICON);
-                    }
+                }
+                if (finalItem != null) {
+                    StatsLogger logger = mLauncher.getStatsLogManager().logger()
+                            .withItemInfo(finalItem);
+                    ((Optional<InstanceId>) folder.mDragController.getLogInstanceId())
+                            .map(logger::withInstanceId)
+                            .orElse(logger)
+                            .log(LAUNCHER_FOLDER_CONVERTED_TO_ICON);
                 }
             }
         };
@@ -181,7 +178,9 @@ public class LauncherDelegate {
         }
 
         @Override
-        void beginDragShared(View child, DragSource source, DragOptions options) { }
+        void beginDragShared(View child, DragSource source, DragOptions options) {
+            // No-op: fallback delegate has no drag controller integration.
+        }
 
         @Override
         ModelWriter getModelWriter() {
@@ -193,7 +192,9 @@ public class LauncherDelegate {
         }
 
         @Override
-        void forEachVisibleWorkspacePage(Consumer<View> callback) { }
+        void forEachVisibleWorkspacePage(Consumer<View> callback) {
+            // No-op: fallback delegate has no workspace pages.
+        }
 
         @Override
         public Launcher getLauncher() {

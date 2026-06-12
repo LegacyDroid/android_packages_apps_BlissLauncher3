@@ -78,13 +78,16 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
     private static final boolean LOGD = false;
 
     private static final String DOWNGRADE_SCHEMA_FILE = "downgrade_schema.json";
+    private static final String SQL_ALTER_TABLE = "ALTER TABLE ";
+    private static final String SQL_ITEM_TYPE_EQ = "itemType=";
+    private static final String WORKSPACE_SCREENS_TABLE = "workspaceScreens";
 
     private final Context mContext;
     private final ToLongFunction<UserHandle> mUserSerialProvider;
     private final Runnable mOnEmptyDbCreateCallback;
     private final AtomicInteger mMaxItemId = new AtomicInteger(-1);
 
-    public boolean mHotseatRestoreTableExists;
+    boolean mHotseatRestoreTableExists;
 
     /**
      * Constructor used in tests and for restore.
@@ -166,72 +169,54 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
             Log.d(TAG, "onUpgrade triggered: " + oldVersion);
         }
         LauncherAppMonitor.getInstanceNoCreate().onLauncherDbUpgrade(db, oldVersion, newVersion);
-        switch (oldVersion) {
-            // The version cannot be lower that 12, as Launcher3 never supported a lower
-            // version of the DB.
-            case 12:
-                // No-op
-            case 13: {
+        // The version cannot be lower than 12, as Launcher3 never supported a lower
+        // version of the DB. Each block below applies the migration step from version N
+        // to version N+1; on failure we fall out of the labeled block and wipe old data.
+        upgrade: {
+            if (oldVersion <= 13) {
                 try (SQLiteTransaction t = new SQLiteTransaction(db)) {
                     // Insert new column for holding widget provider name
-                    db.execSQL("ALTER TABLE " + Favorites.TABLE_NAME + " ADD COLUMN appWidgetProvider TEXT;");
+                    db.execSQL(SQL_ALTER_TABLE + Favorites.TABLE_NAME + " ADD COLUMN appWidgetProvider TEXT;");
                     t.commit();
                 } catch (SQLException ex) {
                     Log.e(TAG, ex.getMessage(), ex);
                     // Old version remains, which means we wipe old data
-                    break;
+                    break upgrade;
                 }
             }
-            case 14: {
-                if (!addIntegerColumn(db, Favorites.MODIFIED, 0)) {
-                    // Old version remains, which means we wipe old data
-                    break;
-                }
+            if (oldVersion <= 14 && !addIntegerColumn(db, Favorites.MODIFIED, 0)) {
+                // Old version remains, which means we wipe old data
+                break upgrade;
             }
-            case 15: {
-                if (!addIntegerColumn(db, Favorites.RESTORED, 0)) {
-                    // Old version remains, which means we wipe old data
-                    break;
-                }
+            if (oldVersion <= 15 && !addIntegerColumn(db, Favorites.RESTORED, 0)) {
+                // Old version remains, which means we wipe old data
+                break upgrade;
             }
-            case 16:
-                // No-op
-            case 17:
-                // No-op
-            case 18:
-                // No-op
-            case 19: {
+            // Versions 16, 17, 18 are no-ops.
+            if (oldVersion <= 19
+                    && !addIntegerColumn(db, Favorites.PROFILE_ID, getDefaultUserSerial())) {
                 // Add userId column
-                if (!addIntegerColumn(db, Favorites.PROFILE_ID, getDefaultUserSerial())) {
-                    // Old version remains, which means we wipe old data
-                    break;
-                }
+                // Old version remains, which means we wipe old data
+                break upgrade;
             }
-            case 20:
-                if (!updateFolderItemsRank(db, true)) {
-                    break;
-                }
-            case 21:
-                // No-op
-            case 22: {
-                if (!addIntegerColumn(db, Favorites.OPTIONS, 0)) {
-                    // Old version remains, which means we wipe old data
-                    break;
-                }
+            if (oldVersion <= 20 && !updateFolderItemsRank(db, true)) {
+                break upgrade;
             }
-            case 23:
-                // No-op
-            case 24:
-                // No-op
-            case 25:
+            // Version 21 is a no-op.
+            if (oldVersion <= 22 && !addIntegerColumn(db, Favorites.OPTIONS, 0)) {
+                // Old version remains, which means we wipe old data
+                break upgrade;
+            }
+            // Versions 23, 24 are no-ops.
+            if (oldVersion <= 25) {
                 convertShortcutsToLauncherActivities(db);
-            case 26:
-                // QSB was moved to the grid. Ignore overlapping items
-            case 27: {
+            }
+            // Version 26: QSB was moved to the grid. Ignore overlapping items (no-op).
+            if (oldVersion <= 27) {
                 // Update the favorites table so that the screen ids are ordered based on
                 // workspace page rank.
                 IntArray finalScreens = LauncherDbUtils.queryIntArray(false, db,
-                        "workspaceScreens", BaseColumns._ID, null, null, "screenRank");
+                        WORKSPACE_SCREENS_TABLE, BaseColumns._ID, null, null, "screenRank");
                 int[] original = finalScreens.toArray();
                 Arrays.sort(original);
                 String updatemap = "";
@@ -248,42 +233,38 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
                             Favorites.CONTAINER, Favorites.CONTAINER_DESKTOP);
                     db.execSQL(query);
                 }
-                dropTable(db, "workspaceScreens");
+                dropTable(db, WORKSPACE_SCREENS_TABLE);
             }
-            case 28: {
+            if (oldVersion <= 28) {
                 boolean columnAdded = addIntegerColumn(
                         db, Favorites.APPWIDGET_SOURCE, Favorites.CONTAINER_UNKNOWN);
                 if (!columnAdded) {
                     // Old version remains, which means we wipe old data
-                    break;
+                    break upgrade;
                 }
             }
-            case 29: {
+            if (oldVersion <= 29) {
                 // Remove widget panel related leftover workspace items
                 db.delete(Favorites.TABLE_NAME, Utilities.createDbSelectionQuery(
                         Favorites.SCREEN, IntArray.wrap(-777, -778)), null);
             }
-            case 30: {
-                if (FeatureFlags.QSB_ON_FIRST_SCREEN.get()
-                        && !SHOULD_SHOW_FIRST_PAGE_WIDGET) {
-                    // Clean up first row in screen 0 as it might contain junk data.
-                    Log.d(TAG, "Cleaning up first row");
-                    db.delete(Favorites.TABLE_NAME,
-                            String.format(Locale.ENGLISH,
-                                    "%1$s = %2$d AND %3$s = %4$d AND %5$s = %6$d",
-                                    Favorites.SCREEN, 0,
-                                    Favorites.CONTAINER, Favorites.CONTAINER_DESKTOP,
-                                    Favorites.CELLY, 0), null);
-                }
+            if (oldVersion <= 30
+                    && FeatureFlags.QSB_ON_FIRST_SCREEN.get()
+                    && !SHOULD_SHOW_FIRST_PAGE_WIDGET) {
+                // Clean up first row in screen 0 as it might contain junk data.
+                Log.d(TAG, "Cleaning up first row");
+                db.delete(Favorites.TABLE_NAME,
+                        String.format(Locale.ENGLISH,
+                                "%1$s = %2$d AND %3$s = %4$d AND %5$s = %6$d",
+                                Favorites.SCREEN, 0,
+                                Favorites.CONTAINER, Favorites.CONTAINER_DESKTOP,
+                                Favorites.CELLY, 0), null);
             }
-            case 31: {
+            if (oldVersion <= 31) {
                 LauncherDbUtils.migrateLegacyShortcuts(mContext, db);
             }
-            // Fall through
-            case 32: {
-                // DB Upgraded successfully
-                return;
-            }
+            // DB Upgraded successfully (case 32)
+            return;
         }
 
         // DB was not upgraded
@@ -309,7 +290,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
     public void createEmptyDB(SQLiteDatabase db) {
         try (SQLiteTransaction t = new SQLiteTransaction(db)) {
             dropTable(db, Favorites.TABLE_NAME);
-            dropTable(db, "workspaceScreens");
+            dropTable(db, WORKSPACE_SCREENS_TABLE);
             onCreate(db);
             t.commit();
         }
@@ -334,11 +315,11 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
             }
             final IntSet validWidgets = IntSet.wrap(LauncherDbUtils.queryIntArray(false, db,
                     Favorites.E_TABLE_NAME, Favorites.APPWIDGET_ID,
-                    "itemType=" + Favorites.ITEM_TYPE_APPWIDGET, null, null));
+                    SQL_ITEM_TYPE_EQ + Favorites.ITEM_TYPE_APPWIDGET, null, null));
 
             validWidgets.addAll(IntSet.wrap(LauncherDbUtils.queryIntArray(false, db,
                     Favorites.E_TABLE_NAME_ALL, Favorites.APPWIDGET_ID,
-                    "itemType=" + Favorites.ITEM_TYPE_APPWIDGET, null, null)));
+                    SQL_ITEM_TYPE_EQ + Favorites.ITEM_TYPE_APPWIDGET, null, null)));
 
             boolean isAnyWidgetRemoved = false;
             for (int widgetId : allWidgets) {
@@ -380,7 +361,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
              // Only consider the primary user as other users can't have a shortcut.
              Cursor c = db.query(Favorites.TABLE_NAME,
                      new String[]{Favorites._ID, Favorites.INTENT},
-                     "itemType=" + Favorites.ITEM_TYPE_SHORTCUT
+                     SQL_ITEM_TYPE_EQ + Favorites.ITEM_TYPE_SHORTCUT
                              + " AND profileId=" + getDefaultUserSerial(),
                      null, null, null, null);
              SQLiteStatement updateStmt = db.compileStatement("UPDATE " + Favorites.TABLE_NAME + " SET itemType="
@@ -418,7 +399,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
         try (SQLiteTransaction t = new SQLiteTransaction(db)) {
             if (addRankColumn) {
                 // Insert new column for holding rank
-                db.execSQL("ALTER TABLE " + Favorites.TABLE_NAME + " ADD COLUMN rank INTEGER NOT NULL DEFAULT 0;");
+                db.execSQL(SQL_ALTER_TABLE + Favorites.TABLE_NAME + " ADD COLUMN rank INTEGER NOT NULL DEFAULT 0;");
             }
 
             // Get a map for folder ID to folder width
@@ -445,7 +426,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
 
     private boolean addIntegerColumn(SQLiteDatabase db, String columnName, long defaultValue) {
         try (SQLiteTransaction t = new SQLiteTransaction(db)) {
-            db.execSQL("ALTER TABLE " + Favorites.TABLE_NAME + " ADD COLUMN "
+            db.execSQL(SQL_ALTER_TABLE + Favorites.TABLE_NAME + " ADD COLUMN "
                     + columnName + " INTEGER NOT NULL DEFAULT " + defaultValue + ";");
             t.commit();
         } catch (SQLException ex) {
@@ -463,7 +444,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
     @Override
     public int generateNewItemId() {
         if (mMaxItemId.get() < 0) {
-            throw new RuntimeException("Error: max item id was not initialized");
+            throw new IllegalStateException("Error: max item id was not initialized");
         }
         return mMaxItemId.incrementAndGet();
     }
@@ -483,10 +464,11 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
 
     public int dbInsertAndCheck(SQLiteDatabase db, String table, ContentValues values) {
         if (values == null) {
-            throw new RuntimeException("Error: attempting to insert null values");
+            throw new IllegalArgumentException("Error: attempting to insert null values");
         }
         if (!values.containsKey(LauncherSettings.Favorites._ID)) {
-            throw new RuntimeException("Error: attempting to add item without specifying an id");
+            throw new IllegalArgumentException(
+                    "Error: attempting to add item without specifying an id");
         }
         checkId(values);
         return (int) db.insert(table, null, values);
@@ -531,7 +513,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
                 String.format(Locale.ENGLISH, query, args))) {
             max = (int) DatabaseUtils.longForQuery(prog, null);
             if (max < 0) {
-                throw new RuntimeException("Error: could not query max id");
+                throw new IllegalStateException("Error: could not query max id");
             }
         } catch (IllegalArgumentException exception) {
             String message = exception.getMessage();

@@ -113,7 +113,7 @@ public class DragPreviewProvider {
 
         return new FastBitmapDrawable(
                 BitmapRenderer.createHardwareBitmap(width + blurSizeOutline,
-                        height + blurSizeOutline, (c) -> drawDragView(c, scale)));
+                        height + blurSizeOutline, c -> drawDragView(c, scale)));
     }
 
     /**

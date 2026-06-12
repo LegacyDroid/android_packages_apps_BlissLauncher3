@@ -114,12 +114,14 @@ public abstract class DragView<T extends Context & ActivityContext> extends Fram
     private int mAnimatedShiftY;
 
     // Below variable only needed IF FeatureFlags.LAUNCHER3_SPRING_ICONS is {@code true}
-    private Drawable mBgSpringDrawable, mFgSpringDrawable;
-    private SpringFloatValue mTranslateX, mTranslateY;
+    private Drawable mBgSpringDrawable;
+    private Drawable mFgSpringDrawable;
+    private SpringFloatValue mTranslateX;
+    private SpringFloatValue mTranslateY;
     private Path mScaledMaskPath;
     private Drawable mBadge;
 
-    public DragView(T launcher, Drawable drawable, int registrationX,
+    protected DragView(T launcher, Drawable drawable, int registrationX,
             int registrationY, final float initialScale, final float scaleOnDrop,
             final float finalScaleDps) {
         this(launcher, getViewFromDrawable(launcher, drawable),
@@ -142,7 +144,7 @@ public abstract class DragView<T extends Context & ActivityContext> extends Fram
      * @param scaleOnDrop the scale used in the drop animation.
      * @param finalScaleDps the scale used in the zoom out animation when the drag view is shown.
      */
-    public DragView(T activity, View content, int width, int height, int registrationX,
+    protected DragView(T activity, View content, int width, int height, int registrationX,
             int registrationY, final float initialScale, final float scaleOnDrop,
             final float finalScaleDps) {
         super(activity);
@@ -451,8 +453,8 @@ public abstract class DragView<T extends Context & ActivityContext> extends Fram
     public void move(int touchX, int touchY) {
         if (touchX > 0 && touchY > 0 && mLastTouchX > 0 && mLastTouchY > 0
                 && mScaledMaskPath != null) {
-            mTranslateX.animateToPos(mLastTouchX - touchX);
-            mTranslateY.animateToPos(mLastTouchY - touchY);
+            mTranslateX.animateToPos((float) mLastTouchX - touchX);
+            mTranslateY.animateToPos((float) mLastTouchY - touchY);
         }
         mLastTouchX = touchX;
         mLastTouchY = touchY;

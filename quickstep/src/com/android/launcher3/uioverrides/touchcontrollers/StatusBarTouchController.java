@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Audit03):
+ *   - Direct reflection on StatusBarManager.expandNotificationsPanel() will be
+ *     replaced by StatusBarManagerCompat from :bliss-compat in Phase 04.
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.uioverrides.touchcontrollers;
 
 import static android.view.MotionEvent.ACTION_CANCEL;
@@ -43,6 +51,7 @@ import com.android.quickstep.SystemUiProxy;
 
 import java.io.PrintWriter;
 
+import foundation.e.bliss.compat.platform.StatusBarManagerCompat;
 import foundation.e.bliss.multimode.MultiModeController;
 
 /**
@@ -87,7 +96,28 @@ public class StatusBarTouchController implements TouchController {
             }
         } else if (mSystemUiProxy.isActive()) {
             mSystemUiProxy.onStatusBarTouchEvent(ev);
+        } else {
+            // Fallback: expand notifications via StatusBarManager when SystemUiProxy
+            // is not connected (e.g. debug/sideloaded builds)
+            expandNotificationsFallback();
         }
+    }
+
+    private void expandNotificationsFallback() {
+        if (!StatusBarManagerCompat.expandNotificationsPanel(mLauncher)) {
+            Log.w(TAG, "Notification panel fallback failed");
+        }
+    }
+
+    /**
+     * Tri-state result from {@link #handleActionDown(MotionEvent, int, int)} so the helper can
+     * signal "the caller should early-return with this value" vs. "the caller should fall through
+     * to the regular interception path" without using a nullable {@link Boolean}.
+     */
+    private enum DownResult {
+        CONSUME_TRUE,
+        CONSUME_FALSE,
+        FALL_THROUGH
     }
 
     @Override
@@ -96,20 +126,14 @@ public class StatusBarTouchController implements TouchController {
         int idx = ev.getActionIndex();
         int pid = ev.getPointerId(idx);
         if (action == ACTION_DOWN) {
-            mCanIntercept = canInterceptTouch(ev);
-            if (!mCanIntercept) {
-                return false;
-            }
-
-            mDownEvents.clear();
-            mDownEvents.put(pid, new PointF(ev.getX(), ev.getY()));
-
-            if (MultiModeController.isSingleLayerMode() && mLauncher.swipeSearchContainer != null &&
-                    mLauncher.swipeSearchContainer.getVisibility() == View.VISIBLE &&
-                    ev.getY(idx) > mLauncher.swipeSearchContainer.getHeight()) {
-                setWindowSlippery(true);
+            DownResult downResult = handleActionDown(ev, idx, pid);
+            if (downResult == DownResult.CONSUME_TRUE) {
                 return true;
             }
+            if (downResult == DownResult.CONSUME_FALSE) {
+                return false;
+            }
+            // FALL_THROUGH: continue to the shared interception path below.
         } else if (ev.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
             // Check!! should only set it only when threshold is not entered.
             mDownEvents.put(pid, new PointF(ev.getX(idx), ev.getY(idx)));
@@ -118,22 +142,47 @@ public class StatusBarTouchController implements TouchController {
             return false;
         }
         if (action == ACTION_MOVE && mDownEvents.contains(pid)) {
-            float dy = ev.getY(idx) - mDownEvents.get(pid).y;
-            float dx = ev.getX(idx) - mDownEvents.get(pid).x;
-            // Currently input dispatcher will not do touch transfer if there are more than
-            // one touch pointer. Hence, even if slope passed, only set the slippery flag
-            // when there is single touch event. (context: InputDispatcher.cpp line 1445)
-            if (dy > mTouchSlop && dy > Math.abs(dx) && ev.getPointerCount() == 1 &&
-                    (!MultiModeController.isSingleLayerMode() ||
-                            mLauncher.swipeSearchContainer.getVisibility() == View.GONE)) {
-                ev.setAction(ACTION_DOWN);
-                dispatchTouchEvent(ev);
+            return handleActionMove(ev, idx, pid);
+        }
+        return false;
+    }
+
+    private DownResult handleActionDown(MotionEvent ev, int idx, int pid) {
+        mCanIntercept = canInterceptTouch(ev);
+        if (!mCanIntercept) {
+            return DownResult.CONSUME_FALSE;
+        }
+
+        mDownEvents.clear();
+        mDownEvents.put(pid, new PointF(ev.getX(), ev.getY()));
+
+        if (MultiModeController.isSingleLayerMode() && mLauncher.swipeSearchContainer != null &&
+                mLauncher.swipeSearchContainer.getVisibility() == View.VISIBLE &&
+                ev.getY(idx) > mLauncher.swipeSearchContainer.getHeight()) {
+            setWindowSlippery(true);
+            return DownResult.CONSUME_TRUE;
+        }
+        return DownResult.FALL_THROUGH;
+    }
+
+    private boolean handleActionMove(MotionEvent ev, int idx, int pid) {
+        float dy = ev.getY(idx) - mDownEvents.get(pid).y;
+        float dx = ev.getX(idx) - mDownEvents.get(pid).x;
+        // Currently input dispatcher will not do touch transfer if there are more than
+        // one touch pointer. Hence, even if slope passed, only set the slippery flag
+        // when there is single touch event. (context: InputDispatcher.cpp line 1445)
+        if (dy > mTouchSlop && dy > Math.abs(dx) && ev.getPointerCount() == 1 &&
+                (!MultiModeController.isSingleLayerMode() ||
+                        mLauncher.swipeSearchContainer.getVisibility() == View.GONE)) {
+            ev.setAction(ACTION_DOWN);
+            dispatchTouchEvent(ev);
+            if (mSystemUiProxy.isActive()) {
                 setWindowSlippery(true);
-                return true;
             }
-            if (Math.abs(dx) > mTouchSlop) {
-                mCanIntercept = false;
-            }
+            return true;
+        }
+        if (Math.abs(dx) > mTouchSlop) {
+            mCanIntercept = false;
         }
         return false;
     }
@@ -184,11 +233,7 @@ public class StatusBarTouchController implements TouchController {
             }
         }
 
-        if (MultiModeController.isSingleLayerMode()
-                && mLauncher.getWorkspace().getCurrentPage() == Workspace.WIDGET_PAGE) {
-            return false;
-        }
-
-        return SystemUiProxy.INSTANCE.get(mLauncher).isActive();
+        return !MultiModeController.isSingleLayerMode()
+                || mLauncher.getWorkspace().getCurrentPage() != Workspace.WIDGET_PAGE;
     }
 }

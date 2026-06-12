@@ -32,6 +32,9 @@ import android.widget.TextView;
 import com.android.launcher3.util.MultiScalePropertyFactory;
 
 public class LauncherAnimUtils {
+
+    private LauncherAnimUtils() {}
+
     /**
      * Durations for various state animations. These are not defined in resources to allow
      * easier access from static classes and enums

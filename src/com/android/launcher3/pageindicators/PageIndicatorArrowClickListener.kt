@@ -16,7 +16,7 @@
 
 package com.android.launcher3.pageindicators
 
-interface PageIndicatorArrowClickListener {
+fun interface PageIndicatorArrowClickListener {
     fun onArrowClick(direction: Direction)
 }
 

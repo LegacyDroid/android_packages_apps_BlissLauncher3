@@ -33,7 +33,9 @@ public class PluginManagerWrapper{
             new DaggerSingletonObject<>(LauncherBaseAppComponent::getPluginManagerWrapper);
 
     @Inject
-    public PluginManagerWrapper() { }
+    public PluginManagerWrapper() {
+        // intentionally empty — DI-managed default no-op wrapper.
+    }
 
     @AnyThread
     public <T extends Plugin> void addPluginListener(
@@ -44,10 +46,15 @@ public class PluginManagerWrapper{
     @AnyThread
     public <T extends Plugin> void addPluginListener(
             PluginListener<T> listener, Class<T> pluginClass, boolean allowMultiple) {
+        // intentionally empty — default wrapper has no plugin manager backing.
     }
 
     @AnyThread
-    public void removePluginListener(PluginListener<? extends Plugin> listener) { }
+    public void removePluginListener(PluginListener<? extends Plugin> listener) {
+        // intentionally empty — default wrapper has no plugin manager backing.
+    }
 
-    public void dump(PrintWriter pw) { }
+    public void dump(PrintWriter pw) {
+        // intentionally empty — default wrapper has nothing to dump.
+    }
 }

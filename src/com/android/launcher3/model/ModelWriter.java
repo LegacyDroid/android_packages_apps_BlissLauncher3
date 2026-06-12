@@ -27,6 +27,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.BuildConfig;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherModel;
 import com.android.launcher3.LauncherModel.CallbackTask;
@@ -34,7 +35,6 @@ import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.celllayout.CellPosMapper;
 import com.android.launcher3.celllayout.CellPosMapper.CellPos;
-import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.BgDataModel.Callbacks;
 import com.android.launcher3.model.data.CollectionInfo;
@@ -130,22 +130,21 @@ public class ModelWriter {
         ItemInfo modelItem = mBgDataModel.itemsIdMap.get(itemId);
         if (modelItem != null && item != modelItem) {
             // check all the data is consistent
-            if (!Utilities.IS_DEBUG_DEVICE && !FeatureFlags.IS_STUDIO_BUILD
+            if (!Utilities.IS_DEBUG_DEVICE && !BuildConfig.IS_STUDIO_BUILD
                     && modelItem instanceof WorkspaceItemInfo
-                    && item instanceof WorkspaceItemInfo) {
-                if (modelItem.title.toString().equals(item.title.toString()) &&
-                        modelItem.getIntent().filterEquals(item.getIntent()) &&
-                        modelItem.id == item.id &&
-                        modelItem.itemType == item.itemType &&
-                        modelItem.container == item.container &&
-                        modelItem.screenId == item.screenId &&
-                        modelItem.cellX == item.cellX &&
-                        modelItem.cellY == item.cellY &&
-                        modelItem.spanX == item.spanX &&
-                        modelItem.spanY == item.spanY) {
-                    // For all intents and purposes, this is the same object
-                    return;
-                }
+                    && item instanceof WorkspaceItemInfo
+                    && modelItem.title.toString().equals(item.title.toString()) &&
+                    modelItem.getIntent().filterEquals(item.getIntent()) &&
+                    modelItem.id == item.id &&
+                    modelItem.itemType == item.itemType &&
+                    modelItem.container == item.container &&
+                    modelItem.screenId == item.screenId &&
+                    modelItem.cellX == item.cellX &&
+                    modelItem.cellY == item.cellY &&
+                    modelItem.spanX == item.spanX &&
+                    modelItem.spanY == item.spanY) {
+                // For all intents and purposes, this is the same object
+                return;
             }
 
             // the modelItem needs to match up perfectly with item if our model is
@@ -263,7 +262,7 @@ public class ModelWriter {
             writer.put(Favorites._ID, item.id);
 
             mModel.getModelDbController().insert(writer.getValues(mContext));
-            synchronized (mBgDataModel) {
+            synchronized (mBgDataModel.mLock) {
                 checkItemInfoLocked(item.id, item, stackTrace);
                 mBgDataModel.addItem(mContext, item, true);
                 verifier.verifyModel();
@@ -294,7 +293,7 @@ public class ModelWriter {
             @Nullable final String reason) {
         ModelVerifier verifier = new ModelVerifier();
         FileLog.d(TAG, "removing items from db " + items.stream().map(
-                (item) -> item.getTargetComponent() == null ? ""
+                item -> item.getTargetComponent() == null ? ""
                         : item.getTargetComponent().getPackageName()).collect(
                 Collectors.joining(","))
                 + ". Reason: [" + (TextUtils.isEmpty(reason) ? "unknown" : reason) + "]");
@@ -354,7 +353,7 @@ public class ModelWriter {
      */
     public void prepareToUndoDelete() {
         if (!mPreparingToUndo) {
-            if (!mDeleteRunnables.isEmpty() && FeatureFlags.IS_STUDIO_BUILD) {
+            if (!mDeleteRunnables.isEmpty() && BuildConfig.IS_STUDIO_BUILD) {
                 throw new IllegalStateException("There are still uncommitted delete operations!");
             }
             mDeleteRunnables.clear();
@@ -462,19 +461,18 @@ public class ModelWriter {
 
         protected void updateItemArrays(ItemInfo item, int itemId) {
             // Lock on mBgLock *after* the db operation
-            synchronized (mBgDataModel) {
+            synchronized (mBgDataModel.mLock) {
                 checkItemInfoLocked(itemId, item, mStackTrace);
 
+                // Item is in a collection, make sure this collection exists
                 if (item.container != Favorites.CONTAINER_DESKTOP &&
-                        item.container != Favorites.CONTAINER_HOTSEAT) {
-                    // Item is in a collection, make sure this collection exists
-                    if (!(mBgDataModel.itemsIdMap.get(item.container) instanceof CollectionInfo)) {
-                        // An items container is being set to a that of an item which is not in
-                        // the list of collections.
-                        String msg = "item: " + item + " container being set to: " +
-                                item.container + ", not in the list of collections";
-                        Log.e(TAG, msg);
-                    }
+                        item.container != Favorites.CONTAINER_HOTSEAT &&
+                        !(mBgDataModel.itemsIdMap.get(item.container) instanceof CollectionInfo)) {
+                    // An items container is being set to a that of an item which is not in
+                    // the list of collections.
+                    String msg = "item: " + item + " container being set to: " +
+                            item.container + ", not in the list of collections";
+                    Log.e(TAG, msg);
                 }
                 mVerifier.verifyModel();
             }

@@ -107,11 +107,9 @@ CONTAINER : RecentsViewContainer {
         ) {
             clearState()
         }
-        if (ev.action == MotionEvent.ACTION_DOWN) {
-            if (!onActionDown(ev)) {
-                clearState()
-                return false
-            }
+        if (ev.action == MotionEvent.ACTION_DOWN && !onActionDown(ev)) {
+            clearState()
+            return false
         }
         onControllerTouchEvent(ev)
         val downDirectionIsNegative = downDirection == SingleAxisSwipeDetector.DIRECTION_NEGATIVE

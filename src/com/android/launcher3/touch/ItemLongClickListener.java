@@ -55,6 +55,8 @@ import com.android.launcher3.widget.WidgetImageView;
  */
 public class ItemLongClickListener {
 
+    private ItemLongClickListener() {}
+
     public static final OnLongClickListener INSTANCE_WORKSPACE =
             ItemLongClickListener::onWorkspaceItemLongClick;
 
@@ -199,10 +201,6 @@ public class ItemLongClickListener {
         // Return early if an item is already being dragged (e.g. when long-pressing two shortcuts)
         if (launcher.getDragController().isDragging()) return false;
         // Return early if user is in the middle of selecting split-screen apps
-        if (launcher.isSplitSelectionActive()) {
-            return false;
-        }
-
-        return true;
+        return !launcher.isSplitSelectionActive();
     }
 }

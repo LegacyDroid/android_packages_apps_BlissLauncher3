@@ -113,6 +113,36 @@ class RecentsViewStateController(private val launcher: QuickstepLauncher) :
     ) {
         if (config.hasAnimationFlag(SKIP_OVERVIEW)) return
 
+        animateScaleAndTranslation(toState, config, builder)
+        animateContentAndModalness(toState, config, builder)
+
+        val fromState = launcher.stateManager.state
+        animateGridAndDesktop(toState, fromState, builder)
+
+        applyVisibilityCallbacks(toState, builder)
+
+        handleSplitSelectionState(toState, builder, animate = true)
+
+        setAlphas(builder, config, toState)
+        builder.setFloat(
+            recentsView,
+            FULLSCREEN_PROGRESS,
+            toState.overviewFullscreenProgress,
+            LINEAR,
+        )
+
+        builder.addEndListener { success: Boolean ->
+            if (!success && !toState.isRecentsViewVisible) {
+                recentsView.reset()
+            }
+        }
+    }
+
+    private fun animateScaleAndTranslation(
+        toState: LauncherState,
+        config: StateAnimationConfig,
+        builder: PendingAnimation,
+    ) {
         val scaleAndOffset = toState.getOverviewScaleAndOffset(launcher)
         builder.setFloat(
             recentsView,
@@ -132,7 +162,13 @@ class RecentsViewStateController(private val launcher: QuickstepLauncher) :
             0f,
             config.getInterpolator(ANIM_OVERVIEW_TRANSLATE_Y, LINEAR),
         )
+    }
 
+    private fun animateContentAndModalness(
+        toState: LauncherState,
+        config: StateAnimationConfig,
+        builder: PendingAnimation,
+    ) {
         builder.setFloat(
             recentsView,
             CONTENT_ALPHA,
@@ -150,8 +186,13 @@ class RecentsViewStateController(private val launcher: QuickstepLauncher) :
                 else LINEAR,
             ),
         )
+    }
 
-        val fromState = launcher.stateManager.state
+    private fun animateGridAndDesktop(
+        toState: LauncherState,
+        fromState: LauncherState,
+        builder: PendingAnimation,
+    ) {
         builder.setFloat(
             recentsView,
             TASK_THUMBNAIL_SPLASH_ALPHA,
@@ -183,7 +224,9 @@ class RecentsViewStateController(private val launcher: QuickstepLauncher) :
                 getOverviewInterpolator(fromState, toState),
             )
         }
+    }
 
+    private fun applyVisibilityCallbacks(toState: LauncherState, builder: PendingAnimation) {
         if (toState.isRecentsViewVisible) {
             // While animating into recents, update the visible task data as needed
             builder.addOnFrameCallback { recentsView.loadVisibleTaskData(FLAG_UPDATE_ALL) }
@@ -198,22 +241,6 @@ class RecentsViewStateController(private val launcher: QuickstepLauncher) :
                 launcher.depthController.setHasContentBehindLauncher(toState.isRecentsViewVisible)
             }
         )
-
-        handleSplitSelectionState(toState, builder, animate = true)
-
-        setAlphas(builder, config, toState)
-        builder.setFloat(
-            recentsView,
-            FULLSCREEN_PROGRESS,
-            toState.overviewFullscreenProgress,
-            LINEAR,
-        )
-
-        builder.addEndListener { success: Boolean ->
-            if (!success && !toState.isRecentsViewVisible) {
-                recentsView.reset()
-            }
-        }
     }
 
     /**
@@ -299,7 +326,7 @@ class RecentsViewStateController(private val launcher: QuickstepLauncher) :
             if (state.areElementsVisible(launcher, LauncherState.OVERVIEW_ACTIONS)) 1f else 0f
         propertySetter.setFloat(
             launcher.actionsView.visibilityAlpha,
-            AnimatedFloat.VALUE,
+            AnimatedFloat.VALUE_PROPERTY,
             overviewButtonAlpha,
             config.getInterpolator(ANIM_OVERVIEW_ACTIONS_FADE, LINEAR),
         )

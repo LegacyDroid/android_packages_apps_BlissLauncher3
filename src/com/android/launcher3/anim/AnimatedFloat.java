@@ -27,7 +27,7 @@ import java.util.function.Consumer;
  */
 public class AnimatedFloat {
 
-    public static final FloatProperty<AnimatedFloat> VALUE =
+    public static final FloatProperty<AnimatedFloat> VALUE_PROPERTY =
             new FloatProperty<AnimatedFloat>("value") {
                 @Override
                 public void setValue(AnimatedFloat obj, float v) {
@@ -83,7 +83,7 @@ public class AnimatedFloat {
      */
     public ObjectAnimator animateToValue(float start, float end) {
         cancelAnimation();
-        mValueAnimator = ObjectAnimator.ofFloat(this, VALUE, start, end);
+        mValueAnimator = ObjectAnimator.ofFloat(this, VALUE_PROPERTY, start, end);
         mValueAnimator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animator) {

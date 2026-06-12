@@ -79,7 +79,6 @@ public class TaskbarDragLayer extends BaseDragLayer<TaskbarActivityContext> {
 
     private float mTaskbarBackgroundOffset;
     private float mTaskbarBackgroundProgress;
-    private boolean mIsAnimatingTaskbarPinning = false;
 
     private final MultiPropertyFactory<TaskbarDragLayer> mTaskbarBackgroundAlpha;
 
@@ -149,14 +148,20 @@ public class TaskbarDragLayer extends BaseDragLayer<TaskbarActivityContext> {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         getViewTreeObserver().addOnComputeInternalInsetsListener(mTaskbarInsetsComputer);
-        mViewCaptureCloseable = ViewCaptureFactory.getInstance(getContext())
-                .startCapture(getRootView(), ".Taskbar");
+        try {
+            mViewCaptureCloseable = ViewCaptureFactory.getInstance(getContext())
+                    .startCapture(getRootView(), ".Taskbar");
+        } catch (NoSuchMethodError e) {
+            // ViewCapture uses IDumpCallback.Stub which requires API 36+
+        }
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        mViewCaptureCloseable.close();
+        if (mViewCaptureCloseable != null) {
+            mViewCaptureCloseable.close();
+        }
         onDestroy(true);
     }
 
@@ -200,8 +205,7 @@ public class TaskbarDragLayer extends BaseDragLayer<TaskbarActivityContext> {
      * Sets animation boolean when taskbar pinning animation starts or stops.
      */
     public void setAnimatingTaskbarPinning(boolean animatingTaskbarPinning) {
-        mIsAnimatingTaskbarPinning = animatingTaskbarPinning;
-        mBackgroundRenderer.setAnimatingPinning(mIsAnimatingTaskbarPinning);
+        mBackgroundRenderer.setAnimatingPinning(animatingTaskbarPinning);
     }
 
     protected MultiProperty getBackgroundRendererAlpha() {

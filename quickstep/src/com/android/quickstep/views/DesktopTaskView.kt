@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.views
 
 import android.annotation.SuppressLint
@@ -31,7 +40,7 @@ import android.view.View
 import android.view.ViewStub
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.updateLayoutParams
-import com.android.internal.hidden_from_bootclasspath.com.android.window.flags.Flags.enableDesktopRecentsTransitionsCornersBugfix
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat.enableDesktopRecentsTransitionsCornersBugfix
 import com.android.launcher3.Flags.enableDesktopExplodedView
 import com.android.launcher3.Flags.enableOverviewIconMenu
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
@@ -59,7 +68,7 @@ import com.android.quickstep.recents.ui.viewmodel.TaskData
 import com.android.quickstep.task.thumbnail.TaskThumbnailView
 import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.RecentsOrientedState
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat.enableMultipleDesktops
 import kotlin.math.roundToInt
 
 /** TaskView that contains all tasks that are part of the desktop. */
@@ -220,30 +229,12 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                 }
 
             if (enableDesktopExplodedView()) {
-                getRemoteTargetHandle(taskId)?.let { remoteTargetHandle ->
-                    val fromRect =
-                        TEMP_FROM_RECTF.apply {
-                            set(fullscreenTaskPosition.bounds)
-                            scale(scaleWidth)
-                            offset(
-                                lastComputedTaskSize.left.toFloat(),
-                                lastComputedTaskSize.top.toFloat(),
-                            )
-                        }
-                    val toRect =
-                        TEMP_TO_RECTF.apply {
-                            set(overviewTaskPosition)
-                            scale(scaleWidth)
-                            offset(
-                                lastComputedTaskSize.left.toFloat(),
-                                lastComputedTaskSize.top.toFloat(),
-                            )
-                        }
-                    val transform = Matrix()
-                    transform.setRectToRect(fromRect, toRect, Matrix.ScaleToFit.FILL)
-                    remoteTargetHandle.taskViewSimulator.setTaskRectTransform(transform)
-                    remoteTargetHandle.taskViewSimulator.apply(remoteTargetHandle.transformParams)
-                }
+                applyExplodedRemoteTransform(
+                    taskId,
+                    fullscreenTaskPosition.bounds,
+                    overviewTaskPosition,
+                    scaleWidth,
+                )
             }
 
             val taskLeft = overviewTaskPosition.left * scaleWidth
@@ -254,40 +245,17 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
             // To run the explode animation in reverse, it may be simpler to use translation/scale
             // for all cases where the progress is non-zero.
             if (explodeProgress == 0.0f || explodeProgress == 1.0f) {
-                // Reset scaling and translation that may have been applied during animation.
-                it.snapshotView.apply {
-                    scaleX = 1.0f
-                    scaleY = 1.0f
-                    translationX = 0.0f
-                    translationY = 0.0f
-                }
-
-                // Position the task to the same position as it would be on the desktop
-                it.snapshotView.updateLayoutParams<LayoutParams> {
-                    gravity = Gravity.LEFT or Gravity.TOP
-                    width = taskWidth.toInt()
-                    height = taskHeight.toInt()
-                    leftMargin = taskLeft.toInt()
-                    topMargin = taskTop.toInt()
-                }
-
-                if (
-                    enableDesktopRecentsTransitionsCornersBugfix() && enableRefactorTaskThumbnail()
-                ) {
-                    it.thumbnailView.outlineBounds =
-                        if (intersects(overviewTaskPosition, screenRect))
-                            Rect(overviewTaskPosition).apply {
-                                intersectUnchecked(screenRect)
-                                // Offset to 0,0 to transform into TaskThumbnailView's coordinate
-                                // system.
-                                offset(-overviewTaskPosition.left, -overviewTaskPosition.top)
-                                left = (left * scaleWidth).roundToInt()
-                                top = (top * scaleHeight).roundToInt()
-                                right = (right * scaleWidth).roundToInt()
-                                bottom = (bottom * scaleHeight).roundToInt()
-                            }
-                        else null
-                }
+                applyStaticTaskLayout(
+                    it,
+                    overviewTaskPosition,
+                    screenRect,
+                    taskLeft,
+                    taskTop,
+                    taskWidth,
+                    taskHeight,
+                    scaleWidth,
+                    scaleHeight,
+                )
             } else {
                 // During the animation, apply translation and scale such that the view is
                 // transformed to where we want, without triggering layout.
@@ -300,6 +268,82 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     scaleY = taskHeight / height.toFloat()
                 }
             }
+        }
+    }
+
+    private fun applyExplodedRemoteTransform(
+        taskId: Int,
+        fullscreenBounds: Rect,
+        overviewTaskPosition: Rect,
+        scaleWidth: Float,
+    ) {
+        val remoteTargetHandle = getRemoteTargetHandle(taskId) ?: return
+        val fromRect =
+            TEMP_FROM_RECTF.apply {
+                set(fullscreenBounds)
+                scale(scaleWidth)
+                offset(
+                    lastComputedTaskSize.left.toFloat(),
+                    lastComputedTaskSize.top.toFloat(),
+                )
+            }
+        val toRect =
+            TEMP_TO_RECTF.apply {
+                set(overviewTaskPosition)
+                scale(scaleWidth)
+                offset(
+                    lastComputedTaskSize.left.toFloat(),
+                    lastComputedTaskSize.top.toFloat(),
+                )
+            }
+        val transform = Matrix()
+        transform.setRectToRect(fromRect, toRect, Matrix.ScaleToFit.FILL)
+        remoteTargetHandle.taskViewSimulator.setTaskRectTransform(transform)
+        remoteTargetHandle.taskViewSimulator.apply(remoteTargetHandle.transformParams)
+    }
+
+    private fun applyStaticTaskLayout(
+        taskContainer: TaskContainer,
+        overviewTaskPosition: Rect,
+        screenRect: Rect,
+        taskLeft: Float,
+        taskTop: Float,
+        taskWidth: Float,
+        taskHeight: Float,
+        scaleWidth: Float,
+        scaleHeight: Float,
+    ) {
+        // Reset scaling and translation that may have been applied during animation.
+        taskContainer.snapshotView.apply {
+            scaleX = 1.0f
+            scaleY = 1.0f
+            translationX = 0.0f
+            translationY = 0.0f
+        }
+
+        // Position the task to the same position as it would be on the desktop
+        taskContainer.snapshotView.updateLayoutParams<LayoutParams> {
+            gravity = Gravity.LEFT or Gravity.TOP
+            width = taskWidth.toInt()
+            height = taskHeight.toInt()
+            leftMargin = taskLeft.toInt()
+            topMargin = taskTop.toInt()
+        }
+
+        if (enableDesktopRecentsTransitionsCornersBugfix() && enableRefactorTaskThumbnail()) {
+            taskContainer.thumbnailView.outlineBounds =
+                if (intersects(overviewTaskPosition, screenRect))
+                    Rect(overviewTaskPosition).apply {
+                        intersectUnchecked(screenRect)
+                        // Offset to 0,0 to transform into TaskThumbnailView's coordinate
+                        // system.
+                        offset(-overviewTaskPosition.left, -overviewTaskPosition.top)
+                        left = (left * scaleWidth).roundToInt()
+                        top = (top * scaleHeight).roundToInt()
+                        right = (right * scaleWidth).roundToInt()
+                        bottom = (bottom * scaleHeight).roundToInt()
+                    }
+                else null
         }
     }
 
@@ -396,10 +440,14 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
     }
 
     // Ignoring [onIconUnloaded] as all tasks shares the same Desktop icon
-    override fun onIconUnloaded(taskContainer: TaskContainer) {}
+    override fun onIconUnloaded(taskContainer: TaskContainer) {
+        // no-op: this view doesn't observe per-task icon unload events
+    }
 
     // thumbnailView is laid out differently and is handled in onMeasure
-    override fun updateThumbnailSize() {}
+    override fun updateThumbnailSize() {
+        // no-op: thumbnail sizing is performed in onMeasure for DesktopTaskView
+    }
 
     override fun getThumbnailBounds(bounds: Rect, relativeToDragLayer: Boolean) {
         if (relativeToDragLayer) {
@@ -445,7 +493,9 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         recentsView?.canLaunchFullscreenTask() != true
 
     // TODO(b/330685808) support overlay for Screenshot action
-    override fun setOverlayEnabled(overlayEnabled: Boolean) {}
+    override fun setOverlayEnabled(overlayEnabled: Boolean) {
+        // no-op: this view does not yet support the screenshot overlay
+    }
 
     override fun onFullscreenProgressChanged(fullscreenProgress: Float) {
         backgroundView.alpha = 1 - fullscreenProgress

@@ -46,30 +46,30 @@ public class TaskbarSharedState {
 
     // TaskbarManager#onSystemUiFlagsChanged
     @SystemUiStateFlags
-    public long sysuiStateFlags;
+    long sysuiStateFlags;
 
     // TaskbarManager#disableNavBarElements()
-    public int disableNavBarDisplayId;
-    public int disableNavBarState1;
-    public int disableNavBarState2;
+    int disableNavBarDisplayId;
+    int disableNavBarState1;
+    int disableNavBarState2;
 
     // TaskbarManager#onSystemBarAttributesChanged()
-    public int systemBarAttrsDisplayId;
-    public int systemBarAttrsBehavior;
+    int systemBarAttrsDisplayId;
+    int systemBarAttrsBehavior;
 
     // TaskbarManager#onNavButtonsDarkIntensityChanged()
-    public float navButtonsDarkIntensity;
+    float navButtonsDarkIntensity;
 
     // TaskbarManager#onTransitionModeUpdated()
-    public int barMode;
+    int barMode;
 
     // TaskbarManager#onNavigationBarLumaSamplingEnabled()
-    public int mLumaSamplingDisplayId = DEFAULT_DISPLAY;
-    public boolean mIsLumaSamplingEnabled = true;
+    int mLumaSamplingDisplayId = DEFAULT_DISPLAY;
+    boolean mIsLumaSamplingEnabled = true;
 
-    public boolean setupUIVisible = false;
+    boolean setupUIVisible = false;
 
-    public boolean wallpaperVisible = false;
+    boolean wallpaperVisible = false;
 
     public boolean allAppsVisible = false;
 
@@ -85,10 +85,10 @@ public class TaskbarSharedState {
     }
 
     // LauncherTaskbarUIController#mTaskbarInAppDisplayProgressMultiProp
-    public float[] inAppDisplayProgressMultiPropValues = new float[DISPLAY_PROGRESS_COUNT];
+    float[] inAppDisplayProgressMultiPropValues = new float[DISPLAY_PROGRESS_COUNT];
 
     // Taskbar System Action
-    public PendingIntent taskbarSystemActionPendingIntent;
+    PendingIntent taskbarSystemActionPendingIntent;
 
     public final InsetsFrameProvider[] insetsFrameProviders = new InsetsFrameProvider[] {
             new InsetsFrameProvider(mInsetsOwner, 0, navigationBars()),
@@ -117,8 +117,8 @@ public class TaskbarSharedState {
 
     // To track if taskbar was stashed / unstashed between configuration changes (which recreates
     // the task bar).
-    public boolean taskbarWasStashedAuto = true;
+    boolean taskbarWasStashedAuto = true;
 
     // should show corner radius on persistent taskbar when in desktop mode.
-    public boolean showCornerRadiusInDesktopMode = false;
+    boolean showCornerRadiusInDesktopMode = false;
 }

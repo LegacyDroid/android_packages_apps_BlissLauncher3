@@ -97,7 +97,7 @@ public class ContextualSearchStateManager  {
         mContext = context;
         mContextualSearchPackageReceiver =
                 new SimpleBroadcastReceiver(context, UI_HELPER_EXECUTOR,
-                        (unused) -> requestUpdateProperties());
+                        unused -> requestUpdateProperties());
         mContextualSearchPackage = mContext.getResources().getString(
                 com.android.internal.R.string.config_defaultContextualSearchPackageName);
         mSystemUiProxy = systemUiProxy;

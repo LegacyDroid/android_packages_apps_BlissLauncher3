@@ -13,6 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopModeStatusCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.statehandlers
 
 import android.content.Context
@@ -20,11 +30,13 @@ import android.os.Debug
 import android.util.Log
 import android.util.Slog
 import android.util.SparseArray
+import android.os.Build
 import android.view.Display.DEFAULT_DISPLAY
-import android.window.DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY
 import androidx.core.util.forEach
 import com.android.launcher3.LauncherState
 import com.android.launcher3.dagger.ApplicationContext
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat
+import foundation.e.bliss.compat.platform.DisplayIdCompat
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.statemanager.BaseState
@@ -40,8 +52,8 @@ import com.android.quickstep.SystemUiProxy
 import com.android.quickstep.fallback.RecentsState
 import com.android.wm.shell.desktopmode.DisplayDeskState
 import com.android.wm.shell.desktopmode.IDesktopTaskListener.Stub
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus.useRoundedCorners
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat.enableMultipleDesktops
+import foundation.e.bliss.compat.desktop.DesktopModeStatusCompat.useRoundedCorners
 import java.io.PrintWriter
 import java.lang.ref.WeakReference
 import javax.inject.Inject
@@ -119,7 +131,7 @@ constructor(
                     TAG,
                     ("setVisibleDesktopTasksCount: visibleTasksCount=" +
                         visibleTasksCount +
-                        " currentValue=" +
+                        CURRENT_VALUE_LOG +
                         field),
                 )
             }
@@ -149,7 +161,7 @@ constructor(
                 }
 
                 if (
-                    !ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue && wasVisible != isVisible
+                    !DesktopFlagsCompat.enableDesktopWindowingWallpaperActivity() && wasVisible != isVisible
                 ) {
                     // TODO: b/333533253 - Remove after flag rollout
                     if (field > 0) {
@@ -172,15 +184,20 @@ constructor(
     private var backgroundStateEnabled = false
     private var gestureInProgress = false
 
-    private var desktopTaskListener: DesktopTaskListenerImpl?
+    private var desktopTaskListener: Any? = null
 
     init {
-        desktopTaskListener = DesktopTaskListenerImpl(this, context, context.displayId)
-        systemUiProxy.setDesktopTaskListener(desktopTaskListener)
+        if (Build.VERSION.SDK_INT >= 36) {
+            val listener = DesktopTaskListenerImpl(this, context, DisplayIdCompat.getDisplayId(context))
+            desktopTaskListener = listener
+            systemUiProxy.setDesktopTaskListener(listener)
+        }
 
         lifecycleTracker.addCloseable {
             desktopTaskListener = null
-            systemUiProxy.setDesktopTaskListener(null)
+            if (Build.VERSION.SDK_INT >= 36) {
+                systemUiProxy.setDesktopTaskListener(null)
+            }
         }
     }
 
@@ -304,45 +321,59 @@ constructor(
                 TAG,
                 ("setOverviewStateEnabled: enabled=" +
                     overviewStateEnabled +
-                    " currentValue=" +
+                    CURRENT_VALUE_LOG +
                     inOverviewState),
             )
         }
-        if (overviewStateEnabled != inOverviewState) {
-            val wereDesktopTasksVisibleBefore = areDesktopTasksVisibleAndNotInOverview()
-            inOverviewState = overviewStateEnabled
-            val areDesktopTasksVisibleNow = areDesktopTasksVisibleAndNotInOverview()
+        if (overviewStateEnabled == inOverviewState) {
+            return
+        }
+        val wereDesktopTasksVisibleBefore = areDesktopTasksVisibleAndNotInOverview()
+        inOverviewState = overviewStateEnabled
+        val areDesktopTasksVisibleNow = areDesktopTasksVisibleAndNotInOverview()
 
-            if (!enableMultipleDesktops(context)) {
-                if (wereDesktopTasksVisibleBefore != areDesktopTasksVisibleNow) {
-                    notifyIsInDesktopModeChanged(DEFAULT_DISPLAY, areDesktopTasksVisibleNow)
-                }
-            } else {
-                // When overview state changes, it changes together on all displays.
-                displaysDesksConfigsMap.forEach { displayId, deskConfig ->
-                    // Overview affects the state of desks only if desktop mode is active on this
-                    // display.
-                    if (isInDesktopMode(displayId)) {
-                        notifyIsInDesktopModeChanged(
-                            displayId,
-                            isInDesktopModeAndNotInOverview(displayId),
-                        )
-                    }
-                }
-            }
+        notifyDesktopModeChangeForOverviewTransition(
+            wereDesktopTasksVisibleBefore,
+            areDesktopTasksVisibleNow,
+        )
 
-            if (ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue) {
-                return
-            }
+        if (DesktopFlagsCompat.enableDesktopWindowingWallpaperActivity()) {
+            return
+        }
 
-            // TODO: b/333533253 - Clean up after flag rollout
-            if (inOverviewState) {
-                markLauncherResumed()
-            } else if (areDesktopTasksVisibleNow && !gestureInProgress) {
-                // Switching out of overview state and gesture finished.
-                // If desktop tasks are still visible, hide launcher again.
-                markLauncherPaused()
+        // TODO: b/333533253 - Clean up after flag rollout
+        updateLauncherResumedStateForOverview(areDesktopTasksVisibleNow)
+    }
+
+    private fun notifyDesktopModeChangeForOverviewTransition(
+        wereDesktopTasksVisibleBefore: Boolean,
+        areDesktopTasksVisibleNow: Boolean,
+    ) {
+        if (!enableMultipleDesktops(context)) {
+            if (wereDesktopTasksVisibleBefore != areDesktopTasksVisibleNow) {
+                notifyIsInDesktopModeChanged(DEFAULT_DISPLAY, areDesktopTasksVisibleNow)
             }
+            return
+        }
+        // When overview state changes, it changes together on all displays.
+        displaysDesksConfigsMap.forEach { displayId, _ ->
+            // Overview affects the state of desks only if desktop mode is active on this display.
+            if (isInDesktopMode(displayId)) {
+                notifyIsInDesktopModeChanged(
+                    displayId,
+                    isInDesktopModeAndNotInOverview(displayId),
+                )
+            }
+        }
+    }
+
+    private fun updateLauncherResumedStateForOverview(areDesktopTasksVisibleNow: Boolean) {
+        if (inOverviewState) {
+            markLauncherResumed()
+        } else if (areDesktopTasksVisibleNow && !gestureInProgress) {
+            // Switching out of overview state and gesture finished.
+            // If desktop tasks are still visible, hide launcher again.
+            markLauncherPaused()
         }
     }
 
@@ -445,7 +476,7 @@ constructor(
                 TAG,
                 ("setBackgroundStateEnabled: enabled=" +
                     backgroundStateEnabled +
-                    " currentValue=" +
+                    CURRENT_VALUE_LOG +
                     this.backgroundStateEnabled),
             )
         }
@@ -597,7 +628,7 @@ constructor(
 
     /** TODO: b/333533253 - Remove after flag rollout */
     private fun markLauncherPaused() {
-        if (ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue) {
+        if (DesktopFlagsCompat.enableDesktopWindowingWallpaperActivity()) {
             return
         }
         if (DEBUG) {
@@ -610,7 +641,7 @@ constructor(
 
     /** TODO: b/333533253 - Remove after flag rollout */
     private fun markLauncherResumed() {
-        if (ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue) {
+        if (DesktopFlagsCompat.enableDesktopWindowingWallpaperActivity()) {
             return
         }
         if (DEBUG) {
@@ -754,21 +785,30 @@ constructor(
          *
          * @param doesAnyTaskRequireTaskbarRounding whether task requires taskbar corner roundness.
          */
-        fun onTaskbarCornerRoundingUpdate(doesAnyTaskRequireTaskbarRounding: Boolean) {}
+        fun onTaskbarCornerRoundingUpdate(doesAnyTaskRequireTaskbarRounding: Boolean) {
+            /* no-op: default implementation; listeners that care about taskbar corner
+               rounding overrides override this. */
+        }
 
         /**
          * Callback for when user is exiting desktop mode.
          *
          * @param duration for exit transition
          */
-        fun onExitDesktopMode(duration: Int) {}
+        fun onExitDesktopMode(duration: Int) {
+            /* no-op: default implementation; listeners that animate on desktop-mode exit
+               override this. */
+        }
 
         /**
          * Callback for when user is entering desktop mode.
          *
          * @param duration for enter transition
          */
-        fun onEnterDesktopMode(duration: Int) {}
+        fun onEnterDesktopMode(duration: Int) {
+            /* no-op: default implementation; listeners that animate on desktop-mode enter
+               override this. */
+        }
     }
 
     companion object {
@@ -777,6 +817,7 @@ constructor(
 
         private const val TAG = "DesktopVisController"
         private const val DEBUG = false
+        private const val CURRENT_VALUE_LOG = " currentValue="
 
         const val INACTIVE_DESK_ID = -1
     }

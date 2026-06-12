@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat (relocated by Migration04)
+ *   - Imports foundation.e.bliss.compat.quickstep.QuickStepContractCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep;
 
 import static android.view.Display.DEFAULT_DISPLAY;
@@ -30,6 +39,8 @@ import static com.android.launcher3.util.NavigationMode.THREE_BUTTONS;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.hardware.display.DisplayManager;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 
@@ -45,9 +56,9 @@ import com.android.launcher3.util.DisplayController.Info;
 import com.android.launcher3.util.NavigationMode;
 import com.android.quickstep.util.RecentsOrientedState;
 import com.android.systemui.shared.Flags;
-import com.android.systemui.shared.system.QuickStepContract;
+import foundation.e.bliss.compat.quickstep.QuickStepContractCompat;
 import com.android.systemui.shared.system.TaskStackChangeListener;
-import com.android.systemui.shared.system.TaskStackChangeListeners;
+import foundation.e.bliss.compat.quickstep.ActivityTaskManagerCompat;
 
 import java.io.PrintWriter;
 
@@ -97,12 +108,9 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
         }
     };
 
-    private final Runnable mExitOverviewRunnable = new Runnable() {
-        @Override
-        public void run() {
-            mInOverview = false;
-            enableMultipleRegions(false);
-        }
+    private final Runnable mExitOverviewRunnable = () -> {
+        mInOverview = false;
+        enableMultipleRegions(false);
     };
 
     /**
@@ -146,9 +154,22 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
         //  default display.
         mDisplayId = DEFAULT_DISPLAY;
 
+        // Create a display-associated context for APIs that call context.getDisplay().
+        // Application contexts are non-visual and throw UnsupportedOperationException.
+        Context displayContext;
+        try {
+            context.getDisplay();
+            displayContext = context;
+        } catch (UnsupportedOperationException e) {
+            DisplayManager dm = context.getSystemService(DisplayManager.class);
+            Display display = dm.getDisplay(DEFAULT_DISPLAY);
+            displayContext = display != null ? context.createDisplayContext(display) : context;
+        }
+        Context finalDisplayContext = displayContext;
+
         Resources resources = mContext.getResources();
         mOrientationTouchTransformer = new OrientationTouchTransformer(resources, mMode,
-                () -> QuickStepContract.getWindowCornerRadius(mContext));
+                () -> QuickStepContractCompat.getWindowCornerRadius(finalDisplayContext));
 
         // Register for navigation mode and rotation changes
         mDisplayController.addChangeListenerForDisplay(this, mDisplayId);
@@ -178,8 +199,7 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
         lifeCycle.addCloseable(() -> {
             mDisplayController.removeChangeListenerForDisplay(this, mDisplayId);
             mOrientationListener.disable();
-            TaskStackChangeListeners.getInstance()
-                    .unregisterTaskStackListener(mFrozenTaskListener);
+            ActivityTaskManagerCompat.unregisterTaskStackListener(mFrozenTaskListener);
         });
     }
 
@@ -265,11 +285,13 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
                     mDisplayController.getInfoForDisplay(mDisplayId),
                     mContext.getResources());
 
-            TaskStackChangeListeners.getInstance()
-                    .unregisterTaskStackListener(mFrozenTaskListener);
-            if (hasGestures(newMode)) {
-                TaskStackChangeListeners.getInstance()
-                        .registerTaskStackListener(mFrozenTaskListener);
+            try {
+                ActivityTaskManagerCompat.unregisterTaskStackListener(mFrozenTaskListener);
+                if (hasGestures(newMode)) {
+                    ActivityTaskManagerCompat.registerTaskStackListener(mFrozenTaskListener);
+                }
+            } catch (SecurityException e) {
+                // MANAGE_ACTIVITY_TASKS not available for non-system apps
             }
             mMode = newMode;
         }

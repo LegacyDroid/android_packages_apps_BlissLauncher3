@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/blur/BlurBackgroundView.kt
+ * Module:  bliss root app source-set
+ * Role:    View rendering blur wallpaper in background with wallpaper scroll support.
+ */
 package foundation.e.bliss.blur
 
 import android.content.Context
@@ -40,7 +45,9 @@ class BlurBackgroundView(context: Context, attrs: AttributeSet?) :
         mBlurDelegate.draw(canvas)
     }
 
-    override fun setInsets(insets: Rect) {}
+    override fun setInsets(insets: Rect) {
+        // no-op: this background view ignores insets; positioning is handled by parent layout
+    }
 
     override val offsetX: Float
         get() = translationX

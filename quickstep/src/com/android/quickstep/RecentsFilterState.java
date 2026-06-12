@@ -126,7 +126,7 @@ public class RecentsFilterState {
             return getDesktopTaskFilter();
         }
 
-        return (groupTask) -> (groupTask.containsPackage(packageName)
+        return groupTask -> (groupTask.containsPackage(packageName)
                 && shouldKeepGroupTask(groupTask));
     }
 
@@ -135,7 +135,7 @@ public class RecentsFilterState {
      * unless the multiple desks feature is enabled, which allows empty desks.
      */
     public static Predicate<GroupTask> getDesktopTaskFilter() {
-        return (groupTask -> shouldKeepGroupTask(groupTask));
+        return RecentsFilterState::shouldKeepGroupTask;
     }
 
     /**

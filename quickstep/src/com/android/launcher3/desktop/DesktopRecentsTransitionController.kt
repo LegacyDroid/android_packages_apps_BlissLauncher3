@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.desktop
 
 import android.app.IApplicationThread
@@ -34,7 +42,7 @@ import com.android.quickstep.util.DesksUtils.Companion.areMultiDesksFlagsEnabled
 import com.android.quickstep.views.DesktopTaskView
 import com.android.quickstep.views.TaskContainer
 import com.android.quickstep.views.TaskView
-import com.android.window.flags.Flags
+import foundation.e.bliss.compat.desktop.DesktopFlagsCompat
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource
 import java.util.function.Consumer
 
@@ -60,7 +68,11 @@ class DesktopRecentsTransitionController(
                 depthController,
                 callback,
             )
-        val transition = RemoteTransition(animRunner, appThread, "RecentsToDesktop")
+        val transition = if (android.os.Build.VERSION.SDK_INT >= 36) {
+            RemoteTransition(animRunner, appThread, "RecentsToDesktop")
+        } else {
+            RemoteTransition(animRunner)
+        }
         if (areMultiDesksFlagsEnabled()) {
             systemUiProxy.activateDesk(desktopTaskView.deskId, transition)
         } else {
@@ -109,7 +121,7 @@ class DesktopRecentsTransitionController(
                 }
             }
 
-            if (Flags.enableDesktopWindowingPersistence()) {
+            if (DesktopFlagsCompat.enableDesktopWindowingPersistence()) {
                 handleAnimationAfterReboot(info)
             }
             MAIN_EXECUTOR.execute {

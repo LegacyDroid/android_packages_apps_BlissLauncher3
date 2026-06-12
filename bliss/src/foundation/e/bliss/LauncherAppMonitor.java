@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/LauncherAppMonitor.java
+ * Module:  bliss root app source-set
+ * Role:    Singleton monitoring launcher lifecycle and system events with callback registry.
+ */
 package foundation.e.bliss;
 
 import static android.content.pm.ActivityInfo.CONFIG_LOCALE;
@@ -133,6 +138,12 @@ public class LauncherAppMonitor extends LauncherApps.Callback
     public void onLauncherPreCreate(Launcher launcher) {
         if (mLauncher != null) {
             onLauncherDestroy(mLauncher);
+        }
+        // Audit01 #11: tear down the per-launcher GridFolderController explicitly
+        // before the new launcher's onLauncherCreated runs.
+        if (mGridFolderController != null) {
+            mGridFolderController.release();
+            mGridFolderController = null;
         }
         mLauncher = launcher;
 
@@ -505,25 +516,37 @@ public class LauncherAppMonitor extends LauncherApps.Callback
 
     @Override
     public void dump(@Nullable String prefix, @Nullable FileDescriptor fd, @Nullable PrintWriter w, boolean dumpAll) {
+        // no-op default; concrete LauncherAppMonitorCallback subclasses override what
+        // they care about
     }
 
     @Override
     public void onLauncherLocaleChanged() {
+        // no-op default; concrete LauncherAppMonitorCallback subclasses override what
+        // they care about
     }
 
     @Override
     public void onLauncherOrientationChanged() {
+        // no-op default; concrete LauncherAppMonitorCallback subclasses override what
+        // they care about
     }
 
     @Override
     public void onLauncherScreensizeChanged() {
+        // no-op default; concrete LauncherAppMonitorCallback subclasses override what
+        // they care about
     }
 
     @Override
     public void onAppSharedPreferenceChanged(@Nullable String key) {
+        // no-op default; concrete LauncherAppMonitorCallback subclasses override what
+        // they care about
     }
 
     @Override
     public void close() {
+        // no-op default; concrete LauncherAppMonitorCallback subclasses override what
+        // they care about
     }
 }

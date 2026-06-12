@@ -191,15 +191,13 @@ public class DropTargetBar extends FrameLayout
 
             int widthSpec = MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.AT_MOST);
             firstButton.measure(widthSpec, heightSpec);
-            if (!mIsVertical) {
-                // Remove both icons and put the button's text on two lines if text is truncated.
-                if (firstButton.isTextTruncated(availableWidth)) {
-                    firstButton.setIconVisible(false);
-                    secondButton.setIconVisible(false);
-                    firstButton.setTextMultiLine(true);
-                    firstButton.setPadding(horizontalPadding, verticalPadding / 2,
-                            horizontalPadding, verticalPadding / 2);
-                }
+            // Remove both icons and put the button's text on two lines if text is truncated.
+            if (!mIsVertical && firstButton.isTextTruncated(availableWidth)) {
+                firstButton.setIconVisible(false);
+                secondButton.setIconVisible(false);
+                firstButton.setTextMultiLine(true);
+                firstButton.setPadding(horizontalPadding, verticalPadding / 2,
+                        horizontalPadding, verticalPadding / 2);
             }
 
             if (!dp.isTwoPanels) {
@@ -207,15 +205,13 @@ public class DropTargetBar extends FrameLayout
                 widthSpec = MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.AT_MOST);
             }
             secondButton.measure(widthSpec, heightSpec);
-            if (!mIsVertical) {
-                // Remove both icons and put the button's text on two lines if text is truncated.
-                if (secondButton.isTextTruncated(availableWidth)) {
-                    secondButton.setIconVisible(false);
-                    firstButton.setIconVisible(false);
-                    secondButton.setTextMultiLine(true);
-                    secondButton.setPadding(horizontalPadding, verticalPadding / 2,
-                            horizontalPadding, verticalPadding / 2);
-                }
+            // Remove both icons and put the button's text on two lines if text is truncated.
+            if (!mIsVertical && secondButton.isTextTruncated(availableWidth)) {
+                secondButton.setIconVisible(false);
+                firstButton.setIconVisible(false);
+                secondButton.setTextMultiLine(true);
+                secondButton.setPadding(horizontalPadding, verticalPadding / 2,
+                        horizontalPadding, verticalPadding / 2);
             }
 
             // If text is still truncated, shrink to fit in measured width and resize both targets.

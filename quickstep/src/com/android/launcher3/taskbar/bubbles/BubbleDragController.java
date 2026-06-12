@@ -203,21 +203,7 @@ public class BubbleDragController {
 
             @Override
             protected void onDragRelease() {
-                if (BubbleAnythingFlagHelper.enableBubbleToFullscreen()) {
-                    mDropTargetManager.onDragEnded();
-                    if (!mBubbleDragZoneChangedListener.isDraggedToFullscreen()) {
-                        // TODO b/393173014: check for desktop window and split once they're
-                        //  implemented. this notifies wm shell that the dragged bubble was
-                        //  released so that we can show the expanded view. we only want to show it
-                        //  after releasing in a Bubble zone. But Split and Desktop Window aren't
-                        //  implemented yet, so we only check for full screen for now.
-                        mBubbleBarViewController.onBubbleDragRelease(
-                                getBubbleBarLocationDuringDrag());
-                    }
-                } else {
-                    mBubblePinController.onDragEnd();
-                    mBubbleBarViewController.onBubbleDragRelease(getBubbleBarLocationDuringDrag());
-                }
+                handleBubbleDragRelease(getBubbleBarLocationDuringDrag());
             }
 
             @Override
@@ -235,15 +221,7 @@ public class BubbleDragController {
             void onDragEnd(float x, float y) {
                 mBubbleBarController.updateBubbleBarLocation(getBubbleBarLocationDuringDrag(),
                         BubbleBarLocation.UpdateSource.DRAG_BUBBLE);
-                if (BubbleAnythingFlagHelper.enableBubbleToFullscreen()) {
-                    mDropTargetManager.onDragEnded();
-                    if (mBubbleDragZoneChangedListener.isDraggedToFullscreen()) {
-                        mBubbleBarViewController.moveDraggedBubbleToFullscreen(
-                                bubbleView, new Point((int) x, (int) y));
-                    }
-                } else {
-                    mBubblePinController.setListener(null);
-                }
+                handleBubbleDragEnd(bubbleView, x, y);
                 mBubbleBarViewController.onBubbleDragEnd();
             }
 
@@ -253,6 +231,35 @@ public class BubbleDragController {
                         getInitialPosition(), getBubbleBarLocationDuringDrag());
             }
         });
+    }
+
+    private void handleBubbleDragRelease(BubbleBarLocation locationDuringDrag) {
+        if (BubbleAnythingFlagHelper.enableBubbleToFullscreen()) {
+            mDropTargetManager.onDragEnded();
+            if (!mBubbleDragZoneChangedListener.isDraggedToFullscreen()) {
+                // TODO b/393173014: check for desktop window and split once they're
+                //  implemented. this notifies wm shell that the dragged bubble was
+                //  released so that we can show the expanded view. we only want to show it
+                //  after releasing in a Bubble zone. But Split and Desktop Window aren't
+                //  implemented yet, so we only check for full screen for now.
+                mBubbleBarViewController.onBubbleDragRelease(locationDuringDrag);
+            }
+        } else {
+            mBubblePinController.onDragEnd();
+            mBubbleBarViewController.onBubbleDragRelease(locationDuringDrag);
+        }
+    }
+
+    private void handleBubbleDragEnd(BubbleView bubbleView, float x, float y) {
+        if (BubbleAnythingFlagHelper.enableBubbleToFullscreen()) {
+            mDropTargetManager.onDragEnded();
+            if (mBubbleDragZoneChangedListener.isDraggedToFullscreen()) {
+                mBubbleBarViewController.moveDraggedBubbleToFullscreen(
+                        bubbleView, new Point((int) x, (int) y));
+            }
+        } else {
+            mBubblePinController.setListener(null);
+        }
     }
 
     /**
@@ -288,17 +295,7 @@ public class BubbleDragController {
                 // it should be centered in order to align it with the dismiss target view
                 bubbleBarView.setRelativePivot(/* x = */ 0.5f, /* y = */ 0.5f);
                 bubbleBarView.setIsDragging(true);
-                if (BubbleAnythingFlagHelper.enableBubbleToFullscreen()) {
-                    DraggedObject.BubbleBar draggedBubbleBar = new DraggedObject.BubbleBar(
-                            mBubbleBarViewController.getBubbleBarLocation());
-                    mDropTargetManager.onDragStarted(draggedBubbleBar,
-                            mDragZoneFactory.createSortedDragZones(draggedBubbleBar));
-                } else {
-                    mBubbleBarPinController.setListener(mLocationChangeListener);
-                    mBubbleBarPinController.onDragStart(
-                            bubbleBarView.getBubbleBarLocation().isOnLeft(
-                                    bubbleBarView.isLayoutRtl()));
-                }
+                handleBubbleBarDragStart(bubbleBarView, mLocationChangeListener);
             }
 
             @Override
@@ -314,20 +311,12 @@ public class BubbleDragController {
 
             @Override
             protected void onDragRelease() {
-                if (BubbleAnythingFlagHelper.enableBubbleToFullscreen()) {
-                    mDropTargetManager.onDragEnded();
-                } else {
-                    mBubbleBarPinController.onDragEnd();
-                }
+                endBubbleBarDragOrPin();
             }
 
             @Override
             protected void onDragDismiss() {
-                if (BubbleAnythingFlagHelper.enableBubbleToFullscreen()) {
-                    mDropTargetManager.onDragEnded();
-                } else {
-                    mBubbleBarPinController.onDragEnd();
-                }
+                endBubbleBarDragOrPin();
             }
 
             @Override
@@ -352,6 +341,29 @@ public class BubbleDragController {
                         getInitialPosition(), getBubbleBarLocationDuringDrag());
             }
         });
+    }
+
+    private void handleBubbleBarDragStart(BubbleBarView bubbleBarView,
+            LocationChangeListener locationChangeListener) {
+        if (BubbleAnythingFlagHelper.enableBubbleToFullscreen()) {
+            DraggedObject.BubbleBar draggedBubbleBar = new DraggedObject.BubbleBar(
+                    mBubbleBarViewController.getBubbleBarLocation());
+            mDropTargetManager.onDragStarted(draggedBubbleBar,
+                    mDragZoneFactory.createSortedDragZones(draggedBubbleBar));
+        } else {
+            mBubbleBarPinController.setListener(locationChangeListener);
+            mBubbleBarPinController.onDragStart(
+                    bubbleBarView.getBubbleBarLocation().isOnLeft(
+                            bubbleBarView.isLayoutRtl()));
+        }
+    }
+
+    private void endBubbleBarDragOrPin() {
+        if (BubbleAnythingFlagHelper.enableBubbleToFullscreen()) {
+            mDropTargetManager.onDragEnded();
+        } else {
+            mBubbleBarPinController.onDragEnd();
+        }
     }
 
     /** Whether there is an item being dragged or not. */
@@ -520,6 +532,10 @@ public class BubbleDragController {
                 case DRAGGING:
                     drag(view, event, dx, dy, rawX, rawY);
                     break;
+                case IDLE, CANCELLED:
+                default:
+                    // No move handling required when idle or already cancelled.
+                    break;
             }
         }
 
@@ -679,6 +695,8 @@ public class BubbleDragController {
         }
 
         @Override
-        public void onDragEnded(@NonNull DragZone zone) {}
+        public void onDragEnded(@NonNull DragZone zone) {
+            // no-op: end-of-drag cleanup is handled by the outer drag controller
+        }
     }
 }

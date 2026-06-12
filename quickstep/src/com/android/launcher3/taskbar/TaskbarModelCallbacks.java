@@ -217,11 +217,9 @@ public class TaskbarModelCallbacks implements
     public void setDeferUpdatesForSUW(boolean defer) {
         mDeferUpdatesForSUW = defer;
 
-        if (!mDeferUpdatesForSUW) {
-            if (mDeferredUpdates != null) {
-                mContainer.post(mDeferredUpdates);
-                mDeferredUpdates = null;
-            }
+        if (!mDeferUpdatesForSUW && mDeferredUpdates != null) {
+            mContainer.post(mDeferredUpdates);
+            mDeferredUpdates = null;
         }
     }
 

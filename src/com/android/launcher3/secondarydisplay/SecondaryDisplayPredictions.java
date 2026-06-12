@@ -38,11 +38,13 @@ public class SecondaryDisplayPredictions implements ResourceBasedOverride {
      * Setup/update app divider separating app predictions from All Apps.
      */
     void updateAppDivider() {
+        // No-op by default; overridden by Quickstep variant.
     }
 
     /**
      * Set predicted apps in top of app drawer.
      */
     public void setPredictedApps(BgDataModel.FixedContainerItems item) {
+        // No-op by default; overridden by Quickstep variant.
     }
 }

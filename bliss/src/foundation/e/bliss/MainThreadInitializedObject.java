@@ -13,6 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * File:    bliss/src/foundation/e/bliss/MainThreadInitializedObject.java
+ * Module:  bliss root app source-set
+ * Role:    Thread-safe singleton wrapper ensuring objects are lazily initialized on the main thread.
+ */
 package foundation.e.bliss;
 
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
@@ -62,8 +67,11 @@ public class MainThreadInitializedObject<T> {
             } else {
                 try {
                     return MAIN_EXECUTOR.submit(() -> get(context)).get();
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException(e);
+                } catch (ExecutionException e) {
+                    throw new IllegalStateException(e);
                 }
             }
         }
@@ -100,14 +108,14 @@ public class MainThreadInitializedObject<T> {
 
         private static final String TAG = "SandboxContext";
 
-        protected final Set<MainThreadInitializedObject> mAllowedObjects;
-        protected final Map<MainThreadInitializedObject, Object> mObjectMap = new HashMap<>();
+        protected final Set<MainThreadInitializedObject<?>> mAllowedObjects;
+        protected final Map<MainThreadInitializedObject<?>, Object> mObjectMap = new HashMap<>();
         protected final ArrayList<Object> mOrderedObjects = new ArrayList<>();
 
         private final Object mDestroyLock = new Object();
         private boolean mDestroyed = false;
 
-        public SandboxContext(Context base, MainThreadInitializedObject... allowedObjects) {
+        public SandboxContext(Context base, MainThreadInitializedObject<?>... allowedObjects) {
             super(base);
             mAllowedObjects = new HashSet<>(Arrays.asList(allowedObjects));
         }
@@ -159,8 +167,11 @@ public class MainThreadInitializedObject<T> {
 
             try {
                 return MAIN_EXECUTOR.submit(() -> getObject(object)).get();
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException(e);
+            } catch (ExecutionException e) {
+                throw new IllegalStateException(e);
             }
         }
 

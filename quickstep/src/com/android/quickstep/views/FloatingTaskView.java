@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.quickstep.QuickStepContractCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep.views;
 
 import static com.android.app.animation.Interpolators.LINEAR;
@@ -48,7 +56,7 @@ import com.android.quickstep.util.AnimUtils;
 import com.android.quickstep.util.MultiValueUpdateListener;
 import com.android.quickstep.util.SplitAnimationTimings;
 import com.android.quickstep.util.TaskCornerRadius;
-import com.android.systemui.shared.system.QuickStepContract;
+import foundation.e.bliss.compat.quickstep.QuickStepContractCompat;
 
 /**
  * Create an instance via
@@ -316,15 +324,13 @@ public class FloatingTaskView extends FrameLayout {
 
             // SplitPlaceholderView: gray background fades in at same time, then new icon fades in
             fadeInSplitPlaceholder(animation, timings);
-        } else if (isStagedTask) {
+        } else if (isStagedTask && mSplitPlaceholderView.getAlpha() == 0) {
             // This code block runs for the placeholder view during Normal > OverviewSplitSelect
             // and for the placeholder (primary) thumbnail during OverviewSplitSelect > Confirmed
 
             // Fade in the placeholder view during Normal > OverviewSplitSelect
-            if (mSplitPlaceholderView.getAlpha() == 0) {
-                mSplitPlaceholderView.getIconView().setContentAlpha(0);
-                fadeInSplitPlaceholder(animation, timings);
-            }
+            mSplitPlaceholderView.getIconView().setContentAlpha(0);
+            fadeInSplitPlaceholder(animation, timings);
 
             // No-op for placeholder during OverviewSplitSelect > Confirmed, alpha should be set
         }
@@ -429,15 +435,15 @@ public class FloatingTaskView extends FrameLayout {
 
         private final float mCornerRadius;
         private final float mWindowCornerRadius;
-        public boolean mIsStagedTask;
+        private boolean mIsStagedTask;
         public final RectF mBounds = new RectF();
-        public float mCurrentDrawnCornerRadius;
-        public float mScaleX = 1;
-        public float mScaleY = 1;
+        private float mCurrentDrawnCornerRadius;
+        private float mScaleX = 1;
+        private float mScaleY = 1;
 
         public FullscreenDrawParams(Context context) {
             mCornerRadius = TaskCornerRadius.get(context);
-            mWindowCornerRadius = QuickStepContract.getWindowCornerRadius(context);
+            mWindowCornerRadius = QuickStepContractCompat.getWindowCornerRadius(context);
 
             mCurrentDrawnCornerRadius = mCornerRadius;
         }

@@ -14,6 +14,14 @@
  * limitations under the License.
  */
 
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.LineageSettingsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3;
 
 import static com.android.app.animation.Interpolators.LINEAR;
@@ -56,6 +64,7 @@ import androidx.core.content.res.ResourcesCompat;
 
 import com.android.launcher3.CellLayout.ContainerType;
 import com.android.launcher3.DevicePaddings.DevicePadding;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.folder.ClippedFolderIconLayoutRule;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.DotRenderer;
@@ -85,6 +94,7 @@ import java.util.Locale;
 import java.util.function.Consumer;
 
 import foundation.e.bliss.multimode.MultiModeController;
+import foundation.e.bliss.compat.platform.LineageSettingsCompat;
 import lineageos.providers.LineageSettings;
 
 @SuppressLint("NewApi")
@@ -150,18 +160,6 @@ public class DeviceProfile {
     private CalculatedCellSpec mResponsiveAllAppsCellSpec;
 
     private boolean isNoHintGesture = false;
-
-    /**
-     * The maximum amount of left/right workspace padding as a percentage of the screen width.
-     * To be clear, this means that up to 7% of the screen width can be used as left padding, and
-     * 7% of the screen width can be used as right padding.
-     */
-    private static final float MAX_HORIZONTAL_PADDING_PERCENT = 0.14f;
-
-    private static final float TALL_DEVICE_ASPECT_RATIO_THRESHOLD = 2.0f;
-    private static final float TALLER_DEVICE_ASPECT_RATIO_THRESHOLD = 2.15f;
-    private static final float TALL_DEVICE_EXTRA_SPACE_THRESHOLD_DP = 252;
-    private static final float TALL_DEVICE_MORE_EXTRA_SPACE_THRESHOLD_DP = 268;
 
     // Workspace
     public final int desiredWorkspaceHorizontalMarginOriginalPx;
@@ -401,8 +399,8 @@ public class DeviceProfile {
         isTransientTaskbar = false;
     }
 
-    private final static boolean FORCE_SHOW_LABELS = false;
-    private final static boolean FORCE_LAYOUT_ALL_HOTSEAT_ICONS = true;
+    private static final boolean FORCE_SHOW_LABELS = false;
+    private static final boolean FORCE_LAYOUT_ALL_HOTSEAT_ICONS = true;
 
     /** TODO: Once we fully migrate to staged split, remove "isMultiWindowMode" */
     DeviceProfile(Context context, InvariantDeviceProfile inv, Info info,
@@ -444,7 +442,7 @@ public class DeviceProfile {
         isTaskbarPresent = (isTablet || (taskbarOrBubbleBarOnPhones && isGestureMode))
                 && wmProxy.isTaskbarDrawnInProcess();
 
-        isNoHintGesture = isGestural() && LineageSettings.System.getInt(
+        isNoHintGesture = isGestural() && LineageSettingsCompat.getSystemInt(
                 context.getContentResolver(), LineageSettings.System.NAVIGATION_BAR_HINT, 0) != 1;
 
         // Some more constants.
@@ -639,11 +637,6 @@ public class DeviceProfile {
         hotseatQsbShadowHeight = res.getDimensionPixelSize(R.dimen.qsb_shadow_height);
         hotseatQsbVisualHeight = hotseatQsbHeight - 2 * hotseatQsbShadowHeight;
 
-        // Whether QSB might be inline in appropriate orientation (e.g. landscape).
-        boolean canQsbInline = (isTwoPanels ? inv.inlineQsb[INDEX_TWO_PANEL_PORTRAIT]
-                || inv.inlineQsb[INDEX_TWO_PANEL_LANDSCAPE]
-                : inv.inlineQsb[INDEX_DEFAULT] || inv.inlineQsb[INDEX_LANDSCAPE])
-                && hotseatQsbHeight > 0;
         isQsbInline = isQsbInline(inv);
 
         areNavButtonsInline = isTaskbarPresent && !isGestureMode;
@@ -975,6 +968,21 @@ public class DeviceProfile {
                     res.getDimensionPixelSize(R.dimen.dynamic_grid_hotseat_side_padding);
         }
 
+        // Apply user-supplied dock-bottom-space multiplier (Lawnchair-imported
+        // or set in BlissLauncher Settings). 100 = no change, 50 = half the
+        // bottom space, 170 = 1.7x. Only applies in non-vertical bar layouts.
+        if (!isVerticalBarLayout()) {
+            try {
+                int factor = LauncherComponentProvider.get(context)
+                        .getLauncherPrefs().get(LauncherPrefs.HOTSEAT_BOTTOM_FACTOR);
+                if (factor != 100 && factor >= 0 && factor <= 170) {
+                    hotseatBarBottomSpace = (hotseatBarBottomSpace * factor) / 100;
+                }
+            } catch (Exception ignored) {
+                // Intentionally ignored.
+            }
+        }
+
         if (!isVerticalBarLayout()) {
             // Have a little space between the inset and the QSB
             if (mInsets.bottom + minQsbMargin > hotseatBarBottomSpace && !areNavButtonsInline) {
@@ -1250,7 +1258,7 @@ public class DeviceProfile {
             // The benefit of scalable grids is that we can get consistent aspect ratios between
             // devices.
             float usedWidth =
-                    getCellLayoutWidthSpecification() + (desiredWorkspaceHorizontalMarginPx * 2);
+                    getCellLayoutWidthSpecification() + ((float) desiredWorkspaceHorizontalMarginPx * 2);
             // We do not subtract padding here, as we also scale the workspace padding if needed.
             scaleX = availableWidthPx / usedWidth;
             shouldScale = true;
@@ -1461,7 +1469,7 @@ public class DeviceProfile {
         int numBorders = (numShownHotseatIcons - 1 + numExtraBorder);
         if (numBorders <= 0) return 0;
 
-        float hotseatIconsTotalPx = iconSizePx * numShownHotseatIcons;
+        float hotseatIconsTotalPx = (float) iconSizePx * numShownHotseatIcons;
         int hotseatBorderSpacePx = (int) (hotseatWidthPx - hotseatIconsTotalPx) / numBorders;
         int result = Math.min(hotseatBorderSpacePx, mMaxHotseatIconSpacePx);
         return Math.max(result, 0);
@@ -1595,6 +1603,24 @@ public class DeviceProfile {
                     Math.max(0, desiredWorkspaceHorizontalMarginPx + cellLayoutHorizontalPadding
                             - (allAppsBorderSpacePx.x / 2));
         }
+
+        // Apply user-controlled drawer cell-height + side-margin factors
+        // (Lawnchair parity). 100 = no change.
+        try {
+            LauncherPrefs prefs = LauncherComponentProvider.get(context).getLauncherPrefs();
+            int cellF = prefs.get(LauncherPrefs.DRAWER_CELL_HEIGHT_FACTOR);
+            int marginF = prefs.get(LauncherPrefs.DRAWER_LEFT_RIGHT_MARGIN_FACTOR);
+            if (cellF != 100 && cellF >= 30 && cellF <= 150) {
+                allAppsCellHeightPx = (allAppsCellHeightPx * cellF) / 100;
+            }
+            if (marginF != 100 && marginF >= 0 && marginF <= 150) {
+                allAppsLeftRightMargin = (allAppsLeftRightMargin * marginF) / 100;
+                allAppsPadding.left = (allAppsPadding.left * marginF) / 100;
+                allAppsPadding.right = (allAppsPadding.right * marginF) / 100;
+            }
+        } catch (Exception ignored) {
+            // Intentionally ignored.
+        }
     }
 
     /** Whether All Apps should be presented on a bottom sheet. */
@@ -1649,7 +1675,6 @@ public class DeviceProfile {
             folderChildTextSizePx = mResponsiveWorkspaceCellSpec.getIconTextSize();
             folderLabelTextSizePx = Math.max(minLabelTextSize,
                     (int) (folderChildTextSizePx * folderLabelTextScale));
-            int textHeight = Utilities.calculateTextHeight(folderChildTextSizePx);
 
             folderCellWidthPx = mResponsiveFolderWidthSpec.getCellSizePx();
             folderCellHeightPx = mResponsiveFolderHeightSpec.getCellSizePx();
@@ -1688,6 +1713,18 @@ public class DeviceProfile {
         folderChildTextSizePx = pxFromSp(invIconTextSizeDp, mMetrics, scale);
         folderLabelTextSizePx = Math.max(minLabelTextSize,
                 (int) (folderChildTextSizePx * folderLabelTextScale));
+        // Apply user-supplied folder label size factor (50-200, percent;
+        // 100 = default). Lawnchair-imported or set in BlissLauncher Settings.
+        try {
+            int folderLabelFactor = LauncherComponentProvider.get(context)
+                    .getLauncherPrefs().get(LauncherPrefs.FOLDER_LABEL_SIZE_FACTOR);
+            if (folderLabelFactor > 0 && folderLabelFactor != 100) {
+                folderLabelTextSizePx = Math.max(minLabelTextSize,
+                        (folderLabelTextSizePx * folderLabelFactor) / 100);
+            }
+        } catch (Exception ignored) {
+            // Intentionally ignored.
+        }
         int textHeight = Utilities.calculateTextHeight(folderChildTextSizePx);
 
         if (mIsScalableGrid) {
@@ -1825,7 +1862,7 @@ public class DeviceProfile {
         // Reduce scale if next pages would not be visible after scaling the workspace.
         int workspaceWidth = availableWidthPx;
         float scaledWorkspaceWidth = workspaceWidth * scale;
-        float maxAvailableWidth = workspaceWidth - (2 * workspaceSpringLoadedMinNextPageVisiblePx);
+        float maxAvailableWidth = (float) workspaceWidth - (2 * workspaceSpringLoadedMinNextPageVisiblePx);
         if (scaledWorkspaceWidth > maxAvailableWidth) {
             scale *= maxAvailableWidth / scaledWorkspaceWidth;
         }
@@ -1888,14 +1925,35 @@ public class DeviceProfile {
                 }
             }
         } else {
+            // User-controlled compaction factors (Bliss prefs). 100 = no change.
+            int topF = 100;
+            int botF = 100;
+            int piF = 100;
+            try {
+                LauncherPrefs prefs = LauncherComponentProvider.get(context).getLauncherPrefs();
+                topF = prefs.get(LauncherPrefs.WORKSPACE_TOP_PADDING_FACTOR);
+                botF = prefs.get(LauncherPrefs.WORKSPACE_BOTTOM_PADDING_FACTOR);
+                piF = prefs.get(LauncherPrefs.PAGE_INDICATOR_HEIGHT_FACTOR);
+            } catch (Exception ignored) {
+                // Intentionally ignored.
+            }
+
+            int effectiveWorkspaceTopPadding = (workspaceTopPadding * topF) / 100;
+            int effectiveWorkspaceBottomPadding = (workspaceBottomPadding * botF) / 100;
+            int effectivePageIndicatorHeight = (workspacePageIndicatorHeight * piF) / 100;
+
             // Pad the bottom of the workspace with hotseat bar
             // and leave a bit of space in case a widget go all the way down
-            int paddingBottom = hotseatBarSizePx + workspaceBottomPadding - mInsets.bottom;
+            int paddingBottom =
+                    hotseatBarSizePx + effectiveWorkspaceBottomPadding - mInsets.bottom;
             if (!mIsResponsiveGrid) {
                 paddingBottom +=
-                        workspacePageIndicatorHeight - mWorkspacePageIndicatorOverlapWorkspace;
+                        effectivePageIndicatorHeight - mWorkspacePageIndicatorOverlapWorkspace;
             }
-            int paddingTop = workspaceTopPadding + (mIsScalableGrid ? 0 : edgeMarginPx);
+            // Never let the bottom padding sink below the system inset.
+            paddingBottom = Math.max(paddingBottom, 0);
+            int paddingTop = effectiveWorkspaceTopPadding + (mIsScalableGrid ? 0 : edgeMarginPx);
+            paddingTop = Math.max(paddingTop, 0);
             int paddingLeft = desiredWorkspaceHorizontalMarginPx;
             int paddingRight = desiredWorkspaceHorizontalMarginPx;
 
@@ -1991,9 +2049,9 @@ public class DeviceProfile {
     public Rect getHotseatLayoutPadding(Context context) {
         // Make sure to update all relevant sizes for cutout and orientation
         int hotseatIconSizePx = pxFromDp(inv.iconSize[mTypeIndex], mMetrics);
-        boolean isTaskbarPresent = this.isTaskbarPresent &&
+        boolean taskbarPresent = this.isTaskbarPresent &&
                 SettingsCache.INSTANCE.get(context).getValue(ENABLE_TASKBAR, 1);
-        if (!isTaskbarPresent && isNoHintGesture) {
+        if (!taskbarPresent && isNoHintGesture) {
             hotseatIconSizePx = (int) (hotseatIconSizePx / 1.2f);
         }
         updateHotseatSizes(hotseatIconSizePx);
@@ -2041,7 +2099,7 @@ public class DeviceProfile {
             } else {
                 hotseatBarPadding.left += qsbWidth;
             }
-        } else if (isTaskbarPresent) {
+        } else if (taskbarPresent) {
             // Center the QSB vertically with hotseat
             int hotseatBarBottomPadding = getHotseatBarBottomPadding();
             int hotseatBarTopPadding =

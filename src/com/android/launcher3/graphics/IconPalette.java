@@ -25,10 +25,13 @@ import com.android.launcher3.util.Themes;
  * Contains colors based on the dominant color of an icon.
  */
 public class IconPalette {
-    private static final String TAG = "IconPalette";
 
     private static final float MIN_PRELOAD_COLOR_SATURATION = 0.2f;
     private static final float MIN_PRELOAD_COLOR_LIGHTNESS = 0.6f;
+
+    private IconPalette() {
+        // Utility class, do not instantiate.
+    }
 
     /**
      * Returns a color suitable for the progress bar color of preload icon.

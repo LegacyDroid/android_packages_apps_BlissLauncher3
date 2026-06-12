@@ -66,7 +66,9 @@ class BubbleBarLocationDropTarget(
         )
     }
 
-    override fun onDragEnter(dragObject: DropTarget.DragObject) {}
+    override fun onDragEnter(dragObject: DropTarget.DragObject) {
+        // no-op: enter is handled lazily on first onDragOver
+    }
 
     override fun onDragOver(dragObject: DropTarget.DragObject) {
         if (isShowingDropTarget) return
@@ -82,7 +84,9 @@ class BubbleBarLocationDropTarget(
 
     override fun acceptDrop(dragObject: DropTarget.DragObject): Boolean = true
 
-    override fun prepareAccessibilityDrop() {}
+    override fun prepareAccessibilityDrop() {
+        // no-op: no accessibility-specific preparation needed
+    }
 
     override fun getHitRectRelativeToDragLayer(outRect: Rect) {
         bubbleBarDragListener.getBubbleBarLocationHitRect(bubbleBarLocation, outRect)

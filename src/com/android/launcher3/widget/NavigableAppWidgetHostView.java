@@ -54,7 +54,7 @@ public abstract class NavigableAppWidgetHostView extends AppWidgetHostView
 
     private boolean mDisableSetPadding = false;
 
-    public NavigableAppWidgetHostView(Context context) {
+    protected NavigableAppWidgetHostView(Context context) {
         super(context);
         mActivity = ActivityContext.lookupContext(context);
     }
@@ -87,28 +87,26 @@ public abstract class NavigableAppWidgetHostView extends AppWidgetHostView
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (event.isTracking()) {
-            if (!mChildrenFocused && keyCode == KeyEvent.KEYCODE_ENTER) {
-                mChildrenFocused = true;
-                ArrayList<View> focusableChildren = getFocusables(FOCUS_FORWARD);
-                focusableChildren.remove(this);
-                int childrenCount = focusableChildren.size();
-                switch (childrenCount) {
-                    case 0:
+        if (event.isTracking() && !mChildrenFocused && keyCode == KeyEvent.KEYCODE_ENTER) {
+            mChildrenFocused = true;
+            ArrayList<View> focusableChildren = getFocusables(FOCUS_FORWARD);
+            focusableChildren.remove(this);
+            int childrenCount = focusableChildren.size();
+            switch (childrenCount) {
+                case 0:
+                    mChildrenFocused = false;
+                    break;
+                case 1:
+                    if (shouldAllowDirectClick()) {
+                        focusableChildren.get(0).performClick();
                         mChildrenFocused = false;
-                        break;
-                    case 1: {
-                        if (shouldAllowDirectClick()) {
-                            focusableChildren.get(0).performClick();
-                            mChildrenFocused = false;
-                            return true;
-                        }
-                        // continue;
-                    }
-                    default:
-                        focusableChildren.get(0).requestFocus();
                         return true;
-                }
+                    }
+                    focusableChildren.get(0).requestFocus();
+                    return true;
+                default:
+                    focusableChildren.get(0).requestFocus();
+                    return true;
             }
         }
         return super.onKeyUp(keyCode, event);

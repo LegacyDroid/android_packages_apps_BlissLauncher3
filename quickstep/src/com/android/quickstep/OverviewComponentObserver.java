@@ -24,8 +24,7 @@ import static android.view.Display.DEFAULT_DISPLAY;
 import static com.android.launcher3.Flags.enableOverviewOnConnectedDisplays;
 import static com.android.launcher3.config.FeatureFlags.SEPARATE_RECENTS_ACTIVITY;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
-import static com.android.quickstep.fallback.window.RecentsWindowFlags.enableFallbackOverviewInWindow;
-import static com.android.quickstep.fallback.window.RecentsWindowFlags.enableLauncherOverviewInWindow;
+import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import static com.android.systemui.shared.system.PackageManagerWrapper.ACTION_PREFERRED_ACTIVITY_CHANGED;
 
 import android.content.ActivityNotFoundException;
@@ -194,47 +193,55 @@ public final class OverviewComponentObserver {
                 + ", mIsDefaultHome=" + mIsDefaultHome);
 
         if (!mIsHomeDisabled && (defaultHome == null || mIsDefaultHome)) {
-            // User default home is same as our home app. Use Overview integrated in Launcher.
-            if (enableLauncherOverviewInWindow.isTrue()) {
-                mDefaultDisplayContainerInterface =
-                        mRecentsDisplayModel.getFallbackWindowInterface(DEFAULT_DISPLAY);
-            } else {
-                mDefaultDisplayContainerInterface = LauncherActivityInterface.INSTANCE;
-            }
-            mIsHomeAndOverviewSame = true;
-            mOverviewIntent = mMyHomeIntent;
-            mCurrentHomeIntent.setComponent(mMyHomeIntent.getComponent());
-
-            // Remove any update listener as we don't care about other packages.
-            unregisterOtherHomeAppUpdateReceiver();
+            applyHomeAsOverviewTargets();
         } else {
-            // The default home app is a different launcher. Use the fallback Overview instead.
-            if (enableFallbackOverviewInWindow.isTrue()) {
-                mDefaultDisplayContainerInterface =
-                        mRecentsDisplayModel.getFallbackWindowInterface(DEFAULT_DISPLAY);
-            } else {
-                mDefaultDisplayContainerInterface = FallbackActivityInterface.INSTANCE;
-            }
-            mIsHomeAndOverviewSame = false;
-            mOverviewIntent = mFallbackIntent;
-            mCurrentHomeIntent.setComponent(defaultHome);
-
-            // User's default home app can change as a result of package updates of this app (such
-            // as uninstalling the app or removing the "Launcher" feature in an update).
-            // Listen for package updates of this app (and remove any previously attached
-            // package listener).
-            if (defaultHome == null) {
-                unregisterOtherHomeAppUpdateReceiver();
-            } else if (!defaultHome.getPackageName().equals(mUpdateRegisteredPackage)) {
-                unregisterOtherHomeAppUpdateReceiver();
-
-                mUpdateRegisteredPackage = defaultHome.getPackageName();
-                mOtherHomeAppUpdateReceiver.registerPkgActions(
-                        mUpdateRegisteredPackage, ACTION_PACKAGE_ADDED,
-                        ACTION_PACKAGE_CHANGED, ACTION_PACKAGE_REMOVED);
-            }
+            applyFallbackOverviewTargets(defaultHome);
         }
         mOverviewChangeListeners.forEach(l -> l.onOverviewTargetChange(mIsHomeAndOverviewSame));
+    }
+
+    private void applyHomeAsOverviewTargets() {
+        // User default home is same as our home app. Use Overview integrated in Launcher.
+        if (RecentsWindowFlags.getEnableLauncherOverviewInWindow()) {
+            mDefaultDisplayContainerInterface =
+                    mRecentsDisplayModel.getFallbackWindowInterface(DEFAULT_DISPLAY);
+        } else {
+            mDefaultDisplayContainerInterface = LauncherActivityInterface.INSTANCE;
+        }
+        mIsHomeAndOverviewSame = true;
+        mOverviewIntent = mMyHomeIntent;
+        mCurrentHomeIntent.setComponent(mMyHomeIntent.getComponent());
+
+        // Remove any update listener as we don't care about other packages.
+        unregisterOtherHomeAppUpdateReceiver();
+    }
+
+    private void applyFallbackOverviewTargets(ComponentName defaultHome) {
+        // The default home app is a different launcher. Use the fallback Overview instead.
+        if (RecentsWindowFlags.getEnableFallbackOverviewInWindow()) {
+            mDefaultDisplayContainerInterface =
+                    mRecentsDisplayModel.getFallbackWindowInterface(DEFAULT_DISPLAY);
+        } else {
+            mDefaultDisplayContainerInterface = FallbackActivityInterface.INSTANCE;
+        }
+        mIsHomeAndOverviewSame = false;
+        mOverviewIntent = mFallbackIntent;
+        mCurrentHomeIntent.setComponent(defaultHome);
+
+        // User's default home app can change as a result of package updates of this app (such
+        // as uninstalling the app or removing the "Launcher" feature in an update).
+        // Listen for package updates of this app (and remove any previously attached
+        // package listener).
+        if (defaultHome == null) {
+            unregisterOtherHomeAppUpdateReceiver();
+        } else if (!defaultHome.getPackageName().equals(mUpdateRegisteredPackage)) {
+            unregisterOtherHomeAppUpdateReceiver();
+
+            mUpdateRegisteredPackage = defaultHome.getPackageName();
+            mOtherHomeAppUpdateReceiver.registerPkgActions(
+                    mUpdateRegisteredPackage, ACTION_PACKAGE_ADDED,
+                    ACTION_PACKAGE_CHANGED, ACTION_PACKAGE_REMOVED);
+        }
     }
 
     /**
@@ -302,7 +309,7 @@ public final class OverviewComponentObserver {
     }
 
     public boolean isHomeAndOverviewSameActivity() {
-        return isHomeAndOverviewSame() && !enableLauncherOverviewInWindow.isTrue();
+        return isHomeAndOverviewSame() && !RecentsWindowFlags.getEnableLauncherOverviewInWindow();
     }
 
     /**

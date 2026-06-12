@@ -256,7 +256,7 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
                 }
             } else if (currentScroll > pageToRightScroll - scrollThreshold) {
                 // scroll is far enough from left page to go to the right page
-                animateToPosition(pageToLeft + 1);
+                animateToPosition((float) pageToLeft + 1);
                 if (mShouldAutoHide) {
                     hideAfterDelay();
                 }
@@ -356,11 +356,12 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
             mCurrentPosition = mFinalPosition;
         }
         if (mAnimator == null && Float.compare(mCurrentPosition, position) != 0) {
+            float shiftedPosition = mCurrentPosition > mFinalPosition
+                    ? mCurrentPosition - SHIFT_PER_ANIMATION
+                    : mCurrentPosition + SHIFT_PER_ANIMATION;
             float positionForThisAnim = enableLauncherVisualRefresh()
                     ? position
-                    : (mCurrentPosition > mFinalPosition
-                            ? mCurrentPosition - SHIFT_PER_ANIMATION
-                            : mCurrentPosition + SHIFT_PER_ANIMATION);
+                    : shiftedPosition;
             mAnimator = ObjectAnimator.ofFloat(this, CURRENT_POSITION, positionForThisAnim);
             mAnimator.addListener(new AnimationCycleListener());
             mAnimator.setDuration(ANIMATION_DURATION);
@@ -476,14 +477,16 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
         // TODO(b/394355070): Verify Folder Entry Animation works correctly with visual updates
         // Add extra spacing of mDotRadius on all sides so than entry animation could be run
         // and so the hitboxes of arrows can be clicked easier.
+        int widthMultiplier = enableLauncherVisualRefresh()
+                ? LARGE_WIDTH_MULTIPLIER : SMALL_WIDTH_MULTIPLIER;
         int width = MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY ?
                 MeasureSpec.getSize(widthMeasureSpec)
-                : (int) ((mNumPages * ((enableLauncherVisualRefresh())
-                        ? LARGE_WIDTH_MULTIPLIER : SMALL_WIDTH_MULTIPLIER) + 2) * mDotRadius);
+                : (int) ((mNumPages * widthMultiplier + 2) * mDotRadius);
+        int heightMultiplier = enableLauncherVisualRefresh()
+                ? LARGE_HEIGHT_MULTIPLIER : SMALL_HEIGHT_MULTIPLIER;
         int height = MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.EXACTLY
                 ? MeasureSpec.getSize(heightMeasureSpec)
-                : (int) (((enableLauncherVisualRefresh())
-                        ? LARGE_HEIGHT_MULTIPLIER : SMALL_HEIGHT_MULTIPLIER) * mDotRadius);
+                : (int) (heightMultiplier * mDotRadius);
         setMeasuredDimension(width, height);
     }
 
@@ -580,9 +583,9 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
                     mArrowLeft.setAlpha(alpha);
                     int size = (int) (mGapWidth * 4);
                     mArrowLeftBounds.left = (int) (sTempRect.left - mGapWidth - size);
-                    mArrowLeftBounds.top = (int) (y - size / 2);
+                    mArrowLeftBounds.top = (int) (y - size / 2.0);
                     mArrowLeftBounds.right = (int) (sTempRect.left - mGapWidth);
-                    mArrowLeftBounds.bottom = (int) (y + size / 2);
+                    mArrowLeftBounds.bottom = (int) (y + size / 2.0);
                     mArrowLeft.setBounds(mArrowLeftBounds);
                     mArrowLeft.draw(canvas);
                 }
@@ -648,9 +651,9 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
                     mArrowRight.setAlpha(alpha);
                     int size = (int) (mGapWidth * 4);
                     mArrowRightBounds.left = (int) sTempRect.left;
-                    mArrowRightBounds.top = (int) (y - size / 2);
+                    mArrowRightBounds.top = (int) (y - size / 2.0);
                     mArrowRightBounds.right = (int) (int) (sTempRect.left + size);
-                    mArrowRightBounds.bottom = (int) (y + size / 2);
+                    mArrowRightBounds.bottom = (int) (y + size / 2.0);
                     mArrowRight.setBounds(mArrowRightBounds);
                     mArrowRight.draw(canvas);
                 }
@@ -771,6 +774,7 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
 
     @Override
     public void setTranslationY(float translationY) {
+        // No-op: translationY is intentionally ignored; use setForcedTranslationY instead.
     }
 
     public void  setForcedTranslationY(float translationY) {
@@ -807,5 +811,6 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
      */
     @Override
     public void setInsets(Rect insets) {
+        // No-op: prevent InsettableFrameLayout from applying margins to the pagination.
     }
 }

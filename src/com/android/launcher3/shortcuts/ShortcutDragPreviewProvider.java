@@ -48,7 +48,7 @@ public class ShortcutDragPreviewProvider extends DragPreviewProvider {
                 BitmapRenderer.createHardwareBitmap(
                         size + blurSizeOutline,
                         size + blurSizeOutline,
-                        (c) -> drawDragViewOnBackground(c, size)));
+                        c -> drawDragViewOnBackground(c, size)));
     }
 
     private void drawDragViewOnBackground(Canvas canvas, float size) {

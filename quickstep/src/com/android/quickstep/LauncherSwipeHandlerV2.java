@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.platform.DisplayIdCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.quickstep;
 
 import static com.android.app.animation.Interpolators.EXAGGERATED_EASE;
@@ -40,6 +48,7 @@ import com.android.launcher3.LauncherState;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
+import foundation.e.bliss.compat.platform.DisplayIdCompat;
 import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.MSDLPlayerWrapper;
@@ -95,11 +104,14 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
             };
         }
 
-        TaskView sourceTaskView = mRecentsView == null && targetTaskView == null
-                ? null
-                : targetTaskView == null
-                        ? mRecentsView.getRunningTaskView()
-                        : targetTaskView;
+        TaskView sourceTaskView;
+        if (mRecentsView == null && targetTaskView == null) {
+            sourceTaskView = null;
+        } else if (targetTaskView == null) {
+            sourceTaskView = mRecentsView.getRunningTaskView();
+        } else {
+            sourceTaskView = targetTaskView;
+        }
         final View workspaceView = findWorkspaceView(
                 targetTaskView == null ? launchCookies : Collections.emptyList(),
                 sourceTaskView);
@@ -107,7 +119,7 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
                 && workspaceView.isAttachedToWindow()
                 && workspaceView.getHeight() > 0
                 && !DesktopVisibilityController.INSTANCE.get(mContainer)
-                        .isInDesktopModeAndNotInOverview(mContainer.getDisplayId());
+                        .isInDesktopModeAndNotInOverview(DisplayIdCompat.getDisplayId(mContainer));
 
         mContainer.getRootView().setForceHideBackArrow(true);
 
@@ -123,8 +135,8 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
                 }
             };
         }
-        if (workspaceView instanceof LauncherAppWidgetHostView) {
-            return createWidgetHomeAnimationFactory((LauncherAppWidgetHostView) workspaceView,
+        if (workspaceView instanceof LauncherAppWidgetHostView widgetView) {
+            return createWidgetHomeAnimationFactory(widgetView,
                     isTargetTranslucent, runningTaskTarget);
         }
         return createIconHomeAnimationFactory(workspaceView, targetTaskView);

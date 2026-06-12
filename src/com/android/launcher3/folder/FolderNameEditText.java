@@ -39,8 +39,6 @@ public class FolderNameEditText extends ExtendedEditText {
     private static final String TAG = "FolderNameEditText";
     private static final boolean DEBUG = false;
 
-    private boolean mEnteredCompose = false;
-
     public FolderNameEditText(Context context) {
         super(context);
     }
@@ -87,7 +85,6 @@ public class FolderNameEditText extends ExtendedEditText {
         String reason = "unknown";
         if (start == 0 && count == 0 && before > 0) {
             reason = "suggestion was rejected";
-            mEnteredCompose = true;
         }
         if (DEBUG) {
             Log.d(TAG, "onTextChanged " + start + "," + before + "," + count
@@ -99,11 +96,6 @@ public class FolderNameEditText extends ExtendedEditText {
     public void onCommitCompletion(CompletionInfo text) {
         setText(text.getText());
         setSelection(text.getText().length());
-        mEnteredCompose = false;
-    }
-
-    protected void setEnteredCompose(boolean value) {
-        mEnteredCompose = value;
     }
 
     private class FolderNameEditTextInputConnection extends InputConnectionWrapper {
@@ -114,7 +106,6 @@ public class FolderNameEditText extends ExtendedEditText {
 
         @Override
         public boolean setComposingText(CharSequence cs, int newCursorPos) {
-            mEnteredCompose = true;
             return super.setComposingText(cs, newCursorPos);
         }
     }

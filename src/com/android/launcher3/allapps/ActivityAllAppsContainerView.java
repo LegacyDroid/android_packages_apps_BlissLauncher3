@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * Bliss touchpoint(s) (Migration04):
+ *   - Imports foundation.e.bliss.compat.desktop.DesktopFlagsCompat (relocated by Migration04)
+ *     — Plan ref: Plans/Migration04/01-compat-platform.md §4
+ *
+ * The body of this file otherwise tracks AOSP. Keep diffs minimal so a
+ * future origin/a16 rebase merges cleanly.
+ */
 package com.android.launcher3.allapps;
 
 import static com.android.launcher3.Flags.enableExpandingPauseWorkButton;
@@ -28,12 +36,14 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.ScrollableLayoutManager.PREDICTIVE_BACK_MIN_SCALE;
 import static com.android.launcher3.views.RecyclerViewFastScroller.FastScrollerLocation.ALL_APPS_SCROLLER;
-import static com.android.window.flags.Flags.predictiveBackThreeButtonNav;
+import static foundation.e.bliss.compat.desktop.DesktopFlagsCompat.predictiveBackThreeButtonNav;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
+import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Outline;
@@ -117,6 +127,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
 
     private static final String TAG = "ActivityAllAppsContainerView";
+    private static final String DEFAULT_PREF_VALUE = "default";
+    private static final String DEFAULT_ACCENT_COLOR_HEX = "#1A73E8";
     public static final float PULL_MULTIPLIER = .02f;
     public static final float FLING_VELOCITY_MULTIPLIER = 1200f;
     protected static final String BUNDLE_KEY_CURRENT_PAGE = "launcher.allapps.current_page";
@@ -256,11 +268,14 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     protected void initContent() {
         mMainAdapterProvider = mSearchUiDelegate.createMainAdapterProvider();
 
+        // Migration02 / Phase 1: drawer folders are scoped to the main tab. Work-profile and
+        // search lists keep the upstream AlphabeticalAppsList behaviour (folders absent).
         mAH.set(AdapterHolder.MAIN, new AdapterHolder(AdapterHolder.MAIN,
-                new AlphabeticalAppsList<>(mActivityContext,
+                new foundation.e.bliss.allapps.BlissAlphabeticalAppsList<>(mActivityContext,
                         mAllAppsStore,
                         null,
-                        mPrivateProfileManager)));
+                        mPrivateProfileManager,
+                        true /* enableFolders */)));
         mAH.set(AdapterHolder.WORK, new AdapterHolder(AdapterHolder.WORK,
                 new AlphabeticalAppsList<>(mActivityContext, mAllAppsStore, mWorkManager, null)));
         mAH.set(SEARCH, new AdapterHolder(SEARCH,
@@ -289,6 +304,106 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             mSearchContainer.setFocusedByDefault(true);
         }
         mSearchUiManager = (SearchUiManager) mSearchContainer;
+
+        // Apply search bar customizations
+        try {
+            com.android.launcher3.LauncherPrefs prefs =
+                    com.android.launcher3.dagger.LauncherComponentProvider
+                    .get(getContext()).getLauncherPrefs();
+
+            // Hide drawer search bar if pref is set
+            boolean hideSearch = prefs.get(com.android.launcher3.LauncherPrefs.HIDE_DRAWER_SEARCH);
+            if (hideSearch) {
+                mSearchContainer.setVisibility(GONE);
+            }
+
+            // Custom search bar color and corner radius
+            String barColor = prefs.get(com.android.launcher3.LauncherPrefs.SEARCH_BAR_COLOR);
+            int barRadius = prefs.get(com.android.launcher3.LauncherPrefs.SEARCH_BAR_RADIUS);
+            if (!DEFAULT_PREF_VALUE.equals(barColor) || barRadius != 100) {
+                // Find the search bar's background view
+                View bgView = mSearchContainer.findViewById(com.android.launcher3.R.id.search_input);
+                if (bgView != null) {
+                    View parentBg = (View) bgView.getParent();
+                    if (parentBg != null && parentBg.getBackground()
+                            instanceof android.graphics.drawable.GradientDrawable) {
+                        android.graphics.drawable.GradientDrawable gd =
+                                (android.graphics.drawable.GradientDrawable)
+                                parentBg.getBackground().mutate();
+                        if (!DEFAULT_PREF_VALUE.equals(barColor)) {
+                            int color;
+                            switch (barColor) {
+                                case "black": color = 0xFF000000; break;
+                                case "white": color = 0xFFFFFFFF; break;
+                                case "dark_gray": color = 0xFF303030; break;
+                                case "accent":
+                                    // Honor user-set ACCENT_COLOR if it's a hex; otherwise
+                                    // fall back to a sensible default.
+                                    color = resolveAccentColor(prefs);
+                                    break;
+                                default:
+                                    if (barColor != null && barColor.startsWith("#")) {
+                                        try {
+                                            color = android.graphics.Color.parseColor(barColor);
+                                        } catch (Exception ignored) { color = -1; }
+                                    } else {
+                                        color = -1;
+                                    }
+                                    break;
+                            }
+                            if (color != -1) gd.setColor(color);
+                        }
+                        float radiusPx = barRadius
+                                * getResources().getDisplayMetrics().density;
+                        gd.setCornerRadius(radiusPx);
+                        parentBg.setBackground(gd);
+                    }
+                }
+            }
+            // Keyboard auto-hide on scroll
+            boolean keyboardAutoHide = prefs.get(
+                    com.android.launcher3.LauncherPrefs.KEYBOARD_AUTO_HIDE);
+            if (keyboardAutoHide) {
+                AllAppsRecyclerView rv = (AllAppsRecyclerView) findViewById(R.id.apps_list_view);
+                if (rv != null) {
+                    rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                        @Override
+                        public void onScrollStateChanged(
+                                @androidx.annotation.NonNull RecyclerView recyclerView,
+                                int newState) {
+                            if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                                android.view.inputmethod.InputMethodManager imm =
+                                        (android.view.inputmethod.InputMethodManager)
+                                        getContext().getSystemService(
+                                                android.content.Context.INPUT_METHOD_SERVICE);
+                                if (imm != null) {
+                                    imm.hideSoftInputFromWindow(
+                                            recyclerView.getWindowToken(), 0);
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Move search bar to bottom if pref is set
+            boolean searchBottom = prefs.get(
+                    com.android.launcher3.LauncherPrefs.SEARCH_BAR_BOTTOM);
+            if (searchBottom && !isSearchBarFloating()
+                    && mSearchContainer.getParent() == this) {
+                // Move to front of children (bottom in RelativeLayout/FrameLayout)
+                removeView(mSearchContainer);
+                addView(mSearchContainer, 0);
+                // Pin to bottom
+                android.widget.FrameLayout.LayoutParams lp =
+                        (android.widget.FrameLayout.LayoutParams)
+                        mSearchContainer.getLayoutParams();
+                if (lp != null) {
+                    lp.gravity = android.view.Gravity.BOTTOM | android.view.Gravity.CENTER_HORIZONTAL;
+                    mSearchContainer.setLayoutParams(lp);
+                }
+            }
+        } catch (Exception e) { /* pref not available yet */ }
     }
 
     public List<AllAppsRow> getAdditionalHeaderRows() {
@@ -324,6 +439,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             mBottomSheetBackgroundColor = getContext().getColor(R.color.materialColorSurfaceDim);
         }
         mBottomSheetBackgroundAlpha = Color.alpha(mBottomSheetBackgroundColor) / 255.0f;
+        applyDrawerBackgroundPrefs();
         updateBackgroundVisibility(mActivityContext.getDeviceProfile());
         mSearchUiManager.initializeSearch(this);
     }
@@ -345,6 +461,31 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         mActivityContext.removeOnDeviceProfileChangeListener(this);
+        // Audit01 #01: the BlissAlphabeticalAppsList holds an AllAppsStore listener and a
+        // coroutine collector; both must be cancelled when the owning Activity is finishing
+        // or they retain the previous Activity instance across recreation.
+        Activity activity = unwrapActivity(getContext());
+        if (activity == null || !activity.isFinishing()) {
+            return; // configuration change or transient detach keeps the activity around
+        }
+        for (int i = 0; i < mAH.size(); i++) {
+            AdapterHolder ah = mAH.get(i);
+            if (ah != null && ah.mAppsList
+                    instanceof foundation.e.bliss.allapps.BlissAlphabeticalAppsList) {
+                ((foundation.e.bliss.allapps.BlissAlphabeticalAppsList<?>) ah.mAppsList).release();
+            }
+        }
+    }
+
+    private static Activity unwrapActivity(Context context) {
+        Context c = context;
+        while (c instanceof ContextWrapper) {
+            if (c instanceof Activity) {
+                return (Activity) c;
+            }
+            c = ((ContextWrapper) c).getBaseContext();
+        }
+        return null;
     }
 
     public SearchUiManager getSearchUiManager() {
@@ -471,10 +612,22 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
      * @param exitSearch Whether to force exit the search state and return to A-Z apps list.
      */
     public void reset(boolean animate, boolean exitSearch) {
+        // Honor "remember drawer position" pref (Lawnchair-imported or set in
+        // BlissLauncher Settings). When true, skip the auto scroll-to-top so
+        // the drawer reopens where the user left it.
+        boolean rememberPosition = false;
+        try {
+            rememberPosition = com.android.launcher3.dagger.LauncherComponentProvider
+                    .get(getContext()).getLauncherPrefs()
+                    .get(com.android.launcher3.LauncherPrefs.REMEMBER_DRAWER_POSITION);
+        } catch (Exception ignored) { /* Pref read failure is non-fatal; fall back to default. */ }
+
         // Scroll Main and Work RV to top. Search RV is done in `resetSearch`.
-        for (int i = 0; i < mAH.size(); i++) {
-            if (i != SEARCH && mAH.get(i).mRecyclerView != null) {
-                mAH.get(i).mRecyclerView.scrollToTop();
+        if (!rememberPosition) {
+            for (int i = 0; i < mAH.size(); i++) {
+                if (i != SEARCH && mAH.get(i).mRecyclerView != null) {
+                    mAH.get(i).mRecyclerView.scrollToTop();
+                }
             }
         }
         if (mTouchHandler != null) {
@@ -1024,6 +1177,78 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         }
     }
 
+    /**
+     * Resolve the user's accent color preference to an ARGB int. Accepts named
+     * presets (system/blue/green/red/purple/orange/pink/teal) and arbitrary
+     * "#RRGGBB"/"#AARRGGBB" hex strings (Task 31 hex picker).
+     */
+    private int resolveAccentColor(com.android.launcher3.LauncherPrefs prefs) {
+        try {
+            String accent = prefs.get(com.android.launcher3.LauncherPrefs.ACCENT_COLOR);
+            if (accent == null) return android.graphics.Color.parseColor(DEFAULT_ACCENT_COLOR_HEX);
+            if (accent.startsWith("#")) {
+                return android.graphics.Color.parseColor(accent);
+            }
+            switch (accent) {
+                case "blue":   return android.graphics.Color.parseColor(DEFAULT_ACCENT_COLOR_HEX);
+                case "green":  return android.graphics.Color.parseColor("#01D066");
+                case "red":    return android.graphics.Color.parseColor("#E53935");
+                case "purple": return android.graphics.Color.parseColor("#7C4DFF");
+                case "orange": return android.graphics.Color.parseColor("#FF6D00");
+                case "pink":   return android.graphics.Color.parseColor("#EC407A");
+                case "teal":   return android.graphics.Color.parseColor("#00BFA5");
+                case "system":
+                default:
+                    return android.graphics.Color.parseColor(DEFAULT_ACCENT_COLOR_HEX);
+            }
+        } catch (Exception ignored) {
+            return android.graphics.Color.parseColor(DEFAULT_ACCENT_COLOR_HEX);
+        }
+    }
+
+    private void applyDrawerBackgroundPrefs() {
+        try {
+            com.android.launcher3.LauncherPrefs prefs =
+                    com.android.launcher3.LauncherPrefs.get(getContext());
+            String bgColor = prefs.get(com.android.launcher3.LauncherPrefs.DRAWER_BG_COLOR);
+            int opacity = prefs.get(com.android.launcher3.LauncherPrefs.DRAWER_OPACITY);
+            float alphaFactor = opacity / 100f;
+
+            if (!DEFAULT_PREF_VALUE.equals(bgColor)) {
+                int baseColor;
+                switch (bgColor) {
+                    case "black":
+                        baseColor = Color.BLACK;
+                        break;
+                    case "white":
+                        baseColor = Color.WHITE;
+                        break;
+                    case "dark_gray":
+                        baseColor = 0xFF303030;
+                        break;
+                    default:
+                        if (bgColor != null && bgColor.startsWith("#")) {
+                            try {
+                                baseColor = Color.parseColor(bgColor);
+                            } catch (Exception ignored) { baseColor = Color.BLACK; }
+                        } else {
+                            baseColor = Color.BLACK;
+                        }
+                        break;
+                }
+                mBottomSheetBackgroundColor = ColorUtils.setAlphaComponent(
+                        baseColor, (int) (alphaFactor * 255));
+            } else {
+                // Apply just the opacity override to the default color
+                mBottomSheetBackgroundColor = ColorUtils.setAlphaComponent(
+                        mBottomSheetBackgroundColor, (int) (alphaFactor * 255));
+            }
+            mBottomSheetBackgroundAlpha = alphaFactor;
+        } catch (Exception e) {
+            // Use defaults if prefs unavailable
+        }
+    }
+
     protected void updateBackgroundVisibility(DeviceProfile deviceProfile) {
         mBottomSheetBackground.setVisibility(
                 deviceProfile.shouldShowAllAppsOnSheet() ? View.VISIBLE : View.GONE);
@@ -1098,12 +1323,9 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             mTouchHandler.handleTouchEvent(ev, mFastScrollerOffset);
             return true;
         }
-        if (isSearching()
-                && mActivityContext.getDragLayer().isEventOverView(getVisibleContainerView(), ev)) {
-            // if in search state, consume touch event.
-            return true;
-        }
-        return false;
+        // if in search state, consume touch event.
+        return isSearching()
+                && mActivityContext.getDragLayer().isEventOverView(getVisibleContainerView(), ev);
     }
 
     /** The current active recycler view (A-Z list from one of the profiles, or search results). */
@@ -1160,7 +1382,9 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     }
 
     @Override
-    public void onDropCompleted(View target, DragObject d, boolean success) {}
+    public void onDropCompleted(View target, DragObject d, boolean success) {
+        // intentionally empty — all-apps view does not act on drop completion.
+    }
 
     @Override
     public void setInsets(Rect insets) {
@@ -1344,9 +1568,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
     /** The current page visible in all apps. */
     public int getCurrentPage() {
-        return isSearching()
-                ? SEARCH
-                : mViewPager == null ? AdapterHolder.MAIN : mViewPager.getNextPage();
+        int nonSearchPage = mViewPager == null ? AdapterHolder.MAIN : mViewPager.getNextPage();
+        return isSearching() ? SEARCH : nonSearchPage;
     }
 
     public PrivateProfileManager getPrivateProfileManager() {

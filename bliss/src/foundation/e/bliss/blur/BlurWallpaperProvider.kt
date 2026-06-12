@@ -13,7 +13,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+/*
+ * File:    bliss/src/foundation/e/bliss/blur/BlurWallpaperProvider.kt
+ * Module:  bliss root app source-set
  *
+ * Module boundary:
+ *   This provider remains app-owned because it reads LauncherPrefs, uses
+ *   DisplayController/Executors/SafeCloseable, and publishes through
+ *   MainThreadInitializedObject. Only stateless graphics primitives such as
+ *   WallpaperFilter, BlurWallpaperFilter, and BlurDrawable are candidates for
+ *   a future blur-core module after preferences and executor contracts exist.
  */
 package foundation.e.bliss.blur
 
@@ -28,7 +38,9 @@ import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.widget.Toast
 import androidx.core.graphics.drawable.toBitmap
+import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.Utilities
+import com.android.launcher3.dagger.LauncherComponentProvider
 import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.SafeCloseable
@@ -38,7 +50,7 @@ import foundation.e.bliss.utils.runOnMainThread
 import foundation.e.bliss.utils.safeForEach
 import kotlin.math.ceil
 
-@SuppressLint("NewApi")
+// Audit01 #10: @SuppressLint("NewApi") removed — covered APIs are <= minSdk 35.
 class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
     private val mWallpaperManager: WallpaperManager = WallpaperManager.getInstance(context)
@@ -65,7 +77,7 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
     private val mUpdateRunnable = Runnable { updateWallpaper() }
 
-    private val wallpaperFilter = BlurWallpaperFilter(context)
+    private val wallpaperFilter = BlurWallpaperFilter(context).also { it.provider = this }
     private var applyTask: WallpaperFilter.ApplyTask<BlurSizes>? = null
 
     private var updatePending = false
@@ -118,12 +130,14 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
                 } else {
                     wall
                 }
+            } catch (e: SecurityException) {
+                // READ_EXTERNAL_STORAGE not granted — use placeholder wallpaper
+                Logger.w(TAG, "Cannot read wallpaper, permission denied", e)
+                runOnMainThread { notifyWallpaperChanged() }
+                return
             } catch (e: Exception) {
-                runOnMainThread {
-                    val msg = "Failed: ${e.message}"
-                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                    notifyWallpaperChanged()
-                }
+                Logger.e(TAG, "Failed to read wallpaper", e)
+                runOnMainThread { notifyWallpaperChanged() }
                 return
             }
 
@@ -262,13 +276,21 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
     }
 
     interface Listener {
-        fun onWallpaperChanged() {}
+        fun onWallpaperChanged() {
+            // no-op default; specific blur views override the lifecycle steps they care about
+        }
 
-        fun onEnabledChanged() {}
+        fun onEnabledChanged() {
+            // no-op default; specific blur views override the lifecycle steps they care about
+        }
 
-        fun onScrollOffsetChanged(offset: Float) {}
+        fun onScrollOffsetChanged(offset: Float) {
+            // no-op default; specific blur views override the lifecycle steps they care about
+        }
 
-        fun onOffsetChanged(offset: Float) {}
+        fun onOffsetChanged(offset: Float) {
+            // no-op default; specific blur views override the lifecycle steps they care about
+        }
     }
 
     data class BlurSizes(
@@ -287,6 +309,27 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
 
     data class BlurConfig(val getDrawable: (BlurSizes) -> Bitmap, val scale: Int, val radius: Int)
 
+    /**
+     * Returns the user's blur intensity factor (0.0 to 2.0). 100 = default (1.0x), 0 = no blur, 200
+     * = 2x blur.
+     */
+    fun getBlurIntensityFactor(): Float {
+        return try {
+            val prefs = LauncherComponentProvider.get(context).getLauncherPrefs()
+            val intensity = prefs.get(LauncherPrefs.BLUR_INTENSITY)
+            intensity / 100f
+        } catch (e: Exception) {
+            1.0f
+        }
+    }
+
+    /** Returns a BlurConfig with the radius scaled by the user's blur intensity preference. */
+    fun scaledConfig(base: BlurConfig): BlurConfig {
+        val factor = getBlurIntensityFactor()
+        val scaledRadius = (base.radius * factor).toInt().coerceIn(0, MAX_BLUR_RADIUS)
+        return base.copy(radius = scaledRadius)
+    }
+
     companion object {
         val INSTANCE = MainThreadInitializedObject { context: Context ->
             BlurWallpaperProvider(context)
@@ -297,6 +340,7 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
         }
 
         const val TAG = "BlurWallpaperProvider"
+        private const val MAX_BLUR_RADIUS = 25
 
         @JvmField val blurConfigBackground = BlurConfig({ it.background }, 2, 8)
 
@@ -309,5 +353,8 @@ class BlurWallpaperProvider(val context: Context) : SafeCloseable {
         var isEnabled: Boolean = false
     }
 
-    override fun close() {}
+    override fun close() {
+        // no-op: provider is process-scoped via MainThreadInitializedObject; nothing to release
+        // here
+    }
 }

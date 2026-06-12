@@ -56,7 +56,7 @@ public class MultiScalePropertyFactory<T extends View> {
     /** Returns the [MultiFloatProperty] associated with [inx], creating it if not present. */
     public FloatProperty<T> get(Integer index) {
         return mProperties.computeIfAbsent(index,
-                (k) -> new MultiScaleProperty(index, mName + "_" + index));
+                k -> new MultiScaleProperty(index, mName + "_" + index));
     }
 
     /**

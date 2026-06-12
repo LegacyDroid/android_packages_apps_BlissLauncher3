@@ -343,7 +343,7 @@ public class FloatingIconView extends FrameLayout implements
         // Clone right away as we are on the background thread instead of blocking the
         // main thread later
         Drawable btvClone = btvIcon == null ? null : btvIcon.getConstantState().newDrawable();
-        synchronized (outIconLoadResult) {
+        synchronized (outIconLoadResult.mLock) {
             outIconLoadResult.btvDrawable = () -> btvClone;
             outIconLoadResult.drawable = drawable;
             outIconLoadResult.badge = badge;
@@ -433,7 +433,7 @@ public class FloatingIconView extends FrameLayout implements
             return;
         }
 
-        synchronized (mIconLoadResult) {
+        synchronized (mIconLoadResult.mLock) {
             if (mIconLoadResult.isIconLoaded) {
                 setIcon(mIconLoadResult.drawable, mIconLoadResult.badge,
                         mIconLoadResult.btvDrawable, mIconLoadResult.iconOffset);
@@ -527,10 +527,14 @@ public class FloatingIconView extends FrameLayout implements
     }
 
     @Override
-    public void onAnimationCancel(Animator animator) {}
+    public void onAnimationCancel(Animator animator) {
+        // No-op: cancellation is handled in onAnimationEnd.
+    }
 
     @Override
-    public void onAnimationRepeat(Animator animator) {}
+    public void onAnimationRepeat(Animator animator) {
+        // No-op: this animation does not repeat.
+    }
 
     @Override
     public void setPositionOffsetY(float y) {
@@ -700,6 +704,10 @@ public class FloatingIconView extends FrameLayout implements
         mLauncher.getViewCache().recycleView(R.layout.floating_icon_view, this);
     }
 
+    private static void markRecycledFetchIconId() {
+        sRecycledFetchIconId = sFetchIconId;
+    }
+
     private void recycle() {
         setTranslationX(0);
         setTranslationY(0);
@@ -718,7 +726,7 @@ public class FloatingIconView extends FrameLayout implements
         mOriginalIcon = null;
         mOnTargetChangeRunnable = null;
         mBadge = null;
-        sRecycledFetchIconId = sFetchIconId;
+        markRecycledFetchIconId();
         mIconLoadResult = null;
         mClipIconView.recycle();
         mBtvDrawable.setBackground(null);
@@ -729,6 +737,8 @@ public class FloatingIconView extends FrameLayout implements
     }
 
     private static class IconLoadResult {
+        /** Dedicated monitor for synchronizing access to this result's mutable state. */
+        final Object mLock = new Object();
         final ItemInfo itemInfo;
         final boolean isThemed;
         Supplier<Drawable> btvDrawable;

@@ -45,10 +45,12 @@ import com.android.quickstep.views.AllAppsEduView;
  */
 public class QuickstepOnboardingPrefs {
 
+    private QuickstepOnboardingPrefs() {}
+
     /**
      * Sets up the initial onboarding behavior for the launcher
      */
-    public static void setup(QuickstepLauncher launcher) {
+    public static void setup(QuickstepLauncher launcher) { // NOSONAR pristine-AOSP-do-not-refactor
         StateManager<LauncherState, Launcher> stateManager = launcher.getStateManager();
         if (!HOME_BOUNCE_SEEN.get(launcher)) {
             stateManager.addStateListener(new StateListener<LauncherState>() {
@@ -81,12 +83,11 @@ public class QuickstepOnboardingPrefs {
                 @Override
                 public void onStateTransitionComplete(LauncherState finalState) {
                     HotseatPredictionController client = launcher.getHotseatPredictionController();
-                    if (mFromAllApps && finalState == NORMAL && client.hasPredictions()) {
-                        if (!launcher.getDeviceProfile().isTablet
-                                && HOTSEAT_DISCOVERY_TIP_COUNT.increment(launcher)) {
-                            client.showEdu();
-                            stateManager.removeStateListener(this);
-                        }
+                    if (mFromAllApps && finalState == NORMAL && client.hasPredictions()
+                            && !launcher.getDeviceProfile().isTablet
+                            && HOTSEAT_DISCOVERY_TIP_COUNT.increment(launcher)) {
+                        client.showEdu();
+                        stateManager.removeStateListener(this);
                     }
                 }
             });
