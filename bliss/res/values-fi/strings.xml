@@ -28,4 +28,6 @@
     <string name="show_notification_count">Näytä ilmoitusten lukumäärä</string>
     <string name="add_to_widget_Screen">Lisää pienoisohjelmien näytölle</string>
     <string name="ok">OK</string>
+    <string name="max">Max</string>
+    <string name="min">Min</string>
 </resources>
