@@ -253,6 +253,22 @@ class LauncherPrefs(private val encryptedContext: Context) {
         @JvmStatic fun get(context: Context): LauncherPrefs = INSTANCE.get(context)
 
         @JvmField
+        val NEEDS_WIDGET_REBIND_AFTER_RESTORE =
+            nonRestorableItem(
+                "needs_widget_rebind_after_restore",
+                defaultValue = false,
+                isBootAware = false
+            )
+
+        @JvmField
+        val NEEDS_WORKSPACE_REORDER_AFTER_RESTORE =
+            nonRestorableItem(
+                "needs_workspace_reorder_after_restore",
+                false,
+                isBootAware = false
+            )
+
+        @JvmField
         val IS_STARTUP_DATA_MIGRATED =
             ConstantItem(
                 "is_startup_data_boot_aware",
