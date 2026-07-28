@@ -76,7 +76,7 @@ android {
         versionProps['VERSION_MAJOR'] = '3'
         versionProps['VERSION_MINOR'] = '1'
         versionProps['VERSION_PATCH'] = '3'
-        versionProps['VERSION_CODE'] = '3010021'
+        versionProps['VERSION_CODE'] = '3010030'
         versionProps.store(versionPropsFile.newWriter(), null)
     }
 
