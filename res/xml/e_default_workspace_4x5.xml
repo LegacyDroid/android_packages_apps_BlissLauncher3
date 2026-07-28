@@ -64,6 +64,6 @@
         launcher:x="0"
         launcher:y="0"
         launcher:packageName="foundation.e.apps"
-        launcher:className="foundation.e.apps.ui.MainActivity"/>
+        launcher:className="foundation.e.apps.feature.main.MainActivity"/>
 
 </favorites>
