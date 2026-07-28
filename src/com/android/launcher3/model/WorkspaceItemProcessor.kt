@@ -30,6 +30,7 @@ import android.util.Log
 import android.util.LongSparseArray
 import com.android.launcher3.Flags
 import com.android.launcher3.InvariantDeviceProfile
+import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherSettings.Favorites
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger.RestoreError
 import com.android.launcher3.icons.CacheableShortcutInfo
@@ -238,6 +239,9 @@ class WorkspaceItemProcessor(
                                 c.markDeleted(
                                     "removing app that is not restored and not installing. package: $targetPkg",
                                     RestoreError.APP_NOT_RESTORED_OR_INSTALLING,
+                                )
+                                LauncherPrefs.get(context).putSync(
+                                    LauncherPrefs.NEEDS_WORKSPACE_REORDER_AFTER_RESTORE.to(true)
                                 )
                                 return
                             }

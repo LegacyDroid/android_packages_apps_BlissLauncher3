@@ -20,6 +20,7 @@ package com.android.launcher3.model
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
+import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.ModelUpdateTask
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.util.IntSet
@@ -30,6 +31,8 @@ import com.android.launcher3.util.GridOccupancy
 
 class CompactWorkspaceAfterRestoreTask : ModelUpdateTask {
 
+    override fun isIgnoreLoaded() = true
+
     override fun execute(taskController: ModelTaskController, dataModel: BgDataModel, apps: AllAppsList) {
         val prefs = LauncherPrefs.get(taskController.context)
         if (!prefs.get(LauncherPrefs.NEEDS_WORKSPACE_REORDER_AFTER_RESTORE)) return
@@ -37,10 +40,12 @@ class CompactWorkspaceAfterRestoreTask : ModelUpdateTask {
         val idp = InvariantDeviceProfile.INSTANCE.get(taskController.context)
         val columns = idp.numColumnsFixed
         val rows = idp.numRowsFixed
+        val hotseatCapacity = idp.numDatabaseHotseatIcons
 
         val screenIds = mutableListOf<Int>()
         val fixedItems = ArrayList<ItemInfo>()
         val movableItems = ArrayList<ItemInfo>()
+        val hotseatItems = ArrayList<ItemInfo>()
 
         synchronized(dataModel) {
             val screens = dataModel.collectWorkspaceScreens()
@@ -50,6 +55,10 @@ class CompactWorkspaceAfterRestoreTask : ModelUpdateTask {
             screenIds.sort()
 
             for (item in dataModel.itemsIdMap) {
+                if (item.container == CONTAINER_HOTSEAT) {
+                    hotseatItems.add(item)
+                    continue
+                }
                 if (item.container != CONTAINER_DESKTOP) continue
                 val isFixed = item.spanX > 1 || item.spanY > 1
                 if (isFixed) {
@@ -60,7 +69,24 @@ class CompactWorkspaceAfterRestoreTask : ModelUpdateTask {
             }
         }
 
+        if (hotseatItems.isEmpty() && movableItems.isEmpty() && fixedItems.isEmpty()) return
+
+        val updated = ArrayList<ItemInfo>()
+
+        val overflowedFromHotseat = ArrayList<ItemInfo>()
+        hotseatItems.sortBy { it.screenId }
+        hotseatItems.forEachIndexed { rank, item ->
+            if (rank >= hotseatCapacity) {
+                item.container = CONTAINER_DESKTOP
+                overflowedFromHotseat.add(item)
+            } else if (item.screenId != rank) {
+                item.screenId = rank
+                updated.add(item)
+            }
+        }
+
         movableItems.sortWith(compareBy({ it.screenId }, { it.cellY }, { it.cellX }))
+        movableItems.addAll(overflowedFromHotseat)
 
         val screensToExclude = IntSet()
         if (FeatureFlags.QSB_ON_FIRST_SCREEN.get() && !SHOULD_SHOW_FIRST_PAGE_WIDGET) {
@@ -73,16 +99,17 @@ class CompactWorkspaceAfterRestoreTask : ModelUpdateTask {
 
         fixedItems.forEach { occupancyFor(it.screenId).markCells(it, true) }
 
-        val updated = ArrayList<ItemInfo>()
+        val forcedIds = overflowedFromHotseat.mapTo(HashSet()) { it.id }
         val xy = IntArray(2)
         movableItems.forEach { item ->
+            val forced = item.id in forcedIds
             var placed = false
             for (screenId in screenIds) {
                 if (screensToExclude.contains(screenId)) continue
                 val occupancy = occupancyFor(screenId)
                 if (!occupancy.findVacantCell(xy, item.spanX, item.spanY)) continue
                 placed = true
-                updatedIfChanged(item, screenId, xy[0], xy[1], columns, updated)
+                updatedIfChanged(item, screenId, xy[0], xy[1], columns, updated, forced)
                 occupancy.markCells(xy[0], xy[1], item.spanX, item.spanY, true)
                 break
             }
@@ -91,7 +118,7 @@ class CompactWorkspaceAfterRestoreTask : ModelUpdateTask {
                 screenIds.add(newScreenId)
                 val occupancy = occupancyFor(newScreenId)
                 if (occupancy.findVacantCell(xy, item.spanX, item.spanY)) {
-                    updatedIfChanged(item, newScreenId, xy[0], xy[1], columns, updated)
+                    updatedIfChanged(item, newScreenId, xy[0], xy[1], columns, updated, forced)
                     occupancy.markCells(xy[0], xy[1], item.spanX, item.spanY, true)
                 }
             }
@@ -114,8 +141,9 @@ class CompactWorkspaceAfterRestoreTask : ModelUpdateTask {
         cellY: Int,
         columns: Int,
         updated: MutableList<ItemInfo>,
+        force: Boolean = false,
     ) {
-        if (item.screenId == screenId && item.cellX == cellX && item.cellY == cellY) {
+        if (!force && item.screenId == screenId && item.cellX == cellX && item.cellY == cellY) {
             return
         }
         item.screenId = screenId

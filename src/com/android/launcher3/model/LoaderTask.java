@@ -21,6 +21,7 @@ import static com.android.launcher3.Flags.enableLauncherBrMetricsFixed;
 import static com.android.launcher3.Flags.enableSmartspaceAsAWidget;
 import static com.android.launcher3.Flags.enableSmartspaceRemovalToggle;
 import static com.android.launcher3.LauncherPrefs.IS_FIRST_LOAD_AFTER_RESTORE;
+import static com.android.launcher3.LauncherPrefs.NEEDS_WORKSPACE_REORDER_AFTER_RESTORE;
 import static com.android.launcher3.LauncherPrefs.SHOULD_SHOW_SMARTSPACE;
 import static com.android.launcher3.LauncherSettings.Favorites.DESKTOP_ICON_FLAG;
 import static com.android.launcher3.icons.CacheableShortcutInfo.convertShortcutsToCacheableShortcuts;
@@ -412,6 +413,9 @@ public class LoaderTask implements Runnable {
                 if (restoreEventLogger != null) {
                     restoreEventLogger.reportLauncherRestoreResults();
                 }
+            }
+            if (LauncherPrefs.get(mContext).get(NEEDS_WORKSPACE_REORDER_AFTER_RESTORE)) {
+                mModel.enqueueModelUpdateTask(new CompactWorkspaceAfterRestoreTask());
             }
         } catch (CancellationException e) {
             // Loader stopped, ignore
