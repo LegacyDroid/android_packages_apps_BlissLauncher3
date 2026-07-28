@@ -225,17 +225,6 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) : FrameLayout(cont
                         rebindWidgets()
                     }
                 }
-
-                override fun onPackagesAvailable(
-                    packageNames: Array<String?>?,
-                    user: UserHandle?,
-                    replacing: Boolean,
-                ) {
-                    if (!shouldAttemptWidgetIdRepair(context)) return
-                    if (::widgetsDbHelper.isInitialized) {
-                        rebindWidgets()
-                    }
-                }
             }
 
         private var initialWidgetsAdded: Boolean
@@ -324,21 +313,16 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) : FrameLayout(cont
         private fun rebindWidgets(backup: Boolean = false) {
             mWrapper.removeAllViews()
             if (!backup) {
-                val dbWidgets = widgetsDbHelper.getWidgets().sortedBy { it.position }
-                val keepWidgetIds = dbWidgets.mapTo(hashSetOf()) { it.widgetId }
-                if (shouldAttemptWidgetIdRepair(context)) {
-                    dbWidgets.forEach { restoreWidgetFromDb(it, keepWidgetIds) }
-                    if (keepWidgetIds.all { mWidgetManager.getAppWidgetInfo(it) != null }) {
-                        LauncherPrefs.get(context)
-                            .put(LauncherPrefs.NEEDS_WIDGET_REBIND_AFTER_RESTORE, false)
+
+                val dbWidgets =
+                    widgetsDbHelper.getWidgets().apply {
+                        sortedBy { it.position }
+                        forEach { addView(it.widgetId) }
                     }
-                } else {
-                    dbWidgets.forEach { widgetInfo -> addView(widgetInfo.widgetId) }
-                }
 
                 // Remove all widgets not present in db
                 mWidgetHost.appWidgetIds
-                    .filter { id -> !keepWidgetIds.contains(id) }
+                    .filter { id -> dbWidgets.all { info -> info.widgetId != id } }
                     .forEach { mWidgetHost.deleteAppWidgetId(it) }
             } else {
                 if (mOldWidgets.isNotEmpty()) {
@@ -376,41 +360,8 @@ class WidgetContainer(context: Context, attrs: AttributeSet?) : FrameLayout(cont
                     addView(widgetId)
                 }
             } else {
-                mWidgetHost.deleteAppWidgetId(widgetId)
+                mWidgetHost.deleteAppWidgetId(id)
             }
-        }
-
-        private fun restoreWidgetFromDb(widgetInfo: WidgetInfo, keepWidgetIds: MutableSet<Int>) {
-            if (mWidgetManager.getAppWidgetInfo(widgetInfo.widgetId) != null) {
-                addView(widgetInfo.widgetId)
-                return
-            }
-
-            // Seedvault/app-data restore can bring back our widget database, but appWidgetIds are
-            // allocated and persisted by the system; they often don't survive restores.
-            val newWidgetId = mWidgetHost.allocateAppWidgetId()
-            val isWidgetBound =
-                mWidgetManager.bindAppWidgetIdIfAllowed(newWidgetId, widgetInfo.component)
-            if (!isWidgetBound) {
-                mWidgetHost.deleteAppWidgetId(newWidgetId)
-                Logger.e(
-                    TAG,
-                    "Could not rebind restored widget ${widgetInfo.component.flattenToString()} (oldId=${widgetInfo.widgetId})",
-                )
-                return
-            }
-
-            if (newWidgetId != widgetInfo.widgetId) {
-                widgetsDbHelper.updateWidgetId(widgetInfo.widgetId, newWidgetId)
-                keepWidgetIds.remove(widgetInfo.widgetId)
-                keepWidgetIds.add(newWidgetId)
-                mWidgetHost.deleteAppWidgetId(widgetInfo.widgetId)
-            }
-            addView(newWidgetId)
-        }
-
-        private fun shouldAttemptWidgetIdRepair(context: Context): Boolean {
-            return LauncherPrefs.get(context).get(LauncherPrefs.NEEDS_WIDGET_REBIND_AFTER_RESTORE)
         }
 
         private fun addView(widgetId: Int, backup: Boolean = false) {
