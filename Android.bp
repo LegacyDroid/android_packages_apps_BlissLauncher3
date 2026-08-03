@@ -169,6 +169,7 @@ android_library {
         "res",
         "bliss/res",
         "bliss/res_overrides",
+        "quickstep/res",
     ],
     static_libs: [
         "LauncherPluginLib",
