@@ -187,6 +187,7 @@ android_library {
         "view_capture",
         "animationlib",
         "elib",
+        "lottie",
     ],
     manifest: "AndroidManifest-common.xml",
     sdk_version: "current",
