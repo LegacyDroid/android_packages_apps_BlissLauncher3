@@ -35,4 +35,14 @@ public final class BuildConfig {
      * Flag to control various developer centric features
      */
     public static final boolean IS_DEBUG_DEVICE = false;
+
+    /**
+     * Whether the build is a debug build
+     */
+    public static final boolean DEBUG = false;
+
+    /**
+     * Sentry DSN for telemetry, empty in release builds
+     */
+    public static final String SENTRY_DSN = "";
 }

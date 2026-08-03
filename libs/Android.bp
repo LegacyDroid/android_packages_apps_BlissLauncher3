@@ -1,0 +1,96 @@
+//
+// Prebuilt dependencies for the /e/OS Bliss launcher (a14)
+//
+
+// https://repo1.maven.org/maven2/com/jakewharton/timber/timber/5.0.1/timber-5.0.1.aar
+android_library_import {
+    name: "timber-5.0.1",
+    aars:  ["timber-5.0.1.aar"],
+}
+
+// https://gitlab.e.foundation/e/os/e-telemetry
+android_library_import {
+    name: "e-telemetry",
+    aars:  ["telemetry-1.0.1-release.aar"],
+}
+
+// https://repo1.maven.org/maven2/com/squareup/okhttp3/okhttp/4.11.0/okhttp-4.11.0.jar
+java_import {
+    name: "okhttp-4.11.0",
+    jars: [
+        "squareup/okhttp-4.11.0.jar",
+    ],
+}
+
+// https://repo1.maven.org/maven2/com/squareup/okhttp3/logging-interceptor/4.11.0/logging-interceptor-4.11.0.jar
+java_import {
+    name: "logging-interceptor-4.11.0",
+    jars: [
+        "squareup/logging-interceptor-4.11.0.jar",
+    ],
+}
+
+// https://repo1.maven.org/maven2/com/squareup/okio/okio-jvm/3.2.0/okio-jvm-3.2.0.jar
+java_import {
+    name: "okio-jvm-3.2.0",
+    jars: [
+        "okio-jvm-3.2.0.jar",
+    ],
+}
+
+// https://repo1.maven.org/maven2/com/squareup/retrofit2/retrofit/2.11.0/retrofit-2.11.0.jar
+java_import {
+    name: "retrofit-2.11.0",
+    jars: [
+        "retrofit-2.11.0.jar",
+    ],
+}
+
+// https://repo1.maven.org/maven2/com/squareup/retrofit2/converter-gson/2.9.0/converter-gson-2.9.0.jar
+java_import {
+    name: "converter-gson-2.9.0",
+    jars: [
+        "converter-gson-2.9.0.jar",
+    ],
+}
+
+// https://repo1.maven.org/maven2/io/reactivex/rxjava3/rxjava/3.1.7/rxjava-3.1.7.jar
+java_import {
+    name: "rxjava-3.1.7",
+    jars: [
+        "rxjava-3.1.7.jar",
+    ],
+}
+
+// https://repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar
+java_import {
+    name: "reactive-streams-1.0.4",
+    jars: [
+        "reactive-streams-1.0.4.jar",
+    ],
+}
+
+// https://repo1.maven.org/maven2/io/github/hokofly/hoko-blur/1.4.0/hoko-blur-1.4.0.aar
+android_library_import {
+    name: "hoko-blur-1.4.0",
+    aars:  ["hoko-blur-1.4.0.aar"],
+}
+
+java_library {
+    name: "blisslauncher3-libs",
+    static_libs: [
+        "e-telemetry",
+        "timber-5.0.1",
+        "okhttp-4.11.0",
+        "logging-interceptor-4.11.0",
+        "okio-jvm-3.2.0",
+        "retrofit-2.11.0",
+        "converter-gson-2.9.0",
+        "rxjava-3.1.7",
+        "reactive-streams-1.0.4",
+        "hoko-blur-1.4.0",
+        "gson",
+        "kotlin-stdlib",
+    ],
+    sdk_version: "current",
+}

@@ -24,6 +24,8 @@ min_launcher3_sdk_version = "26"
 filegroup {
     name: "launcher-src",
     srcs: [
+        "bliss/src/**/*.java",
+        "bliss/src/**/*.kt",
         "src/**/*.java",
         "src/**/*.kt",
     ],
@@ -212,7 +214,10 @@ android_library {
         "com_android_wm_shell_flags_lib",
         "android.appwidget.flags-aconfig-java",
         "com.android.window.flags.window-aconfig-java",
-        "org.lineageos.platform"
+        "org.lineageos.platform",
+        "kotlinx_coroutines",
+        "kotlinx_coroutines_android",
+        "blisslauncher3-libs",
     ],
     sdk_version: "current",
     min_sdk_version: min_launcher3_sdk_version,
@@ -348,6 +353,9 @@ android_library {
         "Launcher3CommonDepsLib",
         "QuickstepResLib",
         "animationlib",
+        "kotlinx_coroutines",
+        "kotlinx_coroutines_android",
+        "blisslauncher3-libs",
     ],
     manifest: "quickstep/AndroidManifest.xml",
     platform_apis: true,
