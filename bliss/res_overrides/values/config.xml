@@ -2,6 +2,8 @@
 <resources>
     <string name="derived_app_name" translatable="false">BlissLauncher</string>
     <string name="launcher_activity_logic_class" translatable="false">foundation.e.bliss.LauncherActivityCachingLogic</string>
+    <string name="quickstep_component" translatable="false">com.android.launcher3/com.android.launcher3.uioverrides.QuickstepLauncher</string>
+    <string name="launcher_component" translatable="false">com.android.launcher3/com.android.launcher3.Launcher</string>
 
     <string-array name="filtered_components">
         <item>@string/quickstep_component</item>

@@ -165,7 +165,11 @@ java_library {
 android_library {
     name: "Launcher3ResLib",
     srcs: [],
-    resource_dirs: ["res"],
+    resource_dirs: [
+        "res",
+        "bliss/res",
+        "bliss/res_overrides",
+    ],
     static_libs: [
         "LauncherPluginLib",
         "launcher_quickstep_log_protos_lite",
@@ -181,6 +185,7 @@ android_library {
         "iconloader_base",
         "view_capture",
         "animationlib",
+        "elib",
     ],
     manifest: "AndroidManifest-common.xml",
     sdk_version: "current",
@@ -280,6 +285,7 @@ android_library {
         "SettingsLibSettingsTheme",
         "SystemUI-statsd",
         "animationlib",
+        "elib",
     ],
     manifest: "quickstep/AndroidManifest.xml",
     min_sdk_version: "current",
