@@ -76,6 +76,45 @@ android_library_import {
     aars:  ["hoko-blur-1.4.0.aar"],
 }
 
+// Sentry 6.16.0 (https://repo1.maven.org/maven2/io/sentry) - required at
+// runtime by e-telemetry, mirrors upstream a15 libs/Android.bp
+android_library_import {
+    name: "sentry-android-ndk",
+    aars: ["sentry/sentry-android-ndk-release.aar"],
+}
+
+java_import {
+    name: "sentry-core",
+    jars: ["sentry/sentry-6.16.0.jar"],
+}
+
+android_library_import {
+    name: "sentry-android",
+    aars: ["sentry/sentry-android-release.aar"],
+}
+
+android_library_import {
+    name: "sentry-android-timber",
+    aars: ["sentry/sentry-android-timber-release.aar"],
+}
+
+android_library_import {
+    name: "sentry-android-core",
+    aars: ["sentry/sentry-android-core-release.aar"],
+}
+
+java_library {
+    name: "sentry-libs",
+    static_libs: [
+        "sentry-android-ndk",
+        "sentry-core",
+        "sentry-android",
+        "sentry-android-timber",
+        "sentry-android-core",
+    ],
+    sdk_version: "current",
+}
+
 java_library {
     name: "blisslauncher3-libs",
     static_libs: [
@@ -89,6 +128,7 @@ java_library {
         "rxjava-3.1.7",
         "reactive-streams-1.0.4",
         "hoko-blur-1.4.0",
+        "sentry-libs",
         "gson",
         "kotlin-stdlib",
     ],
