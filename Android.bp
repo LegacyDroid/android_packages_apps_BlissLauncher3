@@ -254,6 +254,7 @@ android_app {
     sdk_version: "current",
     min_sdk_version: min_launcher3_sdk_version,
     target_sdk_version: "current",
+    kotlincflags: ["-Xjvm-default=all"],
     privileged: true,
     system_ext_specific: true,
 
@@ -327,6 +328,7 @@ android_library {
         "AndroidManifest-common.xml",
     ],
     min_sdk_version: "current",
+    kotlincflags: ["-Xjvm-default=all"],
     // TODO(b/319712088): re-enable use_resource_processor
     use_resource_processor: false,
 }
@@ -360,6 +362,7 @@ android_library {
     manifest: "quickstep/AndroidManifest.xml",
     platform_apis: true,
     min_sdk_version: "current",
+    kotlincflags: ["-Xjvm-default=all"],
     // TODO(b/319712088): re-enable use_resource_processor
     use_resource_processor: false,
 }
@@ -385,6 +388,7 @@ android_app {
     sdk_version: "current",
     min_sdk_version: "current",
     target_sdk_version: "current",
+    kotlincflags: ["-Xjvm-default=all"],
     privileged: true,
     system_ext_specific: true,
     overrides: [
