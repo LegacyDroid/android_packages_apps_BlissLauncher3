@@ -27,6 +27,7 @@ import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
 import android.os.UserHandle
+import android.util.Log
 import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherSettings
 import com.android.launcher3.model.data.ItemInfo
@@ -86,10 +87,17 @@ fun getUninstallTarget(launcher: Launcher, item: ItemInfo?): ComponentName? {
 }
 
 fun disableComponent(context: Context, componentName: ComponentName) {
+    if (componentName.packageName != context.packageName) {
+        return
+    }
     val packageManager = context.packageManager
-    packageManager.setComponentEnabledSetting(
-        componentName,
-        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-        PackageManager.DONT_KILL_APP
-    )
+    try {
+        packageManager.setComponentEnabledSetting(
+            componentName,
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+            PackageManager.DONT_KILL_APP
+        )
+    } catch (e: SecurityException) {
+        Log.d(TAG, "Could not disable component ${componentName.flattenToString()}")
+    }
 }
