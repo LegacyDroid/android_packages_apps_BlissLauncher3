@@ -98,6 +98,6 @@ fun disableComponent(context: Context, componentName: ComponentName) {
             PackageManager.DONT_KILL_APP
         )
     } catch (e: SecurityException) {
-        Log.d(TAG, "Could not disable component ${componentName.flattenToString()}")
+        Log.d("BlissUtils", "Could not disable component ${componentName.flattenToString()}")
     }
 }
