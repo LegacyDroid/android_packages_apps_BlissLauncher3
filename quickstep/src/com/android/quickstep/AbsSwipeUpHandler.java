@@ -2224,6 +2224,8 @@ public abstract class AbsSwipeUpHandler<T extends StatefulActivity<S>,
 
         SystemUiProxy.INSTANCE.get(mContext).onOverviewShown(false, TAG);
         doLogGesture(RECENTS, mRecentsView.getCurrentPageTaskView());
+        mRecentsView.switchToScreenshot(
+                () -> mRecentsView.finishRecentsAnimation(true /* toRecents */, null));
         reset();
     }
 
