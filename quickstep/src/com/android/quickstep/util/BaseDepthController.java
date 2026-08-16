@@ -132,7 +132,9 @@ public class BaseDepthController {
             // The API's full zoom-out is three times larger than the zoom-out we apply to the
             // icons. To keep the two consistent throughout the animation while keeping Launcher's
             // concept of full depth unchanged, we divide the depth by 3 here.
-            if (MultiModeController.isSingleLayerMode()) {
+            // In Overview (content behind launcher), the wallpaper stays full-screen so the
+            // recents backdrop is the frosted blur, not a zoomed-out fading wallpaper.
+            if (MultiModeController.isSingleLayerMode() || mHasContentBehindLauncher) {
                 mWallpaperManager.setWallpaperZoomOut(windowToken, 1);
             } else {
                 mWallpaperManager.setWallpaperZoomOut(windowToken, depth / 3);
