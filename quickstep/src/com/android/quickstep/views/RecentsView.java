@@ -1115,6 +1115,8 @@ public abstract class RecentsView<ACTIVITY_TYPE extends StatefulActivity<STATE_T
         FrameLayout.LayoutParams lp =
                 (FrameLayout.LayoutParams) mClearAllButton.getLayoutParams();
         lp.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
+        lp.bottomMargin += getResources().getDimensionPixelSize(
+                R.dimen.recents_clear_all_bottom_margin);
         mClearAllButton.setLayoutParams(lp);
     }
 
