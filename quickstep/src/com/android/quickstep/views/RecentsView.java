@@ -1110,9 +1110,12 @@ public abstract class RecentsView<ACTIVITY_TYPE extends StatefulActivity<STATE_T
         if (getParent() == null || mClearAllButton.getParent() != null) {
             return;
         }
-        ((ViewGroup) getParent()).addView(mClearAllButton, new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT,
-                Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
+        ViewGroup parent = (ViewGroup) getParent();
+        parent.addView(mClearAllButton);
+        FrameLayout.LayoutParams lp =
+                (FrameLayout.LayoutParams) mClearAllButton.getLayoutParams();
+        lp.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
+        mClearAllButton.setLayoutParams(lp);
     }
 
     @Override
