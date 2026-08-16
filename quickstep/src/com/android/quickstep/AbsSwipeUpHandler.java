@@ -2079,6 +2079,9 @@ public abstract class AbsSwipeUpHandler<T extends StatefulActivity<S>,
             if (mRecentsAnimationController != null) {
                 // Update the screenshot of the task
                 if (shouldUpdate) {
+                    // The task snapshot is best-effort: refresh the thumbnail in the background,
+                    // but never let the capture gate the settle, as the synchronous binder call
+                    // can block on SurfaceFlinger and leave the transition parked forever.
                     UI_HELPER_EXECUTOR.execute(() -> {
                         RecentsAnimationController recentsAnimationController =
                                 mRecentsAnimationController;
@@ -2094,6 +2097,7 @@ public abstract class AbsSwipeUpHandler<T extends StatefulActivity<S>,
                             }
                         });
                     });
+                    setScreenshotCapturedState();
                     return;
                 }
 
