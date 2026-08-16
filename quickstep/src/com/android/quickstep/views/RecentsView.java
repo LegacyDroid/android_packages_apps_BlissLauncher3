@@ -5353,6 +5353,10 @@ public abstract class RecentsView<ACTIVITY_TYPE extends StatefulActivity<STATE_T
                 + ", recentsAnimationTargets: " + recentsAnimationTargets);
         mRecentsAnimationController = recentsAnimationController;
         mSplitSelectStateController.setRecentsAnimationRunning(true);
+        DepthController depthController = getDepthController();
+        if (depthController != null) {
+            depthController.setRecentsAnimationRunning(true);
+        }
         if (recentsAnimationTargets == null || recentsAnimationTargets.apps.length == 0) {
             return;
         }
@@ -5470,6 +5474,10 @@ public abstract class RecentsView<ACTIVITY_TYPE extends StatefulActivity<STATE_T
         mRecentsAnimationController = null;
         mSplitSelectStateController.setRecentsAnimationRunning(false);
         executeSideTaskLaunchCallback();
+        DepthController depthController = getDepthController();
+        if (depthController != null) {
+            depthController.setRecentsAnimationRunning(false);
+        }
     }
 
     public void setDisallowScrollToClearAll(boolean disallowScrollToClearAll) {

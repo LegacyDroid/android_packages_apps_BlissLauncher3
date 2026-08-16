@@ -77,6 +77,9 @@ public final class RecentsViewStateController extends
         // In Overview, we may be layering app surfaces behind Launcher, so we need to notify
         // DepthController to prevent optimizations which might occlude the layers behind
         mLauncher.getDepthController().setHasContentBehindLauncher(state.overviewUi);
+        if (!state.overviewUi) {
+            mLauncher.getDepthController().setRecentsAnimationRunning(false);
+        }
 
         PendingAnimation builder =
                 new PendingAnimation(state.getTransitionDuration(mLauncher, true));
@@ -106,8 +109,12 @@ public final class RecentsViewStateController extends
         }
         // In Overview, we may be layering app surfaces behind Launcher, so we need to notify
         // DepthController to prevent optimizations which might occlude the layers behind
-        builder.addListener(AnimatorListeners.forSuccessCallback(() ->
-                mLauncher.getDepthController().setHasContentBehindLauncher(toState.overviewUi)));
+        builder.addListener(AnimatorListeners.forSuccessCallback(() -> {
+            mLauncher.getDepthController().setHasContentBehindLauncher(toState.overviewUi);
+            if (!toState.overviewUi) {
+                mLauncher.getDepthController().setRecentsAnimationRunning(false);
+            }
+        }));
 
         handleSplitSelectionState(toState, builder, /* animate */true);
 

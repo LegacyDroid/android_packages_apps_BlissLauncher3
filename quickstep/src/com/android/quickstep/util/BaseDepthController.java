@@ -85,6 +85,13 @@ public class BaseDepthController {
     protected boolean mPauseBlurs;
 
     /**
+     * True while a recents animation from an app is running: the app surface may still be composed
+     * behind the launcher, so the backdrop blur must not be applied over it. Cleared once the
+     * transition finishes (app hidden) or when overview is exited.
+     */
+    private boolean mRecentsAnimationRunning;
+
+    /**
      * Last blur value, in pixels, that was applied.
      * For debugging purposes.
      */
@@ -119,6 +126,13 @@ public class BaseDepthController {
     public void pauseBlursOnWindows(boolean pause) {
         if (pause != mPauseBlurs) {
             mPauseBlurs = pause;
+            applyDepthAndBlur();
+        }
+    }
+
+    public void setRecentsAnimationRunning(boolean recentsAnimationRunning) {
+        if (mRecentsAnimationRunning != recentsAnimationRunning) {
+            mRecentsAnimationRunning = recentsAnimationRunning;
             applyDepthAndBlur();
         }
     }
@@ -159,6 +173,7 @@ public class BaseDepthController {
         boolean isSurfaceOpaque = !mHasContentBehindLauncher && hasOpaqueBg && !mPauseBlurs;
 
         mCurrentBlur = !mCrossWindowBlursEnabled || hasOpaqueBg || mPauseBlurs
+                || mRecentsAnimationRunning
                 ? 0 : (int) (depth * mMaxBlurRadius);
         SurfaceControl.Transaction transaction = new SurfaceControl.Transaction()
                 .setBackgroundBlurRadius(mSurface, mCurrentBlur)
