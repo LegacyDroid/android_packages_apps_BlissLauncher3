@@ -18,7 +18,6 @@ package com.android.quickstep.views;
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 
 import static com.android.launcher3.LauncherState.ALL_APPS;
-import static com.android.launcher3.LauncherState.CLEAR_ALL_BUTTON;
 import static com.android.launcher3.LauncherState.EDIT_MODE;
 import static com.android.launcher3.LauncherState.NORMAL;
 import static com.android.launcher3.LauncherState.OVERVIEW;
@@ -186,12 +185,6 @@ public class LauncherRecentsView extends RecentsView<QuickstepLauncher, Launcher
     @Override
     public void setOverviewStateEnabled(boolean enabled) {
         super.setOverviewStateEnabled(enabled);
-        if (enabled) {
-            LauncherState state = mActivity.getStateManager().getState();
-            boolean hasClearAllButton = (state.getVisibleElements(mActivity)
-                    & CLEAR_ALL_BUTTON) != 0;
-            setDisallowScrollToClearAll(!hasClearAllButton);
-        }
     }
 
     @Override

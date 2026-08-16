@@ -279,10 +279,6 @@ public class FallbackRecentsView extends RecentsView<RecentsActivity, RecentsSta
     @Override
     public void setOverviewStateEnabled(boolean enabled) {
         super.setOverviewStateEnabled(enabled);
-        if (enabled) {
-            RecentsState state = mActivity.getStateManager().getState();
-            setDisallowScrollToClearAll(!state.hasClearAllButton());
-        }
     }
 
     @Override
