@@ -120,11 +120,7 @@ class BlurWallpaperProvider(val context: Context) {
                     wall
                 }
             } catch (e: Exception) {
-                runOnMainThread {
-                    val msg = "Failed: ${e.message}"
-                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                    notifyWallpaperChanged()
-                }
+                notifyWallpaperChanged()
                 return
             }
 
