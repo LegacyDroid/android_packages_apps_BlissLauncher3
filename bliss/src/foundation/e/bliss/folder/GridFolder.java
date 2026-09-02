@@ -56,14 +56,13 @@ import com.android.launcher3.views.ScrimView;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import foundation.e.bliss.blur.BlurBackgroundView;
-import foundation.e.bliss.folder.LiquidGlassFolderDelegate;
-
-public class GridFolder extends Folder implements OnAlarmListener {
+import foundation.e.bliss.blur.BlurWallpaperProvider;
+import foundation.e.bliss.folder.GlassFolderDelegate;
+public class GridFolder extends Folder implements OnAlarmListener, BlurWallpaperProvider.Listener {
     private static final int MIN_CONTENT_DIMEN = 5;
     private static final float FOLDER_CORNER_RADIUS_DP = 12f;
     private final Launcher mLauncher;
     private final Alarm wobbleExpireAlarm = new Alarm();
-    private final LiquidGlassFolderDelegate mLiquidGlassDelegate;
     public View mFolderTab;
     public int mFolderTabHeight;
     public FrameLayout mGridFolderPage;
@@ -73,11 +72,14 @@ public class GridFolder extends Folder implements OnAlarmListener {
     private boolean isFolderWobbling = false;
     private boolean isAnimating = false;
 
+    private final GlassFolderDelegate mGlassDelegate;
+    private BlurWallpaperProvider mBlurProvider;
+
     public GridFolder(Context context, AttributeSet attrs) {
         super(context, attrs);
         mLauncher = mLauncherDelegate.getLauncher();
         wobbleExpireAlarm.setOnAlarmListener(this);
-        mLiquidGlassDelegate = new LiquidGlassFolderDelegate(context.getContentResolver());
+        mGlassDelegate = new GlassFolderDelegate(context.getContentResolver());
     }
 
     @SuppressLint("InflateParams")
@@ -399,23 +401,44 @@ public class GridFolder extends Folder implements OnAlarmListener {
     }
 
     private void applyLiquidGlass() {
-        if (mGridFolderPage != null && mLiquidGlassDelegate.isEnabled()) {
-            mGridFolderPage.getBackground().setAlpha(0);
-            // Post to ensure mGridFolderPage has been measured
-            mGridFolderPage.post(() -> {
-                if (mGridFolderPage.getWidth() > 0 && mGridFolderPage.getHeight() > 0) {
-                    mLiquidGlassDelegate.applyToFolderPage(mGridFolderPage, FOLDER_CORNER_RADIUS_DP);
-                }
-            });
+        android.graphics.Bitmap wallpaperBitmap = null;
+        mBlurProvider = foundation.e.bliss.blur.BlurWallpaperProvider.Companion.getInstance(mLauncher);
+        foundation.e.bliss.blur.BlurWallpaperProvider.BlurSizes sizes = mBlurProvider.getWallpapers();
+        if (sizes != null) {
+            wallpaperBitmap = sizes.getBackground();
         }
+        mGlassDelegate.applyToFolderPage(mGridFolderPage, FOLDER_CORNER_RADIUS_DP, wallpaperBitmap);
+        mBlurProvider.addListener(this);
     }
 
     private void removeLiquidGlass() {
-        if (mGridFolderPage != null) {
-            mLiquidGlassDelegate.removeFromFolderPage(mGridFolderPage);
-            mGridFolderPage.getBackground().setAlpha(255);
+        if (mBlurProvider != null) {
+            mBlurProvider.removeListener(this);
+            mBlurProvider = null;
+        }
+        mGlassDelegate.removeFromFolderPage(mGridFolderPage);
+    }
+
+    @Override
+    public void onWallpaperChanged() {
+        if (mGlassDelegate != null && mBlurProvider != null) {
+            foundation.e.bliss.blur.BlurWallpaperProvider.BlurSizes sizes = mBlurProvider.getWallpapers();
+            if (sizes != null) {
+                mGlassDelegate.updateWallpaper(sizes.getBackground());
+            }
         }
     }
+
+    @Override
+    public void onEnabledChanged() {
+        onWallpaperChanged();
+    }
+
+    @Override
+    public void onScrollOffsetChanged(float offset) {}
+
+    @Override
+    public void onOffsetChanged(float offset) {}
 
     private Animator getAnimator(View view, float v1, float v2, boolean hide) {
         return hide

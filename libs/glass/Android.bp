@@ -13,6 +13,7 @@ android_library {
         "liquidglass-compose-ui",
         "liquidglass-compose-ui-graphics",
         "liquidglass-compose-ui-util",
+        "liquidglass-activity-compose",
         "androidx.compose.runtime_runtime",
     ],
 

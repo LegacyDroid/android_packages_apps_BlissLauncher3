@@ -3,10 +3,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="foundation.e.bliss.folder">
 
-    <!-- Remove catalog's LAUNCHER activity that leaks through manifest merge -->
     <application>
+        <!-- Remove catalog's LAUNCHER activity that leaks through manifest merge -->
         <activity
             android:name="com.kyant.backdrop.catalog.MainActivity"
             tools:node="remove" />
+
+        <!-- Glass Folder Activity -->
+        <activity
+            android:name="foundation.e.bliss.folder.GlassFolderActivity"
+            android:exported="true"
+            android:label="Glass Folder"
+            android:theme="@android:style/Theme.Material.Light.NoActionBar" />
     </application>
 </manifest>
