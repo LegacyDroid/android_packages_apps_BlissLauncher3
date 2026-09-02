@@ -12,6 +12,7 @@ import android.os.ServiceManager
 import android.provider.Settings
 import android.util.Log
 import android.view.IWindowManager
+import kotlin.math.ceil
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.compose.foundation.Image
@@ -55,7 +56,7 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
             val screenshot = wms.screenshotWallpaper()
             if (screenshot != null) {
                 Log.d(TAG, "Captured wallpaper via IWindowManager: ${screenshot.width}x${screenshot.height}")
-                return screenshot
+                return scaleAndCropToScreenSize(context, screenshot)
             }
         } catch (e: Exception) {
             Log.e(TAG, "IWindowManager.screenshotWallpaper failed: ${e.message}")
@@ -78,6 +79,25 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
             Log.e(TAG, "peekDrawable fallback failed: ${e.message}")
             return null
         }
+    }
+
+    private fun scaleAndCropToScreenSize(context: Context, bitmap: Bitmap): Bitmap {
+        val dm = context.resources.displayMetrics
+        val screenWidth = dm.widthPixels
+        val screenHeight = dm.heightPixels
+
+        val widthFactor = screenWidth.toFloat() / bitmap.width
+        val heightFactor = screenHeight.toFloat() / bitmap.height
+        val upscaleFactor = widthFactor.coerceAtLeast(heightFactor)
+        if (upscaleFactor <= 0) return bitmap
+
+        val scaledWidth = screenWidth.coerceAtLeast(ceil(bitmap.width * upscaleFactor).toInt())
+        val scaledHeight = screenHeight.coerceAtLeast(ceil(bitmap.height * upscaleFactor).toInt())
+        val scaled = Bitmap.createScaledBitmap(bitmap, scaledWidth, scaledHeight, true)
+
+        val xOffset = ((scaledWidth - screenWidth) / 2f).toInt()
+        val yOffset = ((scaledHeight - screenHeight) / 2f).toInt()
+        return Bitmap.createBitmap(scaled, xOffset, yOffset, screenWidth, screenHeight)
     }
 
     fun updateWallpaper(bitmap: Bitmap?) {
