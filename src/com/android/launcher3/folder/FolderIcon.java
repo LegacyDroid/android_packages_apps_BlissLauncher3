@@ -195,6 +195,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
+        removeLiquidGlass();
     }
 
     public static <T extends Context & ActivityContext> FolderIcon inflateFolderAndIcon(int resId,

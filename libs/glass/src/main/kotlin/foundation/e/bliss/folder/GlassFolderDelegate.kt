@@ -8,8 +8,10 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
+import android.os.ServiceManager
 import android.provider.Settings
 import android.util.Log
+import android.view.IWindowManager
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.compose.foundation.Image
@@ -39,6 +41,7 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
     private var toggleState = mutableStateOf(false)
     private var savedBackgroundAlpha: Int = -1
     private val wallpaperBitmap = mutableStateOf<Bitmap?>(null)
+    private var captureThread: Thread? = null
 
     private fun createPlaceholderBitmap(): Bitmap {
         val bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
@@ -46,7 +49,18 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
         return bitmap
     }
 
-    private fun loadWallpaper(context: Context): Bitmap? {
+    private fun captureWallpaper(context: Context): Bitmap? {
+        try {
+            val wms = IWindowManager.Stub.asInterface(ServiceManager.getService("window"))
+            val screenshot = wms.screenshotWallpaper()
+            if (screenshot != null) {
+                Log.d(TAG, "Captured wallpaper via IWindowManager: ${screenshot.width}x${screenshot.height}")
+                return screenshot
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "IWindowManager.screenshotWallpaper failed: ${e.message}")
+        }
+
         try {
             val wm = WallpaperManager.getInstance(context)
             val drawable = wm.peekDrawable() ?: return null
@@ -58,10 +72,10 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
             val canvas = Canvas(bitmap)
             drawable.setBounds(0, 0, canvas.width, canvas.height)
             drawable.draw(canvas)
-            Log.d(TAG, "Loaded wallpaper: ${bitmap.width}x${bitmap.height}")
+            Log.d(TAG, "Loaded wallpaper via peekDrawable: ${bitmap.width}x${bitmap.height}")
             return bitmap
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to load wallpaper", e)
+            Log.e(TAG, "peekDrawable fallback failed: ${e.message}")
             return null
         }
     }
@@ -75,10 +89,17 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
 
         toggleState.value = isEnabled()
 
-        // Load wallpaper directly if not provided — bypasses async blur pipeline
-        val loadedBitmap = wallpaperBitmap ?: loadWallpaper(container.context)
-        Log.d(TAG, "applyToFolderPage: wallpaperBitmap param=$wallpaperBitmap, loaded=$loadedBitmap, loadedSize=${loadedBitmap?.width}x${loadedBitmap?.height}")
-        this.wallpaperBitmap.value = loadedBitmap
+        if (wallpaperBitmap != null) {
+            this.wallpaperBitmap.value = wallpaperBitmap
+        } else {
+            this.wallpaperBitmap.value = null
+            captureThread = Thread {
+                val captured = captureWallpaper(container.context)
+                Handler(Looper.getMainLooper()).post {
+                    this@GlassFolderDelegate.wallpaperBitmap.value = captured
+                }
+            }.also { it.start() }
+        }
 
         val context = container.context
 
@@ -96,7 +117,6 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
 
                 Box(Modifier.fillMaxSize()) {
                     val bmp = this@GlassFolderDelegate.wallpaperBitmap.value ?: fallbackBitmap
-                    Log.d(TAG, "wallpaperBitmap=$bmp, size=${bmp?.width}x${bmp?.height}, backdrop=$backdrop")
                     Image(
                         bitmap = bmp.asImageBitmap(),
                         contentDescription = null,
@@ -146,6 +166,8 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
     }
 
     fun removeFromFolderPage(container: FrameLayout) {
+        captureThread?.interrupt()
+        captureThread = null
         observer?.let { resolver.unregisterContentObserver(it) }
         observer = null
         composeView?.let { container.removeView(it) }

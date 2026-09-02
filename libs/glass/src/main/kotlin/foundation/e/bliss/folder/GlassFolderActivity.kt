@@ -135,7 +135,6 @@ fun GlassFolderScreen() {
     }
 
     Box(Modifier.fillMaxSize()) {
-        Log.d(TAG, "wallpaperBitmap=$wallpaperBitmap, size=${wallpaperBitmap?.width}x${wallpaperBitmap?.height}, fallbackBitmap=${fallbackBitmap?.width}x${fallbackBitmap?.height}")
         Image(
             bitmap = (wallpaperBitmap ?: fallbackBitmap).asImageBitmap(),
             contentDescription = null,
