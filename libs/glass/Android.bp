@@ -1,0 +1,23 @@
+android_library {
+    name: "TrebuchetGlassLib",
+    srcs: ["src/**/*.kt"],
+    platform_apis: true,
+    manifest: "src/main/AndroidManifest.xml",
+    resource_dirs: [],
+
+    static_libs: [
+        "LiquidGlassCatalog",
+        "LiquidGlassBackdrop",
+        "LiquidGlassShapes",
+        "liquidglass-compose-foundation",
+        "liquidglass-compose-ui",
+        "liquidglass-compose-ui-graphics",
+        "liquidglass-compose-ui-util",
+        "androidx.compose.runtime_runtime",
+    ],
+
+    kotlincflags: [
+        "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
+        "-opt-in=androidx.compose.runtime.ExperimentalComposeApi",
+    ],
+}

@@ -91,6 +91,7 @@ import java.util.function.Predicate;
 import foundation.e.bliss.LauncherAppMonitor;
 import foundation.e.bliss.folder.GridFolder;
 import foundation.e.bliss.folder.GridFolderController;
+import foundation.e.bliss.folder.LiquidGlassFolderDelegate;
 import foundation.e.bliss.multimode.MultiModeController;
 
 /**
@@ -113,6 +114,9 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
 
     // Delay when drag enters until the folder opens, in miliseconds.
     private static final int ON_OPEN_DELAY = 800;
+
+    // Corner radius for the folder icon glass effect
+    private static final float FOLDER_ICON_CORNER_RADIUS_DP = 12f;
 
     @Thunk BubbleTextView mFolderName;
 
@@ -141,6 +145,8 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
     private Rect mTouchArea = new Rect();
 
     private float mScaleForReorderBounce = 1f;
+
+    private LiquidGlassFolderDelegate mLiquidGlassDelegate;
 
     private static final Property<FolderIcon, Float> DOT_SCALE_PROPERTY
             = new Property<FolderIcon, Float>(Float.TYPE, "dotScale") {
@@ -178,6 +184,21 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
 
         mPreviewItemManager = new PreviewItemManager(this);
         mDotParams = new DotRenderer.DrawParams();
+        mLiquidGlassDelegate = new LiquidGlassFolderDelegate(getContext().getContentResolver());
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (mLiquidGlassDelegate != null && mLiquidGlassDelegate.isEnabled()) {
+            post(this::applyLiquidGlass);
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        removeLiquidGlass();
     }
 
     public static <T extends Context & ActivityContext> FolderIcon inflateFolderAndIcon(int resId,
@@ -625,7 +646,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
 
         mPreviewItemManager.recomputePreviewDrawingParams();
 
-        if (!mBackground.drawingDelegated()) {
+        if (!mBackground.drawingDelegated() && (mLiquidGlassDelegate == null || !mLiquidGlassDelegate.isEnabled())) {
             mBackground.drawBackground(canvas);
         }
 
@@ -856,5 +877,22 @@ public class FolderIcon extends FrameLayout implements FolderListener, IconLabel
          * Tells the FolderIconParent to stop drawing the "leave-behind" as the Folder is closed.
          */
         void clearFolderLeaveBehind(FolderIcon child);
+    }
+
+    /**
+     * Apply liquid glass effect to this folder icon preview.
+     */
+    public void applyLiquidGlass() {
+        if (mLiquidGlassDelegate != null && mLiquidGlassDelegate.isEnabled()) {
+            mLiquidGlassDelegate.applyToFolderPage(this, FOLDER_ICON_CORNER_RADIUS_DP);
+        }
+    }
+
+    /**
+     * Remove liquid glass effect from this folder icon.
+     * Called when the folder closes.
+     */
+    public void removeLiquidGlass() {
+        mLiquidGlassDelegate.removeFromFolderPage(this);
     }
 }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="foundation.e.bliss.folder">
+
+    <!-- Remove catalog's LAUNCHER activity that leaks through manifest merge -->
+    <application>
+        <activity
+            android:name="com.kyant.backdrop.catalog.MainActivity"
+            tools:node="remove" />
+    </application>
+</manifest>

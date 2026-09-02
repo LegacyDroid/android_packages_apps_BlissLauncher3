@@ -218,6 +218,7 @@ android_library {
         "kotlinx_coroutines",
         "kotlinx_coroutines_android",
         "blisslauncher3-libs",
+        "TrebuchetGlassLib",
     ],
     sdk_version: "current",
     min_sdk_version: min_launcher3_sdk_version,

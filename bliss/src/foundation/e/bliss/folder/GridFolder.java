@@ -56,11 +56,14 @@ import com.android.launcher3.views.ScrimView;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import foundation.e.bliss.blur.BlurBackgroundView;
+import foundation.e.bliss.folder.LiquidGlassFolderDelegate;
 
 public class GridFolder extends Folder implements OnAlarmListener {
     private static final int MIN_CONTENT_DIMEN = 5;
+    private static final float FOLDER_CORNER_RADIUS_DP = 12f;
     private final Launcher mLauncher;
     private final Alarm wobbleExpireAlarm = new Alarm();
+    private final LiquidGlassFolderDelegate mLiquidGlassDelegate;
     public View mFolderTab;
     public int mFolderTabHeight;
     public FrameLayout mGridFolderPage;
@@ -74,6 +77,7 @@ public class GridFolder extends Folder implements OnAlarmListener {
         super(context, attrs);
         mLauncher = mLauncherDelegate.getLauncher();
         wobbleExpireAlarm.setOnAlarmListener(this);
+        mLiquidGlassDelegate = new LiquidGlassFolderDelegate(context.getContentResolver());
     }
 
     @SuppressLint("InflateParams")
@@ -188,6 +192,7 @@ public class GridFolder extends Folder implements OnAlarmListener {
                 }
             }
             showOrHideDesktop(mLauncher, true);
+            applyLiquidGlass();
             if (mLauncher.getWorkspace().isWobbling()) {
                 wobbleFolder(true);
             } else if (isFolderWobbling) {
@@ -242,6 +247,7 @@ public class GridFolder extends Folder implements OnAlarmListener {
     protected void onFolderCloseComplete() {
         if (getOpen(mLauncher) == null) {
             showOrHideDesktop(mLauncher, false);
+            removeLiquidGlass();
         }
     }
 
@@ -390,6 +396,25 @@ public class GridFolder extends Folder implements OnAlarmListener {
     @SuppressWarnings("unchecked")
     public <T extends View & ClipPathView> T getAnimateObject() {
         return (T) mGridFolderPage;
+    }
+
+    private void applyLiquidGlass() {
+        if (mGridFolderPage != null && mLiquidGlassDelegate.isEnabled()) {
+            mGridFolderPage.getBackground().setAlpha(0);
+            // Post to ensure mGridFolderPage has been measured
+            mGridFolderPage.post(() -> {
+                if (mGridFolderPage.getWidth() > 0 && mGridFolderPage.getHeight() > 0) {
+                    mLiquidGlassDelegate.applyToFolderPage(mGridFolderPage, FOLDER_CORNER_RADIUS_DP);
+                }
+            });
+        }
+    }
+
+    private void removeLiquidGlass() {
+        if (mGridFolderPage != null) {
+            mLiquidGlassDelegate.removeFromFolderPage(mGridFolderPage);
+            mGridFolderPage.getBackground().setAlpha(255);
+        }
     }
 
     private Animator getAnimator(View view, float v1, float v2, boolean hide) {
