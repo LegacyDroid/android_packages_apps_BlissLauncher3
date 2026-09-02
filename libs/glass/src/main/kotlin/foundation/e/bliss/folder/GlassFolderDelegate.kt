@@ -4,14 +4,11 @@ import android.app.WallpaperManager
 import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
+import android.graphics.BitmapFactory
 import android.os.Handler
 import android.os.Looper
-import android.os.ServiceManager
 import android.provider.Settings
 import android.util.Log
-import android.view.IWindowManager
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.compose.foundation.Image
@@ -43,40 +40,23 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
     private val wallpaperBitmap = mutableStateOf<Bitmap?>(null)
     private var captureThread: Thread? = null
 
-    private fun createPlaceholderBitmap(): Bitmap {
-        val bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
-        bitmap.eraseColor(Color.rgb(20, 20, 30))
-        return bitmap
-    }
-
-    private fun captureWallpaper(context: Context): Bitmap? {
-        try {
-            val wms = IWindowManager.Stub.asInterface(ServiceManager.getService("window"))
-            val screenshot = wms.screenshotWallpaper()
-            if (screenshot != null) {
-                Log.d(TAG, "Captured wallpaper: ${screenshot.width}x${screenshot.height}")
-                return screenshot
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "screenshotWallpaper failed: ${e.message}")
-        }
-
+    private fun loadWallpaper(context: Context): Bitmap? {
         try {
             val wm = WallpaperManager.getInstance(context)
-            val drawable = wm.peekDrawable() ?: return null
-            val bitmap = Bitmap.createBitmap(
-                drawable.intrinsicWidth.coerceAtLeast(1),
-                drawable.intrinsicHeight.coerceAtLeast(1),
-                Bitmap.Config.ARGB_8888
-            )
-            val canvas = Canvas(bitmap)
-            drawable.setBounds(0, 0, canvas.width, canvas.height)
-            drawable.draw(canvas)
-            return bitmap
+            val pfd = wm.getWallpaperFile(WallpaperManager.FLAG_SYSTEM)
+            if (pfd != null) {
+                val bitmap = BitmapFactory.decodeFileDescriptor(pfd.fileDescriptor)
+                pfd.close()
+                if (bitmap != null) {
+                    Log.d(TAG, "Loaded wallpaper via getWallpaperFile: ${bitmap.width}x${bitmap.height}")
+                    return bitmap
+                }
+            }
+            Log.w(TAG, "getWallpaperFile returned null")
         } catch (e: Exception) {
-            Log.e(TAG, "peekDrawable fallback failed: ${e.message}")
-            return null
+            Log.e(TAG, "getWallpaperFile failed: ${e.message}")
         }
+        return null
     }
 
     fun updateWallpaper(bitmap: Bitmap?) {
@@ -93,16 +73,14 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
         } else {
             this.wallpaperBitmap.value = null
             captureThread = Thread {
-                val captured = captureWallpaper(container.context)
+                val loaded = loadWallpaper(container.context)
                 Handler(Looper.getMainLooper()).post {
-                    this@GlassFolderDelegate.wallpaperBitmap.value = captured
+                    this@GlassFolderDelegate.wallpaperBitmap.value = loaded
                 }
             }.also { it.start() }
         }
 
-        val context = container.context
-
-        val cv = ComposeView(context).apply {
+        val cv = ComposeView(container.context).apply {
             layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
@@ -112,18 +90,19 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
             tag = "glass_folder"
             setContent {
                 val backdrop = rememberLayerBackdrop()
-                val fallbackBitmap = remember { createPlaceholderBitmap() }
+                val bmp = this@GlassFolderDelegate.wallpaperBitmap.value
 
                 Box(Modifier.fillMaxSize()) {
-                    val bmp = this@GlassFolderDelegate.wallpaperBitmap.value ?: fallbackBitmap
-                    Image(
-                        bitmap = bmp.asImageBitmap(),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .layerBackdrop(backdrop)
-                            .fillMaxSize(),
-                        contentScale = ContentScale.FillBounds
-                    )
+                    if (bmp != null) {
+                        Image(
+                            bitmap = bmp.asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .layerBackdrop(backdrop)
+                                .fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                     GlassFolderOverlay(
                         backdrop = backdrop,
                         isEnabled = toggleState.value
@@ -153,7 +132,6 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
     private fun updateFolderBackground(container: FrameLayout) {
         val bg = container.background ?: return
         if (isEnabled()) {
-            // Save original alpha, then make transparent — preserves GradientDrawable type
             if (savedBackgroundAlpha < 0) {
                 savedBackgroundAlpha = bg.alpha
             }
@@ -171,7 +149,6 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
         observer = null
         composeView?.let { container.removeView(it) }
         composeView = null
-        // Restore background alpha (we mutate in-place, never replace)
         if (savedBackgroundAlpha >= 0) {
             container.background?.alpha = savedBackgroundAlpha
             savedBackgroundAlpha = -1
