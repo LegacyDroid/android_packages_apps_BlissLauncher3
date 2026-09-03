@@ -15,7 +15,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -48,7 +47,7 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
                 val bitmap = BitmapFactory.decodeFileDescriptor(pfd.fileDescriptor)
                 pfd.close()
                 if (bitmap != null) {
-                    Log.d(TAG, "Loaded wallpaper via getWallpaperFile: ${bitmap.width}x${bitmap.height}")
+                    Log.d(TAG, "Loaded wallpaper: ${bitmap.width}x${bitmap.height}")
                     return bitmap
                 }
             }
@@ -68,18 +67,22 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
 
         toggleState.value = isEnabled()
 
-        if (wallpaperBitmap != null) {
-            this.wallpaperBitmap.value = wallpaperBitmap
-        } else {
-            this.wallpaperBitmap.value = null
-            captureThread = Thread {
-                val loaded = loadWallpaper(container.context)
+        // Set initial bitmap from caller (BlurWallpaperProvider) if available
+        this.wallpaperBitmap.value = wallpaperBitmap
+
+        // Always load via getWallpaperFile — BlurWallpaperProvider fails due to APPLY_RESTRICTION
+        captureThread = Thread {
+            val loaded = loadWallpaper(container.context)
+            if (loaded != null) {
                 Handler(Looper.getMainLooper()).post {
                     this@GlassFolderDelegate.wallpaperBitmap.value = loaded
                 }
-            }.also { it.start() }
-        }
+            }
+        }.also { it.start() }
 
+        // ComposeView goes INSIDE the folder container — it's sized to the folder area,
+        // and ContentScale.Crop shows the correct portion of the full-screen wallpaper.
+        // Adding to android.R.id.content puts it behind LauncherRootView (invisible).
         val cv = ComposeView(container.context).apply {
             layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -94,6 +97,7 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
 
                 Box(Modifier.fillMaxSize()) {
                     if (bmp != null) {
+                        // Wallpaper as backdrop source — ContentScale.Crop centers and fills
                         Image(
                             bitmap = bmp.asImageBitmap(),
                             contentDescription = null,
@@ -102,11 +106,14 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
                                 .fillMaxSize(),
                             contentScale = ContentScale.Crop
                         )
+                        // Glass overlay — only renders when backdrop has content (bitmap loaded)
+                        GlassFolderOverlay(
+                            backdrop = backdrop,
+                            isEnabled = toggleState.value
+                        )
                     }
-                    GlassFolderOverlay(
-                        backdrop = backdrop,
-                        isEnabled = toggleState.value
-                    )
+                    // When bmp == null: nothing renders → no fake glass flash.
+                    // Wallpaper thread will post and trigger recomposition.
                 }
             }
         }
@@ -147,7 +154,9 @@ class GlassFolderDelegate(private val resolver: ContentResolver) {
         captureThread = null
         observer?.let { resolver.unregisterContentObserver(it) }
         observer = null
-        composeView?.let { container.removeView(it) }
+        composeView?.let { view ->
+            (view.parent as? ViewGroup)?.removeView(view)
+        }
         composeView = null
         if (savedBackgroundAlpha >= 0) {
             container.background?.alpha = savedBackgroundAlpha
