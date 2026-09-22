@@ -179,6 +179,7 @@ import com.android.launcher3.allapps.AllAppsTransitionController;
 import com.android.launcher3.allapps.DiscoveryBounce;
 import com.android.launcher3.anim.AnimationSuccessListener;
 import com.android.launcher3.anim.PropertyListBuilder;
+import com.android.launcher3.anim.UnlockIconAnimator;
 import com.android.launcher3.apppairs.AppPairIcon;
 import com.android.launcher3.celllayout.CellPosMapper;
 import com.android.launcher3.celllayout.CellPosMapper.CellPos;
@@ -1152,6 +1153,7 @@ public class Launcher extends StatefulActivity<LauncherState>
     @Override
     @CallSuper
     protected void onDeferredResumed() {
+        mUnlockIconAnimator.onDeferredResumed();
         logStopAndResume(true /* isResume */);
 
         // Process any items that were added while Launcher was away.
@@ -1627,7 +1629,19 @@ public class Launcher extends StatefulActivity<LauncherState>
         }
     }
 
-    private final ScreenOnListener mScreenOnListener = this::onScreenOnChanged;
+    private final UnlockIconAnimator mUnlockIconAnimator = new UnlockIconAnimator(this);
+
+    private final ScreenOnListener mScreenOnListener = new ScreenOnListener() {
+        @Override
+        public void onScreenOnChanged(boolean isOn) {
+            Launcher.this.onScreenOnChanged(isOn);
+        }
+
+        @Override
+        public void onUserPresent() {
+            mUnlockIconAnimator.onUserPresent();
+        }
+    };
 
     private void updateNotificationDots(Predicate<PackageUserKey> updatedDots) {
         mWorkspace.updateNotificationDots(updatedDots);
@@ -2140,6 +2154,9 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     protected void onScreenOnChanged(boolean isOn) {
+        if (!isOn) {
+            mUnlockIconAnimator.onScreenOff();
+        }
         // Reset AllApps to its initial state only if we are not in the middle of
         // processing a multi-step drop
         if (!isOn && mPendingRequestArgs == null) {
