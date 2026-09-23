@@ -2022,6 +2022,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             final ComponentName opening = mOpeningComponent;
             if (targets == null || mOpenListener == null || opening == null) {
                 // Widget/recents launches never attach; they keep the legacy cancel path.
+                Log.d("LDroid", "merge reject: nothing attached");
                 return false;
             }
             boolean sawClose = false;
@@ -2031,9 +2032,13 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 }
                 if (change.getMode() != TRANSIT_CLOSE && change.getMode() != TRANSIT_TO_BACK) {
                     // Another app opening, or anything foreign, plays through fresh.
+                    Log.d("LDroid", "merge reject: mode=" + change.getMode()
+                            + " comp=" + componentOf(change));
                     return false;
                 }
                 if (!opening.equals(componentOf(change))) {
+                    Log.d("LDroid", "merge reject: comp mismatch want=" + opening
+                            + " got=" + componentOf(change));
                     return false;
                 }
                 sawClose = true;
@@ -2041,6 +2046,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             if (!sawClose) {
                 // Nothing asked for the reverse of this open, only wallpaper or home changes
                 // riding along; let it play through.
+                Log.d("LDroid", "merge reject: no close change");
                 return false;
             }
             mMergePending = true;
@@ -2065,8 +2071,47 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             if (running != null && running.isStarted()) {
                 running.end();
             }
+            // The launcher's window leash was reparented into T1's animation hierarchy
+            // and faded out by T1's animation. T2's startT only shows the activity token,
+            // not the window leash (which is now under T1's root). Restore its alpha to 1.
+            restoreLauncherLeashAlpha();
+            Log.d("LDroid", "reversal start ws=" + mLauncher.getWorkspace().getAlpha()
+                    + "/" + mLauncher.getWorkspace().getVisibility()
+                    + " rootShown=" + mLauncher.getRootView().isShown()
+                    + " decor=" + mLauncher.getWindow().getDecorView().isShown()
+                    + " winVis=" + mLauncher.getWindow().getDecorView().getVisibility()
+                    + " forceInv=" + mLauncher.isForceInvisible());
             mReversalFrames = 0;
             Choreographer.getInstance().postFrameCallback(mOpenReversalFrameCb);
+        }
+
+        /**
+         * During app-open (T1), the launcher is a MODE_CLOSING target. Shell's
+         * setupAnimHierarchy reparents its window leash into T1's animation root and
+         * animates its alpha down. When we interrupt and reverse, we only animate the
+         * app target back — the launcher leash stays faded in T1's hierarchy. T2's
+         * startT shows the activity token but the leash is no longer under it. This
+         * restores the launcher leash alpha to 1 so the launcher is visible during
+         * the reversal. At fullFinish, buildFinishTransaction will also reset it.
+         */
+        private void restoreLauncherLeashAlpha() {
+            final RemoteAnimationTargets targets = mReversalTargets;
+            if (targets == null || targets.nonApps == null) {
+                return;
+            }
+            for (RemoteAnimationTarget target : targets.nonApps) {
+                if (target.mode == MODE_CLOSING
+                        && target.windowConfiguration != null
+                        && target.windowConfiguration.getActivityType() == ACTIVITY_TYPE_HOME
+                        && target.leash != null && target.leash.isValid()) {
+                    new SurfaceControl.Transaction()
+                            .setAlpha(target.leash, 1f)
+                            .show(target.leash)
+                            .apply();
+                    Log.d("LDroid", "restored launcher leash alpha=1");
+                    break;
+                }
+            }
         }
 
         // Method reference, not a lambda: a field initializer may not post itself.
@@ -2098,6 +2143,12 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
 
         private void finishOpenReversal() {
             mMergePending = false;
+            Log.d("LDroid", "reversal end ws=" + mLauncher.getWorkspace().getAlpha()
+                    + "/" + mLauncher.getWorkspace().getVisibility()
+                    + " rootShown=" + mLauncher.getRootView().isShown()
+                    + " decor=" + mLauncher.getWindow().getDecorView().isShown()
+                    + " winVis=" + mLauncher.getWindow().getDecorView().getVisibility()
+                    + " forceInv=" + mLauncher.isForceInvisible());
             final RemoteAnimationTargets targets = mReversalTargets;
             mReversalTargets = null;
             mOpenListener = null;
