@@ -2491,10 +2491,6 @@ public class Launcher extends StatefulActivity<LauncherState>
                         && TextUtils.equals(info.getTargetComponent().getPackageName(),
                         packageName);
 
-        if (mWorkspace.getDestinationPage() == 0) {
-            return null;
-        }
-
         if (supportsAllAppsState && isInState(LauncherState.ALL_APPS)) {
             AllAppsRecyclerView activeRecyclerView = mAppsView.getActiveRecyclerView();
             View v = getFirstMatch(Collections.singletonList(activeRecyclerView),
