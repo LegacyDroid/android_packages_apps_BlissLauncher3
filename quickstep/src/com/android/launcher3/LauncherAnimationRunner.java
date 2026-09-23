@@ -27,6 +27,7 @@ import android.animation.AnimatorSet;
 import android.content.Context;
 import android.os.Handler;
 import android.os.RemoteException;
+import android.util.Log;
 import android.view.IRemoteAnimationFinishedCallback;
 import android.view.RemoteAnimationTarget;
 import android.window.TransitionInfo;
@@ -117,11 +118,14 @@ public class LauncherAnimationRunner extends RemoteAnimationRunnerCompat {
         // Hold before the predicate: an animator ending during the check must not finish
         // the original transition before an accepted reversal takes over.
         if (result == null || !result.holdFinish()) {
+            Log.d("LDroid", "merge: no hold, result=" + result);
             return false;
         }
         if (getFactory().onAnimationMerge(info, result)) {
+            Log.d("LDroid", "merge: accepted");
             return true;
         }
+        Log.d("LDroid", "merge: declined by predicate");
         // Declined: drop the hold; releaseHold is @UiThread so it must be posted.
         mHandler.post(result::releaseHold);
         return false;

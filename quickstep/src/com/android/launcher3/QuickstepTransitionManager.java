@@ -2071,9 +2071,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             if (running != null && running.isStarted()) {
                 running.end();
             }
-            // The launcher's window leash was reparented into T1's animation hierarchy
-            // and faded out by T1's animation. T2's startT only shows the activity token,
-            // not the window leash (which is now under T1's root). Restore its alpha to 1.
+            // T1 reparented and faded the launcher window leash, and T2's startT shows only
+            // the activity token, so restore the leash alpha for the reversal.
             restoreLauncherLeashAlpha();
             Log.d("LDroid", "reversal start ws=" + mLauncher.getWorkspace().getAlpha()
                     + "/" + mLauncher.getWorkspace().getVisibility()
@@ -2086,20 +2085,16 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         }
 
         /**
-         * During app-open (T1), the launcher is a MODE_CLOSING target. Shell's
-         * setupAnimHierarchy reparents its window leash into T1's animation root and
-         * animates its alpha down. When we interrupt and reverse, we only animate the
-         * app target back — the launcher leash stays faded in T1's hierarchy. T2's
-         * startT shows the activity token but the leash is no longer under it. This
-         * restores the launcher leash alpha to 1 so the launcher is visible during
-         * the reversal. At fullFinish, buildFinishTransaction will also reset it.
+         * T1's setupAnimHierarchy faded the launcher window leash inside its own hierarchy
+         * and T2's startT shows only the activity token, so reset it for the reversal.
+         * buildFinishTransaction resets it again at fullFinish.
          */
         private void restoreLauncherLeashAlpha() {
             final RemoteAnimationTargets targets = mReversalTargets;
-            if (targets == null || targets.nonApps == null) {
+            if (targets == null || targets.unfilteredApps == null) {
                 return;
             }
-            for (RemoteAnimationTarget target : targets.nonApps) {
+            for (RemoteAnimationTarget target : targets.unfilteredApps) {
                 if (target.mode == MODE_CLOSING
                         && target.windowConfiguration != null
                         && target.windowConfiguration.getActivityType() == ACTIVITY_TYPE_HOME
