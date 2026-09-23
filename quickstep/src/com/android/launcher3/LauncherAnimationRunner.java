@@ -29,6 +29,7 @@ import android.os.Handler;
 import android.os.RemoteException;
 import android.view.IRemoteAnimationFinishedCallback;
 import android.view.RemoteAnimationTarget;
+import android.window.TransitionInfo;
 
 import androidx.annotation.BinderThread;
 import androidx.annotation.Nullable;
@@ -65,7 +66,7 @@ public class LauncherAnimationRunner extends RemoteAnimationRunnerCompat {
     private final boolean mStartAtFrontOfQueue;
     private final WeakReference<RemoteAnimationFactory> mFactory;
 
-    private AnimationResult mAnimationResult;
+    private volatile AnimationResult mAnimationResult;
 
     /**
      * @param startAtFrontOfQueue If true, the animation start will be posted at the front of the
@@ -104,9 +105,33 @@ public class LauncherAnimationRunner extends RemoteAnimationRunnerCompat {
         return factory != null ? factory : DEFAULT_FACTORY;
     }
 
+    /**
+     * System calls this when another transition wants to merge into the animation we are
+     * playing. Accepting keeps it alive to reverse in place; cancelling would replay it
+     * from scratch.
+     */
+    @BinderThread
+    @Override
+    public boolean onAnimationMerge(TransitionInfo info) {
+        final AnimationResult result = mAnimationResult;
+        // Hold before the predicate: an animator ending during the check must not finish
+        // the original transition before an accepted reversal takes over.
+        if (result == null || !result.holdFinish()) {
+            return false;
+        }
+        if (getFactory().onAnimationMerge(info, result)) {
+            return true;
+        }
+        // Declined: drop the hold; releaseHold is @UiThread so it must be posted.
+        mHandler.post(result::releaseHold);
+        return false;
+    }
+
     @UiThread
     private void finishExistingAnimation() {
         if (mAnimationResult != null) {
+            // A replacement animation must land even if a merge reversal holds the finish open.
+            mAnimationResult.releaseHold();
             mAnimationResult.finish();
             mAnimationResult = null;
         }
@@ -137,24 +162,71 @@ public class LauncherAnimationRunner extends RemoteAnimationRunnerCompat {
         private Runnable mOnCompleteCallback;
         private boolean mFinished = false;
         private boolean mInitialized = false;
+        // Set on the binder thread at merge accept, cleared on UI when the reversal ends.
+        private volatile boolean mHoldFinish;
+        private boolean mFinishWhileHeld;
+        // Serializes holdFinish (binder) against finish (UI) so a finish either lands
+        // completely before the hold or is deferred by it, never slips between.
+        private final Object mFinishLock = new Object();
 
         private AnimationResult(Runnable syncFinishRunnable, Runnable asyncFinishRunnable) {
             mSyncFinishRunnable = syncFinishRunnable;
             mASyncFinishRunnable = asyncFinishRunnable;
         }
 
+        /**
+         * Defers the transition finish on the binder thread so shell keeps the original
+         * transition and its leashes alive while a merge reversal runs on them. Returns
+         * false when the result already finished, which must not be held back.
+         */
+        public boolean holdFinish() {
+            synchronized (mFinishLock) {
+                if (mFinished) {
+                    return false;
+                }
+                mHoldFinish = true;
+                return true;
+            }
+        }
+
+        /** Ends a hold; runs the finish that landed while held, if any. */
+        @UiThread
+        public void releaseHold() {
+            boolean pending;
+            synchronized (mFinishLock) {
+                if (!mHoldFinish) {
+                    return;
+                }
+                mHoldFinish = false;
+                pending = mFinishWhileHeld;
+                mFinishWhileHeld = false;
+            }
+            if (pending) {
+                finish();
+            }
+        }
+
         @UiThread
         private void finish() {
-            if (!mFinished) {
-                mSyncFinishRunnable.run();
-                UI_HELPER_EXECUTOR.execute(() -> {
-                    mASyncFinishRunnable.run();
-                    if (mOnCompleteCallback != null) {
-                        MAIN_EXECUTOR.execute(mOnCompleteCallback);
-                    }
-                });
+            synchronized (mFinishLock) {
+                if (mHoldFinish) {
+                    mFinishWhileHeld = true;
+                    return;
+                }
+                if (mFinished) {
+                    return;
+                }
+                // Flagged before callbacks run so a racing binder holdFinish finds the
+                // result already finished and declines.
                 mFinished = true;
             }
+            mSyncFinishRunnable.run();
+            UI_HELPER_EXECUTOR.execute(() -> {
+                mASyncFinishRunnable.run();
+                if (mOnCompleteCallback != null) {
+                    MAIN_EXECUTOR.execute(mOnCompleteCallback);
+                }
+            });
         }
 
         @UiThread
@@ -238,5 +310,16 @@ public class LauncherAnimationRunner extends RemoteAnimationRunnerCompat {
         @Override
         @UiThread
         default void onAnimationCancelled() {}
+
+        /**
+         * Runs on a binder thread when a transition wants to merge into the animation this
+         * runner is playing. Return true to take over: shell applies the merged start state
+         * and finishes the merged transition while the running animation reverses toward
+         * the new state. Implementations must not block; post the reversal to the UI thread.
+         */
+        @BinderThread
+        default boolean onAnimationMerge(TransitionInfo info, AnimationResult result) {
+            return false;
+        }
     }
 }

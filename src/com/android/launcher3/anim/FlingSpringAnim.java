@@ -33,7 +33,20 @@ import com.android.systemui.plugins.ResourceProvider;
  */
 public class FlingSpringAnim {
 
+    /** Builds a fresh spring around the same property; reversal needs this to revive a dead one. */
+    private interface SpringBuilder {
+        SpringAnimation create(float startValue, float startVelocity, float target);
+    }
+
+    /** Reads the property's live position; DynamicAnimation exposes no getValue(). */
+    private interface ValueReader {
+        float read();
+    }
+
     private final FlingAnimation mFlingAnim;
+    private final SpringBuilder mSpringBuilder;
+    private final ValueReader mValueReader;
+    private final OnAnimationEndListener mOnEndListener;
     private SpringAnimation mSpringAnim;
     private final boolean mSkipFlingAnim;
 
@@ -55,19 +68,22 @@ public class FlingSpringAnim {
                 .setMinValue(minValue)
                 .setMaxValue(maxValue);
         mTargetPosition = targetPosition;
+        mOnEndListener = onEndListener;
+        mValueReader = () -> property.getValue(object);
+        mSpringBuilder = (value, velocity, target) -> new SpringAnimation(object, property)
+                .setStartValue(value)
+                .setStartVelocity(velocity)
+                .setSpring(new SpringForce(target)
+                        .setStiffness(stiffness)
+                        .setDampingRatio(damping));
 
         // We are already past the fling target, so skip it to avoid losing a frame of the spring.
         mSkipFlingAnim = startPosition <= minValue && startVelocityPxPerS < 0
                 || startPosition >= maxValue && startVelocityPxPerS > 0;
 
         mFlingAnim.addEndListener(((animation, canceled, value, velocity) -> {
-            mSpringAnim = new SpringAnimation(object, property)
-                    .setStartValue(value)
-                    .setStartVelocity(velocity)
-                    .setSpring(new SpringForce(mTargetPosition)
-                            .setStiffness(stiffness)
-                            .setDampingRatio(damping));
-            mSpringAnim.addEndListener(onEndListener);
+            mSpringAnim = mSpringBuilder.create(value, velocity, mTargetPosition);
+            mSpringAnim.addEndListener(mOnEndListener);
             mSpringAnim.animateToFinalPosition(mTargetPosition);
         }));
     }
@@ -83,6 +99,27 @@ public class FlingSpringAnim {
         if (mSpringAnim != null) {
             mSpringAnim.animateToFinalPosition(mTargetPosition);
         }
+    }
+
+    /**
+     * Retargets even when the spring already settled: an ended androidx spring never restarts,
+     * so the dead one is rebuilt from its last value while a live one just turns around.
+     */
+    public void restartTo(float startPosition, float targetPosition) {
+        mTargetPosition = targetPosition;
+        mFlingAnim.setMinValue(Math.min(startPosition, targetPosition))
+                .setMaxValue(Math.max(startPosition, targetPosition));
+        // Ends a live fling and hands its momentum to the spring; a settled fling does nothing.
+        mFlingAnim.cancel();
+        if (mSpringAnim != null && mSpringAnim.isRunning()) {
+            mSpringAnim.animateToFinalPosition(targetPosition);
+            return;
+        }
+        // Only reached once the spring settled, so momentum is gone: rebuild from the
+        // property's current position at rest.
+        mSpringAnim = mSpringBuilder.create(mValueReader.read(), 0f, targetPosition);
+        mSpringAnim.addEndListener(mOnEndListener);
+        mSpringAnim.animateToFinalPosition(targetPosition);
     }
 
     public void start() {

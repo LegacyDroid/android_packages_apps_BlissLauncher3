@@ -98,6 +98,7 @@ import android.provider.Settings.Global;
 import android.util.Log;
 import android.util.Pair;
 import android.util.Size;
+import android.view.Choreographer;
 import android.view.CrossWindowBlurListeners;
 import android.view.IRemoteAnimationFinishedCallback;
 import android.view.RemoteAnimationAdapter;
@@ -113,6 +114,7 @@ import android.view.animation.Interpolator;
 import android.view.animation.PathInterpolator;
 import android.window.RemoteTransition;
 import android.window.TransitionFilter;
+import android.window.TransitionInfo;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -215,6 +217,9 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     public static final int TASKBAR_TO_HOME_DURATION = 300;
 
     private static final int MAX_NUM_TASKS = 5;
+
+    /** Frame cap on a merge reversal tail, so a lost spring can never pin the transition. */
+    private static final int MAX_REVERSAL_FRAMES = 90;
 
     /** Icon corner radius over its size (14.5 / 62), so windows morph as squircles. */
     private static final float ICON_SQUIRCLE_RADIUS = 0.234f;
@@ -402,6 +407,19 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         return isAllOpeningTargetTrs;
     }
 
+    /** Home and wallpaper changes ride along with every interrupt; they never decide a merge. */
+    private static boolean isIgnorableMergeChange(TransitionInfo.Change change) {
+        if ((change.getFlags() & TransitionInfo.FLAG_IS_WALLPAPER) != 0) {
+            return true;
+        }
+        return change.getTaskInfo() != null
+                && change.getTaskInfo().getActivityType() == ACTIVITY_TYPE_HOME;
+    }
+
+    private static ComponentName componentOf(TransitionInfo.Change change) {
+        return change.getTaskInfo() != null ? change.getTaskInfo().topActivity : null;
+    }
+
     /**
      * Compose the animations for a launch from the app icon.
      *
@@ -414,7 +432,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             @NonNull RemoteAnimationTarget[] appTargets,
             @NonNull RemoteAnimationTarget[] wallpaperTargets,
             @NonNull RemoteAnimationTarget[] nonAppTargets,
-            boolean launcherClosing) {
+            boolean launcherClosing, @NonNull AppLaunchAnimationRunner runner) {
         // Set the state animation first so that any state listeners are called
         // before our internal listeners.
         mLauncher.getStateManager().setCurrentAnimation(anim);
@@ -422,7 +440,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         // Note: the targetBounds are relative to the launcher
         int startDelay = getSingleFrameMs(mLauncher);
         Animator windowAnimator = getOpeningWindowAnimators(
-                v, appTargets, wallpaperTargets, nonAppTargets, launcherClosing);
+                v, appTargets, wallpaperTargets, nonAppTargets, launcherClosing, runner);
         windowAnimator.setStartDelay(startDelay);
         anim.play(windowAnimator);
         if (launcherClosing) {
@@ -430,6 +448,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             Pair<AnimatorSet, Runnable> launcherContentAnimator =
                     getLauncherContentAnimator(true /* isAppOpening */, startDelay, false);
             anim.play(launcherContentAnimator.first);
+            // A merge reversal turns these children back together with the window.
+            runner.attachContentSet(launcherContentAnimator.first);
             anim.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
@@ -675,7 +695,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             RemoteAnimationTarget[] appTargets,
             RemoteAnimationTarget[] wallpaperTargets,
             RemoteAnimationTarget[] nonAppTargets,
-            boolean launcherClosing) {
+            boolean launcherClosing, AppLaunchAnimationRunner runner) {
         int rotationChange = getRotationChange(appTargets);
         Rect windowTargetBounds = getWindowTargetBounds(appTargets, rotationChange);
         boolean appTargetsAreTranslucent = areAllTargetsTranslucent(appTargets);
@@ -802,7 +822,10 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 if (taskbarController != null) {
                     taskbarController.showEduOnAppLaunch();
                 }
-                openingTargets.release();
+                // While a merge reversal still paints these targets, its tail owns the release.
+                if (!runner.reversalOwnsTargets()) {
+                    openingTargets.release();
+                }
             }
         });
 
@@ -913,8 +936,12 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         if (appTargetsAreTranslucent || !launcherClosing) {
             animatorSet.play(appAnimator);
         } else {
-            animatorSet.playTogether(appAnimator, getBackgroundAnimator());
+            ObjectAnimator backgroundAnim = getBackgroundAnimator();
+            animatorSet.playTogether(appAnimator, backgroundAnim);
+            runner.setBackgroundAnim(backgroundAnim);
         }
+        // Everything a merge reversal needs to keep painting this open while it turns around.
+        runner.attachOpenReversal(openingTargets, listener, appAnimator, appTargets);
         return animatorSet;
     }
 
@@ -1690,7 +1717,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         boolean playFallBackAnimation = (launcherView == null
                 && launcherIsForceInvisibleOrOpening)
                 || mLauncher.getWorkspace().isOverlayShown()
-                || shouldPlayFallbackClosingAnimation(appTargets);
+                || shouldPlayFallbackClosingAnimation(appTargets)
+                || mLauncher.getWorkspace().getDestinationPage() == 0;
 
         boolean playWorkspaceReveal = !fromPredictiveBack;
         boolean skipAllAppsScale = false;
@@ -1785,6 +1813,13 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     protected class WallpaperOpenLauncherAnimationRunner implements RemoteAnimationFactory {
 
         private final boolean mFromUnlock;
+        // Close merge state; this runner is reused across closes, so every start resets it
+        // before capturing the new close.
+        private volatile RectFSpringAnim mClosingAnim;
+        private volatile ComponentName mClosingComponent;
+        private volatile int mClosingTaskId = -1;
+        private volatile LauncherAnimationRunner.AnimationResult mClosingResult;
+        private int mCloseReversalFrames;
 
         public WallpaperOpenLauncherAnimationRunner(boolean fromUnlock) {
             mFromUnlock = fromUnlock;
@@ -1796,6 +1831,11 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 RemoteAnimationTarget[] wallpaperTargets,
                 RemoteAnimationTarget[] nonAppTargets,
                 LauncherAnimationRunner.AnimationResult result) {
+            mClosingAnim = null;
+            mClosingComponent = null;
+            mClosingTaskId = -1;
+            mClosingResult = null;
+            mCloseReversalFrames = 0;
             if (mLauncher.isDestroyed()) {
                 AnimatorSet anim = new AnimatorSet();
                 anim.play(getFallbackClosingWindowAnimators(appTargets));
@@ -1827,7 +1867,98 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
 
             TaskViewUtils.createSplitAuxiliarySurfacesAnimator(nonAppTargets, false, null);
             mLauncher.clearForceInvisibleFlag(INVISIBLE_ALL);
+            // Remember the close so a tap on its icon can reverse it in place.
+            for (RemoteAnimationTarget t : appTargets) {
+                if (t.mode == MODE_CLOSING && t.taskInfo != null) {
+                    mClosingComponent = t.taskInfo.topActivity;
+                    mClosingTaskId = t.taskId;
+                    break;
+                }
+            }
+            mClosingAnim = pair.first;
+            mClosingResult = result;
             result.setAnimation(pair.second, mLauncher);
+        }
+
+        @Override
+        public void onAnimationCancelled() {
+            // Shell finished the close by force: a pending reversal frame chain must stop
+            // without touching the next start's capture or releasing a result it no longer
+            // owns.
+            mClosingAnim = null;
+            mClosingResult = null;
+        }
+
+        @Override
+        public boolean onAnimationMerge(TransitionInfo info,
+                LauncherAnimationRunner.AnimationResult result) {
+            final RectFSpringAnim closing = mClosingAnim;
+            final ComponentName closingComponent = mClosingComponent;
+            if (closing == null || closingComponent == null || !closing.isRunning()) {
+                // Fallback/unlock closes never build the spring; those go legacy.
+                return false;
+            }
+            boolean sawReopen = false;
+            for (TransitionInfo.Change change : info.getChanges()) {
+                if (isIgnorableMergeChange(change)) {
+                    continue;
+                }
+                final int mode = change.getMode();
+                if (mode != TRANSIT_OPEN && mode != TRANSIT_TO_FRONT) {
+                    // Only a reopen of the closing app may merge; anything else goes legacy.
+                    return false;
+                }
+                if (change.getTaskInfo() == null
+                        || change.getTaskInfo().getActivityType() != ACTIVITY_TYPE_STANDARD
+                        || (!closingComponent.equals(componentOf(change))
+                                && change.getTaskInfo().taskId != mClosingTaskId)) {
+                    return false;
+                }
+                sawReopen = true;
+            }
+            if (!sawReopen) {
+                return false;
+            }
+            mClosingResult = result;
+            mHandler.post(() -> startCloseReversal(result));
+            return true;
+        }
+
+        /** UI thread: sends the closing window back to fullscreen on its own springs. */
+        private void startCloseReversal(LauncherAnimationRunner.AnimationResult result) {
+            final RectFSpringAnim closing = mClosingAnim;
+            if (closing == null || !closing.isRunning()) {
+                // Landed on the icon in the gap between binder and post. The accepted merge
+                // already committed the reopen's start state, so only the finish was held.
+                result.releaseHold();
+                return;
+            }
+            // sync() skips while the node targets 1, so the node runs to fullscreen under
+            // the steps the rect springs already make; no progress floor is needed here.
+            ParallelMotionEngine.get().signalOpen(mClosingTaskId);
+            closing.reverseToStart();
+            mCloseReversalFrames = 0;
+            Choreographer.getInstance().postFrameCallback(mCloseReversalFrameCb);
+        }
+
+        // Method reference, not a lambda: a field initializer may not post itself.
+        private final Choreographer.FrameCallback mCloseReversalFrameCb = this::onCloseFrame;
+
+        private void onCloseFrame(long frameTimeNanos) {
+            final ParallelMotionEngine engine = ParallelMotionEngine.get();
+            engine.step();
+            final RectFSpringAnim closing = mClosingAnim;
+            if (closing == null || (!closing.isRunning() && engine.atRest())
+                    || ++mCloseReversalFrames > MAX_REVERSAL_FRAMES) {
+                mClosingAnim = null;
+                final LauncherAnimationRunner.AnimationResult result = mClosingResult;
+                if (result != null) {
+                    // The reversed close is done; let the original transition finish now.
+                    result.releaseHold();
+                }
+            } else {
+                Choreographer.getInstance().postFrameCallback(mCloseReversalFrameCb);
+            }
         }
     }
 
@@ -1840,9 +1971,147 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         private final RunnableList mOnEndCallback;
         private AnimatorSet mRunningAnim;
 
+        // Merge reversal state: captured on UI while the open composes, read on the binder
+        // thread when shell offers a merge.
+        private volatile boolean mMergePending;
+        private volatile RemoteAnimationTargets mReversalTargets;
+        private volatile MultiValueUpdateListener mOpenListener;
+        private volatile ValueAnimator mOpenDriver;
+        private volatile ObjectAnimator mBackgroundAnim;
+        private volatile AnimatorSet mContentSet;
+        private volatile ComponentName mOpeningComponent;
+        private volatile LauncherAnimationRunner.AnimationResult mResult;
+        private int mReversalFrames;
+
         AppLaunchAnimationRunner(View v, RunnableList onEndCallback) {
             mV = v;
             mOnEndCallback = onEndCallback;
+        }
+
+        /** Captures everything a merge reversal needs, called while the open is composed. */
+        void attachOpenReversal(RemoteAnimationTargets targets, MultiValueUpdateListener listener,
+                ValueAnimator driver, RemoteAnimationTarget[] appTargets) {
+            mReversalTargets = targets;
+            mOpenListener = listener;
+            mOpenDriver = driver;
+            for (RemoteAnimationTarget target : appTargets) {
+                if (target.mode == MODE_OPENING && target.taskInfo != null) {
+                    mOpeningComponent = target.taskInfo.topActivity;
+                    break;
+                }
+            }
+        }
+
+        void attachContentSet(AnimatorSet contentSet) {
+            mContentSet = contentSet;
+        }
+
+        void setBackgroundAnim(ObjectAnimator backgroundAnim) {
+            mBackgroundAnim = backgroundAnim;
+        }
+
+        /** True while a reversal still paints the open targets, so the end must not release. */
+        boolean reversalOwnsTargets() {
+            return mMergePending;
+        }
+
+        @Override
+        public boolean onAnimationMerge(TransitionInfo info,
+                LauncherAnimationRunner.AnimationResult result) {
+            final RemoteAnimationTargets targets = mReversalTargets;
+            final ComponentName opening = mOpeningComponent;
+            if (targets == null || mOpenListener == null || opening == null) {
+                // Widget/recents launches never attach; they keep the legacy cancel path.
+                return false;
+            }
+            boolean sawClose = false;
+            for (TransitionInfo.Change change : info.getChanges()) {
+                if (isIgnorableMergeChange(change)) {
+                    continue;
+                }
+                if (change.getMode() != TRANSIT_CLOSE && change.getMode() != TRANSIT_TO_BACK) {
+                    // Another app opening, or anything foreign, plays through fresh.
+                    return false;
+                }
+                if (!opening.equals(componentOf(change))) {
+                    return false;
+                }
+                sawClose = true;
+            }
+            if (!sawClose) {
+                // Nothing asked for the reverse of this open, only wallpaper or home changes
+                // riding along; let it play through.
+                return false;
+            }
+            mMergePending = true;
+            mResult = result;
+            mHandler.post(() -> startOpenReversal(result));
+            return true;
+        }
+
+        /** UI thread: turns the open around on its own leashes and pumps frames to the icon. */
+        private void startOpenReversal(LauncherAnimationRunner.AnimationResult result) {
+            if (!mMergePending) {
+                // Cancelled underneath us (legacy path won a race); nothing left to reverse.
+                return;
+            }
+            final ParallelMotionEngine engine = ParallelMotionEngine.get();
+            engine.reverseOpening();
+            // reverse() on set-driven children corrupts mStartTime (wall clock vs set play
+            // time) and pins them at 0, so the set would never end and hold never releases.
+            // end() lands children on forward-end values, fires the end listeners that clear
+            // force-invisible and reset depth, and lets the finish callback cross.
+            final AnimatorSet running = mRunningAnim;
+            if (running != null && running.isStarted()) {
+                running.end();
+            }
+            mReversalFrames = 0;
+            Choreographer.getInstance().postFrameCallback(mOpenReversalFrameCb);
+        }
+
+        // Method reference, not a lambda: a field initializer may not post itself.
+        private final Choreographer.FrameCallback mOpenReversalFrameCb = this::onOpenFrame;
+
+        private void onOpenFrame(long frameTimeNanos) {
+            if (!mMergePending) {
+                return;
+            }
+            final ParallelMotionEngine engine = ParallelMotionEngine.get();
+            engine.step();
+            final MultiValueUpdateListener listener = mOpenListener;
+            final ValueAnimator driver = mOpenDriver;
+            if (listener != null) {
+                // Driving off the original driver lands nav on its end values as the 500ms
+                // open finishes, while the window itself follows the node's progress.
+                if (driver != null) {
+                    listener.onAnimationUpdate(driver);
+                } else {
+                    listener.onUpdate(1f, false /* initOnly */);
+                }
+            }
+            if (engine.atRest() || ++mReversalFrames > MAX_REVERSAL_FRAMES) {
+                finishOpenReversal();
+            } else {
+                Choreographer.getInstance().postFrameCallback(mOpenReversalFrameCb);
+            }
+        }
+
+        private void finishOpenReversal() {
+            mMergePending = false;
+            final RemoteAnimationTargets targets = mReversalTargets;
+            mReversalTargets = null;
+            mOpenListener = null;
+            mOpenDriver = null;
+            mBackgroundAnim = null;
+            mContentSet = null;
+            if (targets != null) {
+                targets.release();
+            }
+            final LauncherAnimationRunner.AnimationResult result = mResult;
+            if (result != null) {
+                // The reversal truly ended; let the original transition finish now.
+                result.releaseHold();
+            }
         }
 
         @Override
@@ -1852,6 +2121,18 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 RemoteAnimationTarget[] nonAppTargets,
                 LauncherAnimationRunner.AnimationResult result) {
             Log.d("b/318394698", "AppLaunchAnimationRunner: onAnimationStart");
+            // This runner is reused; a queued cancel or stale reversal chain must never touch
+            // the fresh capture below, and a live chain owns targets that need releasing.
+            if (mMergePending && mReversalTargets != null) {
+                mReversalTargets.release();
+            }
+            mMergePending = false;
+            mReversalTargets = null;
+            mOpenListener = null;
+            mOpenDriver = null;
+            mContentSet = null;
+            mBackgroundAnim = null;
+            mOpeningComponent = null;
             AnimatorSet anim = new AnimatorSet();
             boolean launcherClosing =
                     launcherIsATargetWithMode(appTargets, MODE_CLOSING);
@@ -1872,7 +2153,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 skipFirstFrame = true;
             } else {
                 composeIconLaunchAnimator(anim, mV, appTargets, wallpaperTargets, nonAppTargets,
-                        launcherClosing);
+                        launcherClosing, this);
                 addCujInstrumentation(anim, Cuj.CUJ_LAUNCHER_APP_LAUNCH_FROM_ICON);
                 skipFirstFrame = false;
             }
@@ -1881,6 +2162,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 anim.addListener(mForceInvisibleListener);
             }
 
+            mResult = result;
             result.setAnimation(anim, mLauncher, mOnEndCallback::executeAllAndDestroy,
                     skipFirstFrame);
             mRunningAnim = anim;
@@ -1889,6 +2171,11 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         @Override
         public void onAnimationCancelled() {
             Log.d("b/318394698", "AppLaunchAnimationRunner: onAnimationCancelled");
+            if (mMergePending) {
+                // A later merge declined while our reversal ran, so shell finished the
+                // original transition by force; stop painting and drop the targets now.
+                finishOpenReversal();
+            }
             // Shell reclaimed the transition mid-flight; cancel so the stale open animator
             // stops stepping the engine and the incoming close takes over.
             if (mRunningAnim != null) {

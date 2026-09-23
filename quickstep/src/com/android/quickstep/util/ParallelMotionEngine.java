@@ -171,6 +171,30 @@ public class ParallelMotionEngine {
     }
 
     /**
+     * Turns every visible node still heading toward fullscreen back toward its icon,
+     * carrying velocity so the window reverses with the momentum it built. Nodes frozen
+     * by a close (target 0) stay with their close animator.
+     */
+    public void reverseOpening() {
+        mLastFrameTime = -1;
+        for (Node node : mNodes.values()) {
+            if (node.visible() && node.target > 0f) {
+                node.moveTo(0f);
+            }
+        }
+    }
+
+    /** True when no node is integrating, i.e. every spring has settled on its target. */
+    public boolean atRest() {
+        for (Node node : mNodes.values()) {
+            if (node.active) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Advances every node; call once per frame. Uptime millis is safe from animator callbacks
      * and from synchronous paths like RectFSpringAnim.end(), where Choreographer is not in a
      * frame and getFrameTime() would throw.

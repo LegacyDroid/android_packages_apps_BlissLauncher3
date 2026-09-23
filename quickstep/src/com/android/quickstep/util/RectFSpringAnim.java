@@ -105,10 +105,14 @@ public class RectFSpringAnim extends ReleaseCheck {
     private FlingSpringAnim mRectXAnim;
     private FlingSpringAnim mRectYAnim;
     private SpringAnimation mRectScaleAnim;
-    private boolean mAnimsStarted;
+    private volatile boolean mAnimsStarted;
     private boolean mRectXAnimEnded;
     private boolean mRectYAnimEnded;
     private boolean mRectScaleAnimEnded;
+    // Scale spring config kept so a reversal can rebuild it once it has settled.
+    private float mScaleDamping;
+    private float mScaleStiffness;
+    private float mScaleMinVisChange;
 
     private float mMinVisChange;
     private int mMaxVelocityPxPerS;
@@ -250,6 +254,9 @@ public class RectFSpringAnim extends ReleaseCheck {
         float stiffness = shouldUseHigherStiffness
                 ? rp.getFloat(R.dimen.swipe_up_rect_scale_higher_stiffness)
                 : rp.getFloat(R.dimen.swipe_up_rect_scale_stiffness);
+        mScaleDamping = damping;
+        mScaleStiffness = stiffness;
+        mScaleMinVisChange = minVisibleChange;
 
         mRectScaleAnim = new SpringAnimation(this, RECT_SCALE_PROGRESS)
                 .setSpring(new SpringForce(1f)
@@ -271,6 +278,49 @@ public class RectFSpringAnim extends ReleaseCheck {
         mRectScaleAnim.start();
         for (Animator.AnimatorListener animatorListener : mAnimatorListeners) {
             animatorListener.onAnimationStart(null);
+        }
+    }
+
+    /** Whether the springs are still traveling; read across threads to time a merge reversal. */
+    public boolean isRunning() {
+        return mAnimsStarted;
+    }
+
+    /**
+     * Turns a running anim back toward its start rect, keeping current momentum. Settled
+     * springs are rebuilt from their last value: an ended androidx spring never restarts.
+     */
+    public void reverseToStart() {
+        if (!mAnimsStarted) {
+            return;
+        }
+        // isEnded() gates updates and the final end; each rebuilt spring must fire its
+        // own end again.
+        mRectXAnimEnded = false;
+        mRectYAnimEnded = false;
+        mRectScaleAnimEnded = false;
+
+        mRectXAnim.restartTo(mCurrentCenterX, mStartRect.centerX());
+        mRectYAnim.restartTo(mCurrentY, getTrackedYFromRect(mStartRect));
+
+        if (mRectScaleAnim.isRunning()) {
+            mRectScaleAnim.animateToFinalPosition(0f);
+        } else {
+            // The old spring settled, so momentum is gone: start from rest at the tracked
+            // progress (DynamicAnimation exposes no getValue()).
+            mRectScaleAnim = new SpringAnimation(this, RECT_SCALE_PROGRESS)
+                    .setSpring(new SpringForce(0f)
+                            .setDampingRatio(mScaleDamping)
+                            .setStiffness(mScaleStiffness))
+                    .setStartValue(mCurrentScaleProgress)
+                    .setStartVelocity(0f)
+                    .setMaxValue(1f)
+                    .setMinimumVisibleChange(mScaleMinVisChange)
+                    .addEndListener((animation, canceled, value, velocity) -> {
+                        mRectScaleAnimEnded = true;
+                        maybeOnEnd();
+                    });
+            mRectScaleAnim.start();
         }
     }
 
