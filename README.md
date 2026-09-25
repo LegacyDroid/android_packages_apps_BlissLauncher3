@@ -1,18 +1,18 @@
-# BlissLauncher3
+# BlissLauncher3 (LegacyDroid)
 
-**BlissLauncher3** is a modified version of the AOSP [Launcher3](https://android.googlesource.com/platform/packages/apps/Launcher3), with features inspired from [BlissLauncher v1](https://gitlab.e.foundation/e/os/BlissLauncher/-/tree/master).
+**BlissLauncher3** is a customized fork of the AOSP [Launcher3](https://android.googlesource.com/platform/packages/apps/Launcher3), derived from [BlissLauncher v1](https://gitlab.e.foundation/e/os/BlissLauncher/-/tree/master).
 
-It is the default launcher for [/e/ OS](https://e.foundation/e-os/).
+This is the default launcher for the **LegacyDroid** custom Android ROM project (based on LineageOS 21).
 
 ## Building
 
 - Clone the repository
 
   ```git
-  git clone --recurse-submodules https://gitlab.e.foundation/e/os/BlissLauncher3 -b v1-u BlissLauncher3u
+  git clone --recurse-submodules https://github.com/LegacyDroid/android_packages_apps_BlissLauncher3 BlissLauncher3
   ```
 
-- To build this project, we need the following jars inside the `prebuilts` folder from our AOSP build directory:
+- To build this project, we need the following jars inside the `prebuilts` folder from your AOSP build directory:
 
   - **framework-14.jar**: `out/soong/.intermediates/frameworks/base/framework/android_common/turbine-combined/framework.jar`
 
@@ -42,20 +42,20 @@ It is the default launcher for [/e/ OS](https://e.foundation/e-os/).
 
 - Below conditions are required to install the app:
 
-  - User should be on **Android 14** /e/OS or LineageOS
-  - Rom should be signed with **test keys**
+  - User should be on **Android 14** LegacyDroid or compatible LineageOS-based ROM
+  - ROM should be signed with **test keys**
 
-- Download and install the APK like any other normal app from the [pipeline](https://gitlab.e.foundation/e/os/BlissLauncher/-/pipelines/latest?ref=v1-u)
+- Download and install the APK like any other normal app
 
-- Download and install the icon mask like normal app [SquircleMask.apk](https://gitlab.e.foundation/internal/wiki/-/wikis/uploads/320461a58f097993b29772abe0d2b0b9/KGLN4.apk)
+- Download and install the icon mask (SquircleMask.apk) like a normal app
 
-- Go to _Settings > Apps > Default apps > Launcher_ and change launcher to `Blisslauncher` (with green icon)
+- Go to _Settings > Apps > Default apps > Launcher_ and change launcher to `BlissLauncher3` (with green icon)
 
-- It will open a page about `Usage access`. Allow the new BlissLauncher (`Permit usage access`)
+- It will open a page about `Usage access`. Allow the new BlissLauncher3 (`Permit usage access`)
 
 - Go to Settings > Display > Icon Shape > Select **Squircle**
 
-- Clear the data of Blisslauncher3 manually through settings or run the command through adb:
+- Clear the data of BlissLauncher3 manually through settings or run the command through adb:
 
   ```bash
   adb shell pm clear com.android.launcher3
@@ -67,11 +67,17 @@ It is the default launcher for [/e/ OS](https://e.foundation/e-os/).
 
 ## License
 
-```text
-Copyright © MURENA SAS 2024.
+BlissLauncher3 combines code under two licenses:
 
-All rights reserved. This program and the accompanying materials
-are made available under the terms of the GNU Public License v3.0
-which accompanies this distribution, and is available at
-http://www.gnu.org/licenses/gpl.html
-```
+* **Our original code** (files we wrote from scratch for LegacyDroid) is licensed under the **Apache License 2.0**.
+* **BlissLauncher itself** and all our modifications to it fall under the **GNU General Public License v3.0 (GPLv3)**.
+
+### What this means for you:
+* **Source files:** If you're pulling individual standalone files we authored, you can use them under Apache 2.0.
+* **Building / Distributing the APK:** Because BlissLauncher is GPLv3, any compiled build or modified launcher app as a whole is covered by **GPLv3**.
+
+---
+
+**Upstream Credits:**  
+- BlissLauncher: [e.foundation](https://gitlab.e.foundation/e/os/BlissLauncher)
+- Launcher3: [AOSP](https://android.googlesource.com/platform/packages/apps/Launcher3)
